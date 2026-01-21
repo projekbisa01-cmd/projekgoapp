@@ -18,10 +18,10 @@
 </head>
 <body class="bg-gray-100 text-gray-800">
 
-    <div class="max-w-md mx-auto bg-white min-h-screen shadow-xl relative overflow-hidden">
+    <div class="max-w-md mx-auto bg-white min-h-screen shadow-xl relative overflow-hidden flex flex-col">
         
         <!-- === HALAMAN LOGIN === -->
-        <div id="login-page" class="page-section active p-8 justify-center items-center bg-orange-600">
+        <div id="login-page" class="page-section active p-8 justify-center items-center bg-orange-600 absolute inset-0 z-50">
             <div class="bg-white p-8 rounded-3xl w-full shadow-2xl">
                 <div class="text-center mb-6">
                     <h1 class="text-3xl font-black text-orange-600 italic">PROJEK<span class="text-gray-800">GO</span></h1>
@@ -48,21 +48,21 @@
         </div>
 
         <!-- === HALAMAN UTAMA (DASHBOARD) === -->
-        <div id="dashboard-page" class="page-section bg-gray-50 pb-24">
-            <!-- Header -->
-            <header class="bg-white p-5 shadow-sm sticky top-0 z-20 flex justify-between items-center rounded-b-[2rem]">
-                <div>
+        <div id="dashboard-page" class="page-section bg-gray-50 h-full hidden flex-col">
+            <!-- Header Fixed -->
+            <header class="bg-white p-5 shadow-sm z-20 flex justify-between items-center rounded-b-[2rem] flex-shrink-0">
+                <div class="overflow-hidden">
                     <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Selamat Datang,</p>
-                    <h2 class="text-lg font-black text-gray-800 leading-tight" id="dashboard-vendor-name">Nama Toko</h2>
+                    <h2 class="text-lg font-black text-gray-800 leading-tight truncate" id="dashboard-vendor-name">Nama Toko</h2>
                     <span class="text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded font-bold" id="dashboard-vendor-id">ID: -</span>
                 </div>
-                <button onclick="handleLogout()" class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:text-red-500 transition">
+                <button onclick="handleLogout()" class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:text-red-500 transition active:scale-90 flex-shrink-0">
                     <i class="fas fa-sign-out-alt"></i>
                 </button>
             </header>
 
-            <!-- Content Area -->
-            <main class="flex-1 p-5 overflow-y-auto hide-scrollbar">
+            <!-- Content Area Scrollable -->
+            <main class="flex-1 p-5 overflow-y-auto hide-scrollbar scrolling-wrapper relative z-10 pb-24">
                 
                 <!-- TAB 1: TAMBAH MENU -->
                 <div id="tab-menu" class="space-y-5">
@@ -83,11 +83,11 @@
                             <div>
                                 <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 ml-1">Kategori</label>
                                 <select id="prod-cat" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 font-medium text-gray-700">
-                                    <option value="cat1">Aneka Nasi</option>
-                                    <option value="cat2">Minuman</option>
-                                    <option value="cat3">Jajanan</option>
-                                    <option value="cat4">Roti & Kue</option>
-                                    <option value="cat5">Sate & BBQ</option>
+                                    <option value="Aneka Nasi">Aneka Nasi</option>
+                                    <option value="Minuman">Minuman</option>
+                                    <option value="Jajanan">Jajanan</option>
+                                    <option value="Roti & Kue">Roti & Kue</option>
+                                    <option value="Sate & BBQ">Sate & BBQ</option>
                                 </select>
                             </div>
 
@@ -122,8 +122,8 @@
                                 
                                 <!-- Opsi Tab Upload/URL -->
                                 <div class="flex gap-2 mb-2">
-                                    <button type="button" onclick="toggleImageInput('upload')" id="btn-mode-upload" class="flex-1 py-2 text-xs font-bold rounded-lg bg-orange-100 text-orange-600 border border-orange-200">Upload Galeri</button>
-                                    <button type="button" onclick="toggleImageInput('url')" id="btn-mode-url" class="flex-1 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-500 border border-gray-200">Pakai Link/URL</button>
+                                    <button type="button" onclick="toggleImageInput('upload')" id="btn-mode-upload" class="flex-1 py-2 text-xs font-bold rounded-lg bg-orange-100 text-orange-600 border border-orange-200 transition-colors">Upload Galeri</button>
+                                    <button type="button" onclick="toggleImageInput('url')" id="btn-mode-url" class="flex-1 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-500 border border-gray-200 transition-colors">Pakai Link/URL</button>
                                 </div>
 
                                 <!-- Input File (Galeri) -->
@@ -150,7 +150,7 @@
                             <!-- Preview Image Area -->
                             <div id="img-preview-box" class="hidden w-full h-40 bg-gray-100 rounded-xl overflow-hidden mb-2 border border-gray-200 relative">
                                 <img id="img-preview-el" src="" class="w-full h-full object-cover">
-                                <button type="button" onclick="removeImage()" class="absolute top-2 right-2 bg-white/80 rounded-full w-8 h-8 flex items-center justify-center text-red-500 shadow-sm"><i class="fas fa-times"></i></button>
+                                <button type="button" onclick="removeImage()" class="absolute top-2 right-2 bg-white/80 rounded-full w-8 h-8 flex items-center justify-center text-red-500 shadow-sm hover:bg-white transition"><i class="fas fa-times"></i></button>
                             </div>
 
                             <button type="submit" id="btn-submit-prod" class="w-full bg-orange-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-orange-200 hover:bg-orange-700 active:scale-95 transition flex justify-center items-center gap-2">
@@ -169,7 +169,7 @@
                         </button>
                     </div>
                     
-                    <div id="vendor-product-list" class="space-y-3 pb-10">
+                    <div id="vendor-product-list" class="space-y-3 pb-10 min-h-[300px]">
                         <div class="text-center py-10 text-gray-400 text-xs">
                             <div class="bg-gray-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
                                 <i class="fas fa-list-ul text-lg text-gray-300"></i>
@@ -203,10 +203,10 @@
             </main>
 
             <!-- Bottom Nav -->
-            <nav class="bg-white border-t border-gray-100 flex justify-around items-center py-3 absolute bottom-0 left-0 right-0 w-full rounded-t-[2rem] shadow-[0_-5px_15px_rgba(0,0,0,0.05)] pb-6">
+            <nav class="bg-white border-t border-gray-100 flex justify-around items-center py-3 absolute bottom-0 left-0 right-0 w-full rounded-t-[2rem] shadow-[0_-5px_15px_rgba(0,0,0,0.05)] pb-6 z-20">
                 <!-- Tombol Input -->
-                <button onclick="switchTab('menu')" id="nav-btn-menu" class="flex flex-col items-center gap-1 text-orange-600 w-16 transition active:scale-90 group">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center bg-transparent group-[.text-orange-600]:bg-orange-50 transition">
+                <button onclick="switchTab('menu')" id="nav-btn-menu" class="flex flex-col items-center gap-1 text-orange-600 w-16 transition active:scale-90 group select-none">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center bg-transparent group-[.text-orange-600]:bg-orange-50 transition duration-200">
                         <i class="fas fa-plus-circle text-lg"></i>
                     </div>
                     <span class="text-[10px] font-bold">Input</span>
@@ -215,8 +215,8 @@
                 <div class="w-[1px] h-8 bg-gray-100"></div>
 
                 <!-- Tombol Daftar -->
-                <button onclick="switchTab('list-menu')" id="nav-btn-list-menu" class="flex flex-col items-center gap-1 text-gray-400 w-16 transition active:scale-90 group">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center bg-transparent group-[.text-orange-600]:bg-orange-50 transition">
+                <button onclick="switchTab('list-menu')" id="nav-btn-list-menu" class="flex flex-col items-center gap-1 text-gray-400 w-16 transition active:scale-90 group select-none">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center bg-transparent group-[.text-orange-600]:bg-orange-50 transition duration-200">
                         <i class="fas fa-clipboard-list text-lg"></i>
                     </div>
                     <span class="text-[10px] font-medium">Daftar</span>
@@ -225,8 +225,8 @@
                 <div class="w-[1px] h-8 bg-gray-100"></div>
 
                 <!-- Tombol Status -->
-                <button onclick="switchTab('status')" id="nav-btn-status" class="flex flex-col items-center gap-1 text-gray-400 w-16 transition active:scale-90 group">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center bg-transparent group-[.text-orange-600]:bg-orange-50 transition">
+                <button onclick="switchTab('status')" id="nav-btn-status" class="flex flex-col items-center gap-1 text-gray-400 w-16 transition active:scale-90 group select-none">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center bg-transparent group-[.text-orange-600]:bg-orange-50 transition duration-200">
                         <i class="fas fa-store text-lg"></i>
                     </div>
                     <span class="text-[10px] font-medium">Status</span>
@@ -244,7 +244,7 @@
 
     <script>
         // =========================================================================
-        // URL API GOOGLE APPS SCRIPT (WEB APP) - SUDAH DITERAPKAN
+        // URL API GOOGLE APPS SCRIPT (WEB APP)
         // =========================================================================
         const API_URL = "https://script.google.com/macros/s/AKfycbw65jWYm1cmPsXPM22Hsi9LH0FrY2AiIPNHE-16uvhEaVsx-KrgZ8KWw0K0cpAVA5Sj/exec"; 
         
@@ -266,7 +266,7 @@
         });
 
         // --- AUTHENTICATION ---
-        function handleLogin() {
+        async function handleLogin() {
             const idInput = document.getElementById('login-id').value.trim();
             const nameInput = document.getElementById('login-name').value.trim();
 
@@ -275,13 +275,41 @@
                 return;
             }
 
-            vendorData.id = idInput;
-            vendorData.name = nameInput;
-            
-            localStorage.setItem('pg_vendor_id', idInput);
-            localStorage.setItem('pg_vendor_name', nameInput);
+            setLoading(true, "Memverifikasi Akun...");
 
-            showDashboard();
+            try {
+                // Fetch data vendors untuk validasi
+                const response = await fetch(`${API_URL}?action=getVendors`);
+                const result = await response.json();
+
+                setLoading(false);
+
+                if (result.status === 'success') {
+                    const vendors = result.data;
+                    
+                    // Validasi: Cek apakah ada ID dan Nama yang cocok (Case Insensitive)
+                    const found = vendors.find(v => 
+                        String(v.ID).toLowerCase() === idInput.toLowerCase() &&
+                        String(v.Vendor_Name).toLowerCase() === nameInput.toLowerCase()
+                    );
+
+                    if (found) {
+                        vendorData.id = found.ID;
+                        vendorData.name = found.Vendor_Name;
+                        localStorage.setItem('pg_vendor_id', found.ID);
+                        localStorage.setItem('pg_vendor_name', found.Vendor_Name);
+                        showDashboard();
+                    } else {
+                        alert("Login Gagal!\nID Penjual atau Nama Toko salah/tidak terdaftar.\nPastikan penulisan sesuai.");
+                    }
+                } else {
+                    alert("Gagal mengambil data verifikasi. Silakan coba lagi.");
+                }
+            } catch (error) {
+                setLoading(false);
+                console.error("Login Error:", error);
+                alert("Terjadi kesalahan koneksi internet.");
+            }
         }
 
         function handleLogout() {
@@ -291,6 +319,8 @@
                 vendorData = { id: '', name: '' };
                 document.getElementById('login-page').classList.add('active');
                 document.getElementById('dashboard-page').classList.remove('active');
+                document.getElementById('dashboard-page').classList.remove('flex'); // Remove flex when hidden
+                document.getElementById('dashboard-page').classList.add('hidden'); // Add hidden class
                 document.getElementById('login-id').value = '';
                 document.getElementById('login-name').value = '';
             }
@@ -299,6 +329,8 @@
         function showDashboard() {
             document.getElementById('login-page').classList.remove('active');
             document.getElementById('dashboard-page').classList.add('active');
+            document.getElementById('dashboard-page').classList.remove('hidden'); // Ensure hidden class is removed
+            document.getElementById('dashboard-page').classList.add('flex'); // Add flex class for layout
             
             document.getElementById('dashboard-vendor-name').innerText = vendorData.name;
             document.getElementById('dashboard-vendor-id').innerText = "ID: " + vendorData.id;
@@ -321,24 +353,31 @@
             [navMenu, navList, navStatus].forEach(el => {
                 el.classList.replace('text-orange-600', 'text-gray-400');
                 el.querySelector('span').classList.replace('font-bold', 'font-medium');
+                // Remove active background
+                el.querySelector('div').classList.remove('bg-orange-50');
             });
 
             // Activate Selected Tab
+            let activeNav;
             if (tabName === 'menu') {
                 menuContent.classList.remove('hidden');
-                navMenu.classList.replace('text-gray-400', 'text-orange-600');
-                navMenu.querySelector('span').classList.replace('font-medium', 'font-bold');
+                activeNav = navMenu;
             } else if (tabName === 'list-menu') {
                 listContent.classList.remove('hidden');
-                navList.classList.replace('text-gray-400', 'text-orange-600');
-                navList.querySelector('span').classList.replace('font-medium', 'font-bold');
+                activeNav = navList;
+                // Auto fetch if list is empty
                 if(document.getElementById('vendor-product-list').children.length <= 1) {
                     fetchVendorProducts();
                 }
             } else if (tabName === 'status') {
                 statusContent.classList.remove('hidden');
-                navStatus.classList.replace('text-gray-400', 'text-orange-600');
-                navStatus.querySelector('span').classList.replace('font-medium', 'font-bold');
+                activeNav = navStatus;
+            }
+
+            if (activeNav) {
+                activeNav.classList.replace('text-gray-400', 'text-orange-600');
+                activeNav.querySelector('span').classList.replace('font-medium', 'font-bold');
+                activeNav.querySelector('div').classList.add('bg-orange-50');
             }
         }
 
@@ -370,14 +409,14 @@
                 uploadDiv.classList.remove('hidden');
                 urlDiv.classList.add('hidden');
                 
-                btnUpload.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-orange-100 text-orange-600 border border-orange-200";
-                btnUrl.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-500 border border-gray-200";
+                btnUpload.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-orange-100 text-orange-600 border border-orange-200 transition-colors";
+                btnUrl.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-500 border border-gray-200 transition-colors";
             } else {
                 uploadDiv.classList.add('hidden');
                 urlDiv.classList.remove('hidden');
                 
-                btnUpload.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-500 border border-gray-200";
-                btnUrl.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-orange-100 text-orange-600 border border-orange-200";
+                btnUpload.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-500 border border-gray-200 transition-colors";
+                btnUrl.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-orange-100 text-orange-600 border border-orange-200 transition-colors";
             }
         }
 
@@ -560,28 +599,82 @@
 
             const sortedProducts = products.reverse(); 
 
-            container.innerHTML = sortedProducts.map(item => `
-                <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex gap-3 items-center">
-                    <div class="w-16 h-16 bg-gray-100 rounded-xl overflow-hidden shrink-0 relative">
-                        <img src="${item.Image_URL}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/100?text=No+Img'">
+            container.innerHTML = sortedProducts.map(item => {
+                // Cleaning status string (remove extra spaces if any)
+                const rawStatus = item.Availability ? String(item.Availability).trim() : 'Tersedia';
+                const isHabis = rawStatus === 'Habis';
+                const displayStatus = isHabis ? 'Stok: Habis' : 'Stok: Tersedia';
+                const statusClass = isHabis 
+                    ? 'bg-red-100 text-red-700 border-red-200 hover:bg-red-200' 
+                    : 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200';
+
+                return `
+                <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex gap-3 items-center transform transition-transform active:scale-[0.99]">
+                    <div class="w-16 h-16 bg-gray-100 rounded-xl overflow-hidden shrink-0 relative shadow-inner">
+                        <img src="${item.Image_URL}" loading="lazy" class="w-full h-full object-cover transition-opacity duration-300 ${isHabis ? 'grayscale' : ''}" onerror="this.src='https://placehold.co/100?text=No+Img'">
+                        ${isHabis ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center text-[8px] text-white font-bold">HABIS</div>' : ''}
                     </div>
                     <div class="flex-1 min-w-0">
                         <h4 class="font-bold text-gray-800 text-sm truncate">${item.Name}</h4>
                         <p class="text-[10px] text-gray-500 mb-1 truncate">${item.Category}</p>
-                        ${item.Variants ? `<p class="text-[9px] text-orange-600 bg-orange-50 inline-block px-1.5 rounded mb-1">Varian: ${item.Variants}</p>` : ''}
+                        ${item.Variants ? `<p class="text-[9px] text-orange-600 bg-orange-50 inline-block px-1.5 rounded mb-1 border border-orange-100 truncate max-w-full">Varian: ${item.Variants}</p>` : ''}
                         <div class="flex items-center gap-2">
                             <span class="text-orange-600 font-bold text-xs">Rp ${new Intl.NumberFormat('id-ID').format(item.Price)}</span>
-                            ${item.Original_Price > item.Price ? `<span class="text-[9px] text-gray-400 line-through">Rp ${new Intl.NumberFormat('id-ID').format(item.Original_Price)}</span>` : ''}
                         </div>
                     </div>
-                    <div class="flex flex-col gap-1">
-                        <span class="text-[9px] bg-green-100 text-green-700 px-2 py-0.5 rounded text-center">Aktif</span>
+                    <div class="flex flex-col gap-2 items-end">
+                        <button onclick="event.stopPropagation(); toggleProductStatus('${item.ID}', '${rawStatus}')" class="${statusClass} px-4 py-1.5 rounded-lg text-[10px] font-bold border shadow-sm transition active:scale-95 w-24 text-center">
+                            ${displayStatus}
+                        </button>
+                        <button onclick="event.stopPropagation(); deleteProduct('${item.ID}')" class="text-gray-300 hover:text-red-500 p-1 bg-gray-50 rounded-full w-8 h-8 flex items-center justify-center transition">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
-        // --- FITUR UPDATE STATUS ---
+        // --- FITUR STATUS & HAPUS (FIXED) ---
+        function toggleProductStatus(id, currentStatus) {
+            // Logic to switch status
+            const newStatus = currentStatus === 'Habis' ? 'Tersedia' : 'Habis';
+            
+            // Konfirmasi sederhana (Opsional, bisa dihapus jika ingin cepat)
+            // if(!confirm(`Ubah status menu ini menjadi ${newStatus}?`)) return;
+
+            setLoading(true, `Mengubah ke ${newStatus}...`);
+            
+            fetch(API_URL, { 
+                method: 'POST', 
+                mode: 'no-cors', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ action: 'updateProductStatus', prodId: id, status: newStatus }) 
+            })
+            .then(() => { 
+                setLoading(false); 
+                // Optimistic UI update or fetch again
+                fetchVendorProducts(); 
+            })
+            .catch(e => { 
+                setLoading(false); 
+                alert("Gagal mengubah status: " + e); 
+            });
+        }
+
+        function deleteProduct(id) {
+            if(!confirm("Yakin ingin menghapus menu ini selamanya?")) return;
+            setLoading(true, "Menghapus...");
+            fetch(API_URL, { 
+                method: 'POST', 
+                mode: 'no-cors', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ action: 'deleteProduct', prodId: id }) 
+            })
+            .then(() => { setLoading(false); fetchVendorProducts(); })
+            .catch(e => { setLoading(false); alert("Error: " + e); });
+        }
+
+        // --- FITUR UPDATE STATUS TOKO ---
         function updateStatus(status) {
             if(!vendorData.id) { alert("Sesi habis, login ulang."); handleLogout(); return; }
 
