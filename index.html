@@ -3,16 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Meta PWA -->
     <meta name="theme-color" content="#ea580c">
-    <title>ProjekGo - Pesan Makan</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ProjekGo">
     
-    <!-- Tailwind CSS -->
+    <title>ProjekGo - Katalog Kuliner</title>
+    <!-- Tailwind CSS (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <!-- FontAwesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
-    <!-- Leaflet CSS (Maps Gratis) -->
+    <!-- Leaflet CSS (Untuk Peta) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     
     <style>
@@ -23,48 +25,75 @@
             background-color: #f3f4f6;
             margin: 0;
             padding: 0;
-            overflow: hidden; /* Mencegah pull-to-refresh native */
-            height: 100dvh;
+            overflow: hidden;
+            height: 100vh;
             width: 100vw;
             -webkit-tap-highlight-color: transparent;
+            overscroll-behavior-y: none;
         }
 
         #app-container {
             height: 100%;
-            max-width: 28rem; /* Mobile view constraint */
+            height: 100dvh;
+            max-width: 28rem;
             margin: 0 auto;
             background-color: #ffffff;
             position: relative;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
 
-        /* Scroll Optimization */
-        .scrolling-wrapper {
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            overscroll-behavior-y: contain;
-            /* Menghapus will-change berat */
-        }
-        
+        /* Utilitas Custom */
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* Performance tweaks for cards */
-        .product-card {
-            transform: translateZ(0); /* Hardware acceleration */
-            will-change: transform;
+        
+        .scrolling-wrapper {
+            -webkit-overflow-scrolling: touch;
+            overflow-y: auto;
+            will-change: scroll-position;
+            touch-action: pan-y;
+            padding-bottom: 6rem; /* Extra padding for bottom nav */
         }
 
-        /* Leaflet Map Fixes */
-        .leaflet-container { font-family: inherit; z-index: 1; }
+        .category-icon { transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; }
+        .category-icon:active { transform: scale(0.9); }
+        .icon-3d { filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); transition: transform 0.3s ease; }
+        .category-icon:hover .icon-3d { transform: translateY(-5px); }
+
+        .page-section {
+            transition: opacity 0.2s ease-in-out;
+            opacity: 1;
+            pointer-events: auto;
+            position: absolute;
+            inset: 0;
+            background-color: #fff; 
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 5rem;
+        }
+        .hidden-page { opacity: 0; pointer-events: none; z-index: 0; display: none !important; }
+
+        .nav-item.active i { color: #ea580c; }
+        .nav-item.active span { color: #ea580c; font-weight: 700; }
+
+        .shop-closed { filter: grayscale(100%); opacity: 0.6; pointer-events: none; }
+
+        .variant-radio:checked + label {
+            background-color: #fff7ed; border-color: #ea580c; color: #ea580c; font-weight: 700;
+        }
+        .variant-radio:checked + label .check-icon { display: block; }
         
-        /* Modal Transitions */
-        .modal-enter { opacity: 0; transform: translateY(100%); }
-        .modal-active { opacity: 1; transform: translateY(0); }
-        .modal-exit { opacity: 0; transform: translateY(100%); }
+        @keyframes like-bounce { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+        .liked-anim { animation: like-bounce 0.3s ease-in-out; }
+        
+        .progress-bar-fill { transition: width 1s ease-in-out; }
+
+        /* Leaflet Fixes */
+        .leaflet-pane { z-index: 10; }
+        .leaflet-top, .leaflet-bottom { z-index: 20; }
     </style>
 </head>
 <body>
@@ -72,82 +101,331 @@
     <div id="app-container">
         
         <!-- === HALAMAN UTAMA (HOME) === -->
-        <div id="home-page" class="page-section absolute inset-0 z-20 flex flex-col bg-gray-50">
-            <!-- Header (Ringan tanpa blur) -->
-            <header class="bg-orange-600 text-white pt-4 pb-6 px-5 rounded-b-[2rem] shadow-md z-20 flex-shrink-0">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="flex-1 mr-4">
-                        <h1 class="text-2xl font-black italic tracking-tighter mb-1">PROJEK<span class="text-orange-200">GO</span></h1>
-                        <!-- Lokasi Trigger -->
-                        <div onclick="openLocationModal()" class="flex items-center gap-2 bg-orange-700/30 py-1.5 px-3 rounded-full cursor-pointer active:scale-95 transition w-fit max-w-full">
-                            <i class="fas fa-map-marker-alt text-xs text-orange-200"></i>
-                            <p class="text-[11px] font-bold truncate" id="header-address-text">Atur Lokasi Pengantaran</p>
-                            <i class="fas fa-chevron-down text-[10px] text-orange-200"></i>
+        <div id="home-page" class="page-section z-20 bg-gray-50">
+            <!-- Header Minimalis & Membulat -->
+            <header class="bg-orange-600 text-white pt-6 pb-8 px-5 rounded-b-[2.5rem] shadow-lg shadow-orange-600/20 z-20 relative shrink-0">
+                <div class="flex justify-between items-center mb-5">
+                    <div class="flex flex-col">
+                        <h1 class="text-2xl font-black tracking-tighter italic select-none">PROJEK<span class="text-orange-200">GO</span></h1>
+                        <div class="flex items-center gap-1.5 opacity-90 cursor-pointer mt-0.5" onclick="openLocationModal()">
+                            <i class="fas fa-map-marker-alt text-[10px] animate-bounce"></i>
+                            <p class="text-[10px] font-medium truncate max-w-[150px] leading-none" id="header-address-text">Atur Lokasi Pengantaran</p>
                         </div>
                     </div>
-                    <!-- Menu Mitra -->
-                    <button class="bg-white/10 p-2.5 rounded-full hover:bg-white/20 active:bg-white/30 transition flex-shrink-0" onclick="openPartnershipModal()">
-                        <i class="fas fa-store text-sm"></i>
+                    <!-- Menu Button -->
+                    <button class="bg-white/10 hover:bg-white/20 text-white w-9 h-9 rounded-full flex items-center justify-center transition active:scale-95 backdrop-blur-sm" onclick="openPartnershipModal()">
+                        <i class="fas fa-bars text-xs"></i>
                     </button>
                 </div>
                 
-                <!-- Search Bar Statis -->
-                <div class="relative active:scale-[0.99] transition" onclick="navTo('search-page')">
-                    <i class="fas fa-search absolute left-4 top-3 text-gray-400 text-sm"></i>
-                    <div class="w-full py-2.5 pl-10 pr-4 rounded-xl bg-white text-gray-400 text-sm shadow-sm font-medium">
-                        Cari makan apa hari ini?
+                <!-- Search Bar Integrated -->
+                <div class="relative group active:scale-[0.99] transition" onclick="navTo('search-page')">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-orange-300 group-hover:text-orange-500 transition-colors text-sm"></i>
                     </div>
+                    <input type="text" placeholder="Mau makan apa hari ini?" readonly
+                        class="w-full py-3 pl-10 pr-4 rounded-2xl text-gray-700 text-sm font-medium bg-white/95 border-0 shadow-sm focus:ring-0 cursor-pointer placeholder-gray-400">
                 </div>
             </header>
 
-            <!-- Main Content (Scroll Area) -->
-            <main class="flex-1 overflow-y-auto hide-scrollbar scrolling-wrapper pb-24 pt-2 px-4">
-                
+            <!-- Main Content -->
+            <main class="flex-1 overflow-y-auto hide-scrollbar scrolling-wrapper pb-24 relative pt-2 px-4 bg-gray-50 z-0">
                 <!-- Kategori -->
                 <div class="mb-6 mt-2">
-                    <div class="grid grid-cols-4 gap-y-4" id="categories-container">
-                        <!-- Skeleton Loading -->
-                        <div class="col-span-4 text-center py-4"><div class="animate-pulse flex justify-center"><div class="h-10 w-10 bg-gray-200 rounded-full"></div></div></div>
+                    <div class="flex justify-between items-center px-1 mb-3">
+                        <h3 class="font-bold text-gray-800 text-lg">Kategori Menu</h3>
+                    </div>
+                    <div class="grid grid-cols-4 gap-y-6" id="categories-container">
+                        <div class="col-span-4 text-center text-gray-400 text-xs py-4">
+                            <i class="fas fa-circle-notch fa-spin text-orange-500 mb-2"></i><br>Memuat Kategori...
+                        </div>
                     </div>
                 </div>
 
                 <!-- Promo Banner -->
-                <div class="mb-6">
-                    <div class="flex justify-between items-center px-1 mb-2">
-                        <h3 class="font-bold text-gray-800 text-base">Promo Spesial</h3>
-                        <span class="text-orange-600 text-[10px] font-bold cursor-pointer p-1" onclick="openExclusivePage()">Lihat Semua</span>
+                <div class="mb-8">
+                    <div class="flex justify-between items-center px-1 mb-3">
+                        <h3 class="font-bold text-gray-800 text-lg">Promo Spesial</h3>
+                        <span class="text-orange-600 text-xs font-bold cursor-pointer" onclick="openExclusivePage()">Lihat Semua</span>
                     </div>
-                    <div id="exclusive-slider" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2 px-1 snap-x">
-                         <div class="w-full text-center text-gray-400 text-xs py-10">Memuat...</div>
+                    <div id="exclusive-slider" class="flex gap-4 overflow-x-auto hide-scrollbar pb-4 snap-x touch-pan-x min-h-[140px] scrolling-wrapper">
+                         <div class="w-full text-center text-gray-400 text-xs py-10">
+                            <i class="fas fa-spinner fa-spin"></i> Memuat Data...
+                        </div>
                     </div>
                 </div>
 
                 <!-- Paling Laris -->
-                <div class="mb-6">
-                    <div class="flex justify-between items-center px-1 mb-2">
-                        <h3 class="font-bold text-gray-800 text-base">Paling Laris</h3>
+                <div class="mb-8">
+                    <div class="flex justify-between items-center px-1 mb-3">
+                        <h3 class="font-bold text-gray-800 text-lg">Paling Laris</h3>
+                        <span class="text-orange-600 text-xs font-bold cursor-pointer" onclick="openCategory('all', 'Semua Menu')">Lihat Semua</span>
                     </div>
-                    <div id="recommendation-slider" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2 px-1 snap-x">
-                        <div class="w-full text-center text-gray-400 text-xs py-10">Memuat...</div>
+                    <div id="recommendation-slider" class="flex gap-4 overflow-x-auto hide-scrollbar pb-4 snap-x touch-pan-x min-h-[140px] scrolling-wrapper">
+                        <div class="w-full text-center text-gray-400 text-xs py-10">
+                            <i class="fas fa-spinner fa-spin"></i> Memuat Data...
+                        </div>
                     </div>
                 </div>
 
                 <!-- Daftar Penjual -->
                 <div class="mb-4">
-                    <div class="flex justify-between items-end px-1 mb-3 sticky top-0 bg-gray-50 z-10 py-2">
+                    <div class="flex justify-between items-end px-1 mb-3 sticky top-0 bg-gray-50 z-20 py-2">
                         <h3 class="font-bold text-gray-800 text-lg">Warung Terdekat</h3>
-                        <button onclick="fetchData()" class="text-orange-600 text-xs font-bold bg-white border border-orange-100 px-2 py-1 rounded-lg shadow-sm active:scale-95">
-                            <i class="fas fa-sync-alt" id="refreshIcon"></i>
+                        <button onclick="fetchData()" class="text-orange-600 text-xs font-semibold flex items-center gap-1 hover:text-orange-700 active:scale-95 transition">
+                            <i class="fas fa-sync-alt" id="refreshIcon"></i> Refresh
                         </button>
                     </div>
-                    <div id="vendor-list" class="space-y-3">
-                        <div class="text-center text-gray-400 text-xs py-10">Mencari warung...</div>
+                    <div id="vendor-list" class="space-y-4">
+                        <div class="text-center text-gray-400 text-xs py-10 bg-white rounded-3xl">
+                            <i class="fas fa-store text-2xl mb-2 text-gray-300"></i><br>Mencari Mitra Penjual...
+                        </div>
                     </div>
                 </div>
+                
+                <div class="h-10"></div>
             </main>
         </div>
 
-        <!-- === MODAL LOKASI (MAPS) === -->
+        <!-- === HALAMAN PENCARIAN === -->
+        <div id="search-page" class="page-section hidden-page z-30 bg-gray-50">
+            <div class="bg-white p-4 shadow-sm flex items-center gap-3 sticky top-0 z-10">
+                <button onclick="handleBack()" class="p-2 hover:bg-gray-100 rounded-full transition text-gray-700 active:bg-gray-200">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </button>
+                <div class="relative flex-1">
+                    <i class="fas fa-search absolute left-3 top-3 text-orange-500"></i>
+                    <input type="text" id="global-search-input" placeholder="Cari makanan atau resto..." 
+                        class="w-full py-2.5 pl-10 pr-4 rounded-full bg-gray-100 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
+                        oninput="handleGlobalSearch(this.value)">
+                </div>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 scrolling-wrapper" id="search-results">
+                <div class="text-center mt-10 text-gray-400">
+                    <i class="fas fa-search text-4xl mb-2"></i>
+                    <p class="text-sm">Ketik untuk mencari...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- === HALAMAN POIN (NEW) === -->
+        <div id="points-page" class="page-section hidden-page z-30 bg-gray-50">
+            <div class="bg-white p-4 shadow-sm flex items-center gap-4 sticky top-0 z-10">
+                <button onclick="handleBack()" class="p-2 hover:bg-gray-100 rounded-full transition text-gray-700 active:bg-gray-200">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </button>
+                <div>
+                    <h2 class="text-lg font-bold text-gray-800">Poin Saya</h2>
+                    <p class="text-xs text-gray-500">Kumpulkan dan tukar hadiah!</p>
+                </div>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 hide-scrollbar scrolling-wrapper">
+                <!-- Card Utama Poin -->
+                <div class="bg-gradient-to-br from-orange-500 to-red-600 rounded-[2rem] p-6 text-white shadow-xl mb-6 relative overflow-hidden">
+                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
+                    <div class="absolute bottom-0 left-0 w-32 h-32 bg-yellow-400 opacity-10 rounded-full blur-xl"></div>
+                    
+                    <div class="relative z-10 flex flex-col items-center">
+                        <p class="text-orange-100 text-sm font-medium mb-1">Total Poin Kamu</p>
+                        <h1 class="text-6xl font-black mb-2 drop-shadow-sm" id="point-display-count">0</h1>
+                        <div class="w-full bg-black/20 rounded-full h-3 mb-2 overflow-hidden backdrop-blur-sm">
+                            <div id="point-progress-bar" class="bg-yellow-400 h-full rounded-full shadow-lg progress-bar-fill" style="width: 0%"></div>
+                        </div>
+                        <div class="flex justify-between w-full text-xs font-medium text-orange-100 px-1">
+                            <span>0</span>
+                            <span id="point-target-text">Target: 10 Poin</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bagian Penukaran -->
+                <div class="bg-white p-5 rounded-[2rem] shadow-sm mb-6 border border-gray-100">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-lg">
+                            <i class="fas fa-truck-fast"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-800">Gratis Ongkir Rp 5.000</h3>
+                            <p class="text-xs text-gray-500">Tukarkan 10 Poin untuk voucher ini</p>
+                        </div>
+                    </div>
+                    <button id="btn-redeem-point" onclick="redeemPoints()" disabled class="w-full py-3 rounded-xl font-bold text-sm transition-all duration-300 bg-gray-200 text-gray-400 cursor-not-allowed">
+                        Tukar Poin (Butuh 10 Poin)
+                    </button>
+                </div>
+
+                <!-- Info Cara Dapat -->
+                <div class="bg-orange-50 p-5 rounded-[2rem] border border-orange-100">
+                    <h3 class="font-bold text-gray-800 mb-3 text-sm">Cara Mendapatkan Poin</h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-full bg-orange-200 text-orange-700 flex items-center justify-center text-xs font-bold shrink-0">1</div>
+                            <p class="text-xs text-gray-600 leading-relaxed">Lakukan pemesanan makanan via aplikasi. Setiap 1 kali transaksi = <span class="font-bold text-orange-600">1 Poin</span>.</p>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-full bg-orange-200 text-orange-700 flex items-center justify-center text-xs font-bold shrink-0">2</div>
+                            <p class="text-xs text-gray-600 leading-relaxed">Kumpulkan hingga <span class="font-bold text-orange-600">10 Poin</span>.</p>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-full bg-orange-200 text-orange-700 flex items-center justify-center text-xs font-bold shrink-0">3</div>
+                            <p class="text-xs text-gray-600 leading-relaxed">Tukarkan dengan Voucher Gratis Ongkir senilai Rp 5.000!</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- === HALAMAN PESANAN === -->
+        <div id="orders-page" class="page-section hidden-page z-30 bg-gray-50 flex items-center justify-center">
+            <div class="text-center p-8">
+                <div class="bg-orange-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-receipt text-4xl text-orange-500"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800 mb-2">Belum ada pesanan</h2>
+                <p class="text-gray-500 text-sm mb-6">Kamu belum pernah pesan makanan nih. Yuk cari makanan enak!</p>
+                <button onclick="navTo('home-page')" class="bg-orange-600 text-white px-6 py-2.5 rounded-full font-bold text-sm shadow-lg hover:bg-orange-700">Mulai Pesan</button>
+            </div>
+        </div>
+
+        <!-- === HALAMAN PROFIL === -->
+        <div id="profile-page" class="page-section hidden-page z-30 bg-gray-50">
+            <div class="bg-orange-600 h-32 relative shrink-0"></div>
+            <div class="px-4 -mt-12 relative z-10 mb-4 shrink-0">
+                <div class="bg-white p-4 rounded-[2rem] shadow-md flex flex-col items-center relative">
+                    <div class="w-20 h-20 bg-gray-200 rounded-full border-4 border-white -mt-12 mb-2 overflow-hidden shadow-sm">
+                        <img src="https://ui-avatars.com/api/?name=User+ProjekGo&background=random" class="w-full h-full" id="profile-avatar-img">
+                    </div>
+                    <button onclick="openEditProfile()" class="absolute top-2 right-2 text-gray-400 hover:text-orange-600 p-2">
+                        <i class="fas fa-pen text-sm"></i>
+                    </button>
+                    <h2 class="font-bold text-lg text-gray-800" id="profile-name-text">User ProjekGo</h2>
+                    <p class="text-xs text-gray-500" id="profile-phone-text">+62 812-3456-7890</p>
+                </div>
+            </div>
+            <div class="flex-1 overflow-y-auto px-4 pb-20 scrolling-wrapper">
+                <div class="space-y-3">
+                    <button onclick="openAddressModal()" class="w-full bg-white p-4 rounded-2xl shadow-sm flex justify-between items-center text-gray-700 active:bg-gray-50 transition">
+                        <span class="font-medium text-sm flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-500"><i class="fas fa-map-marker-alt"></i></div> Alamat Tersimpan</span>
+                        <i class="fas fa-chevron-right text-gray-300 text-xs"></i>
+                    </button>
+                    <button onclick="openFavoritesPage()" class="w-full bg-white p-4 rounded-2xl shadow-sm flex justify-between items-center text-gray-700 active:bg-gray-50 transition">
+                        <span class="font-medium text-sm flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-500"><i class="fas fa-heart"></i></div> Makanan Favorit</span>
+                        <i class="fas fa-chevron-right text-gray-300 text-xs"></i>
+                    </button>
+                    <button class="w-full bg-white p-4 rounded-2xl shadow-sm flex justify-between items-center text-gray-700 active:bg-gray-50 transition">
+                        <span class="font-medium text-sm flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-500"><i class="fas fa-headset"></i></div> Bantuan</span>
+                        <i class="fas fa-chevron-right text-gray-300 text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- === HALAMAN KERANJANG (FULL PAGE - FIXED) === -->
+        <div id="cart-page" class="page-section hidden-page z-50 bg-gray-50 flex flex-col h-full absolute inset-0">
+            <!-- Header Cart -->
+            <div class="bg-white p-4 shadow-sm flex items-center gap-4 sticky top-0 z-20 flex-shrink-0">
+                <button onclick="handleBack()" class="p-2 hover:bg-gray-100 rounded-full transition text-gray-700 active:bg-gray-200">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </button>
+                <div>
+                    <h2 class="text-lg font-bold text-gray-800">Keranjang Saya</h2>
+                    <p class="text-xs text-gray-500">Cek kembali pesananmu</p>
+                </div>
+            </div>
+
+            <!-- Scrollable Content -->
+            <div class="flex-1 overflow-y-auto p-4 hide-scrollbar scrolling-wrapper">
+                <div id="cart-items-container" class="space-y-4 pb-4">
+                    <!-- Cart items will be rendered here -->
+                </div>
+                
+                <!-- Checkout Form Area (Static part in scroll flow) -->
+                <div id="checkout-form-container" class="border-t border-gray-200 pt-6 hidden pb-24">
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold text-gray-700 mb-2">Alamat Pengantaran</label>
+                        <div class="relative">
+                            <i class="fas fa-map-marker-alt absolute left-3 top-3 text-orange-500"></i>
+                            <textarea id="delivery-address" rows="2" class="w-full bg-white border border-gray-200 rounded-2xl py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-orange-500 resize-none font-medium text-gray-700 shadow-sm" placeholder="Detail lokasi (Pagar hitam, Lantai 2)..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-green-50 p-4 rounded-2xl mb-5 border border-green-100 flex items-start gap-3">
+                        <div class="bg-green-100 p-2 rounded-full text-green-600"><i class="fas fa-check-circle"></i></div>
+                        <div>
+                            <p class="text-xs text-green-800 font-bold leading-tight">Ongkir dihitung manual oleh admin.</p>
+                            <p class="text-[10px] text-green-600 mt-1">PASTI LEBIH HEMAT!</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Dynamic Summary will be injected here via JS -->
+                    <div id="cart-summary-area"></div>
+                </div>
+            </div>
+            <!-- Bottom action removed to use the inline one -->
+        </div>
+
+        <!-- === HALAMAN KATEGORI / FAVORIT === -->
+        <div id="category-page" class="page-section hidden-page z-40 bg-gray-50">
+            <div class="bg-white p-4 shadow-sm flex items-center gap-4 z-10 shrink-0 sticky top-0">
+                <button onclick="handleBack()" class="p-2 hover:bg-gray-100 rounded-full transition text-gray-700 active:bg-gray-200">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </button>
+                <div>
+                    <h2 id="cat-page-title" class="text-lg font-bold text-gray-800">Nama Kategori</h2>
+                    <p class="text-xs text-gray-500">Menampilkan menu pilihan</p>
+                </div>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 hide-scrollbar scrolling-wrapper">
+                <div id="category-content-container" class="grid grid-cols-2 gap-3 pb-24"></div>
+            </div>
+        </div>
+
+        <!-- NEW: HALAMAN "HANYA ADA DI PROJEKGO" -->
+        <div id="exclusive-page" class="page-section hidden-page z-40 bg-gray-50">
+            <div class="bg-white p-4 shadow-sm flex items-center gap-4 z-10 shrink-0 sticky top-0">
+                <button onclick="handleBack()" class="p-2 hover:bg-gray-100 rounded-full transition text-gray-700 active:bg-gray-200">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </button>
+                <div>
+                    <h2 class="text-lg font-bold text-gray-800">Eksklusif ProjekGo</h2>
+                    <p class="text-xs text-gray-500">Menu spesial hanya untukmu</p>
+                </div>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 hide-scrollbar scrolling-wrapper">
+                <div id="exclusive-content-container" class="grid grid-cols-2 gap-3 pb-24"></div>
+            </div>
+        </div>
+
+        <!-- === HALAMAN DETAIL PENJUAL === -->
+        <div id="vendor-page" class="page-section hidden-page z-50 bg-gray-50">
+            <div class="relative h-56 bg-gray-300">
+                <img id="vendor-banner-img" src="" class="w-full h-full object-cover rounded-none">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                <button onclick="handleBack()" class="absolute top-4 left-4 w-10 h-10 bg-white/20 backdrop-blur rounded-full text-white flex items-center justify-center hover:bg-white/30 transition">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div class="absolute bottom-4 left-4 text-white w-full pr-4">
+                    <div class="flex justify-between items-end">
+                        <div>
+                            <h2 id="vendor-name-title" class="text-2xl font-bold leading-tight">Nama Warung</h2>
+                            <p id="vendor-info-subtitle" class="text-xs opacity-90 mt-1">Status • Kategori</p>
+                        </div>
+                        <div class="bg-white/20 backdrop-blur px-3 py-1 rounded-full flex items-center gap-1 text-white">
+                            <i class="fas fa-star text-yellow-400 text-xs"></i>
+                            <span id="vendor-rating-badge" class="text-xs font-bold">4.8</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 -mt-4 bg-gray-50 rounded-t-[2rem] relative z-10 hide-scrollbar scrolling-wrapper">
+                <h3 class="font-bold text-gray-800 mb-4 text-lg">Daftar Menu</h3>
+                <div id="vendor-menu-container" class="grid grid-cols-2 gap-3 pb-24"></div>
+            </div>
+        </div>
+
+        <!-- === MODAL / SHEET LAYOUTS === -->
+        
+        <!-- MODAL LOKASI (MAPS) -->
         <div id="location-modal" class="absolute inset-0 z-[100] hidden bg-white flex-col">
             <div class="p-4 shadow-sm flex items-center gap-3 bg-white z-10">
                 <button onclick="closeLocationModal()" class="p-2 hover:bg-gray-100 rounded-full"><i class="fas fa-arrow-left"></i></button>
@@ -155,15 +433,10 @@
             </div>
             
             <div class="relative flex-1 bg-gray-100">
-                <!-- Map Container -->
                 <div id="map" class="absolute inset-0 z-0"></div>
-                
-                <!-- Pin Center -->
                 <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none mb-8">
                     <i class="fas fa-map-marker-alt text-4xl text-red-500 drop-shadow-md animate-bounce"></i>
                 </div>
-
-                <!-- Locate Button -->
                 <button onclick="getCurrentLocation()" class="absolute bottom-6 right-4 z-10 bg-white p-3 rounded-full shadow-lg text-orange-600 active:scale-90">
                     <i class="fas fa-crosshairs text-xl"></i>
                 </button>
@@ -180,12 +453,152 @@
             </div>
         </div>
 
-        <!-- === MODAL POPUP MENU (GAMBAR BESAR) === -->
+        <!-- SELLER REGISTRATION SHEET -->
+        <div id="seller-register-modal" class="absolute inset-0 z-[100] hidden">
+            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeSellerRegistration()"></div>
+            <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] p-6 min-h-[85%] flex flex-col transition-transform duration-300 transform translate-y-full" id="seller-register-content">
+                <button onclick="closeSellerRegistration()" class="absolute top-4 right-4 w-9 h-9 flex items-center justify-center bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 hover:text-red-500 transition z-20"><i class="fas fa-times"></i></button>
+                <div class="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-4 cursor-grab" onclick="closeSellerRegistration()"></div>
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600"><i class="fas fa-store"></i></div>
+                    <div><h3 class="font-bold text-xl text-gray-800 leading-none">Formulir Mitra Penjual</h3><p class="text-xs text-gray-500 mt-1">Daftar sekarang untuk mulai berjualan</p></div>
+                </div>
+                <div class="flex-1 overflow-y-auto hide-scrollbar space-y-5 pb-6">
+                    <div>
+                        <h4 class="text-sm font-bold text-gray-800 mb-3 border-l-4 border-orange-500 pl-2">Informasi Pemilik</h4>
+                        <div class="space-y-3">
+                            <div><label class="block text-xs font-bold text-gray-500 mb-1">Nama Lengkap Pemilik</label><input type="text" id="reg-seller-name" class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 font-medium" placeholder="Contoh: Budi Santoso"></div>
+                            <div><label class="block text-xs font-bold text-gray-500 mb-1">Nomor WhatsApp Aktif</label><div class="relative"><span class="absolute left-4 top-3 text-gray-500 font-medium text-sm">+62</span><input type="tel" id="reg-seller-phone" class="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:border-orange-500 font-medium" placeholder="8123456789"></div></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-gray-800 mb-3 border-l-4 border-orange-500 pl-2">Informasi Usaha</h4>
+                        <div class="space-y-3">
+                            <div><label class="block text-xs font-bold text-gray-500 mb-1">Nama Resto / Warung</label><input type="text" id="reg-seller-biz" class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 font-medium" placeholder="Contoh: Warung Sejahtera"></div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 mb-1">Kategori Makanan</label>
+                                <select id="reg-seller-cat" class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 font-medium text-gray-700">
+                                    <option value="" disabled selected>Pilih Kategori Utama</option>
+                                    <option value="Aneka Nasi">Aneka Nasi</option>
+                                    <option value="Minuman">Minuman</option>
+                                    <option value="Jajanan">Jajanan</option>
+                                    <option value="Roti & Kue">Roti & Kue</option>
+                                    <option value="Sate & BBQ">Sate & BBQ</option>
+                                </select>
+                            </div>
+                            <div><label class="block text-xs font-bold text-gray-500 mb-1">Alamat Lengkap Usaha</label><textarea id="reg-seller-addr" rows="2" class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 font-medium resize-none" placeholder="Jalan, No, RT/RW, Kelurahan..."></textarea></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-auto pt-4 border-t border-gray-100">
+                    <button onclick="submitRegistration('Mitra Penjual')" class="w-full bg-orange-600 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-orange-200 hover:bg-orange-700 active:scale-[0.98] transition flex justify-center items-center gap-2">
+                        <i class="fas fa-paper-plane"></i> Kirim Pendaftaran
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- EDIT PROFILE -->
+        <div id="edit-profile-modal" class="absolute inset-0 z-[90] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div class="bg-white rounded-[2rem] w-full max-w-sm p-6 shadow-2xl">
+                <h3 class="font-bold text-lg text-gray-800 mb-4">Edit Profil</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Nama Lengkap</label>
+                        <input type="text" id="edit-name-input" class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:border-orange-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Nomor Telepon</label>
+                        <input type="tel" id="edit-phone-input" class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:border-orange-500">
+                    </div>
+                    <div class="flex gap-3 pt-2">
+                        <button onclick="closeEditProfile()" class="flex-1 bg-gray-100 text-gray-600 font-bold py-3 rounded-xl">Batal</button>
+                        <button onclick="saveProfile()" class="flex-1 bg-orange-600 text-white font-bold py-3 rounded-xl shadow-lg">Simpan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADDRESS MODAL -->
+        <div id="address-modal" class="absolute inset-0 z-[85] hidden bg-gray-50 flex flex-col">
+            <div class="bg-white p-4 shadow-sm flex items-center gap-4 z-10">
+                <button onclick="closeAddressModal()" class="p-2 hover:bg-gray-100 rounded-full text-gray-700">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </button>
+                <h2 class="text-lg font-bold text-gray-800">Alamat Tersimpan</h2>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 space-y-3 scrolling-wrapper" id="address-list-container"></div>
+            <div class="p-4 bg-white border-t border-gray-200">
+                <button onclick="openAddAddressModal()" class="w-full bg-orange-600 text-white font-bold py-3 rounded-2xl shadow-lg flex items-center justify-center gap-2 active:scale-[0.98] transition">
+                    <i class="fas fa-plus"></i> Tambah Alamat Baru
+                </button>
+            </div>
+        </div>
+
+        <!-- ADD ADDRESS SHEET -->
+        <div id="add-address-modal" class="absolute inset-0 z-[90] hidden">
+            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeAddAddressModal()"></div>
+            <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] p-6 min-h-[50%] flex flex-col transition-transform duration-300 transform translate-y-full" id="add-address-content">
+                <div class="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-6 cursor-grab" onclick="closeAddAddressModal()"></div>
+                <h3 class="font-bold text-xl text-gray-800 mb-6">Tambah Alamat Baru</h3>
+                <div class="space-y-5 mb-6 flex-1 overflow-y-auto hide-scrollbar">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Label Alamat</label>
+                        <div class="flex gap-2">
+                            <button onclick="setAddressLabel('Rumah')" class="addr-label-btn flex-1 py-3 border border-orange-500 bg-orange-50 text-orange-600 rounded-2xl text-sm font-bold transition">Rumah</button>
+                            <button onclick="setAddressLabel('Kantor')" class="addr-label-btn flex-1 py-3 border border-gray-200 text-gray-600 rounded-2xl text-sm font-bold hover:bg-gray-50 transition">Kantor</button>
+                            <button onclick="setAddressLabel('Lainnya')" class="addr-label-btn flex-1 py-3 border border-gray-200 text-gray-600 rounded-2xl text-sm font-bold hover:bg-gray-50 transition">Lainnya</button>
+                        </div>
+                        <input type="hidden" id="new-addr-label" value="Rumah">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Alamat Lengkap</label>
+                        <div class="relative">
+                            <i class="fas fa-map-marker-alt absolute left-3 top-3.5 text-gray-400"></i>
+                            <textarea id="new-addr-detail" rows="3" class="w-full bg-gray-50 border border-gray-200 rounded-2xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:border-orange-500 focus:bg-white transition resize-none text-gray-800 font-medium" placeholder="Jalan, Nomor Rumah, RT/RW..."></textarea>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Catatan Kurir (Opsional)</label>
+                        <div class="relative">
+                            <i class="fas fa-pen absolute left-3 top-3.5 text-gray-400"></i>
+                            <input type="text" id="new-addr-note" class="w-full bg-gray-50 border border-gray-200 rounded-2xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:border-orange-500 focus:bg-white transition text-gray-800 font-medium" placeholder="Pagar hitam, dekat warung...">
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-auto pt-4 border-t border-gray-100">
+                    <button onclick="saveNewAddress()" class="w-full bg-orange-600 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-orange-200 hover:bg-orange-700 active:scale-[0.98] transition flex justify-center items-center gap-2">
+                        <i class="fas fa-check"></i> Simpan Alamat
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PARTNERSHIP MODAL -->
+        <div id="partnership-modal" class="absolute inset-0 z-[95] hidden flex items-end justify-center bg-black/50 backdrop-blur-sm" onclick="closePartnershipModal()">
+            <div class="bg-white w-full rounded-t-[2.5rem] p-6 pb-10" onclick="event.stopPropagation()">
+                <div class="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-6"></div>
+                <h3 class="font-bold text-xl text-gray-800 mb-4">Menu Mitra</h3>
+                <div class="space-y-3">
+                    <a href="seller.html" class="bg-orange-50 p-4 rounded-2xl flex items-center gap-4 hover:bg-orange-100 transition border border-orange-100">
+                        <div class="bg-orange-500 text-white w-10 h-10 rounded-full flex items-center justify-center"><i class="fas fa-store"></i></div>
+                        <div><h4 class="font-bold text-gray-800">Login Penjual</h4><p class="text-xs text-gray-600">Masuk ke dashboard toko</p></div>
+                    </a>
+                    <!-- Optional: Link ke Form Pendaftaran -->
+                    <div onclick="openSellerRegistration()" class="bg-green-50 p-4 rounded-2xl flex items-center gap-4 hover:bg-green-100 transition border border-green-100 cursor-pointer">
+                        <div class="bg-green-500 text-white w-10 h-10 rounded-full flex items-center justify-center"><i class="fas fa-user-plus"></i></div>
+                        <div><h4 class="font-bold text-gray-800">Daftar Mitra Baru</h4><p class="text-xs text-gray-600">Gabung jadi penjual/rider</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VARIANT MODAL (LARGE IMAGE FIX) -->
         <div id="variant-modal" class="absolute inset-0 z-[80] hidden flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-200">
             <div class="bg-white rounded-[2rem] w-full max-w-sm overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
                 <!-- Gambar Besar Penuh -->
                 <div class="relative h-72 shrink-0 bg-gray-200">
-                    <img id="variant-modal-img" src="" class="w-full h-full object-cover">
+                    <img id="variant-modal-img" src="" class="w-full h-full object-cover transition-opacity duration-300">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                     <button onclick="closeVariantModal()" class="absolute top-4 right-4 w-9 h-9 bg-black/30 backdrop-blur rounded-full flex items-center justify-center text-white hover:bg-black/50 transition">
                         <i class="fas fa-times"></i>
@@ -222,66 +635,37 @@
             </div>
         </div>
 
-        <!-- === BOTTOM NAV === -->
+        <!-- BOTTOM NAV -->
         <nav class="bg-white border-t border-gray-100 flex justify-around items-center px-2 py-3 pb-6 shrink-0 z-[60] absolute bottom-0 left-0 right-0 w-full rounded-t-[2rem] shadow-[0_-5px_15px_rgba(0,0,0,0.03)]">
-            <button onclick="navTo('home-page')" class="nav-item active flex flex-col items-center gap-1 text-gray-400 w-16 active:scale-90 transition">
+            <button onclick="navTo('home-page')" class="nav-item active flex flex-col items-center gap-1 text-gray-400 w-16 active:scale-90 transition" id="nav-home">
                 <i class="fas fa-utensils text-xl"></i><span class="text-[10px] font-medium">Beranda</span>
             </button>
-            <button onclick="alert('Fitur Poin akan segera hadir!')" class="nav-item flex flex-col items-center gap-1 text-gray-400 w-16 active:scale-90 transition">
+            
+            <button onclick="navTo('points-page')" class="nav-item flex flex-col items-center gap-1 text-gray-400 w-16 active:scale-90 transition" id="nav-points">
                 <i class="fas fa-star text-xl"></i><span class="text-[10px] font-medium">Poin</span>
             </button>
+            
             <div class="relative -top-6">
-                <button onclick="openCart()" class="bg-orange-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg shadow-orange-300 active:scale-95 transition relative z-40">
+                <!-- MODIFIED: Open Full Page Cart -->
+                <button onclick="navTo('cart-page'); renderCartPage()" class="bg-orange-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg shadow-orange-300 active:scale-95 transition relative z-40">
                     <i class="fas fa-shopping-basket text-xl"></i>
                     <span id="cart-badge-nav" class="absolute top-0 right-0 bg-red-500 border-2 border-white text-white text-[9px] w-5 h-5 flex items-center justify-center rounded-full hidden">0</span>
                 </button>
             </div>
-            <button onclick="navTo('orders-page')" class="nav-item flex flex-col items-center gap-1 text-gray-400 w-16 active:scale-90 transition">
+            <button onclick="navTo('orders-page')" class="nav-item flex flex-col items-center gap-1 text-gray-400 w-16 active:scale-90 transition" id="nav-orders">
                 <i class="fas fa-receipt text-xl"></i><span class="text-[10px] font-medium">Pesanan</span>
             </button>
-            <button onclick="navTo('profile-page')" class="nav-item flex flex-col items-center gap-1 text-gray-400 w-16 active:scale-90 transition">
+            <button onclick="navTo('profile-page')" class="nav-item flex flex-col items-center gap-1 text-gray-400 w-16 active:scale-90 transition" id="nav-profile">
                 <i class="fas fa-user text-xl"></i><span class="text-[10px] font-medium">Profil</span>
             </button>
         </nav>
-
-        <!-- CART & OTHER PAGES (Hidden for brevity, reuse previous logic) -->
-        <div id="cart-modal" class="absolute inset-0 z-[70] hidden bg-black/50 backdrop-blur-sm" onclick="closeCart()">
-            <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] p-5 h-[80%] flex flex-col transition-transform duration-300 translate-y-0" onclick="event.stopPropagation()">
-                <div class="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
-                <h2 class="text-xl font-bold text-gray-800 mb-4">Keranjang</h2>
-                <div id="cart-items-container" class="flex-1 overflow-y-auto hide-scrollbar space-y-4"></div>
-                <div id="checkout-form" class="border-t pt-4 mt-2">
-                    <div class="flex justify-between font-bold text-lg mb-4"><span>Total</span><span class="text-orange-600" id="cart-total-final">Rp0</span></div>
-                    <button onclick="checkoutToWA()" class="w-full bg-green-600 text-white font-bold py-3.5 rounded-xl shadow-lg">Pesan via WhatsApp</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- PARTNERSHIP MODAL -->
-        <div id="partnership-modal" class="absolute inset-0 z-[95] hidden flex items-end justify-center bg-black/50 backdrop-blur-sm" onclick="closePartnershipModal()">
-            <div class="bg-white w-full rounded-t-[2.5rem] p-6 pb-10" onclick="event.stopPropagation()">
-                <div class="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-6"></div>
-                <h3 class="font-bold text-xl text-gray-800 mb-4">Menu Mitra</h3>
-                <div class="space-y-3">
-                    <a href="seller.html" class="bg-orange-50 p-4 rounded-2xl flex items-center gap-4 hover:bg-orange-100 transition border border-orange-100">
-                        <div class="bg-orange-500 text-white w-10 h-10 rounded-full flex items-center justify-center"><i class="fas fa-store"></i></div>
-                        <div><h4 class="font-bold text-gray-800">Login Penjual</h4><p class="text-xs text-gray-600">Masuk ke dashboard toko</p></div>
-                    </a>
-                    <div onclick="alert('Hubungi Admin WA untuk mendaftar')" class="bg-green-50 p-4 rounded-2xl flex items-center gap-4 hover:bg-green-100 transition border border-green-100 cursor-pointer">
-                        <div class="bg-green-500 text-white w-10 h-10 rounded-full flex items-center justify-center"><i class="fas fa-user-plus"></i></div>
-                        <div><h4 class="font-bold text-gray-800">Daftar Mitra Baru</h4><p class="text-xs text-gray-600">Gabung jadi penjual/rider</p></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </div>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbw65jWYm1cmPsXPM22Hsi9LH0FrY2AiIPNHE-16uvhEaVsx-KrgZ8KWw0K0cpAVA5Sj/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbw65jWYm1cmPsXPM22Hsi9LH0FrY2AiIPNHE-16uvhEaVsx-KrgZ8KWw0K0cpAVA5Sj/exec"; 
         
         let map, marker;
         let selectedLat, selectedLng;
@@ -289,16 +673,28 @@
         let productsData = [];
         let vendorsData = [];
         let userLocation = localStorage.getItem('pg_user_loc') || null;
+        let favorites = new Set();
+        let userProfile = {
+            name: "User ProjekGo",
+            phone: "+62 812-3456-7890",
+            avatar: "https://ui-avatars.com/api/?name=User+ProjekGo&background=random"
+        };
+        let savedAddresses = [
+            { id: 1, label: "Rumah", detail: "Jl. Melati No. 10, RT 01/02, Jakarta Selatan" },
+            { id: 2, label: "Kantor", detail: "Gedung Cyber Lt. 2, Kuningan, Jakarta Selatan" }
+        ];
 
-        // Init App
+        let userPoints = 0; 
+        let isFreeShippingActive = false;
+
         window.addEventListener('load', () => {
             fetchData();
             if(!userLocation) {
-                // Delay sedikit biar smooth loadnya
                 setTimeout(openLocationModal, 1000);
             } else {
                 document.getElementById('header-address-text').innerText = userLocation;
             }
+            updateProfileUI(); 
         });
 
         async function fetchData() {
@@ -306,20 +702,17 @@
             if(refreshBtn) refreshBtn.classList.add('fa-spin');
 
             try {
-                // Fetch Categories
                 const catRes = await fetch(`${API_URL}?action=getCategories`);
                 const catJson = await catRes.json();
                 if(catJson.status === 'success') renderCategories(catJson.data);
 
-                // Fetch Products
                 const prodRes = await fetch(`${API_URL}?action=getProducts`);
                 const prodJson = await prodRes.json();
                 if(prodJson.status === 'success') {
-                    productsData = prodJson.data; // Store Raw Data
+                    productsData = prodJson.data; 
                     renderProductLists();
                 }
 
-                // Fetch Vendors
                 const vendRes = await fetch(`${API_URL}?action=getVendors`);
                 const vendJson = await vendRes.json();
                 if(vendJson.status === 'success') {
@@ -334,26 +727,20 @@
             }
         }
 
-        // --- MAPS & LOCATION LOGIC ---
+        // --- MAPS ---
         function openLocationModal() {
             const modal = document.getElementById('location-modal');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-            
-            // Init Map (Delay agar container visible dulu)
             setTimeout(() => {
                 if (!map) {
-                    // Default: Monas Jakarta
-                    map = L.map('map', { zoomControl: false }).setView([-6.175392, 106.827153], 15);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                        attribution: '&copy; OSM'
-                    }).addTo(map);
-
-                    // Event saat peta digeser
+                    map = L.map('map', { zoomControl: false }).setView([-7.607865, 109.513824], 15);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OSM' }).addTo(map);
                     map.on('moveend', function() {
                         const center = map.getCenter();
                         updateSelectedLocation(center.lat, center.lng);
                     });
+                    updateSelectedLocation(-7.607865, 109.513824);
                 }
                 map.invalidateSize();
             }, 300);
@@ -381,18 +768,14 @@
             selectedLat = lat;
             selectedLng = lng;
             document.getElementById('selected-address').innerText = "Memuat alamat...";
-            
             try {
                 const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
                 const data = await res.json();
-                
-                // Ambil Kecamatan / Kota agar lebih relevan
                 const addr = data.address;
                 const shortAddr = addr.village || addr.suburb || addr.town || addr.city_district || "Lokasi Terpilih";
                 const city = addr.city || addr.county || "";
-                
                 document.getElementById('selected-address').innerText = `${shortAddr}, ${city}`;
-                document.getElementById('manual-address-input').value = ""; // Reset detail manual
+                document.getElementById('manual-address-input').value = ""; 
             } catch (e) {
                 document.getElementById('selected-address').innerText = "Gagal memuat nama jalan";
             }
@@ -402,28 +785,17 @@
             const baseAddr = document.getElementById('selected-address').innerText;
             const detail = document.getElementById('manual-address-input').value;
             const fullAddress = detail ? `${baseAddr} (${detail})` : baseAddr;
-            
             localStorage.setItem('pg_user_loc', fullAddress);
             document.getElementById('header-address-text').innerText = fullAddress;
             closeLocationModal();
-            
-            // Trigger ulang sort warung terdekat (Simulasi sorting sederhana)
-            sortVendorsByDistance(); 
-        }
-
-        // --- SORTING VENDORS (SIMPLIFIED) ---
-        function sortVendorsByDistance() {
-            // Karena data vendor dari sheet belum tentu punya lat/lon,
-            // Di sini kita hanya mengacak urutan atau memuat ulang untuk memberi efek "refresh"
-            // Di sistem real, kita hitung Haversine distance antara selectedLat/Lng vs Vendor Lat/Lng
             renderVendorList(vendorsData); 
         }
 
-        // --- RENDERING ---
+        // --- RENDER ---
         function renderCategories(data) {
             const container = document.getElementById('categories-container');
             container.innerHTML = data.map(cat => `
-                <div onclick="alert('Filter kategori ${cat.Name}')" class="flex flex-col items-center gap-1 cursor-pointer active:scale-95 transition">
+                <div onclick="openCategory('${cat.Category_ID || cat.id}', '${cat.Name}')" class="flex flex-col items-center gap-1 cursor-pointer active:scale-95 transition">
                     <div class="w-14 h-14 rounded-2xl bg-white shadow-sm flex items-center justify-center border border-gray-100">
                         <img src="${cat.Icon_Image_URL}" class="w-8 h-8 object-contain" onerror="this.src='https://img.icons8.com/color/48/food.png'">
                     </div>
@@ -435,18 +807,15 @@
         function renderProductLists() {
             const exclusiveContainer = document.getElementById('exclusive-slider');
             const recContainer = document.getElementById('recommendation-slider');
-            
-            const exclusive = productsData.filter(p => String(p.Is_Exclusive).toLowerCase() === 'true');
-            const normal = productsData; // Semua bisa jadi rekomendasi
+            const exclusive = productsData.filter(p => String(p.Is_Exclusive || p.Exclusive || 'false').toLowerCase() === 'true');
+            const normal = productsData; 
 
-            // Render Exclusive
             if(exclusive.length > 0) {
                 exclusiveContainer.innerHTML = exclusive.map(p => createProductCard(p, 'horizontal')).join('');
             } else {
                 exclusiveContainer.innerHTML = '<div class="text-xs text-gray-400 w-full text-center py-4">Belum ada promo.</div>';
             }
 
-            // Render Recommendation (Limit 5)
             if(normal.length > 0) {
                 recContainer.innerHTML = normal.slice(0, 5).map(p => createProductCard(p, 'vertical')).join('');
             } else {
@@ -454,40 +823,67 @@
             }
         }
 
+        function renderProductGrid(products, container) {
+            if(!products || products.length === 0) { 
+                container.innerHTML = '<div class="col-span-2 text-center text-gray-400 text-sm py-10">Tidak ada produk ditemukan.</div>'; 
+                return; 
+            }
+            container.innerHTML = products.map(item => createProductCard(item, 'vertical')).join('');
+        }
+
         function createProductCard(item, type) {
-            const price = new Intl.NumberFormat('id-ID').format(item.Price);
-            const oriPrice = item.Original_Price ? new Intl.NumberFormat('id-ID').format(item.Original_Price) : null;
-            
-            // Sanitasi Gambar
+            const priceVal = parseFloat(item.Price);
+            const originalPriceVal = parseFloat(item.Original_Price);
+            const price = new Intl.NumberFormat('id-ID').format(priceVal);
+            const oriPrice = new Intl.NumberFormat('id-ID').format(originalPriceVal);
             const imgUrl = item.Image_URL && item.Image_URL.startsWith('http') ? item.Image_URL : 'https://placehold.co/200?text=No+Img';
+            const availability = item.Availability ? String(item.Availability) : '';
+            const isHabis = availability.trim() === 'Habis';
+            const clickAction = isHabis ? "" : `onclick='openProductModal(${JSON.stringify(item)})'`;
+            const opacityClass = isHabis ? "opacity-60 grayscale cursor-not-allowed" : "cursor-pointer active:scale-[0.98]";
+            const overlay = isHabis ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center text-xs text-white font-bold rounded-xl z-20">HABIS</div>' : '';
+            const isHemat = originalPriceVal > priceVal;
+            const hematAmount = isHemat ? (originalPriceVal - priceVal) : 0;
+            const hematLabel = isHemat ? `<div class="absolute top-0 left-0 bg-red-600 text-white text-[9px] font-bold px-2 py-1 rounded-br-lg z-10 shadow-sm">Hemat Rp${new Intl.NumberFormat('id-ID').format(hematAmount)}</div>` : '';
+            const priorityLabel = `<div class="absolute top-0 right-0 bg-orange-500 text-white text-[9px] font-bold px-2 py-1 rounded-bl-lg z-10 shadow-sm flex items-center gap-1"><i class="fas fa-shipping-fast text-[8px]"></i> Prioritas</div>`;
 
             if (type === 'horizontal') {
                 return `
-                <div class="product-card min-w-[260px] bg-white rounded-2xl p-3 shadow-sm border border-gray-100 flex gap-3 snap-center cursor-pointer active:scale-[0.98]" onclick='openProductModal(${JSON.stringify(item)})'>
-                    <div class="w-20 h-20 bg-gray-100 rounded-xl overflow-hidden shrink-0">
+                <div class="product-card min-w-[300px] bg-white rounded-2xl p-3 shadow-sm border border-gray-100 flex gap-3 snap-center ${opacityClass} relative overflow-hidden" ${clickAction}>
+                    <div class="w-28 h-28 bg-gray-100 rounded-xl overflow-hidden shrink-0 relative">
                         <img src="${imgUrl}" class="w-full h-full object-cover">
+                        ${overlay} ${priorityLabel} ${hematLabel}
                     </div>
-                    <div class="flex-1 flex flex-col justify-center">
+                    <div class="flex-1 flex flex-col justify-center min-w-0">
                         <h4 class="font-bold text-gray-800 text-sm line-clamp-1">${item.Name}</h4>
-                        <p class="text-[10px] text-gray-500 mb-1 line-clamp-1">${item.Vendor_Name}</p>
-                        <div class="flex items-center gap-2">
-                            <span class="text-orange-600 font-bold text-sm">Rp${price}</span>
-                            ${oriPrice && oriPrice > item.Price ? `<span class="text-[9px] text-gray-400 line-through">Rp${oriPrice}</span>` : ''}
+                         <p class="text-[10px] text-gray-800 font-bold mb-0.5"><i class="fas fa-store text-orange-500"></i> ${item.Vendor_Name}</p>
+                        <p class="text-[10px] text-gray-500 mb-2 line-clamp-2 h-8 leading-tight">${item.Description || 'Menu spesial pilihan.'}</p>
+                        <div class="flex items-end justify-between mt-auto">
+                            <div class="flex flex-col items-start">
+                                ${isHemat ? `<span class="text-[9px] text-gray-400 line-through">Rp${oriPrice}</span>` : ''}
+                                <span class="text-orange-600 font-bold text-base">Rp${price}</span>
+                            </div>
+                            <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 shadow-sm"><i class="fas fa-plus text-xs"></i></div>
                         </div>
                     </div>
                 </div>`;
             } else {
                 return `
-                <div class="product-card min-w-[140px] w-[140px] bg-white p-3 rounded-2xl shadow-sm border border-gray-100 snap-center flex flex-col cursor-pointer active:scale-[0.98]" onclick='openProductModal(${JSON.stringify(item)})'>
-                    <div class="w-full h-24 bg-gray-100 rounded-xl overflow-hidden mb-2 relative">
+                <div class="product-card min-w-[170px] w-full bg-white p-3 rounded-2xl shadow-sm border border-gray-100 snap-center flex flex-col ${opacityClass} relative h-full overflow-hidden" ${clickAction}>
+                    <div class="w-full h-36 bg-gray-100 rounded-xl overflow-hidden mb-2 relative">
                         <img src="${imgUrl}" class="w-full h-full object-cover">
-                        <div class="absolute top-1 left-1 bg-white/90 px-1.5 rounded text-[9px] font-bold shadow-sm">
-                            <i class="fas fa-star text-yellow-500 text-[8px]"></i> ${item.Rating || '4.5'}
-                        </div>
+                        ${overlay} ${priorityLabel} ${hematLabel}
+                        ${!isHabis ? `<div class="absolute bottom-2 left-2 bg-white/90 px-1.5 rounded text-[9px] font-bold shadow-sm z-10"><i class="fas fa-star text-yellow-500 text-[8px]"></i> ${item.Rating || '4.5'}</div>` : ''}
                     </div>
-                    <h4 class="font-bold text-gray-800 text-xs line-clamp-2 mb-1 h-8">${item.Name}</h4>
-                    <div class="mt-auto">
-                        <span class="text-orange-600 font-bold text-xs">Rp${price}</span>
+                    <h4 class="font-bold text-gray-800 text-xs line-clamp-2 mb-0.5 h-8">${item.Name}</h4>
+                    <p class="text-[9px] text-gray-600 font-bold line-clamp-1 mb-1"><i class="fas fa-store text-orange-500 text-[8px]"></i> ${item.Vendor_Name}</p>
+                    <p class="text-[9px] text-gray-500 line-clamp-1 mb-2 h-4">${item.Description || ''}</p>
+                    <div class="mt-auto flex justify-between items-end">
+                        <div class="flex flex-col items-start">
+                            ${isHemat ? `<span class="text-[9px] text-gray-400 line-through">Rp${oriPrice}</span>` : ''}
+                            <span class="text-orange-600 font-bold text-sm">Rp${price}</span>
+                        </div>
+                        <div class="w-7 h-7 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 shadow-sm"><i class="fas fa-plus text-[10px]"></i></div>
                     </div>
                 </div>`;
             }
@@ -499,13 +895,11 @@
                 container.innerHTML = '<div class="text-center text-gray-400 text-xs py-8">Belum ada warung terdaftar.</div>';
                 return;
             }
-            
-            // Sort: Buka dulu, baru Tutup
             const sorted = vendors.sort((a, b) => (a.Status === 'Buka' ? -1 : 1));
 
             container.innerHTML = sorted.map(v => `
-                <div class="product-card bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3 cursor-pointer active:scale-[0.99] ${v.Status === 'Tutup' ? 'grayscale opacity-60' : ''}">
-                    <div class="w-14 h-14 rounded-full bg-gray-100 overflow-hidden border border-gray-200 shrink-0">
+                <div onclick="openVendor('${v.ID}')" class="product-card bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3 cursor-pointer active:scale-[0.99] ${v.Status === 'Tutup' ? 'grayscale opacity-60' : ''}">
+                    <div class="w-20 h-20 rounded-2xl bg-gray-100 overflow-hidden border border-gray-200 shrink-0">
                         <img src="${v.Image_URL || 'https://placehold.co/100?text=W'}" class="w-full h-full object-cover">
                     </div>
                     <div class="flex-1">
@@ -523,26 +917,32 @@
             `).join('');
         }
 
-        // --- PRODUCT MODAL ---
-        let currentItem = null;
+        function openVendor(vendorId) {
+            const vendor = vendorsData.find(v => String(v.ID) === String(vendorId));
+            if (!vendor) return;
+            document.getElementById('vendor-banner-img').src = vendor.Image_URL || "https://placehold.co/600x200?text=Resto";
+            document.getElementById('vendor-name-title').innerText = vendor.Vendor_Name;
+            document.getElementById('vendor-info-subtitle').innerText = `${vendor.Status} • ${vendor.Type || 'Umum'}`;
+            document.getElementById('vendor-rating-badge').innerText = vendor.Rating || '4.5';
+            const container = document.getElementById('vendor-menu-container');
+            const vendorProducts = productsData.filter(p => p.Vendor_Name === vendor.Vendor_Name);
+            renderProductGrid(vendorProducts, container);
+            navTo('vendor-page');
+        }
 
+        let currentItem = null;
         function openProductModal(item) {
-            // Fix parsing if item is string from HTML attribute
+            const availability = item.Availability ? String(item.Availability) : '';
+            if (availability.trim() === 'Habis') return; 
             if (typeof item === 'string') item = JSON.parse(item);
-            
             currentItem = item;
-            
-            // Set Data
             document.getElementById('variant-modal-img').src = item.Image_URL || 'https://placehold.co/400?text=No+Img';
             document.getElementById('variant-modal-title').innerText = item.Name;
             document.getElementById('variant-modal-vendor').innerText = item.Vendor_Name;
             document.getElementById('variant-modal-price').innerText = "Rp " + new Intl.NumberFormat('id-ID').format(item.Price);
             document.getElementById('variant-modal-desc').innerText = item.Description || "Tidak ada deskripsi.";
-
-            // Variants Logic
             const wrapper = document.getElementById('variant-options-wrapper');
             const container = document.getElementById('variant-options-container');
-            
             if (item.Variants && item.Variants.trim() !== "") {
                 wrapper.classList.remove('hidden');
                 const vars = item.Variants.split(',').map(v => v.trim());
@@ -552,12 +952,7 @@
                         <input type="radio" name="prod_var" value="${v}" class="accent-orange-600 w-4 h-4" ${i===0 ? 'checked' : ''}>
                     </label>
                 `).join('');
-            } else {
-                wrapper.classList.add('hidden');
-                container.innerHTML = '';
-            }
-
-            // Show Modal
+            } else { wrapper.classList.add('hidden'); container.innerHTML = ''; }
             const modal = document.getElementById('variant-modal');
             modal.classList.remove('hidden');
             setTimeout(() => modal.classList.remove('opacity-0'), 10);
@@ -572,109 +967,132 @@
 
         function confirmVariantAdd() {
             if(!currentItem) return;
-            
             let selectedVariant = null;
             const radios = document.getElementsByName('prod_var');
             if (radios.length > 0) {
-                for (const r of radios) {
-                    if (r.checked) { selectedVariant = r.value; break; }
-                }
+                for (const r of radios) { if (r.checked) { selectedVariant = r.value; break; } }
             }
-
             addToCart(currentItem, selectedVariant);
             closeVariantModal();
         }
 
-        // --- CART LOGIC ---
         function addToCart(item, variant) {
             const cartId = item.ID + (variant ? '-' + variant : '');
             const existing = cart.find(c => c.cartId === cartId);
-            
-            if (existing) {
-                existing.qty++;
-            } else {
-                cart.push({
-                    ...item,
-                    cartId: cartId,
-                    variant: variant || '',
-                    qty: 1
-                });
-            }
+            if (existing) { existing.qty++; } 
+            else { cart.push({ ...item, cartId: cartId, variant: variant || '', qty: 1 }); }
             updateCartBadge();
-            
-            // Simple Toast
             const btn = document.getElementById('btn-add-variant');
-            const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-check"></i> Masuk Keranjang';
             btn.classList.add('bg-green-600');
-            setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.classList.remove('bg-green-600');
-            }, 1000);
+            setTimeout(() => { btn.innerHTML = '<span>Tambah Pesanan</span>'; btn.classList.remove('bg-green-600'); }, 1000);
         }
 
         function updateCartBadge() {
             const count = cart.reduce((sum, i) => sum + i.qty, 0);
             const badge = document.getElementById('cart-badge-nav');
-            if(count > 0) {
-                badge.innerText = count;
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
-            }
+            if(count > 0) { badge.innerText = count; badge.classList.remove('hidden'); } 
+            else { badge.classList.add('hidden'); }
         }
 
-        function openCart() {
-            const modal = document.getElementById('cart-modal');
+        function renderCartPage() {
             const container = document.getElementById('cart-items-container');
-            const totalEl = document.getElementById('cart-total-final');
-            
+            const form = document.getElementById('checkout-form-container');
+            const summaryArea = document.getElementById('cart-summary-area');
+
             if(cart.length === 0) {
-                container.innerHTML = `<div class="text-center py-10 text-gray-400">Keranjang kosong</div>`;
-                totalEl.innerText = "Rp0";
+                container.innerHTML = `<div class="text-center py-20 text-gray-400"><i class="fas fa-shopping-basket text-4xl mb-3 text-gray-300"></i><p>Keranjang kosong</p></div>`;
+                form.classList.add('hidden');
             } else {
+                form.classList.remove('hidden');
                 let total = 0;
-                // Group by Vendor
+                let totalOriginal = 0;
+                
                 const grouped = {};
                 cart.forEach(item => {
                     if(!grouped[item.Vendor_Name]) grouped[item.Vendor_Name] = [];
                     grouped[item.Vendor_Name].push(item);
-                    total += (item.Price * item.qty);
+                    
+                    const priceVal = parseFloat(item.Price);
+                    const originalPriceVal = parseFloat(item.Original_Price);
+                    // Gunakan Original_Price jika valid dan lebih besar dari Price, jika tidak gunakan Price biasa
+                    const itemOriginalPrice = (!isNaN(originalPriceVal) && originalPriceVal > priceVal) ? originalPriceVal : priceVal;
+
+                    total += (priceVal * item.qty);
+                    totalOriginal += (itemOriginalPrice * item.qty);
                 });
 
                 let html = '';
-                // Check Multi Vendor
                 if(Object.keys(grouped).length > 1) {
-                    html += `<div class="bg-yellow-50 p-2 rounded-lg mb-2 text-[10px] text-yellow-800 border border-yellow-200"><i class="fas fa-exclamation-triangle"></i> Pesanan dari >1 warung, ongkir mungkin beda.</div>`;
+                    html += `<div class="bg-yellow-50 border border-yellow-200 p-3 rounded-2xl mb-3 flex items-start gap-2"><i class="fas fa-exclamation-triangle text-yellow-500 mt-0.5 text-xs"></i><p class="text-[11px] text-yellow-700 leading-tight">Pesan lebih dari 1 penjual, ada tambahan sedikit ongkir.</p></div>`;
                 }
 
                 for(const [vendor, items] of Object.entries(grouped)) {
-                    html += `<div class="mb-3 border-b pb-2"><h4 class="font-bold text-xs text-gray-500 mb-2">${vendor}</h4>`;
+                    html += `<div class="bg-white rounded-2xl p-4 border border-gray-100 mb-3 shadow-sm"><div class="flex items-center gap-2 mb-3 pb-2 border-b border-gray-100"><i class="fas fa-store text-orange-600 text-sm"></i><h4 class="font-bold text-sm text-gray-800">${vendor}</h4></div>`;
                     items.forEach(item => {
+                         const priceVal = parseFloat(item.Price);
+                         const originalPriceVal = parseFloat(item.Original_Price);
+                         const isHemat = originalPriceVal > priceVal;
+
                         html += `
-                        <div class="flex justify-between items-center mb-2">
-                            <div>
-                                <p class="text-sm font-bold text-gray-800">${item.Name} ${item.variant ? `(${item.variant})` : ''}</p>
-                                <p class="text-xs text-orange-600">Rp${new Intl.NumberFormat('id-ID').format(item.Price)}</p>
+                        <div class="flex justify-between items-start mb-3 last:mb-0">
+                            <div class="flex gap-3 items-center flex-1">
+                                <div class="w-12 h-12 rounded-xl bg-gray-200 overflow-hidden shrink-0"><img src="${item.Image_URL}" class="w-full h-full object-cover"></div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-bold text-gray-800 line-clamp-1">${item.Name}</p>
+                                    ${item.variant ? `<p class="text-[10px] text-gray-500 mb-1">Varian: ${item.variant}</p>` : ''}
+                                    <div class="flex gap-2 items-center">
+                                        <div class="flex flex-col items-start">
+                                            ${isHemat ? `<span class="text-[9px] text-gray-400 line-through">${formatRupiah(originalPriceVal)}</span>` : ''}
+                                            <span class="text-xs text-orange-600 font-bold">${formatRupiah(priceVal)}</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="flex items-center gap-3 bg-gray-100 rounded-lg px-2 py-1">
-                                <button onclick="updateQty('${item.cartId}', -1)" class="text-gray-500 font-bold">-</button>
-                                <span class="text-xs font-bold w-3 text-center">${item.qty}</span>
-                                <button onclick="updateQty('${item.cartId}', 1)" class="text-green-600 font-bold">+</button>
+                            <div class="flex items-center gap-3 bg-gray-50 rounded-lg px-2 py-1 border border-gray-200">
+                                <button onclick="updateQty('${item.cartId}', -1)" class="text-gray-500 font-bold w-4 text-center">-</button>
+                                <span class="text-xs font-bold w-4 text-center">${item.qty}</span>
+                                <button onclick="updateQty('${item.cartId}', 1)" class="text-green-600 font-bold w-4 text-center">+</button>
                             </div>
                         </div>`;
                     });
                     html += `</div>`;
                 }
                 container.innerHTML = html;
-                totalEl.innerText = "Rp " + new Intl.NumberFormat('id-ID').format(total);
+                
+                const savings = totalOriginal - total;
+                const summaryHtml = `
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">PROJEKGO tidak markup harga</span>
+                            <span class="text-xs text-gray-400 line-through">${formatRupiah(totalOriginal)}</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs text-gray-600 font-medium">
+                            <span>Biaya Aplikasi</span>
+                            <div class="flex items-center gap-1"><span class="text-[9px] bg-green-100 text-green-600 px-1.5 py-0.5 rounded font-bold">Gratis</span> <span>Rp 0</span></div>
+                        </div>
+                        <div class="border-t border-dashed border-gray-200 my-2"></div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-gray-800 text-sm">Total harga makanan</span>
+                            <div class="text-right">
+                                <span class="text-[10px] bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded font-bold border border-orange-100 mb-1 inline-block">Harga Asli</span>
+                                <span class="block text-xl font-black text-orange-600">${formatRupiah(total)}</span>
+                            </div>
+                        </div>
+                        ${savings > 0 ? `<div class="flex justify-end"><span class="text-[10px] bg-red-50 text-red-600 px-2 py-1 rounded-lg font-bold">Anda lebih hemat ${formatRupiah(savings)}</span></div>` : ''}
+                        <button onclick="checkoutToWA()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98] mt-4">
+                            <i class="fab fa-whatsapp text-xl"></i> Pesan via WhatsApp
+                        </button>
+                    </div>
+                `;
+                summaryArea.innerHTML = summaryHtml;
             }
-
-            modal.classList.remove('hidden');
         }
 
-        function closeCart() {
-            document.getElementById('cart-modal').classList.add('hidden');
+        // Keep this for simple compatibility if needed, but navTo('cart-page') is primary
+        function openCart() {
+             navTo('cart-page');
+             renderCartPage();
         }
 
         function updateQty(id, delta) {
@@ -683,26 +1101,20 @@
                 cart[idx].qty += delta;
                 if(cart[idx].qty <= 0) cart.splice(idx, 1);
                 updateCartBadge();
-                openCart(); // Re-render
+                renderCartPage();
             }
         }
 
         function checkoutToWA() {
             if(cart.length === 0) return;
-            
-            const address = document.getElementById('header-address-text').innerText;
-            if(address === "Atur Lokasi Pengantaran") {
-                alert("Mohon atur lokasi dulu!");
-                closeCart();
-                openLocationModal();
-                return;
-            }
+            const address = document.getElementById('delivery-address').value || document.getElementById('header-address-text').innerText;
+            if(!address || address === "Atur Lokasi Pengantaran") { alert("Mohon atur alamat lokasi dulu!"); return; }
 
-            const phone = "6281292802623"; // Ganti No WA Admin
+            const phone = "6281292802623";
             let msg = `Halo Admin, saya mau pesan:\n\n`;
-            
             let grandTotal = 0;
             const grouped = {};
+            
             cart.forEach(item => {
                 if(!grouped[item.Vendor_Name]) grouped[item.Vendor_Name] = [];
                 grouped[item.Vendor_Name].push(item);
@@ -727,34 +1139,109 @@
         // --- UTILS ---
         function openPartnershipModal() { document.getElementById('partnership-modal').classList.remove('hidden'); }
         function closePartnershipModal() { document.getElementById('partnership-modal').classList.add('hidden'); }
+        function openSellerRegistration() { closePartnershipModal(); document.getElementById('seller-register-modal').classList.remove('hidden'); setTimeout(() => document.getElementById('seller-register-content').classList.remove('translate-y-full'), 10); }
+        function closeSellerRegistration() { document.getElementById('seller-register-content').classList.add('translate-y-full'); setTimeout(() => document.getElementById('seller-register-modal').classList.add('hidden'), 300); }
+        function openRiderRegistration() { closePartnershipModal(); document.getElementById('rider-info-modal').classList.remove('hidden'); }
+        function closeRiderInfo() { document.getElementById('rider-info-modal').classList.add('hidden'); }
         
-        // --- Navigasi Dasar ---
+        function updateProfileUI() { document.getElementById('profile-name-text').innerText = userProfile.name; document.getElementById('profile-phone-text').innerText = userProfile.phone; document.getElementById('profile-avatar-img').src = userProfile.avatar; }
+        function openEditProfile() { document.getElementById('edit-name-input').value = userProfile.name; document.getElementById('edit-phone-input').value = userProfile.phone; document.getElementById('edit-profile-modal').classList.remove('hidden'); }
+        function closeEditProfile() { document.getElementById('edit-profile-modal').classList.add('hidden'); }
+        function saveProfile() { const newName = document.getElementById('edit-name-input').value; const newPhone = document.getElementById('edit-phone-input').value; if (newName && newPhone) { userProfile.name = newName; userProfile.phone = newPhone; userProfile.avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(newName)}&background=random`; updateProfileUI(); closeEditProfile(); } }
+        function toggleFavorite(event, id) { event.stopPropagation(); const btn = event.currentTarget; if (favorites.has(id)) { favorites.delete(id); btn.innerHTML = `<i class="far fa-heart text-gray-400 text-xs"></i>`; } else { favorites.add(id); btn.innerHTML = `<i class="fas fa-heart text-red-500 text-xs liked-anim"></i>`; } }
+        function openFavoritesPage(navigate = true) { if (navigate) navTo('category-page'); document.getElementById('cat-page-title').innerText = 'Makanan Favorit'; const container = document.getElementById('category-content-container'); const favProducts = productsData.filter(p => favorites.has(p.ID)); if (favProducts.length === 0) { container.innerHTML = '<div class="col-span-2 text-center text-gray-400 mt-10"><i class="far fa-heart text-4xl mb-2"></i><p>Belum ada makanan favorit.</p></div>'; } else { renderProductGrid(favProducts, container); } }
+        function openAddressModal() { renderAddressList(); document.getElementById('address-modal').classList.remove('hidden'); }
+        function closeAddressModal() { document.getElementById('address-modal').classList.add('hidden'); }
+        function renderAddressList() { const container = document.getElementById('address-list-container'); container.innerHTML = savedAddresses.map(addr => `<div class="bg-white p-3 rounded-2xl border border-gray-200 flex justify-between items-center cursor-pointer hover:border-orange-500 group" onclick="selectAddress('${addr.detail}')"><div><span class="text-xs font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded mb-1 inline-block">${addr.label}</span><p class="text-sm text-gray-800 leading-tight">${addr.detail}</p></div><button onclick="event.stopPropagation(); deleteAddress(${addr.id})" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash-alt"></i></button></div>`).join(''); }
+        function deleteAddress(id) { if (confirm('Hapus alamat ini?')) { savedAddresses = savedAddresses.filter(a => a.id !== id); renderAddressList(); } }
+        function openAddAddressModal() { const modal = document.getElementById('add-address-modal'); const content = document.getElementById('add-address-content'); document.getElementById('new-addr-detail').value = ''; document.getElementById('new-addr-note').value = ''; setAddressLabel('Rumah'); modal.classList.remove('hidden'); setTimeout(() => { content.classList.remove('translate-y-full'); }, 10); }
+        function closeAddAddressModal() { const modal = document.getElementById('add-address-modal'); const content = document.getElementById('add-address-content'); content.classList.add('translate-y-full'); setTimeout(() => { modal.classList.add('hidden'); }, 300); }
+        function setAddressLabel(label) { document.getElementById('new-addr-label').value = label; document.querySelectorAll('.addr-label-btn').forEach(btn => { if(btn.innerText === label) { btn.classList.add('border-orange-500', 'bg-orange-50', 'text-orange-600'); btn.classList.remove('border-gray-200', 'text-gray-600'); } else { btn.classList.remove('border-orange-500', 'bg-orange-50', 'text-orange-600'); btn.classList.add('border-gray-200', 'text-gray-600'); } }); }
+        function saveNewAddress() { const label = document.getElementById('new-addr-label').value; const detail = document.getElementById('new-addr-detail').value; const note = document.getElementById('new-addr-note').value; if (!detail) { const input = document.getElementById('new-addr-detail'); input.classList.add('border-red-500', 'animate-pulse'); setTimeout(() => input.classList.remove('border-red-500', 'animate-pulse'), 1000); return; } const finalDetail = note ? `${detail} (${note})` : detail; savedAddresses.push({ id: Date.now(), label: label || "Alamat", detail: finalDetail }); renderAddressList(); closeAddAddressModal(); const toast = document.createElement('div'); toast.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs font-bold py-2 px-4 rounded-full shadow-lg z-[95] animate-bounce flex items-center'; toast.innerHTML = `<i class="fas fa-check-circle mr-2 text-green-400"></i> Alamat Berhasil Disimpan`; document.body.appendChild(toast); setTimeout(() => toast.remove(), 2000); }
+        function selectAddress(detail) { document.getElementById('header-address-text').innerText = detail; closeAddressModal(); }
+        function formatRupiah(number) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumSignificantDigits: 3 }).format(number); }
+
         function navTo(pageId) {
-            // Sembunyikan semua page section kecuali target
             document.querySelectorAll('.page-section').forEach(el => {
                 if(el.id !== pageId) {
                     el.classList.add('hidden-page');
                     el.classList.remove('z-30');
                 }
             });
-            
             const target = document.getElementById(pageId);
             target.classList.remove('hidden-page');
             target.classList.add('z-30');
-            
-            // Reset Navbar Active State
             document.querySelectorAll('.nav-item').forEach(el => {
                 el.classList.remove('active');
                 el.querySelector('i').classList.replace('text-orange-600', 'text-gray-400');
                 el.querySelector('span').classList.remove('font-bold', 'text-orange-600');
             });
+            let activeNav;
+            if(pageId === 'home-page') activeNav = document.getElementById('nav-home');
+            else if(pageId === 'points-page') activeNav = document.getElementById('nav-points');
+            else if(pageId === 'orders-page') activeNav = document.getElementById('nav-orders');
+            else if(pageId === 'profile-page') activeNav = document.getElementById('nav-profile');
+            
+            if(activeNav) {
+                activeNav.classList.add('active');
+                activeNav.querySelector('i').classList.replace('text-orange-600', 'text-orange-600'); 
+                activeNav.querySelector('span').classList.add('font-bold', 'text-orange-600');
+            }
         }
         
         function handleBack() {
-            // Simple back logic: always go home for now
             navTo('home-page');
         }
 
+        function openExclusivePage() {
+            navTo('exclusive-page');
+            const container = document.getElementById('exclusive-content-container');
+            container.innerHTML = '<div class="col-span-2 text-center py-10"><i class="fas fa-spinner fa-spin text-orange-500"></i> Memuat...</div>';
+            setTimeout(() => {
+                const exclusiveProducts = productsData.filter(p => String(p.Is_Exclusive || p.Exclusive || 'false').toLowerCase() === 'true');
+                if (exclusiveProducts.length === 0) { 
+                    container.innerHTML = '<div class="col-span-2 text-center text-gray-400 mt-10">Belum ada menu eksklusif saat ini.</div>'; 
+                    return; 
+                }
+                renderProductGrid(exclusiveProducts, container);
+            }, 300);
+        }
+
+        function openCategory(catId, catName) { 
+            navTo('category-page'); 
+            document.getElementById('cat-page-title').innerText = catName; 
+            const container = document.getElementById('category-content-container'); 
+            container.innerHTML = '<div class="col-span-2 text-center py-10"><i class="fas fa-spinner fa-spin text-orange-500"></i> Memuat...</div>'; 
+            setTimeout(() => { 
+                const filtered = catId === 'all' ? productsData : productsData.filter(p => p.category === catId);
+                if (filtered.length === 0) { 
+                    container.innerHTML = '<div class="col-span-2 text-center text-gray-400 mt-10">Belum ada menu di kategori ini.</div>'; 
+                    return; 
+                } 
+                renderProductGrid(filtered, container); 
+            }, 300); 
+        }
+
+        function submitRegistration(type) {
+            let payload = { action: 'register', type: type };
+            if (type === 'Mitra Penjual') {
+                const name = document.getElementById('reg-seller-name').value;
+                const phone = document.getElementById('reg-seller-phone').value;
+                const bizName = document.getElementById('reg-seller-biz').value;
+                const category = document.getElementById('reg-seller-cat').value;
+                const address = document.getElementById('reg-seller-addr').value;
+                if (!name || !phone || !bizName) { alert("Harap isi semua data wajib!"); return; }
+                payload.name = name; payload.phone = phone; payload.bizName = bizName; payload.category = category; payload.address = address;
+            }
+            const modalId = 'seller-register-modal';
+            const contentId = 'seller-register-content';
+            document.getElementById(contentId).classList.add('translate-y-full');
+            setTimeout(() => document.getElementById(modalId).classList.add('hidden'), 300);
+            
+            fetch(API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+            .then(response => { alert(`Pendaftaran ${type} Berhasil dikirim!`); })
+            .catch(error => { console.error("Error:", error); alert("Gagal Mengirim (Cek Koneksi)"); });
+        }
     </script>
 </body>
 </html>
