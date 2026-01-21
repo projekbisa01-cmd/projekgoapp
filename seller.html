@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Admin Penjual - ProjekGo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f3f4f6; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .page-section { display: none; min-height: 100vh; flex-direction: column; }
+        .page-section.active { display: flex; }
+        .loader { border-top-color: #ea580c; -webkit-animation: spinner 1.5s linear infinite; animation: spinner 1.5s linear infinite; }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="max-w-md mx-auto bg-white min-h-screen shadow-xl relative overflow-hidden">
+        
+        <!-- === HALAMAN LOGIN === -->
+        <div id="login-page" class="page-section active p-8 justify-center items-center bg-orange-600">
+            <div class="bg-white p-8 rounded-3xl w-full shadow-2xl">
+                <div class="text-center mb-6">
+                    <h1 class="text-3xl font-black text-orange-600 italic">PROJEK<span class="text-gray-800">GO</span></h1>
+                    <p class="text-xs text-gray-500 font-bold tracking-widest mt-1">KHUSUS MITRA PENJUAL</p>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1 ml-1">ID Penjual (Vendor ID)</label>
+                        <input type="text" id="login-id" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 font-bold text-center tracking-wider" placeholder="Contoh: V001">
+                        <p class="text-[10px] text-gray-400 mt-1 ml-1">*ID ini diberikan oleh Admin ProjekGo</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1 ml-1">Nama Toko Anda</label>
+                        <input type="text" id="login-name" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 font-medium" placeholder="Contoh: Nasi Goreng Budi">
+                        <p class="text-[10px] text-gray-400 mt-1 ml-1">*Harus SAMA PERSIS dengan data pendaftaran</p>
+                    </div>
+                    <button onclick="handleLogin()" class="w-full bg-orange-600 text-white font-bold py-3.5 rounded-xl shadow-lg hover:bg-orange-700 active:scale-95 transition mt-2">
+                        Masuk Aplikasi
+                    </button>
+                </div>
+            </div>
+            <p class="text-white/80 text-[10px] mt-8 text-center absolute bottom-8">© 2024 ProjekGo Partner App</p>
+        </div>
+
+        <!-- === HALAMAN UTAMA (DASHBOARD) === -->
+        <div id="dashboard-page" class="page-section bg-gray-50 pb-24">
+            <!-- Header -->
+            <header class="bg-white p-5 shadow-sm sticky top-0 z-20 flex justify-between items-center rounded-b-[2rem]">
+                <div>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Selamat Datang,</p>
+                    <h2 class="text-lg font-black text-gray-800 leading-tight" id="dashboard-vendor-name">Nama Toko</h2>
+                    <span class="text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded font-bold" id="dashboard-vendor-id">ID: -</span>
+                </div>
+                <button onclick="handleLogout()" class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:text-red-500 transition">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </header>
+
+            <!-- Content Area -->
+            <main class="flex-1 p-5 overflow-y-auto hide-scrollbar">
+                
+                <!-- TAB 1: TAMBAH MENU -->
+                <div id="tab-menu" class="space-y-5">
+                    <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-gray-100">
+                        <div class="flex items-center gap-3 mb-4 border-b border-gray-100 pb-3">
+                            <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-orange-600"><i class="fas fa-utensils text-xs"></i></div>
+                            <h3 class="font-bold text-gray-800">Tambah Menu Baru</h3>
+                        </div>
+
+                        <form id="form-add-product" onsubmit="event.preventDefault(); submitProduct();" class="space-y-4">
+                            <!-- Nama Menu -->
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 ml-1">Nama Makanan/Minuman</label>
+                                <input type="text" id="prod-name" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 font-medium" placeholder="Cth: Nasi Goreng Spesial">
+                            </div>
+
+                            <!-- Kategori -->
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 ml-1">Kategori</label>
+                                <select id="prod-cat" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 font-medium text-gray-700">
+                                    <option value="cat1">Aneka Nasi</option>
+                                    <option value="cat2">Minuman</option>
+                                    <option value="cat3">Jajanan</option>
+                                    <option value="cat4">Roti & Kue</option>
+                                    <option value="cat5">Sate & BBQ</option>
+                                </select>
+                            </div>
+
+                            <!-- Variasi (NEW) -->
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 ml-1">Varian (Pisahkan dengan koma)</label>
+                                <input type="text" id="prod-variants" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 font-medium" placeholder="Cth: Pedas, Sedang, Tidak Pedas">
+                            </div>
+
+                            <!-- Harga -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 ml-1">Harga Jual (Rp)</label>
+                                    <!-- Auto calculate markup on input -->
+                                    <input type="number" id="prod-price" oninput="calculateOrigPrice()" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 font-bold text-orange-600" placeholder="20000">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 ml-1">Harga Coret (Otomatis)</label>
+                                    <input type="number" id="prod-orig-price" class="w-full bg-gray-100 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none font-medium text-gray-500" placeholder="Otomatis +20%">
+                                </div>
+                            </div>
+
+                            <!-- Deskripsi (NEW) -->
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 ml-1">Deskripsi Produk</label>
+                                <textarea id="prod-desc" rows="3" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 font-medium resize-none" placeholder="Jelaskan detail menu semenarik mungkin..."></textarea>
+                            </div>
+
+                            <!-- Upload Gambar -->
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 ml-1">Foto Menu</label>
+                                
+                                <!-- Opsi Tab Upload/URL -->
+                                <div class="flex gap-2 mb-2">
+                                    <button type="button" onclick="toggleImageInput('upload')" id="btn-mode-upload" class="flex-1 py-2 text-xs font-bold rounded-lg bg-orange-100 text-orange-600 border border-orange-200">Upload Galeri</button>
+                                    <button type="button" onclick="toggleImageInput('url')" id="btn-mode-url" class="flex-1 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-500 border border-gray-200">Pakai Link/URL</button>
+                                </div>
+
+                                <!-- Input File (Galeri) -->
+                                <div id="input-mode-upload" class="block">
+                                    <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center bg-gray-50 hover:bg-gray-100 cursor-pointer transition relative group" onclick="document.getElementById('file-upload-prod').click()">
+                                        <input type="file" id="file-upload-prod" class="hidden" accept="image/*" onchange="handleImageUpload(this)">
+                                        <div id="upload-placeholder">
+                                            <i class="fas fa-camera text-2xl text-gray-400 mb-1 group-hover:scale-110 transition"></i>
+                                            <p class="text-[10px] text-gray-500">Ketuk untuk buka Galeri</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Input URL (Link) -->
+                                <div id="input-mode-url" class="hidden">
+                                    <div class="flex gap-2">
+                                        <input type="url" id="prod-img-url" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 font-medium text-blue-600" placeholder="https://...">
+                                        <button type="button" onclick="previewUrlImg()" class="bg-gray-200 w-12 rounded-xl flex items-center justify-center hover:bg-gray-300"><i class="fas fa-eye text-gray-600"></i></button>
+                                    </div>
+                                    <p class="text-[9px] text-gray-400 mt-1 ml-1">*Gunakan link gambar langsung</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Preview Image Area -->
+                            <div id="img-preview-box" class="hidden w-full h-40 bg-gray-100 rounded-xl overflow-hidden mb-2 border border-gray-200 relative">
+                                <img id="img-preview-el" src="" class="w-full h-full object-cover">
+                                <button type="button" onclick="removeImage()" class="absolute top-2 right-2 bg-white/80 rounded-full w-8 h-8 flex items-center justify-center text-red-500 shadow-sm"><i class="fas fa-times"></i></button>
+                            </div>
+
+                            <button type="submit" id="btn-submit-prod" class="w-full bg-orange-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-orange-200 hover:bg-orange-700 active:scale-95 transition flex justify-center items-center gap-2">
+                                <i class="fas fa-plus-circle"></i> Simpan Menu
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- TAB 2: DAFTAR MENU -->
+                <div id="tab-list-menu" class="space-y-5 hidden">
+                    <div class="flex justify-between items-center mb-1 px-1">
+                        <h3 class="font-bold text-gray-800 text-lg">Menu Terdaftar</h3>
+                        <button onclick="fetchVendorProducts()" class="text-orange-600 text-xs font-bold flex items-center gap-1 bg-orange-50 px-3 py-1.5 rounded-full hover:bg-orange-100 transition active:scale-95 shadow-sm border border-orange-100">
+                            <i class="fas fa-sync-alt" id="refresh-list-icon"></i> Refresh
+                        </button>
+                    </div>
+                    
+                    <div id="vendor-product-list" class="space-y-3 pb-10">
+                        <div class="text-center py-10 text-gray-400 text-xs">
+                            <div class="bg-gray-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-list-ul text-lg text-gray-300"></i>
+                            </div>
+                            Tekan tombol refresh untuk memuat data.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: STATUS TOKO -->
+                <div id="tab-status" class="space-y-5 hidden">
+                    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 text-center">
+                        <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-md">
+                            <i class="fas fa-store text-3xl text-gray-400" id="status-icon"></i>
+                        </div>
+                        <h3 class="font-bold text-gray-800 text-lg mb-1">Status Toko</h3>
+                        <p class="text-sm font-bold mb-6 px-4 py-1 rounded-full inline-block" id="current-status-badge">Silakan Pilih Status</p>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <button onclick="updateStatus('Buka')" class="py-4 rounded-2xl border-2 border-green-500 bg-green-50 text-green-600 font-bold hover:bg-green-100 active:scale-95 transition flex flex-col items-center gap-2">
+                                <i class="fas fa-door-open text-2xl"></i> BUKA TOKO
+                            </button>
+                            <button onclick="updateStatus('Tutup')" class="py-4 rounded-2xl border-2 border-red-500 bg-red-50 text-red-600 font-bold hover:bg-red-100 active:scale-95 transition flex flex-col items-center gap-2">
+                                <i class="fas fa-door-closed text-2xl"></i> TUTUP TOKO
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-gray-400 mt-4">Status akan langsung berubah di aplikasi pembeli.</p>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- Bottom Nav -->
+            <nav class="bg-white border-t border-gray-100 flex justify-around items-center py-3 absolute bottom-0 left-0 right-0 w-full rounded-t-[2rem] shadow-[0_-5px_15px_rgba(0,0,0,0.05)] pb-6">
+                <!-- Tombol Input -->
+                <button onclick="switchTab('menu')" id="nav-btn-menu" class="flex flex-col items-center gap-1 text-orange-600 w-16 transition active:scale-90 group">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center bg-transparent group-[.text-orange-600]:bg-orange-50 transition">
+                        <i class="fas fa-plus-circle text-lg"></i>
+                    </div>
+                    <span class="text-[10px] font-bold">Input</span>
+                </button>
+                
+                <div class="w-[1px] h-8 bg-gray-100"></div>
+
+                <!-- Tombol Daftar -->
+                <button onclick="switchTab('list-menu')" id="nav-btn-list-menu" class="flex flex-col items-center gap-1 text-gray-400 w-16 transition active:scale-90 group">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center bg-transparent group-[.text-orange-600]:bg-orange-50 transition">
+                        <i class="fas fa-clipboard-list text-lg"></i>
+                    </div>
+                    <span class="text-[10px] font-medium">Daftar</span>
+                </button>
+
+                <div class="w-[1px] h-8 bg-gray-100"></div>
+
+                <!-- Tombol Status -->
+                <button onclick="switchTab('status')" id="nav-btn-status" class="flex flex-col items-center gap-1 text-gray-400 w-16 transition active:scale-90 group">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center bg-transparent group-[.text-orange-600]:bg-orange-50 transition">
+                        <i class="fas fa-store text-lg"></i>
+                    </div>
+                    <span class="text-[10px] font-medium">Status</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="absolute inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex-col items-center justify-center text-white">
+            <div class="w-12 h-12 border-4 border-white/30 border-t-orange-500 rounded-full loader mb-3"></div>
+            <p class="font-bold text-sm tracking-wide" id="loading-text">Memproses...</p>
+        </div>
+
+    </div>
+
+    <script>
+        // =========================================================================
+        // URL API GOOGLE APPS SCRIPT (WEB APP) - SUDAH DITERAPKAN
+        // =========================================================================
+        const API_URL = "https://script.google.com/macros/s/AKfycbw65jWYm1cmPsXPM22Hsi9LH0FrY2AiIPNHE-16uvhEaVsx-KrgZ8KWw0K0cpAVA5Sj/exec"; 
+        
+        // State Login
+        let vendorData = {
+            id: localStorage.getItem('pg_vendor_id') || '',
+            name: localStorage.getItem('pg_vendor_name') || ''
+        };
+
+        // State Gambar
+        let compressedImageBlob = null; // Menyimpan data gambar Base64
+        let activeInputMode = 'upload'; // 'upload' atau 'url'
+
+        // Init
+        window.addEventListener('load', () => {
+            if (vendorData.id && vendorData.name) {
+                showDashboard();
+            }
+        });
+
+        // --- AUTHENTICATION ---
+        function handleLogin() {
+            const idInput = document.getElementById('login-id').value.trim();
+            const nameInput = document.getElementById('login-name').value.trim();
+
+            if (!idInput || !nameInput) {
+                alert("Mohon isi ID dan Nama Toko!");
+                return;
+            }
+
+            vendorData.id = idInput;
+            vendorData.name = nameInput;
+            
+            localStorage.setItem('pg_vendor_id', idInput);
+            localStorage.setItem('pg_vendor_name', nameInput);
+
+            showDashboard();
+        }
+
+        function handleLogout() {
+            if(confirm("Keluar dari aplikasi penjual?")) {
+                localStorage.removeItem('pg_vendor_id');
+                localStorage.removeItem('pg_vendor_name');
+                vendorData = { id: '', name: '' };
+                document.getElementById('login-page').classList.add('active');
+                document.getElementById('dashboard-page').classList.remove('active');
+                document.getElementById('login-id').value = '';
+                document.getElementById('login-name').value = '';
+            }
+        }
+
+        function showDashboard() {
+            document.getElementById('login-page').classList.remove('active');
+            document.getElementById('dashboard-page').classList.add('active');
+            
+            document.getElementById('dashboard-vendor-name').innerText = vendorData.name;
+            document.getElementById('dashboard-vendor-id').innerText = "ID: " + vendorData.id;
+            
+            switchTab('menu');
+        }
+
+        // --- NAVIGATION TABS ---
+        function switchTab(tabName) {
+            const menuContent = document.getElementById('tab-menu');
+            const listContent = document.getElementById('tab-list-menu');
+            const statusContent = document.getElementById('tab-status');
+            
+            const navMenu = document.getElementById('nav-btn-menu');
+            const navList = document.getElementById('nav-btn-list-menu');
+            const navStatus = document.getElementById('nav-btn-status');
+
+            // Reset All Tabs
+            [menuContent, listContent, statusContent].forEach(el => el.classList.add('hidden'));
+            [navMenu, navList, navStatus].forEach(el => {
+                el.classList.replace('text-orange-600', 'text-gray-400');
+                el.querySelector('span').classList.replace('font-bold', 'font-medium');
+            });
+
+            // Activate Selected Tab
+            if (tabName === 'menu') {
+                menuContent.classList.remove('hidden');
+                navMenu.classList.replace('text-gray-400', 'text-orange-600');
+                navMenu.querySelector('span').classList.replace('font-medium', 'font-bold');
+            } else if (tabName === 'list-menu') {
+                listContent.classList.remove('hidden');
+                navList.classList.replace('text-gray-400', 'text-orange-600');
+                navList.querySelector('span').classList.replace('font-medium', 'font-bold');
+                if(document.getElementById('vendor-product-list').children.length <= 1) {
+                    fetchVendorProducts();
+                }
+            } else if (tabName === 'status') {
+                statusContent.classList.remove('hidden');
+                navStatus.classList.replace('text-gray-400', 'text-orange-600');
+                navStatus.querySelector('span').classList.replace('font-medium', 'font-bold');
+            }
+        }
+
+        // --- LOGIKA HARGA OTOMATIS (NEW) ---
+        function calculateOrigPrice() {
+            const priceInput = document.getElementById('prod-price');
+            const origPriceInput = document.getElementById('prod-orig-price');
+            
+            const price = parseFloat(priceInput.value);
+            
+            if (!isNaN(price) && price > 0) {
+                // Tambah 20%
+                const markedUpPrice = Math.round(price * 1.20);
+                origPriceInput.value = markedUpPrice;
+            } else {
+                origPriceInput.value = '';
+            }
+        }
+
+        // --- LOGIKA GAMBAR (GALERI vs URL) ---
+        function toggleImageInput(mode) {
+            activeInputMode = mode;
+            const uploadDiv = document.getElementById('input-mode-upload');
+            const urlDiv = document.getElementById('input-mode-url');
+            const btnUpload = document.getElementById('btn-mode-upload');
+            const btnUrl = document.getElementById('btn-mode-url');
+
+            if (mode === 'upload') {
+                uploadDiv.classList.remove('hidden');
+                urlDiv.classList.add('hidden');
+                
+                btnUpload.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-orange-100 text-orange-600 border border-orange-200";
+                btnUrl.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-500 border border-gray-200";
+            } else {
+                uploadDiv.classList.add('hidden');
+                urlDiv.classList.remove('hidden');
+                
+                btnUpload.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-500 border border-gray-200";
+                btnUrl.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-orange-100 text-orange-600 border border-orange-200";
+            }
+        }
+
+        function handleImageUpload(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const uploadPlaceholder = document.getElementById('upload-placeholder');
+                
+                uploadPlaceholder.innerHTML = '<i class="fas fa-spinner fa-spin text-2xl text-orange-500"></i><p class="text-[10px] text-gray-500">Memproses...</p>';
+
+                // Kompresi Gambar (Max width 600px untuk menghemat kuota sheet)
+                compressImage(file, 600, 0.7, function(dataUrl) {
+                    compressedImageBlob = dataUrl;
+                    
+                    // Tampilkan Preview
+                    document.getElementById('img-preview-el').src = dataUrl;
+                    document.getElementById('img-preview-box').classList.remove('hidden');
+                    
+                    // Reset Placeholder
+                    uploadPlaceholder.innerHTML = '<i class="fas fa-check text-2xl text-green-500 mb-1"></i><p class="text-[10px] text-gray-500">Foto Siap!</p>';
+                });
+            }
+        }
+
+        function compressImage(file, maxWidth, quality, callback) {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function(event) {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxWidth) {
+                        height *= maxWidth / width;
+                        width = maxWidth;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                    callback(dataUrl);
+                }
+            }
+        }
+
+        function previewUrlImg() {
+            const url = document.getElementById('prod-img-url').value;
+            if(url) {
+                document.getElementById('img-preview-el').src = url;
+                document.getElementById('img-preview-box').classList.remove('hidden');
+                compressedImageBlob = null; // Reset blob jika user preview URL
+            } else {
+                alert("Isi URL gambar dulu.");
+            }
+        }
+
+        function removeImage() {
+            document.getElementById('img-preview-box').classList.add('hidden');
+            document.getElementById('img-preview-el').src = '';
+            document.getElementById('file-upload-prod').value = ''; // Reset file input
+            document.getElementById('prod-img-url').value = '';   // Reset url input
+            compressedImageBlob = null;
+            document.getElementById('upload-placeholder').innerHTML = '<i class="fas fa-camera text-2xl text-gray-400 mb-1 group-hover:scale-110 transition"></i><p class="text-[10px] text-gray-500">Ketuk untuk buka Galeri</p>';
+        }
+
+        // --- FITUR TAMBAH PRODUK ---
+        function submitProduct() {
+            const name = document.getElementById('prod-name').value;
+            const category = document.getElementById('prod-cat').value;
+            const variants = document.getElementById('prod-variants').value;
+            const price = document.getElementById('prod-price').value;
+            const origPrice = document.getElementById('prod-orig-price').value || price;
+            const description = document.getElementById('prod-desc').value;
+            
+            // Tentukan gambar mana yang dipakai (Upload vs URL)
+            let finalImage = "";
+            if (activeInputMode === 'upload' && compressedImageBlob) {
+                finalImage = compressedImageBlob;
+            } else {
+                finalImage = document.getElementById('prod-img-url').value;
+            }
+
+            if (!finalImage) {
+                alert("Mohon upload foto atau isi link gambar!");
+                return;
+            }
+
+            if(!vendorData.id) { alert("Sesi habis, login ulang."); handleLogout(); return; }
+
+            // Generate ID Unik
+            const prodId = Date.now().toString().slice(-6) + Math.floor(Math.random() * 100);
+
+            const payload = {
+                action: 'addProduct',
+                id: prodId,
+                name: name,
+                vendorName: vendorData.name,
+                category: category,
+                variants: variants, // Mengirim data varian
+                price: price,
+                originalPrice: origPrice,
+                rating: 4.5,
+                image: finalImage,
+                description: description // Mengirim data deskripsi
+            };
+
+            setLoading(true, "Menyimpan Menu...");
+
+            fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(response => {
+                setLoading(false);
+                alert("Menu berhasil ditambahkan ke database!");
+                // Reset Form
+                document.getElementById('form-add-product').reset();
+                removeImage(); 
+                fetchVendorProducts(); // Refresh list tab
+            })
+            .catch(error => {
+                setLoading(false);
+                alert("Gagal menyimpan: " + error);
+            });
+        }
+
+        // --- FITUR LIST MENU ---
+        async function fetchVendorProducts() {
+            const container = document.getElementById('vendor-product-list');
+            const icon = document.getElementById('refresh-list-icon');
+            
+            icon.classList.add('fa-spin');
+            container.innerHTML = `
+                <div class="text-center py-10 text-gray-400 text-xs">
+                    <i class="fas fa-circle-notch fa-spin text-2xl text-orange-500 mb-2"></i><br>Sedang memuat data...
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`${API_URL}?action=getProducts`);
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    const myProducts = result.data.filter(p => 
+                        String(p.Vendor_Name).toLowerCase().trim() === String(vendorData.name).toLowerCase().trim()
+                    );
+                    renderVendorProducts(myProducts);
+                } else {
+                    container.innerHTML = `<div class="text-center text-red-500 py-4 text-xs">Gagal memuat data.</div>`;
+                }
+            } catch (error) {
+                console.error(error);
+                container.innerHTML = `<div class="text-center text-gray-400 py-4 text-xs">Terjadi kesalahan koneksi.<br>Cek internet Anda.</div>`;
+            } finally {
+                icon.classList.remove('fa-spin');
+            }
+        }
+
+        function renderVendorProducts(products) {
+            const container = document.getElementById('vendor-product-list');
+            
+            if (!products || products.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-10 text-gray-400 text-xs">
+                        <i class="far fa-folder-open text-3xl mb-2 text-gray-300"></i><br>
+                        Belum ada menu yang tersimpan.<br>
+                        Pastikan nama toko di Login sama persis.
+                    </div>
+                `;
+                return;
+            }
+
+            const sortedProducts = products.reverse(); 
+
+            container.innerHTML = sortedProducts.map(item => `
+                <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex gap-3 items-center">
+                    <div class="w-16 h-16 bg-gray-100 rounded-xl overflow-hidden shrink-0 relative">
+                        <img src="${item.Image_URL}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/100?text=No+Img'">
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h4 class="font-bold text-gray-800 text-sm truncate">${item.Name}</h4>
+                        <p class="text-[10px] text-gray-500 mb-1 truncate">${item.Category}</p>
+                        ${item.Variants ? `<p class="text-[9px] text-orange-600 bg-orange-50 inline-block px-1.5 rounded mb-1">Varian: ${item.Variants}</p>` : ''}
+                        <div class="flex items-center gap-2">
+                            <span class="text-orange-600 font-bold text-xs">Rp ${new Intl.NumberFormat('id-ID').format(item.Price)}</span>
+                            ${item.Original_Price > item.Price ? `<span class="text-[9px] text-gray-400 line-through">Rp ${new Intl.NumberFormat('id-ID').format(item.Original_Price)}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <span class="text-[9px] bg-green-100 text-green-700 px-2 py-0.5 rounded text-center">Aktif</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- FITUR UPDATE STATUS ---
+        function updateStatus(status) {
+            if(!vendorData.id) { alert("Sesi habis, login ulang."); handleLogout(); return; }
+
+            const payload = {
+                action: 'updateVendorStatus',
+                vendorId: vendorData.id,
+                status: status
+            };
+
+            setLoading(true, "Mengupdate Status...");
+
+            const badge = document.getElementById('current-status-badge');
+            const icon = document.getElementById('status-icon');
+            
+            fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(response => {
+                setLoading(false);
+                
+                if (status === 'Buka') {
+                    badge.innerText = "BUKA";
+                    badge.className = "text-sm font-bold mb-6 px-4 py-1 rounded-full inline-block bg-green-100 text-green-600";
+                    icon.className = "fas fa-door-open text-3xl text-green-500";
+                } else {
+                    badge.innerText = "TUTUP";
+                    badge.className = "text-sm font-bold mb-6 px-4 py-1 rounded-full inline-block bg-gray-200 text-gray-500";
+                    icon.className = "fas fa-door-closed text-3xl text-gray-400";
+                }
+                
+                alert(`Toko Berhasil Diubah Menjadi: ${status}`);
+            })
+            .catch(error => {
+                setLoading(false);
+                alert("Gagal update status: " + error);
+            });
+        }
+
+        function setLoading(isLoading, text = "Memproses...") {
+            const overlay = document.getElementById('loading-overlay');
+            const txt = document.getElementById('loading-text');
+            if (isLoading) {
+                txt.innerText = text;
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+            } else {
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+            }
+        }
+    </script>
+</body>
+</html>
