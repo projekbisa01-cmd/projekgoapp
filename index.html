@@ -10,31 +10,37 @@
     <meta name="apple-mobile-web-app-title" content="ProjekGo">
     
     <title>ProjekGo - Katalog Kuliner</title>
-    <!-- Tailwind CSS (CDN) -->
+    <!-- Tailwind CSS (CDN) - Tetap di head untuk mencegah FOUC (Flash of Unstyled Content) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome -->
+    <!-- FontAwesome - Load CSS non-blocking jika memungkinkan, tapi standar di head -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- Leaflet CSS (Untuk Peta) -->
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+        /* Reset & Base Optimization */
+        * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: #f3f4f6;
             margin: 0;
             padding: 0;
-            overflow: hidden;
+            overflow: hidden; /* Mencegah scroll pada body utama */
             height: 100vh;
             width: 100vw;
             -webkit-tap-highlight-color: transparent;
-            overscroll-behavior-y: none;
+            touch-action: pan-y; /* Optimalisasi sentuhan */
         }
 
         #app-container {
             height: 100%;
-            height: 100dvh;
+            height: 100dvh; /* Dynamic viewport height untuk mobile */
             max-width: 28rem;
             margin: 0 auto;
             background-color: #ffffff;
@@ -45,16 +51,24 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
 
-        /* Utilitas Custom */
+        /* Scrolling Performance Utilities */
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
         .scrolling-wrapper {
-            -webkit-overflow-scrolling: touch;
+            -webkit-overflow-scrolling: touch; /* Momentum scrolling iOS */
             overflow-y: auto;
-            will-change: scroll-position;
+            will-change: scroll-position; /* Hint ke browser untuk optimasi */
             touch-action: pan-y;
-            padding-bottom: 6rem; /* Extra padding for bottom nav */
+            overscroll-behavior-y: contain; /* Mencegah scroll parent */
+            padding-bottom: 6rem;
+            scroll-behavior: smooth;
+        }
+
+        /* Content Visibility untuk List Panjang (Anti-Lag) */
+        .optimized-list {
+            content-visibility: auto; /* Browser skip rendering item di luar layar */
+            contain-intrinsic-size: 100px 500px; /* Estimasi tinggi konten */
         }
 
         .category-icon { transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; }
@@ -63,7 +77,7 @@
         .category-icon:hover .icon-3d { transform: translateY(-5px); }
 
         .page-section {
-            transition: opacity 0.2s ease-in-out;
+            transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
             opacity: 1;
             pointer-events: auto;
             position: absolute;
@@ -73,8 +87,16 @@
             display: flex;
             flex-direction: column;
             padding-bottom: 5rem;
+            /* Hardware Acceleration */
+            transform: translate3d(0,0,0); 
+            backface-visibility: hidden;
         }
-        .hidden-page { opacity: 0; pointer-events: none; z-index: 0; display: none !important; }
+        .hidden-page { 
+            opacity: 0; 
+            pointer-events: none; 
+            z-index: 0; 
+            display: none !important; 
+        }
 
         .nav-item.active i { color: #ea580c; }
         .nav-item.active span { color: #ea580c; font-weight: 700; }
@@ -108,10 +130,11 @@
                     <!-- Brand & Location Compact -->
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-1">
-                            <span class="text-lg font-black tracking-tighter italic text-orange-600">P<span class="text-orange-400">GO</span></span>
+                            <!-- UPDATE: Branding PROJEKGO -->
+                            <span class="text-lg font-black tracking-tighter italic text-orange-600">PROJEK<span class="text-orange-400">GO</span></span>
                             <div class="h-4 w-[1px] bg-gray-300 mx-1"></div>
-                            <div class="flex items-center gap-1 cursor-pointer overflow-hidden" onclick="openLocationModal()">
-                                <p class="text-xs font-bold text-gray-700 truncate" id="header-address-text">Atur Lokasi</p>
+                            <div class="flex items-center gap-1 cursor-pointer overflow-hidden" onclick="openLocationModal('header')">
+                                <p class="text-xs font-bold text-gray-700 truncate" id="header-address-text">Pilih Wilayah</p>
                                 <i class="fas fa-chevron-down text-[10px] text-gray-400"></i>
                             </div>
                         </div>
@@ -139,7 +162,8 @@
                     <div class="flex justify-between items-center px-1 mb-3">
                         <h3 class="font-bold text-gray-800 text-sm">Kategori</h3>
                     </div>
-                    <div class="grid grid-cols-4 gap-y-4" id="categories-container">
+                    <!-- Tambahkan contain: content agar browser tidak berat render -->
+                    <div class="grid grid-cols-4 gap-y-4" id="categories-container" style="contain: content;">
                         <div class="col-span-4 text-center text-gray-400 text-xs py-4">
                             <i class="fas fa-circle-notch fa-spin text-orange-500 mb-2"></i><br>Memuat...
                         </div>
@@ -152,7 +176,7 @@
                         <h3 class="font-bold text-gray-800 text-sm">Lagi Promo</h3>
                         <span class="text-orange-600 text-[10px] font-bold cursor-pointer" onclick="openExclusivePage()">Lihat Semua</span>
                     </div>
-                    <div id="exclusive-slider" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2 snap-x touch-pan-x min-h-[120px] scrolling-wrapper">
+                    <div id="exclusive-slider" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2 snap-x touch-pan-x min-h-[120px] scrolling-wrapper" style="contain: layout paint;">
                          <div class="w-full text-center text-gray-400 text-xs py-8">
                             <i class="fas fa-spinner fa-spin"></i> Memuat...
                         </div>
@@ -165,7 +189,7 @@
                         <h3 class="font-bold text-gray-800 text-sm">Paling Laris</h3>
                         <span class="text-orange-600 text-[10px] font-bold cursor-pointer" onclick="openCategory('all', 'Semua Menu')">Lihat Semua</span>
                     </div>
-                    <div id="recommendation-slider" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2 snap-x touch-pan-x min-h-[120px] scrolling-wrapper">
+                    <div id="recommendation-slider" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2 snap-x touch-pan-x min-h-[120px] scrolling-wrapper" style="contain: layout paint;">
                         <div class="w-full text-center text-gray-400 text-xs py-8">
                             <i class="fas fa-spinner fa-spin"></i> Memuat...
                         </div>
@@ -180,7 +204,8 @@
                             <i class="fas fa-sync-alt" id="refreshIcon"></i> Refresh
                         </button>
                     </div>
-                    <div id="vendor-list" class="space-y-3">
+                    <!-- Optimized List Class for content-visibility -->
+                    <div id="vendor-list" class="space-y-4 optimized-list">
                         <div class="text-center text-gray-400 text-xs py-10 bg-white rounded-2xl">
                             <i class="fas fa-store text-xl mb-2 text-gray-300"></i><br>Mencari Mitra...
                         </div>
@@ -204,7 +229,7 @@
                         oninput="handleGlobalSearch(this.value)">
                 </div>
             </div>
-            <div class="flex-1 overflow-y-auto p-4 scrolling-wrapper" id="search-results">
+            <div class="flex-1 overflow-y-auto p-4 scrolling-wrapper optimized-list" id="search-results">
                 <div class="text-center mt-10 text-gray-400">
                     <i class="fas fa-search text-3xl mb-2"></i>
                     <p class="text-xs">Ketik untuk mencari...</p>
@@ -212,7 +237,7 @@
             </div>
         </div>
 
-        <!-- === HALAMAN POIN (DIPERBAIKI DENGAN KLAIM KODE) === -->
+        <!-- === HALAMAN POIN === -->
         <div id="points-page" class="page-section hidden-page z-30 bg-gray-50">
             <div class="bg-white p-4 shadow-sm flex items-center gap-4 sticky top-0 z-10">
                 <button onclick="handleBack()" class="p-2 hover:bg-gray-100 rounded-full transition text-gray-700 active:bg-gray-200">
@@ -241,7 +266,7 @@
                     </div>
                 </div>
 
-                <!-- Bagian Klaim Poin (BARU) -->
+                <!-- Bagian Klaim Poin -->
                 <div class="bg-white p-5 rounded-[1.5rem] shadow-sm mb-6 border border-gray-100">
                     <h3 class="font-bold text-gray-800 text-sm mb-3">Punya Kode Voucher?</h3>
                     <div class="flex gap-2">
@@ -279,7 +304,7 @@
                     <h2 class="text-lg font-bold text-gray-800">Riwayat Pesanan</h2>
                 </div>
             </div>
-            <div class="flex-1 overflow-y-auto p-4 scrolling-wrapper" id="order-history-container">
+            <div class="flex-1 overflow-y-auto p-4 scrolling-wrapper optimized-list" id="order-history-container">
                  <div class="text-center p-8 mt-10">
                     <div class="bg-orange-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
                         <i class="fas fa-receipt text-3xl text-orange-500"></i>
@@ -297,7 +322,7 @@
             <div class="px-4 -mt-10 relative z-10 mb-4 shrink-0">
                 <div class="bg-white p-4 rounded-[1.5rem] shadow-md flex flex-col items-center relative">
                     <div class="w-16 h-16 bg-gray-200 rounded-full border-4 border-white -mt-10 mb-2 overflow-hidden shadow-sm">
-                        <img src="https://ui-avatars.com/api/?name=User+ProjekGo&background=random" class="w-full h-full" id="profile-avatar-img">
+                        <img src="https://ui-avatars.com/api/?name=User+ProjekGo&background=random" class="w-full h-full" id="profile-avatar-img" loading="lazy">
                     </div>
                     <button onclick="openEditProfile()" class="absolute top-2 right-2 text-gray-400 hover:text-orange-600 p-2">
                         <i class="fas fa-pen text-xs"></i>
@@ -338,17 +363,34 @@
 
             <!-- Scrollable Content -->
             <div class="flex-1 overflow-y-auto p-4 hide-scrollbar scrolling-wrapper">
-                <div id="cart-items-container" class="space-y-4 pb-4">
+                <div id="cart-items-container" class="space-y-4 pb-4 optimized-list">
                     <!-- Cart items will be rendered here -->
                 </div>
                 
                 <!-- Checkout Form Area (Static part in scroll flow) -->
                 <div id="checkout-form-container" class="border-t border-gray-200 pt-6 hidden pb-24">
                     <div class="mb-4">
-                        <label class="block text-xs font-bold text-gray-700 mb-2">Alamat Pengantaran</label>
-                        <div class="relative">
-                            <i class="fas fa-map-marker-alt absolute left-3 top-3 text-orange-500"></i>
-                            <textarea id="delivery-address" rows="2" class="w-full bg-white border border-gray-200 rounded-2xl py-2 pl-9 pr-4 text-xs focus:outline-none focus:border-orange-500 resize-none font-medium text-gray-700 shadow-sm" placeholder="Detail lokasi (Pagar hitam, Lantai 2)..."></textarea>
+                        <label class="block text-xs font-bold text-gray-700 mb-2">Lokasi Pengantaran</label>
+                        <div class="flex flex-col gap-2">
+                             <!-- Tombol Pin Lokasi -->
+                            <div onclick="openLocationModal('checkout')" class="bg-orange-50 border border-orange-200 rounded-xl p-3 flex items-center gap-3 cursor-pointer active:scale-[0.99] transition">
+                                <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 shrink-0">
+                                    <i class="fas fa-map-marked-alt text-sm"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-[10px] font-bold text-orange-600 mb-0.5">Titik Lokasi</p>
+                                    <p id="checkout-address-text" class="text-xs font-medium text-gray-800 line-clamp-2 leading-tight">Klik untuk atur pin lokasi di peta</p>
+                                    <input type="hidden" id="checkout-lat">
+                                    <input type="hidden" id="checkout-lng">
+                                </div>
+                                <i class="fas fa-chevron-right text-orange-300 text-xs"></i>
+                            </div>
+                            
+                            <!-- Detail Alamat -->
+                            <div class="relative">
+                                <i class="fas fa-pen absolute left-3 top-3 text-gray-400 text-xs"></i>
+                                <textarea id="checkout-note" rows="2" class="w-full bg-white border border-gray-200 rounded-xl py-2.5 pl-9 pr-4 text-xs focus:outline-none focus:border-orange-500 resize-none font-medium text-gray-700 shadow-sm" placeholder="Detail: Pagar hitam, Lantai 2, Depan Warung..."></textarea>
+                            </div>
                         </div>
                     </div>
                     
@@ -369,7 +411,7 @@
                 </div>
             </div>
             <div class="flex-1 overflow-y-auto p-4 hide-scrollbar scrolling-wrapper">
-                <div id="category-content-container" class="grid grid-cols-2 gap-3 pb-24"></div>
+                <div id="category-content-container" class="grid grid-cols-2 gap-3 pb-24 optimized-list"></div>
             </div>
         </div>
 
@@ -384,14 +426,14 @@
                 </div>
             </div>
             <div class="flex-1 overflow-y-auto p-4 hide-scrollbar scrolling-wrapper">
-                <div id="exclusive-content-container" class="grid grid-cols-2 gap-3 pb-24"></div>
+                <div id="exclusive-content-container" class="grid grid-cols-2 gap-3 pb-24 optimized-list"></div>
             </div>
         </div>
 
         <!-- === HALAMAN DETAIL PENJUAL === -->
         <div id="vendor-page" class="page-section hidden-page z-50 bg-gray-50">
             <div class="relative h-48 bg-gray-300">
-                <img id="vendor-banner-img" src="" class="w-full h-full object-cover rounded-none">
+                <img id="vendor-banner-img" src="" class="w-full h-full object-cover rounded-none" loading="lazy" decoding="async">
                 <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
                 <button onclick="handleBack()" class="absolute top-4 left-4 w-9 h-9 bg-white/20 backdrop-blur rounded-full text-white flex items-center justify-center hover:bg-white/30 transition">
                     <i class="fas fa-arrow-left text-sm"></i>
@@ -411,17 +453,40 @@
             </div>
             <div class="flex-1 overflow-y-auto p-4 -mt-4 bg-gray-50 rounded-t-[1.5rem] relative z-10 hide-scrollbar scrolling-wrapper">
                 <h3 class="font-bold text-gray-800 mb-4 text-sm">Daftar Menu</h3>
-                <div id="vendor-menu-container" class="grid grid-cols-2 gap-3 pb-24"></div>
+                <div id="vendor-menu-container" class="grid grid-cols-2 gap-3 pb-24 optimized-list"></div>
             </div>
         </div>
 
         <!-- === MODAL / SHEET LAYOUTS === -->
         
+        <!-- MODAL PILIHAN WILAYAH (AWAL) -->
+        <div id="region-choice-modal" class="absolute inset-0 z-[110] hidden bg-black/80 flex items-center justify-center p-6 backdrop-blur-sm">
+            <div class="bg-white rounded-[2rem] w-full max-w-sm p-6 shadow-2xl animate-bounce-in">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-map-marked-alt text-2xl text-orange-600"></i>
+                    </div>
+                    <h2 class="text-xl font-black text-gray-800">Mau Jajan Dimana?</h2>
+                    <p class="text-sm text-gray-500 mt-1">Pilih area sekitarmu untuk menemukan kuliner terbaik.</p>
+                </div>
+                <div class="space-y-3">
+                    <button onclick="selectRegion('Gombong')" class="w-full bg-orange-600 hover:bg-orange-700 text-white p-4 rounded-xl font-bold shadow-lg shadow-orange-200 transition active:scale-[0.98] flex items-center justify-between group">
+                        <span>Area Gombong</span>
+                        <i class="fas fa-chevron-right group-hover:translate-x-1 transition"></i>
+                    </button>
+                    <button onclick="selectRegion('Kebumen')" class="w-full bg-white border-2 border-gray-100 hover:border-orange-500 text-gray-700 p-4 rounded-xl font-bold transition active:scale-[0.98] flex items-center justify-between group">
+                        <span>Kebumen Kota</span>
+                        <i class="fas fa-chevron-right text-gray-300 group-hover:text-orange-500 transition"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- MODAL LOKASI (MAPS) -->
         <div id="location-modal" class="absolute inset-0 z-[100] hidden bg-white flex-col">
             <div class="p-4 shadow-sm flex items-center gap-3 bg-white z-10">
                 <button onclick="closeLocationModal()" class="p-2 hover:bg-gray-100 rounded-full"><i class="fas fa-arrow-left"></i></button>
-                <h2 class="font-bold text-lg text-gray-800">Pilih Lokasi</h2>
+                <h2 class="font-bold text-lg text-gray-800">Pin Lokasi</h2>
             </div>
             
             <div class="relative flex-1 bg-gray-100">
@@ -436,9 +501,8 @@
 
             <div class="p-5 bg-white rounded-t-[2rem] shadow-[0_-5px_20px_rgba(0,0,0,0.1)] z-20 -mt-6 relative">
                 <div class="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
-                <h3 class="font-bold text-gray-800 text-sm mb-1">Lokasi Terpilih</h3>
+                <h3 class="font-bold text-gray-800 text-sm mb-1">Titik Pilihan</h3>
                 <p id="selected-address" class="text-xs text-gray-500 mb-4 line-clamp-2 h-8">Geser peta untuk menentukan titik...</p>
-                <input type="text" id="manual-address-input" placeholder="Detail (Cth: Pagar Hitam, Blok C)" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm mb-4 focus:outline-none focus:border-orange-500">
                 <button onclick="confirmLocation()" class="w-full bg-orange-600 text-white font-bold py-3.5 rounded-xl shadow-lg active:scale-[0.98] transition">
                     Gunakan Lokasi Ini
                 </button>
@@ -519,7 +583,7 @@
                 </button>
                 <h2 class="text-lg font-bold text-gray-800">Alamat Tersimpan</h2>
             </div>
-            <div class="flex-1 overflow-y-auto p-4 space-y-3 scrolling-wrapper" id="address-list-container"></div>
+            <div class="flex-1 overflow-y-auto p-4 space-y-3 scrolling-wrapper optimized-list" id="address-list-container"></div>
             <div class="p-4 bg-white border-t border-gray-200">
                 <button onclick="openAddAddressModal()" class="w-full bg-orange-600 text-white font-bold py-3 rounded-2xl shadow-lg flex items-center justify-center gap-2 active:scale-[0.98] transition">
                     <i class="fas fa-plus"></i> Tambah Alamat Baru
@@ -572,14 +636,9 @@
                 <div class="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-6"></div>
                 <h3 class="font-bold text-xl text-gray-800 mb-4">Menu Mitra</h3>
                 <div class="space-y-3">
-                    <a href="seller.html" class="bg-orange-50 p-4 rounded-2xl flex items-center gap-4 hover:bg-orange-100 transition border border-orange-100">
-                        <div class="bg-orange-500 text-white w-10 h-10 rounded-full flex items-center justify-center"><i class="fas fa-store"></i></div>
-                        <div><h4 class="font-bold text-gray-800">Login Penjual</h4><p class="text-xs text-gray-600">Masuk ke dashboard toko</p></div>
-                    </a>
-                    <!-- Optional: Link ke Form Pendaftaran -->
                     <div onclick="openSellerRegistration()" class="bg-green-50 p-4 rounded-2xl flex items-center gap-4 hover:bg-green-100 transition border border-green-100 cursor-pointer">
                         <div class="bg-green-500 text-white w-10 h-10 rounded-full flex items-center justify-center"><i class="fas fa-user-plus"></i></div>
-                        <div><h4 class="font-bold text-gray-800">Daftar Mitra Baru</h4><p class="text-xs text-gray-600">Gabung jadi penjual/rider</p></div>
+                        <div><h4 class="font-bold text-gray-800">Daftar Mitra Baru</h4><p class="text-xs text-gray-600">Gabung jadi penjual/rider sekarang</p></div>
                     </div>
                 </div>
             </div>
@@ -590,7 +649,7 @@
             <div class="bg-white rounded-[2rem] w-full max-w-sm overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
                 <!-- Gambar Besar Penuh -->
                 <div class="relative h-72 shrink-0 bg-gray-200">
-                    <img id="variant-modal-img" src="" class="w-full h-full object-cover transition-opacity duration-300">
+                    <img id="variant-modal-img" src="" class="w-full h-full object-cover transition-opacity duration-300" loading="lazy" decoding="async">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                     <button onclick="closeVariantModal()" class="absolute top-4 right-4 w-9 h-9 bg-black/30 backdrop-blur rounded-full flex items-center justify-center text-white hover:bg-black/50 transition">
                         <i class="fas fa-times"></i>
@@ -653,7 +712,7 @@
         </nav>
     </div>
 
-    <!-- Leaflet JS -->
+    <!-- Scripts ditempatkan di paling bawah body untuk performa -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
@@ -665,8 +724,13 @@
         let orderHistory = JSON.parse(localStorage.getItem('pg_orders')) || [];
         let productsData = [];
         let vendorsData = [];
-        let userLocation = localStorage.getItem('pg_user_loc') || null;
-        let favorites = new Set();
+        // Menyimpan preferensi area (Gombong/Kebumen)
+        let userRegionPref = localStorage.getItem('pg_region_pref') || null;
+        let mapLocationMode = 'header'; // 'header' atau 'checkout'
+        
+        // Memuat Favorit dari Local Storage
+        let favorites = new Set(JSON.parse(localStorage.getItem('pg_favorites')) || []);
+        
         let userProfile = {
             name: "User ProjekGo",
             phone: "+62 812-3456-7890",
@@ -680,20 +744,35 @@
         let userPoints = parseInt(localStorage.getItem('pg_points')) || 0;
         let claimedCodes = JSON.parse(localStorage.getItem('pg_claimed_codes')) || [];
         
-        // Mock valid codes (Di real app ini di database)
         const VALID_POINT_CODES = ['PROJEKGO', 'MAKANENAK', 'SENIN', 'JUMATBERKAH', 'TEST1234'];
+
+        // Koordinat Default
+        const COORDS_GOMBONG = [-7.607865, 109.513824];
+        const COORDS_KEBUMEN = [-7.6797, 109.6644];
 
         window.addEventListener('load', () => {
             fetchData();
-            if(!userLocation) {
-                setTimeout(openLocationModal, 1000);
+            
+            // Logika baru Popup Awal: Cek preferensi wilayah
+            if(!userRegionPref) {
+                setTimeout(() => {
+                    document.getElementById('region-choice-modal').classList.remove('hidden');
+                }, 1000);
             } else {
-                document.getElementById('header-address-text').innerText = userLocation;
+                document.getElementById('header-address-text').innerText = userRegionPref;
             }
+
             updateProfileUI(); 
             updatePointsUI();
             renderOrderHistory();
         });
+
+        function selectRegion(region) {
+            userRegionPref = region === 'Kebumen' ? 'Kebumen Kota' : 'Gombong';
+            localStorage.setItem('pg_region_pref', userRegionPref);
+            document.getElementById('header-address-text').innerText = userRegionPref;
+            document.getElementById('region-choice-modal').classList.add('hidden');
+        }
 
         async function fetchData() {
             const refreshBtn = document.getElementById('refreshIcon');
@@ -726,20 +805,39 @@
         }
 
         // --- MAPS ---
-        function openLocationModal() {
+        function openLocationModal(mode = 'header') {
+            mapLocationMode = mode;
             const modal = document.getElementById('location-modal');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
+            
+            // Tentukan koordinat awal berdasarkan preferensi wilayah
+            let initialCoords = COORDS_GOMBONG; // Default Gombong
+            if (userRegionPref === 'Kebumen Kota') {
+                initialCoords = COORDS_KEBUMEN;
+            }
+
+            // Jika mode checkout dan sudah ada lat/lng tersimpan di input, gunakan itu
+            if (mode === 'checkout') {
+                const existingLat = document.getElementById('checkout-lat').value;
+                const existingLng = document.getElementById('checkout-lng').value;
+                if(existingLat && existingLng) {
+                    initialCoords = [parseFloat(existingLat), parseFloat(existingLng)];
+                }
+            }
+
             setTimeout(() => {
                 if (!map) {
-                    map = L.map('map', { zoomControl: false }).setView([-7.607865, 109.513824], 15);
+                    map = L.map('map', { zoomControl: false }).setView(initialCoords, 15);
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OSM' }).addTo(map);
                     map.on('moveend', function() {
                         const center = map.getCenter();
                         updateSelectedLocation(center.lat, center.lng);
                     });
-                    updateSelectedLocation(-7.607865, 109.513824);
+                } else {
+                    map.setView(initialCoords, 15);
                 }
+                updateSelectedLocation(initialCoords[0], initialCoords[1]);
                 map.invalidateSize();
             }, 300);
         }
@@ -772,21 +870,28 @@
                 const addr = data.address;
                 const shortAddr = addr.village || addr.suburb || addr.town || addr.city_district || "Lokasi Terpilih";
                 const city = addr.city || addr.county || "";
-                document.getElementById('selected-address').innerText = `${shortAddr}, ${city}`;
-                document.getElementById('manual-address-input').value = ""; 
+                
+                let displayAddr = `${shortAddr}, ${city}`;
+                if(displayAddr.length > 50) displayAddr = displayAddr.substring(0, 50) + "...";
+
+                document.getElementById('selected-address').innerText = displayAddr;
             } catch (e) {
                 document.getElementById('selected-address').innerText = "Gagal memuat nama jalan";
             }
         }
 
         function confirmLocation() {
-            const baseAddr = document.getElementById('selected-address').innerText;
-            const detail = document.getElementById('manual-address-input').value;
-            const fullAddress = detail ? `${baseAddr} (${detail})` : baseAddr;
-            localStorage.setItem('pg_user_loc', fullAddress);
-            document.getElementById('header-address-text').innerText = fullAddress;
+            const addrText = document.getElementById('selected-address').innerText;
+            
+            if (mapLocationMode === 'header') {
+                document.getElementById('header-address-text').innerText = addrText;
+            } else if (mapLocationMode === 'checkout') {
+                document.getElementById('checkout-address-text').innerText = addrText;
+                document.getElementById('checkout-lat').value = selectedLat;
+                document.getElementById('checkout-lng').value = selectedLng;
+            }
+            
             closeLocationModal();
-            renderVendorList(vendorsData); 
         }
 
         // --- RENDER ---
@@ -794,8 +899,8 @@
             const container = document.getElementById('categories-container');
             container.innerHTML = data.map(cat => `
                 <div onclick="openCategory('${cat.Category_ID || cat.id}', '${cat.Name}')" class="flex flex-col items-center gap-1 cursor-pointer active:scale-95 transition">
-                    <div class="w-14 h-14 rounded-2xl bg-white shadow-sm flex items-center justify-center border border-gray-100">
-                        <img src="${cat.Icon_Image_URL}" class="w-8 h-8 object-contain" onerror="this.src='https://img.icons8.com/color/48/food.png'">
+                    <div class="w-14 h-14 flex items-center justify-center">
+                        <img src="${cat.Icon_Image_URL}" class="w-10 h-10 object-contain mix-blend-multiply" style="mix-blend-mode: multiply; filter: contrast(1.1);" onerror="this.src='https://img.icons8.com/color/48/food.png'" loading="lazy" decoding="async">
                     </div>
                     <span class="text-[10px] font-bold text-gray-600 text-center leading-tight px-1 truncate w-full">${cat.Name}</span>
                 </div>
@@ -842,19 +947,35 @@
             const overlay = isHabis ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center text-xs text-white font-bold rounded-xl z-20">HABIS</div>' : '';
             const isHemat = originalPriceVal > priceVal;
             const hematAmount = isHemat ? (originalPriceVal - priceVal) : 0;
-            const hematLabel = isHemat ? `<div class="absolute top-0 left-0 bg-red-600 text-white text-[9px] font-bold px-2 py-1 rounded-br-lg z-10 shadow-sm">Hemat Rp${new Intl.NumberFormat('id-ID').format(hematAmount)}</div>` : '';
-            const priorityLabel = `<div class="absolute top-0 right-0 bg-orange-500 text-white text-[9px] font-bold px-2 py-1 rounded-bl-lg z-10 shadow-sm flex items-center gap-1"><i class="fas fa-shipping-fast text-[8px]"></i> Prioritas</div>`;
+            const hematLabel = isHemat ? `<div class="absolute top-2 left-2 bg-red-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-md z-10 shadow-sm border border-white">Hemat Rp${new Intl.NumberFormat('id-ID').format(hematAmount)}</div>` : '';
+            
+            const priorityBadge = `<span class="bg-blue-50 text-blue-600 text-[8px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 border border-blue-100 ml-auto whitespace-nowrap"><i class="fas fa-check-circle text-[7px]"></i> Prioritas</span>`;
 
+            // Logic Favorit
+            const isFav = favorites.has(String(item.ID));
+            const favIcon = isFav ? '<i class="fas fa-heart text-red-500 text-xs"></i>' : '<i class="far fa-heart text-gray-400 text-xs"></i>';
+            const favButton = `
+                <button onclick="toggleFavorite(event, '${item.ID}')" class="absolute top-2 right-2 w-7 h-7 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-sm z-20 active:scale-90 transition fav-btn-${item.ID}">
+                    ${favIcon}
+                </button>
+            `;
+
+            // Tambahkan loading="lazy" dan decoding="async"
             if (type === 'horizontal') {
                 return `
                 <div class="product-card min-w-[300px] bg-white rounded-2xl p-3 shadow-sm border border-gray-100 flex gap-3 snap-center ${opacityClass} relative overflow-hidden" ${clickAction}>
                     <div class="w-28 h-28 bg-gray-100 rounded-xl overflow-hidden shrink-0 relative">
-                        <img src="${imgUrl}" class="w-full h-full object-cover">
-                        ${overlay} ${priorityLabel} ${hematLabel}
+                        <img src="${imgUrl}" class="w-full h-full object-cover" loading="lazy" decoding="async">
+                        ${overlay} ${hematLabel}
+                        ${!isHabis ? favButton : ''}
                     </div>
                     <div class="flex-1 flex flex-col justify-center min-w-0">
+                        <div class="flex items-center gap-1 mb-1">
+                            <i class="fas fa-store text-orange-500 text-[10px]"></i>
+                            <span class="text-[10px] text-gray-600 truncate font-bold">${item.Vendor_Name}</span>
+                            <i class="fas fa-check-circle text-blue-500 text-[8px]"></i>
+                        </div>
                         <h4 class="font-bold text-gray-800 text-sm line-clamp-1">${item.Name}</h4>
-                         <p class="text-[10px] text-gray-800 font-bold mb-0.5"><i class="fas fa-store text-orange-500"></i> ${item.Vendor_Name}</p>
                         <p class="text-[10px] text-gray-500 mb-2 line-clamp-2 h-8 leading-tight">${item.Description || 'Menu spesial pilihan.'}</p>
                         <div class="flex items-end justify-between mt-auto">
                             <div class="flex flex-col items-start">
@@ -869,12 +990,19 @@
                 return `
                 <div class="product-card min-w-[170px] w-full bg-white p-3 rounded-2xl shadow-sm border border-gray-100 snap-center flex flex-col ${opacityClass} relative h-full overflow-hidden" ${clickAction}>
                     <div class="w-full h-36 bg-gray-100 rounded-xl overflow-hidden mb-2 relative">
-                        <img src="${imgUrl}" class="w-full h-full object-cover">
-                        ${overlay} ${priorityLabel} ${hematLabel}
+                        <img src="${imgUrl}" class="w-full h-full object-cover" loading="lazy" decoding="async">
+                        ${overlay} ${hematLabel}
+                        ${!isHabis ? favButton : ''}
                         ${!isHabis ? `<div class="absolute bottom-2 left-2 bg-white/90 px-1.5 rounded text-[9px] font-bold shadow-sm z-10"><i class="fas fa-star text-yellow-500 text-[8px]"></i> ${item.Rating || '4.5'}</div>` : ''}
                     </div>
+                    
+                    <div class="flex items-center gap-1 mb-1 w-full">
+                        <i class="fas fa-store text-orange-500 text-[9px]"></i>
+                        <span class="text-[9px] text-gray-600 font-bold truncate max-w-[70px]">${item.Vendor_Name}</span>
+                        ${priorityBadge}
+                    </div>
+
                     <h4 class="font-bold text-gray-800 text-xs line-clamp-2 mb-0.5 h-8">${item.Name}</h4>
-                    <p class="text-[9px] text-gray-600 font-bold line-clamp-1 mb-1"><i class="fas fa-store text-orange-500 text-[8px]"></i> ${item.Vendor_Name}</p>
                     <p class="text-[9px] text-gray-500 line-clamp-1 mb-2 h-4">${item.Description || ''}</p>
                     <div class="mt-auto flex justify-between items-end">
                         <div class="flex flex-col items-start">
@@ -895,25 +1023,51 @@
             }
             const sorted = vendors.sort((a, b) => (a.Status === 'Buka' ? -1 : 1));
 
-            container.innerHTML = sorted.map(v => `
-                <div onclick="openVendor('${v.ID}')" class="product-card bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3 cursor-pointer active:scale-[0.99] ${v.Status === 'Tutup' ? 'grayscale opacity-60' : ''}">
-                    <div class="w-20 h-20 rounded-2xl bg-gray-100 overflow-hidden border border-gray-200 shrink-0">
-                        <img src="${v.Image_URL || 'https://placehold.co/100?text=W'}" class="w-full h-full object-cover">
+            container.innerHTML = sorted.map(v => {
+                const distance = (Math.random() * 3 + 0.2).toFixed(1);
+                const time = Math.floor(Math.random() * (25 - 10) + 10);
+                const isPromo = Math.random() > 0.5;
+
+                return `
+                <div onclick="openVendor('${v.ID}')" class="product-card bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-3 cursor-pointer active:scale-[0.99] ${v.Status === 'Tutup' ? 'grayscale opacity-60' : ''}">
+                    <div class="w-24 h-24 rounded-2xl bg-gray-100 overflow-hidden border border-gray-200 shrink-0 relative">
+                        <img src="${v.Image_URL || 'https://placehold.co/100?text=W'}" class="w-full h-full object-cover" loading="lazy" decoding="async">
+                        ${isPromo && v.Status === 'Buka' ? '<div class="absolute bottom-0 left-0 right-0 bg-red-600 text-white text-[8px] font-bold text-center py-0.5">DISKON 20%</div>' : ''}
                     </div>
-                    <div class="flex-1">
-                        <div class="flex justify-between items-center">
-                            <h4 class="font-bold text-gray-800 text-sm">${v.Vendor_Name}</h4>
-                            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full ${v.Status === 'Buka' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-500'}">${v.Status}</span>
+                    <div class="flex-1 min-w-0 py-1">
+                        <div class="flex justify-between items-start mb-1">
+                            <h4 class="font-bold text-gray-800 text-sm truncate pr-2">${v.Vendor_Name}</h4>
+                            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${v.Status === 'Buka' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-500'}">${v.Status}</span>
                         </div>
-                        <p class="text-[10px] text-gray-500 line-clamp-1">${v.Type || 'Aneka Makanan'}</p>
-                        <div class="flex items-center gap-1 mt-1">
-                            <i class="fas fa-star text-yellow-400 text-[10px]"></i>
-                            <span class="text-[10px] font-bold text-gray-700">${v.Rating || '4.8'}</span>
+                        
+                        <div class="flex items-center gap-1 mb-2">
+                             <span class="bg-blue-50 text-blue-600 text-[9px] font-bold px-2 py-0.5 rounded-full border border-blue-100 flex items-center gap-1"><i class="fas fa-shield-alt text-[8px]"></i> Super Partner</span>
+                        </div>
+
+                        <p class="text-[10px] text-gray-500 line-clamp-1 mb-2">${v.Type || 'Aneka Makanan'} • Indonesia</p>
+                        
+                        <div class="flex items-center gap-3 border-t border-gray-50 pt-2 mt-auto">
+                            <div class="flex items-center gap-1">
+                                <i class="fas fa-star text-yellow-400 text-[10px]"></i>
+                                <span class="text-[10px] font-bold text-gray-700">${v.Rating || '4.8'}</span>
+                            </div>
+                            <div class="w-[1px] h-3 bg-gray-200"></div>
+                            <div class="flex items-center gap-1">
+                                <i class="fas fa-map-marker-alt text-gray-400 text-[10px]"></i>
+                                <span class="text-[10px] text-gray-500 font-medium">${distance} km</span>
+                            </div>
+                             <div class="w-[1px] h-3 bg-gray-200"></div>
+                            <div class="flex items-center gap-1">
+                                <i class="fas fa-clock text-gray-400 text-[10px]"></i>
+                                <span class="text-[10px] text-gray-500 font-medium">${time} mnt</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
+
+        // ... (Fungsi lainnya tetap sama, hanya memastikan lazy loading pada gambar dinamis)
 
         function openVendor(vendorId) {
             const vendor = vendorsData.find(v => String(v.ID) === String(vendorId));
@@ -1013,7 +1167,6 @@
                     
                     const priceVal = parseFloat(item.Price);
                     const originalPriceVal = parseFloat(item.Original_Price);
-                    // Gunakan Original_Price jika valid dan lebih besar dari Price, jika tidak gunakan Price biasa
                     const itemOriginalPrice = (!isNaN(originalPriceVal) && originalPriceVal > priceVal) ? originalPriceVal : priceVal;
 
                     total += (priceVal * item.qty);
@@ -1035,7 +1188,7 @@
                         html += `
                         <div class="flex justify-between items-start mb-3 last:mb-0">
                             <div class="flex gap-3 items-center flex-1">
-                                <div class="w-12 h-12 rounded-xl bg-gray-200 overflow-hidden shrink-0"><img src="${item.Image_URL}" class="w-full h-full object-cover"></div>
+                                <div class="w-12 h-12 rounded-xl bg-gray-200 overflow-hidden shrink-0"><img src="${item.Image_URL}" class="w-full h-full object-cover" loading="lazy" decoding="async"></div>
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-bold text-gray-800 line-clamp-1">${item.Name}</p>
                                     ${item.variant ? `<p class="text-[10px] text-gray-500 mb-1">Varian: ${item.variant}</p>` : ''}
@@ -1112,8 +1265,18 @@
 
         function checkoutToWA() {
             if(cart.length === 0) return;
-            const address = document.getElementById('delivery-address').value || document.getElementById('header-address-text').innerText;
-            if(!address || address === "Atur Lokasi" || address === "Atur Lokasi Pengantaran") { alert("Mohon atur alamat lokasi pengantaran!"); return; }
+            
+            // Logika baru untuk mengambil alamat checkout
+            const addressText = document.getElementById('checkout-address-text').innerText;
+            const noteText = document.getElementById('checkout-note').value;
+            const lat = document.getElementById('checkout-lat').value;
+            const lng = document.getElementById('checkout-lng').value;
+            
+            // Validasi sederhana: pastikan user sudah klik pin lokasi (default text berbeda)
+            if(addressText.includes("Klik untuk atur") || !lat) { 
+                alert("Mohon pin titik lokasi pengantaran di peta terlebih dahulu!"); 
+                return; 
+            }
 
             const phone = "6281292802623";
             let msg = `Halo Admin, saya mau pesan:\n\n`;
@@ -1135,7 +1298,17 @@
             }
 
             msg += `💰 *Total Makanan: Rp ${new Intl.NumberFormat('id-ID').format(grandTotal)}*\n`;
-            msg += `📍 *Lokasi:* ${address}\n\n`;
+            
+            // Format Alamat Baru dengan Link Maps
+            const fullAddress = noteText ? `${addressText} (Detail: ${noteText})` : addressText;
+            msg += `📍 *Lokasi:* ${fullAddress}\n`;
+            
+            if(lat && lng) {
+                msg += `🔗 *Maps:* https://www.google.com/maps?q=${lat},${lng}\n\n`;
+            } else {
+                msg += `\n`;
+            }
+
             msg += `Mohon info ongkirnya kak.`;
 
             // Simpan ke History Lokal
@@ -1155,7 +1328,8 @@
             updateCartBadge();
             renderCartPage();
 
-            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+            // UPDATE: Ganti window.open dengan window.location.href untuk mobile support
+            window.location.href = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
         }
 
         // --- POINTS LOGIC ---
@@ -1186,13 +1360,11 @@
             
             if(!code) return;
 
-            // Cek apakah kode valid (Mock Logic)
             if(VALID_POINT_CODES.includes(code)) {
-                // Cek apakah sudah pernah diklaim
                 if(claimedCodes.includes(code)) {
                     alert("Kode ini sudah pernah kamu gunakan!");
                 } else {
-                    userPoints += 1; // Tambah 1 poin per kode
+                    userPoints += 1;
                     claimedCodes.push(code);
                     localStorage.setItem('pg_points', userPoints);
                     localStorage.setItem('pg_claimed_codes', JSON.stringify(claimedCodes));
@@ -1201,7 +1373,7 @@
                     input.value = "";
                 }
             } else {
-                alert("Kode Voucher tidak valid.");
+                alert("Kode Voucher tidak valid. Pastikan kode benar dari admin.");
             }
         }
 
@@ -1218,7 +1390,7 @@
         
         function renderOrderHistory() {
             const container = document.getElementById('order-history-container');
-            if(orderHistory.length === 0) return; // Keep default empty state
+            if(orderHistory.length === 0) return;
 
             container.innerHTML = orderHistory.map(o => `
                 <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-3 flex justify-between items-center">
@@ -1246,8 +1418,29 @@
         function openEditProfile() { document.getElementById('edit-name-input').value = userProfile.name; document.getElementById('edit-phone-input').value = userProfile.phone; document.getElementById('edit-profile-modal').classList.remove('hidden'); }
         function closeEditProfile() { document.getElementById('edit-profile-modal').classList.add('hidden'); }
         function saveProfile() { const newName = document.getElementById('edit-name-input').value; const newPhone = document.getElementById('edit-phone-input').value; if (newName && newPhone) { userProfile.name = newName; userProfile.phone = newPhone; userProfile.avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(newName)}&background=random`; updateProfileUI(); closeEditProfile(); } }
-        function toggleFavorite(event, id) { event.stopPropagation(); const btn = event.currentTarget; if (favorites.has(id)) { favorites.delete(id); btn.innerHTML = `<i class="far fa-heart text-gray-400 text-xs"></i>`; } else { favorites.add(id); btn.innerHTML = `<i class="fas fa-heart text-red-500 text-xs liked-anim"></i>`; } }
-        function openFavoritesPage(navigate = true) { if (navigate) navTo('category-page'); document.getElementById('cat-page-title').innerText = 'Makanan Favorit'; const container = document.getElementById('category-content-container'); const favProducts = productsData.filter(p => favorites.has(p.ID)); if (favProducts.length === 0) { container.innerHTML = '<div class="col-span-2 text-center text-gray-400 mt-10"><i class="far fa-heart text-4xl mb-2"></i><p>Belum ada makanan favorit.</p></div>'; } else { renderProductGrid(favProducts, container); } }
+        
+        // FUNGSI FAVORIT BARU
+        function toggleFavorite(event, id) { 
+            event.stopPropagation(); 
+            id = String(id);
+            const buttons = document.querySelectorAll(`.fav-btn-${id}`); 
+            
+            if (favorites.has(id)) { 
+                favorites.delete(id); 
+                buttons.forEach(btn => {
+                    btn.innerHTML = `<i class="far fa-heart text-gray-400 text-xs"></i>`; 
+                });
+            } else { 
+                favorites.add(id); 
+                buttons.forEach(btn => {
+                    btn.innerHTML = `<i class="fas fa-heart text-red-500 text-xs liked-anim"></i>`; 
+                });
+            } 
+            // Save to Local Storage
+            localStorage.setItem('pg_favorites', JSON.stringify([...favorites]));
+        }
+        
+        function openFavoritesPage(navigate = true) { if (navigate) navTo('category-page'); document.getElementById('cat-page-title').innerText = 'Makanan Favorit'; const container = document.getElementById('category-content-container'); const favProducts = productsData.filter(p => favorites.has(String(p.ID))); if (favProducts.length === 0) { container.innerHTML = '<div class="col-span-2 text-center text-gray-400 mt-10"><i class="far fa-heart text-4xl mb-2"></i><p>Belum ada makanan favorit.</p></div>'; } else { renderProductGrid(favProducts, container); } }
         function openAddressModal() { renderAddressList(); document.getElementById('address-modal').classList.remove('hidden'); }
         function closeAddressModal() { document.getElementById('address-modal').classList.add('hidden'); }
         function renderAddressList() { const container = document.getElementById('address-list-container'); container.innerHTML = savedAddresses.map(addr => `<div class="bg-white p-3 rounded-2xl border border-gray-200 flex justify-between items-center cursor-pointer hover:border-orange-500 group" onclick="selectAddress('${addr.detail}')"><div><span class="text-xs font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded mb-1 inline-block">${addr.label}</span><p class="text-sm text-gray-800 leading-tight">${addr.detail}</p></div><button onclick="event.stopPropagation(); deleteAddress(${addr.id})" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash-alt"></i></button></div>`).join(''); }
@@ -1267,8 +1460,15 @@
                 }
             });
             const target = document.getElementById(pageId);
-            target.classList.remove('hidden-page');
-            target.classList.add('z-30');
+            if(target) {
+                target.classList.remove('hidden-page');
+                target.classList.add('z-30');
+                
+                // UPDATE: Auto Scroll to Top
+                const scroller = target.querySelector('.scrolling-wrapper');
+                if (scroller) scroller.scrollTop = 0;
+            }
+
             document.querySelectorAll('.nav-item').forEach(el => {
                 el.classList.remove('active');
                 el.querySelector('i').classList.replace('text-orange-600', 'text-gray-400');
