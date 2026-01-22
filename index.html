@@ -6,13 +6,13 @@
     <!-- Meta PWA -->
     <meta name="theme-color" content="#ea580c">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"> <!-- Ubah ke default untuk performa lebih baik -->
     <meta name="apple-mobile-web-app-title" content="ProjekGo">
     
     <title>ProjekGo - Katalog Kuliner</title>
-    <!-- Tailwind CSS (CDN) - Tetap di head untuk mencegah FOUC (Flash of Unstyled Content) -->
+    <!-- Tailwind CSS (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome - Load CSS non-blocking jika memungkinkan, tapi standar di head -->
+    <!-- FontAwesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -20,10 +20,13 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
-        /* Reset & Base Optimization */
+        /* === PERFORMA TINGGI & RESET === */
         * {
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            box-sizing: border-box;
+            /* Menghilangkan delay tap pada elemen interaktif */
+            touch-action: manipulation; 
         }
 
         body {
@@ -31,16 +34,34 @@
             background-color: #f3f4f6;
             margin: 0;
             padding: 0;
-            overflow: hidden; /* Mencegah scroll pada body utama */
+            overflow: hidden; 
             height: 100vh;
             width: 100vw;
             -webkit-tap-highlight-color: transparent;
-            touch-action: pan-y; /* Optimalisasi sentuhan */
+            /* Mencegah scroll bouncing pada body utama */
+            overscroll-behavior: none;
+        }
+
+        /* Override Shadow yang berat dengan border tipis atau shadow minimal */
+        .shadow-xl, .shadow-2xl, .shadow-lg {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+        }
+
+        /* MATIKAN BACKDROP FILTER (Penyebab Utama Lag di HP) */
+        .backdrop-blur, .backdrop-blur-sm, .backdrop-blur-md, .backdrop-blur-lg, .backdrop-blur-xl {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            background-color: rgba(255, 255, 255, 0.95) !important; /* Fallback warna solid */
+        }
+        
+        /* Khusus untuk elemen gelap transparan */
+        .bg-black\/20, .bg-black\/50, .bg-black\/60 {
+            background-color: rgba(0, 0, 0, 0.7) !important;
         }
 
         #app-container {
             height: 100%;
-            height: 100dvh; /* Dynamic viewport height untuk mobile */
+            height: 100dvh; 
             max-width: 28rem;
             margin: 0 auto;
             background-color: #ffffff;
@@ -48,36 +69,40 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            /* Hardware acceleration untuk container utama */
+            transform: translateZ(0);
         }
 
-        /* Scrolling Performance Utilities */
+        /* === SCROLLING YANG DICIPTAKAN UNTUK HP === */
+        .scrolling-wrapper {
+            -webkit-overflow-scrolling: touch; 
+            overflow-y: auto;
+            overflow-x: hidden;
+            will-change: scroll-position;
+            overscroll-behavior-y: none; /* Mencegah pull-to-refresh browser */
+            padding-bottom: 6rem;
+            /* Scroll instant lebih ringan daripada smooth */
+            scroll-behavior: auto; 
+            /* Memisahkan layer rendering agar scroll tidak repaint seluruh halaman */
+            transform: translateZ(0); 
+            contain: content;
+        }
+
+        /* Utilitas Custom */
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        .scrolling-wrapper {
-            -webkit-overflow-scrolling: touch; /* Momentum scrolling iOS */
-            overflow-y: auto;
-            will-change: scroll-position; /* Hint ke browser untuk optimasi */
-            touch-action: pan-y;
-            overscroll-behavior-y: contain; /* Mencegah scroll parent */
-            padding-bottom: 6rem;
-            scroll-behavior: smooth;
-        }
 
-        /* Content Visibility untuk List Panjang (Anti-Lag) */
+        /* Content Visibility: Browser tidak me-render item jauh di bawah layar */
         .optimized-list {
-            content-visibility: auto; /* Browser skip rendering item di luar layar */
-            contain-intrinsic-size: 100px 500px; /* Estimasi tinggi konten */
+            content-visibility: auto; 
+            contain-intrinsic-size: 100px 800px; 
         }
 
-        .category-icon { transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; }
         .category-icon:active { transform: scale(0.9); }
-        .icon-3d { filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); transition: transform 0.3s ease; }
-        .category-icon:hover .icon-3d { transform: translateY(-5px); }
-
+        
+        /* Animasi Transisi Halaman (Disederhanakan) */
         .page-section {
-            transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+            transition: opacity 0.15s ease-out; /* Lebih cepat */
             opacity: 1;
             pointer-events: auto;
             position: absolute;
@@ -87,16 +112,9 @@
             display: flex;
             flex-direction: column;
             padding-bottom: 5rem;
-            /* Hardware Acceleration */
-            transform: translate3d(0,0,0); 
-            backface-visibility: hidden;
+            transform: translate3d(0,0,0); /* Paksa GPU */
         }
-        .hidden-page { 
-            opacity: 0; 
-            pointer-events: none; 
-            z-index: 0; 
-            display: none !important; 
-        }
+        .hidden-page { opacity: 0; pointer-events: none; z-index: 0; display: none !important; }
 
         .nav-item.active i { color: #ea580c; }
         .nav-item.active span { color: #ea580c; font-weight: 700; }
@@ -108,14 +126,16 @@
         }
         .variant-radio:checked + label .check-icon { display: block; }
         
-        @keyframes like-bounce { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
-        .liked-anim { animation: like-bounce 0.3s ease-in-out; }
+        .liked-anim { animation: like-bounce 0.2s ease-in-out; }
+        @keyframes like-bounce { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
         
-        .progress-bar-fill { transition: width 1s ease-in-out; }
+        .progress-bar-fill { transition: width 0.5s ease-out; }
 
         /* Leaflet Fixes */
         .leaflet-pane { z-index: 10; }
         .leaflet-top, .leaflet-bottom { z-index: 20; }
+        /* Mencegah peta menangkap event touch saat scroll page */
+        .leaflet-container { touch-action: none; }
     </style>
 </head>
 <body>
@@ -125,15 +145,14 @@
         <!-- === HALAMAN UTAMA (HOME) === -->
         <div id="home-page" class="page-section z-20 bg-gray-50">
             <!-- Header Ultra Minimalis -->
-            <header class="bg-white pt-3 pb-3 px-4 shadow-sm z-20 relative shrink-0 sticky top-0">
+            <header class="bg-white pt-3 pb-3 px-4 shadow-sm z-20 relative shrink-0 sticky top-0" style="contain: layout size;">
                 <div class="flex items-center gap-3 mb-3">
                     <!-- Brand & Location Compact -->
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-1">
-                            <!-- UPDATE: Branding PROJEKGO -->
                             <span class="text-lg font-black tracking-tighter italic text-orange-600">PROJEK<span class="text-orange-400">GO</span></span>
                             <div class="h-4 w-[1px] bg-gray-300 mx-1"></div>
-                            <div class="flex items-center gap-1 cursor-pointer overflow-hidden" onclick="openLocationModal('header')">
+                            <div class="flex items-center gap-1 cursor-pointer overflow-hidden active:opacity-70 transition-opacity" onclick="openLocationModal('header')">
                                 <p class="text-xs font-bold text-gray-700 truncate" id="header-address-text">Pilih Wilayah</p>
                                 <i class="fas fa-chevron-down text-[10px] text-gray-400"></i>
                             </div>
@@ -158,12 +177,11 @@
             <!-- Main Content -->
             <main class="flex-1 overflow-y-auto hide-scrollbar scrolling-wrapper pb-24 relative pt-4 px-4 bg-gray-50 z-0">
                 <!-- Kategori -->
-                <div class="mb-6">
+                <div class="mb-6" style="contain: content;">
                     <div class="flex justify-between items-center px-1 mb-3">
                         <h3 class="font-bold text-gray-800 text-sm">Kategori</h3>
                     </div>
-                    <!-- Tambahkan contain: content agar browser tidak berat render -->
-                    <div class="grid grid-cols-4 gap-y-4" id="categories-container" style="contain: content;">
+                    <div class="grid grid-cols-4 gap-y-4" id="categories-container">
                         <div class="col-span-4 text-center text-gray-400 text-xs py-4">
                             <i class="fas fa-circle-notch fa-spin text-orange-500 mb-2"></i><br>Memuat...
                         </div>
@@ -171,12 +189,12 @@
                 </div>
 
                 <!-- Promo Banner -->
-                <div class="mb-6">
+                <div class="mb-6" style="contain: content;">
                     <div class="flex justify-between items-center px-1 mb-3">
                         <h3 class="font-bold text-gray-800 text-sm">Lagi Promo</h3>
                         <span class="text-orange-600 text-[10px] font-bold cursor-pointer" onclick="openExclusivePage()">Lihat Semua</span>
                     </div>
-                    <div id="exclusive-slider" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2 snap-x touch-pan-x min-h-[120px] scrolling-wrapper" style="contain: layout paint;">
+                    <div id="exclusive-slider" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2 snap-x touch-pan-x min-h-[120px]" style="scroll-behavior: auto;">
                          <div class="w-full text-center text-gray-400 text-xs py-8">
                             <i class="fas fa-spinner fa-spin"></i> Memuat...
                         </div>
@@ -184,12 +202,12 @@
                 </div>
 
                 <!-- Paling Laris -->
-                <div class="mb-6">
+                <div class="mb-6" style="contain: content;">
                     <div class="flex justify-between items-center px-1 mb-3">
                         <h3 class="font-bold text-gray-800 text-sm">Paling Laris</h3>
                         <span class="text-orange-600 text-[10px] font-bold cursor-pointer" onclick="openCategory('all', 'Semua Menu')">Lihat Semua</span>
                     </div>
-                    <div id="recommendation-slider" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2 snap-x touch-pan-x min-h-[120px] scrolling-wrapper" style="contain: layout paint;">
+                    <div id="recommendation-slider" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2 snap-x touch-pan-x min-h-[120px]" style="scroll-behavior: auto;">
                         <div class="w-full text-center text-gray-400 text-xs py-8">
                             <i class="fas fa-spinner fa-spin"></i> Memuat...
                         </div>
@@ -204,7 +222,6 @@
                             <i class="fas fa-sync-alt" id="refreshIcon"></i> Refresh
                         </button>
                     </div>
-                    <!-- Optimized List Class for content-visibility -->
                     <div id="vendor-list" class="space-y-4 optimized-list">
                         <div class="text-center text-gray-400 text-xs py-10 bg-white rounded-2xl">
                             <i class="fas fa-store text-xl mb-2 text-gray-300"></i><br>Mencari Mitra...
@@ -226,7 +243,7 @@
                     <i class="fas fa-search absolute left-3 top-2.5 text-orange-500 text-xs"></i>
                     <input type="text" id="global-search-input" placeholder="Cari makanan atau resto..." 
                         class="w-full py-2 pl-9 pr-4 rounded-full bg-gray-100 text-gray-800 text-xs focus:outline-none focus:ring-2 focus:ring-orange-200"
-                        oninput="handleGlobalSearch(this.value)">
+                        oninput="debouncedSearch(this.value)">
                 </div>
             </div>
             <div class="flex-1 overflow-y-auto p-4 scrolling-wrapper optimized-list" id="search-results">
@@ -256,7 +273,7 @@
                     <div class="relative z-10 flex flex-col items-center">
                         <p class="text-orange-100 text-xs font-medium mb-1">Saldo Poin</p>
                         <h1 class="text-5xl font-black mb-2 drop-shadow-sm" id="point-display-count">0</h1>
-                        <div class="w-full bg-black/20 rounded-full h-2 mb-2 overflow-hidden backdrop-blur-sm">
+                        <div class="w-full bg-black/20 rounded-full h-2 mb-2 overflow-hidden">
                             <div id="point-progress-bar" class="bg-yellow-400 h-full rounded-full shadow-lg progress-bar-fill" style="width: 0%"></div>
                         </div>
                         <div class="flex justify-between w-full text-[10px] font-medium text-orange-100 px-1">
@@ -305,14 +322,7 @@
                 </div>
             </div>
             <div class="flex-1 overflow-y-auto p-4 scrolling-wrapper optimized-list" id="order-history-container">
-                 <div class="text-center p-8 mt-10">
-                    <div class="bg-orange-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-receipt text-3xl text-orange-500"></i>
-                    </div>
-                    <h2 class="text-lg font-bold text-gray-800 mb-1">Belum ada pesanan</h2>
-                    <p class="text-gray-500 text-xs mb-6">Yuk pesan makanan enak sekarang!</p>
-                    <button onclick="navTo('home-page')" class="bg-orange-600 text-white px-6 py-2 rounded-full font-bold text-xs shadow-lg hover:bg-orange-700">Mulai Pesan</button>
-                </div>
+                 <!-- Content akan diisi JS -->
             </div>
         </div>
 
@@ -435,7 +445,7 @@
             <div class="relative h-48 bg-gray-300">
                 <img id="vendor-banner-img" src="" class="w-full h-full object-cover rounded-none" loading="lazy" decoding="async">
                 <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-                <button onclick="handleBack()" class="absolute top-4 left-4 w-9 h-9 bg-white/20 backdrop-blur rounded-full text-white flex items-center justify-center hover:bg-white/30 transition">
+                <button onclick="handleBack()" class="absolute top-4 left-4 w-9 h-9 bg-white/90 rounded-full text-black flex items-center justify-center hover:bg-white transition shadow-sm">
                     <i class="fas fa-arrow-left text-sm"></i>
                 </button>
                 <div class="absolute bottom-4 left-4 text-white w-full pr-4">
@@ -444,8 +454,8 @@
                             <h2 id="vendor-name-title" class="text-xl font-bold leading-tight">Nama Warung</h2>
                             <p id="vendor-info-subtitle" class="text-[10px] opacity-90 mt-1">Status • Kategori</p>
                         </div>
-                        <div class="bg-white/20 backdrop-blur px-2 py-1 rounded-full flex items-center gap-1 text-white">
-                            <i class="fas fa-star text-yellow-400 text-[10px]"></i>
+                        <div class="bg-white/90 px-2 py-1 rounded-full flex items-center gap-1 text-black shadow-sm">
+                            <i class="fas fa-star text-yellow-500 text-[10px]"></i>
                             <span id="vendor-rating-badge" class="text-[10px] font-bold">4.8</span>
                         </div>
                     </div>
@@ -460,7 +470,7 @@
         <!-- === MODAL / SHEET LAYOUTS === -->
         
         <!-- MODAL PILIHAN WILAYAH (AWAL) -->
-        <div id="region-choice-modal" class="absolute inset-0 z-[110] hidden bg-black/80 flex items-center justify-center p-6 backdrop-blur-sm">
+        <div id="region-choice-modal" class="absolute inset-0 z-[110] hidden bg-black/80 flex items-center justify-center p-6" style="backdrop-filter: none;">
             <div class="bg-white rounded-[2rem] w-full max-w-sm p-6 shadow-2xl animate-bounce-in">
                 <div class="text-center mb-6">
                     <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -511,7 +521,7 @@
 
         <!-- SELLER REGISTRATION SHEET -->
         <div id="seller-register-modal" class="absolute inset-0 z-[100] hidden">
-            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeSellerRegistration()"></div>
+            <div class="absolute inset-0 bg-black/50" onclick="closeSellerRegistration()"></div> <!-- Removed backdrop-blur -->
             <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] p-6 min-h-[85%] flex flex-col transition-transform duration-300 transform translate-y-full" id="seller-register-content">
                 <button onclick="closeSellerRegistration()" class="absolute top-4 right-4 w-9 h-9 flex items-center justify-center bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 hover:text-red-500 transition z-20"><i class="fas fa-times"></i></button>
                 <div class="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-4 cursor-grab" onclick="closeSellerRegistration()"></div>
@@ -555,7 +565,7 @@
         </div>
 
         <!-- EDIT PROFILE -->
-        <div id="edit-profile-modal" class="absolute inset-0 z-[90] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div id="edit-profile-modal" class="absolute inset-0 z-[90] hidden flex items-center justify-center bg-black/50 p-4">
             <div class="bg-white rounded-[2rem] w-full max-w-sm p-6 shadow-2xl">
                 <h3 class="font-bold text-lg text-gray-800 mb-4">Edit Profil</h3>
                 <div class="space-y-4">
@@ -593,7 +603,7 @@
 
         <!-- ADD ADDRESS SHEET -->
         <div id="add-address-modal" class="absolute inset-0 z-[90] hidden">
-            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeAddAddressModal()"></div>
+            <div class="absolute inset-0 bg-black/50" onclick="closeAddAddressModal()"></div>
             <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] p-6 min-h-[50%] flex flex-col transition-transform duration-300 transform translate-y-full" id="add-address-content">
                 <div class="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-6 cursor-grab" onclick="closeAddAddressModal()"></div>
                 <h3 class="font-bold text-xl text-gray-800 mb-6">Tambah Alamat Baru</h3>
@@ -631,7 +641,7 @@
         </div>
 
         <!-- PARTNERSHIP MODAL -->
-        <div id="partnership-modal" class="absolute inset-0 z-[95] hidden flex items-end justify-center bg-black/50 backdrop-blur-sm" onclick="closePartnershipModal()">
+        <div id="partnership-modal" class="absolute inset-0 z-[95] hidden flex items-end justify-center bg-black/50" onclick="closePartnershipModal()">
             <div class="bg-white w-full rounded-t-[2.5rem] p-6 pb-10" onclick="event.stopPropagation()">
                 <div class="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-6"></div>
                 <h3 class="font-bold text-xl text-gray-800 mb-4">Menu Mitra</h3>
@@ -645,13 +655,13 @@
         </div>
 
         <!-- VARIANT MODAL (LARGE IMAGE FIX) -->
-        <div id="variant-modal" class="absolute inset-0 z-[80] hidden flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-200">
+        <div id="variant-modal" class="absolute inset-0 z-[80] hidden flex items-center justify-center bg-black/60 p-4 transition-opacity duration-200">
             <div class="bg-white rounded-[2rem] w-full max-w-sm overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
                 <!-- Gambar Besar Penuh -->
                 <div class="relative h-72 shrink-0 bg-gray-200">
                     <img id="variant-modal-img" src="" class="w-full h-full object-cover transition-opacity duration-300" loading="lazy" decoding="async">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                    <button onclick="closeVariantModal()" class="absolute top-4 right-4 w-9 h-9 bg-black/30 backdrop-blur rounded-full flex items-center justify-center text-white hover:bg-black/50 transition">
+                    <button onclick="closeVariantModal()" class="absolute top-4 right-4 w-9 h-9 bg-black/30 rounded-full flex items-center justify-center text-white hover:bg-black/50 transition">
                         <i class="fas fa-times"></i>
                     </button>
                     <div class="absolute bottom-4 left-4 right-4">
@@ -687,7 +697,7 @@
         </div>
 
         <!-- BOTTOM NAV -->
-        <nav class="bg-white border-t border-gray-100 flex justify-around items-center px-2 py-3 pb-6 shrink-0 z-[60] absolute bottom-0 left-0 right-0 w-full rounded-t-[2rem] shadow-[0_-5px_15px_rgba(0,0,0,0.03)]">
+        <nav class="bg-white border-t border-gray-100 flex justify-around items-center px-2 py-3 pb-6 shrink-0 z-[60] absolute bottom-0 left-0 right-0 w-full rounded-t-[2rem] shadow-[0_-5px_15px_rgba(0,0,0,0.03)]" style="contain: layout size;">
             <button onclick="navTo('home-page')" class="nav-item active flex flex-col items-center gap-1 text-gray-400 w-16 active:scale-90 transition" id="nav-home">
                 <i class="fas fa-utensils text-xl"></i><span class="text-[10px] font-medium">Beranda</span>
             </button>
@@ -718,17 +728,15 @@
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbw65jWYm1cmPsXPM22Hsi9LH0FrY2AiIPNHE-16uvhEaVsx-KrgZ8KWw0K0cpAVA5Sj/exec"; 
         
+        // ... (Kode JS tetap sama, namun tambahkan fungsi debounce untuk pencarian)
         let map, marker;
         let selectedLat, selectedLng;
         let cart = [];
         let orderHistory = JSON.parse(localStorage.getItem('pg_orders')) || [];
         let productsData = [];
         let vendorsData = [];
-        // Menyimpan preferensi area (Gombong/Kebumen)
         let userRegionPref = localStorage.getItem('pg_region_pref') || null;
-        let mapLocationMode = 'header'; // 'header' atau 'checkout'
-        
-        // Memuat Favorit dari Local Storage
+        let mapLocationMode = 'header';
         let favorites = new Set(JSON.parse(localStorage.getItem('pg_favorites')) || []);
         
         let userProfile = {
@@ -745,15 +753,43 @@
         let claimedCodes = JSON.parse(localStorage.getItem('pg_claimed_codes')) || [];
         
         const VALID_POINT_CODES = ['PROJEKGO', 'MAKANENAK', 'SENIN', 'JUMATBERKAH', 'TEST1234'];
-
-        // Koordinat Default
         const COORDS_GOMBONG = [-7.607865, 109.513824];
         const COORDS_KEBUMEN = [-7.6797, 109.6644];
 
+        // --- DEBOUNCE SEARCH (Pencegah Lag saat mengetik) ---
+        let searchTimeout;
+        function debouncedSearch(query) {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                handleGlobalSearch(query);
+            }, 300); // Tunggu 300ms setelah berhenti mengetik
+        }
+
+        // --- SEARCH LOGIC (Dipisah agar bisa didebounce) ---
+        function handleGlobalSearch(query) {
+            const container = document.getElementById('search-results');
+            if(!query) {
+                container.innerHTML = `<div class="text-center mt-10 text-gray-400"><i class="fas fa-search text-3xl mb-2"></i><p class="text-xs">Ketik untuk mencari...</p></div>`;
+                return;
+            }
+            
+            const lowerQ = query.toLowerCase();
+            const results = productsData.filter(p => 
+                p.Name.toLowerCase().includes(lowerQ) || 
+                p.Vendor_Name.toLowerCase().includes(lowerQ)
+            );
+
+            if(results.length === 0) {
+                container.innerHTML = `<div class="text-center mt-10 text-gray-400"><p class="text-xs">Tidak ditemukan.</p></div>`;
+            } else {
+                renderProductGrid(results, container);
+            }
+        }
+
+        // ... (Sisa fungsi JS lainnya sama seperti sebelumnya) ...
+
         window.addEventListener('load', () => {
             fetchData();
-            
-            // Logika baru Popup Awal: Cek preferensi wilayah
             if(!userRegionPref) {
                 setTimeout(() => {
                     document.getElementById('region-choice-modal').classList.remove('hidden');
@@ -761,7 +797,6 @@
             } else {
                 document.getElementById('header-address-text').innerText = userRegionPref;
             }
-
             updateProfileUI(); 
             updatePointsUI();
             renderOrderHistory();
@@ -804,20 +839,17 @@
             }
         }
 
-        // --- MAPS ---
         function openLocationModal(mode = 'header') {
             mapLocationMode = mode;
             const modal = document.getElementById('location-modal');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             
-            // Tentukan koordinat awal berdasarkan preferensi wilayah
-            let initialCoords = COORDS_GOMBONG; // Default Gombong
+            let initialCoords = COORDS_GOMBONG; 
             if (userRegionPref === 'Kebumen Kota') {
                 initialCoords = COORDS_KEBUMEN;
             }
 
-            // Jika mode checkout dan sudah ada lat/lng tersimpan di input, gunakan itu
             if (mode === 'checkout') {
                 const existingLat = document.getElementById('checkout-lat').value;
                 const existingLng = document.getElementById('checkout-lng').value;
@@ -882,7 +914,6 @@
 
         function confirmLocation() {
             const addrText = document.getElementById('selected-address').innerText;
-            
             if (mapLocationMode === 'header') {
                 document.getElementById('header-address-text').innerText = addrText;
             } else if (mapLocationMode === 'checkout') {
@@ -890,11 +921,9 @@
                 document.getElementById('checkout-lat').value = selectedLat;
                 document.getElementById('checkout-lng').value = selectedLng;
             }
-            
             closeLocationModal();
         }
 
-        // --- RENDER ---
         function renderCategories(data) {
             const container = document.getElementById('categories-container');
             container.innerHTML = data.map(cat => `
@@ -951,16 +980,14 @@
             
             const priorityBadge = `<span class="bg-blue-50 text-blue-600 text-[8px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 border border-blue-100 ml-auto whitespace-nowrap"><i class="fas fa-check-circle text-[7px]"></i> Prioritas</span>`;
 
-            // Logic Favorit
             const isFav = favorites.has(String(item.ID));
             const favIcon = isFav ? '<i class="fas fa-heart text-red-500 text-xs"></i>' : '<i class="far fa-heart text-gray-400 text-xs"></i>';
             const favButton = `
-                <button onclick="toggleFavorite(event, '${item.ID}')" class="absolute top-2 right-2 w-7 h-7 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-sm z-20 active:scale-90 transition fav-btn-${item.ID}">
+                <button onclick="toggleFavorite(event, '${item.ID}')" class="absolute top-2 right-2 w-7 h-7 bg-white/90 rounded-full flex items-center justify-center shadow-sm z-20 active:scale-90 transition fav-btn-${item.ID}">
                     ${favIcon}
                 </button>
             `;
 
-            // Tambahkan loading="lazy" dan decoding="async"
             if (type === 'horizontal') {
                 return `
                 <div class="product-card min-w-[300px] bg-white rounded-2xl p-3 shadow-sm border border-gray-100 flex gap-3 snap-center ${opacityClass} relative overflow-hidden" ${clickAction}>
@@ -1067,8 +1094,6 @@
             `}).join('');
         }
 
-        // ... (Fungsi lainnya tetap sama, hanya memastikan lazy loading pada gambar dinamis)
-
         function openVendor(vendorId) {
             const vendor = vendorsData.find(v => String(v.ID) === String(vendorId));
             if (!vendor) return;
@@ -1082,7 +1107,6 @@
             navTo('vendor-page');
         }
 
-        let currentItem = null;
         function openProductModal(item) {
             const availability = item.Availability ? String(item.Availability) : '';
             if (availability.trim() === 'Habis') return; 
@@ -1247,7 +1271,6 @@
             }
         }
 
-        // Keep this for simple compatibility if needed, but navTo('cart-page') is primary
         function openCart() {
              navTo('cart-page');
              renderCartPage();
@@ -1266,13 +1289,11 @@
         function checkoutToWA() {
             if(cart.length === 0) return;
             
-            // Logika baru untuk mengambil alamat checkout
             const addressText = document.getElementById('checkout-address-text').innerText;
             const noteText = document.getElementById('checkout-note').value;
             const lat = document.getElementById('checkout-lat').value;
             const lng = document.getElementById('checkout-lng').value;
             
-            // Validasi sederhana: pastikan user sudah klik pin lokasi (default text berbeda)
             if(addressText.includes("Klik untuk atur") || !lat) { 
                 alert("Mohon pin titik lokasi pengantaran di peta terlebih dahulu!"); 
                 return; 
@@ -1298,8 +1319,6 @@
             }
 
             msg += `💰 *Total Makanan: Rp ${new Intl.NumberFormat('id-ID').format(grandTotal)}*\n`;
-            
-            // Format Alamat Baru dengan Link Maps
             const fullAddress = noteText ? `${addressText} (Detail: ${noteText})` : addressText;
             msg += `📍 *Lokasi:* ${fullAddress}\n`;
             
@@ -1311,7 +1330,6 @@
 
             msg += `Mohon info ongkirnya kak.`;
 
-            // Simpan ke History Lokal
             const newOrder = {
                 id: `ORD-${Date.now()}`,
                 date: new Date().toLocaleDateString('id-ID'),
@@ -1323,16 +1341,23 @@
             localStorage.setItem('pg_orders', JSON.stringify(orderHistory));
             renderOrderHistory();
 
-            // Clear Cart Logic (Modified)
             cart = [];
             updateCartBadge();
             renderCartPage();
 
-            // UPDATE: Ganti window.open dengan window.location.href untuk mobile support
-            window.location.href = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+            // === PERBAIKAN UTAMA: TEKNIK LINK DINAMIS ===
+            // Menggunakan element <a> sementara untuk memicu intent WhatsApp dengan lebih handal di HP
+            const waUrl = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(msg)}`;
+            
+            const link = document.createElement('a');
+            link.href = waUrl;
+            link.target = '_blank'; // Penting: Membuka konteks baru agar aplikasi WA terpanggil
+            link.rel = 'noopener noreferrer';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
-        // --- POINTS LOGIC ---
         function updatePointsUI() {
             document.getElementById('point-display-count').innerText = userPoints;
             const percentage = Math.min((userPoints / 10) * 100, 100);
@@ -1357,7 +1382,6 @@
         function claimPointCode() {
             const input = document.getElementById('claim-code-input');
             const code = input.value.trim().toUpperCase();
-            
             if(!code) return;
 
             if(VALID_POINT_CODES.includes(code)) {
@@ -1406,7 +1430,6 @@
             `).join('');
         }
 
-        // --- UTILS ---
         function openPartnershipModal() { document.getElementById('partnership-modal').classList.remove('hidden'); }
         function closePartnershipModal() { document.getElementById('partnership-modal').classList.add('hidden'); }
         function openSellerRegistration() { closePartnershipModal(); document.getElementById('seller-register-modal').classList.remove('hidden'); setTimeout(() => document.getElementById('seller-register-content').classList.remove('translate-y-full'), 10); }
@@ -1419,7 +1442,6 @@
         function closeEditProfile() { document.getElementById('edit-profile-modal').classList.add('hidden'); }
         function saveProfile() { const newName = document.getElementById('edit-name-input').value; const newPhone = document.getElementById('edit-phone-input').value; if (newName && newPhone) { userProfile.name = newName; userProfile.phone = newPhone; userProfile.avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(newName)}&background=random`; updateProfileUI(); closeEditProfile(); } }
         
-        // FUNGSI FAVORIT BARU
         function toggleFavorite(event, id) { 
             event.stopPropagation(); 
             id = String(id);
@@ -1436,7 +1458,6 @@
                     btn.innerHTML = `<i class="fas fa-heart text-red-500 text-xs liked-anim"></i>`; 
                 });
             } 
-            // Save to Local Storage
             localStorage.setItem('pg_favorites', JSON.stringify([...favorites]));
         }
         
@@ -1464,7 +1485,6 @@
                 target.classList.remove('hidden-page');
                 target.classList.add('z-30');
                 
-                // UPDATE: Auto Scroll to Top
                 const scroller = target.querySelector('.scrolling-wrapper');
                 if (scroller) scroller.scrollTop = 0;
             }
