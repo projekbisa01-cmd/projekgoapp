@@ -6,7 +6,7 @@
     <!-- Meta PWA -->
     <meta name="theme-color" content="#ea580c">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default"> <!-- Ubah ke default untuk performa lebih baik -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"> 
     <meta name="apple-mobile-web-app-title" content="ProjekGo">
     
     <title>ProjekGo - Katalog Kuliner</title>
@@ -25,7 +25,6 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             box-sizing: border-box;
-            /* Menghilangkan delay tap pada elemen interaktif */
             touch-action: manipulation; 
         }
 
@@ -38,23 +37,19 @@
             height: 100vh;
             width: 100vw;
             -webkit-tap-highlight-color: transparent;
-            /* Mencegah scroll bouncing pada body utama */
             overscroll-behavior: none;
         }
 
-        /* Override Shadow yang berat dengan border tipis atau shadow minimal */
         .shadow-xl, .shadow-2xl, .shadow-lg {
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
         }
 
-        /* MATIKAN BACKDROP FILTER (Penyebab Utama Lag di HP) */
-        .backdrop-blur, .backdrop-blur-sm, .backdrop-blur-md, .backdrop-blur-lg, .backdrop-blur-xl {
+        .backdrop-blur, .backdrop-blur-sm, .backdrop-blur-md {
             backdrop-filter: none !important;
             -webkit-backdrop-filter: none !important;
-            background-color: rgba(255, 255, 255, 0.95) !important; /* Fallback warna solid */
+            background-color: rgba(255, 255, 255, 0.95) !important;
         }
         
-        /* Khusus untuk elemen gelap transparan */
         .bg-black\/20, .bg-black\/50, .bg-black\/60 {
             background-color: rgba(0, 0, 0, 0.7) !important;
         }
@@ -69,30 +64,30 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            /* Hardware acceleration untuk container utama */
             transform: translateZ(0);
         }
 
-        /* === SCROLLING YANG DICIPTAKAN UNTUK HP === */
+        /* === SCROLLING === */
         .scrolling-wrapper {
             -webkit-overflow-scrolling: touch; 
             overflow-y: auto;
             overflow-x: hidden;
             will-change: scroll-position;
-            overscroll-behavior-y: none; /* Mencegah pull-to-refresh browser */
+            overscroll-behavior-y: none;
             padding-bottom: 6rem;
-            /* Scroll instant lebih ringan daripada smooth */
             scroll-behavior: auto; 
-            /* Memisahkan layer rendering agar scroll tidak repaint seluruh halaman */
             transform: translateZ(0); 
             contain: content;
         }
 
-        /* Utilitas Custom */
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Content Visibility: Browser tidak me-render item jauh di bawah layar */
+        /* FIX SCROLL ISSUE: Memastikan slider horizontal tidak memblokir scroll vertikal */
+        .horizontal-slider {
+            touch-action: pan-x pan-y; /* KUNCI PERBAIKAN: Izinkan scroll X dan Y */
+        }
+
         .optimized-list {
             content-visibility: auto; 
             contain-intrinsic-size: 100px 800px; 
@@ -100,9 +95,8 @@
 
         .category-icon:active { transform: scale(0.9); }
         
-        /* Animasi Transisi Halaman (Disederhanakan) */
         .page-section {
-            transition: opacity 0.15s ease-out; /* Lebih cepat */
+            transition: opacity 0.15s ease-out;
             opacity: 1;
             pointer-events: auto;
             position: absolute;
@@ -112,7 +106,7 @@
             display: flex;
             flex-direction: column;
             padding-bottom: 5rem;
-            transform: translate3d(0,0,0); /* Paksa GPU */
+            transform: translate3d(0,0,0);
         }
         .hidden-page { opacity: 0; pointer-events: none; z-index: 0; display: none !important; }
 
@@ -131,10 +125,8 @@
         
         .progress-bar-fill { transition: width 0.5s ease-out; }
 
-        /* Leaflet Fixes */
         .leaflet-pane { z-index: 10; }
         .leaflet-top, .leaflet-bottom { z-index: 20; }
-        /* Mencegah peta menangkap event touch saat scroll page */
         .leaflet-container { touch-action: none; }
     </style>
 </head>
@@ -144,40 +136,41 @@
         
         <!-- === HALAMAN UTAMA (HOME) === -->
         <div id="home-page" class="page-section z-20 bg-gray-50">
-            <!-- Header Ultra Minimalis -->
-            <header class="bg-white pt-3 pb-3 px-4 shadow-sm z-20 relative shrink-0 sticky top-0" style="contain: layout size;">
-                <div class="flex items-center gap-3 mb-3">
-                    <!-- Brand & Location Compact -->
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-1">
-                            <span class="text-lg font-black tracking-tighter italic text-orange-600">PROJEK<span class="text-orange-400">GO</span></span>
-                            <div class="h-4 w-[1px] bg-gray-300 mx-1"></div>
-                            <div class="flex items-center gap-1 cursor-pointer overflow-hidden active:opacity-70 transition-opacity" onclick="openLocationModal('header')">
-                                <p class="text-xs font-bold text-gray-700 truncate" id="header-address-text">Pilih Wilayah</p>
-                                <i class="fas fa-chevron-down text-[10px] text-gray-400"></i>
-                            </div>
+            <!-- Header Orange Modern (Diperbaiki: Warna Item jadi Hitam/Gelap) -->
+            <header class="bg-gradient-to-br from-orange-600 to-orange-500 pt-10 pb-6 px-5 shadow-lg z-30 relative shrink-0 rounded-b-[2rem] flex flex-col gap-4">
+                <div class="flex items-center justify-between gap-3">
+                    <!-- Brand & Location -->
+                    <div class="flex-1 min-w-0 flex flex-col justify-center">
+                        <div class="flex items-center gap-1 mb-1">
+                             <span class="text-white text-2xl font-black tracking-tighter italic drop-shadow-md">PROJEK<span class="text-yellow-300">GO</span></span>
+                        </div>
+                        <!-- Tombol Lokasi (Diperbaiki: Background Putih, Teks Hitam/Abu Gelap) -->
+                        <div class="flex items-center gap-1.5 cursor-pointer active:opacity-80 transition-opacity w-fit bg-white px-3 py-1.5 rounded-xl shadow-sm border border-white/50 hover:bg-gray-50" onclick="openLocationModal('header')">
+                            <i class="fas fa-map-marker-alt text-orange-600 text-[12px]"></i>
+                            <p class="text-xs font-bold text-gray-800 truncate max-w-[160px] leading-tight" id="header-address-text">Pilih Wilayah</p>
+                            <i class="fas fa-chevron-down text-[10px] text-gray-500 ml-1"></i>
                         </div>
                     </div>
-                    <!-- Menu Button -->
-                    <button class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 active:bg-gray-200 transition" onclick="openPartnershipModal()">
-                        <i class="fas fa-bars text-xs"></i>
+                    <!-- Menu Button (Diperbaiki: Background Putih, Ikon Hitam) -->
+                    <button class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-gray-900 active:scale-90 transition shadow-sm hover:bg-gray-50 shrink-0" onclick="openPartnershipModal()">
+                        <i class="fas fa-bars text-base"></i>
                     </button>
                 </div>
                 
-                <!-- Search Bar Slim -->
-                <div class="relative group active:scale-[0.99] transition" onclick="navTo('search-page')">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <i class="fas fa-search text-gray-400 text-xs"></i>
+                <!-- Search Bar White (Pastikan di dalam flow header) -->
+                <div class="relative group active:scale-[0.98] transition w-full" onclick="navTo('search-page')">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-orange-500 text-sm"></i>
                     </div>
-                    <input type="text" placeholder="Cari makanan..." readonly
-                        class="w-full py-2.5 pl-9 pr-4 rounded-xl text-gray-700 text-xs font-medium bg-gray-100 border-none focus:ring-0 cursor-pointer placeholder-gray-400">
+                    <input type="text" placeholder="Mau makan apa hari ini?" readonly
+                        class="w-full py-3.5 pl-11 pr-5 rounded-2xl text-gray-700 text-sm font-semibold bg-white border-none focus:ring-0 cursor-pointer placeholder-gray-400 shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
                 </div>
             </header>
 
             <!-- Main Content -->
-            <main class="flex-1 overflow-y-auto hide-scrollbar scrolling-wrapper pb-24 relative pt-4 px-4 bg-gray-50 z-0">
-                <!-- Kategori -->
-                <div class="mb-6" style="contain: content;">
+            <main class="flex-1 overflow-y-auto hide-scrollbar scrolling-wrapper pb-24 relative pt-4 px-5 bg-gray-50 z-0">
+                <!-- Kategori (Diberi margin top sedikit agar tidak terlalu mepet header) -->
+                <div class="mb-6 mt-2">
                     <div class="flex justify-between items-center px-1 mb-3">
                         <h3 class="font-bold text-gray-800 text-sm">Kategori</h3>
                     </div>
@@ -188,26 +181,28 @@
                     </div>
                 </div>
 
-                <!-- Promo Banner -->
+                <!-- Promo Banner (Fix Scroll: Removed touch-pan-x) -->
                 <div class="mb-6" style="contain: content;">
                     <div class="flex justify-between items-center px-1 mb-3">
                         <h3 class="font-bold text-gray-800 text-sm">Lagi Promo</h3>
                         <span class="text-orange-600 text-[10px] font-bold cursor-pointer" onclick="openExclusivePage()">Lihat Semua</span>
                     </div>
-                    <div id="exclusive-slider" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2 snap-x touch-pan-x min-h-[120px]" style="scroll-behavior: auto;">
+                    <!-- Class horizontal-slider ditambahkan, touch-pan-x dihapus -->
+                    <div id="exclusive-slider" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2 snap-x min-h-[120px] horizontal-slider" style="scroll-behavior: auto;">
                          <div class="w-full text-center text-gray-400 text-xs py-8">
                             <i class="fas fa-spinner fa-spin"></i> Memuat...
                         </div>
                     </div>
                 </div>
 
-                <!-- Paling Laris -->
+                <!-- Paling Laris (Fix Scroll: Removed touch-pan-x) -->
                 <div class="mb-6" style="contain: content;">
                     <div class="flex justify-between items-center px-1 mb-3">
                         <h3 class="font-bold text-gray-800 text-sm">Paling Laris</h3>
                         <span class="text-orange-600 text-[10px] font-bold cursor-pointer" onclick="openCategory('all', 'Semua Menu')">Lihat Semua</span>
                     </div>
-                    <div id="recommendation-slider" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2 snap-x touch-pan-x min-h-[120px]" style="scroll-behavior: auto;">
+                    <!-- Class horizontal-slider ditambahkan, touch-pan-x dihapus -->
+                    <div id="recommendation-slider" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2 snap-x min-h-[120px] horizontal-slider" style="scroll-behavior: auto;">
                         <div class="w-full text-center text-gray-400 text-xs py-8">
                             <i class="fas fa-spinner fa-spin"></i> Memuat...
                         </div>
@@ -728,7 +723,6 @@
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbw65jWYm1cmPsXPM22Hsi9LH0FrY2AiIPNHE-16uvhEaVsx-KrgZ8KWw0K0cpAVA5Sj/exec"; 
         
-        // ... (Kode JS tetap sama, namun tambahkan fungsi debounce untuk pencarian)
         let map, marker;
         let selectedLat, selectedLng;
         let cart = [];
@@ -756,16 +750,16 @@
         const COORDS_GOMBONG = [-7.607865, 109.513824];
         const COORDS_KEBUMEN = [-7.6797, 109.6644];
 
-        // --- DEBOUNCE SEARCH (Pencegah Lag saat mengetik) ---
+        // --- DEBOUNCE SEARCH ---
         let searchTimeout;
         function debouncedSearch(query) {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
                 handleGlobalSearch(query);
-            }, 300); // Tunggu 300ms setelah berhenti mengetik
+            }, 300); 
         }
 
-        // --- SEARCH LOGIC (Dipisah agar bisa didebounce) ---
+        // --- SEARCH LOGIC ---
         function handleGlobalSearch(query) {
             const container = document.getElementById('search-results');
             if(!query) {
@@ -785,8 +779,6 @@
                 renderProductGrid(results, container);
             }
         }
-
-        // ... (Sisa fungsi JS lainnya sama seperti sebelumnya) ...
 
         window.addEventListener('load', () => {
             fetchData();
@@ -1345,17 +1337,14 @@
             updateCartBadge();
             renderCartPage();
 
-            // === PERBAIKAN UTAMA: TEKNIK LINK DINAMIS ===
-            // Menggunakan element <a> sementara untuk memicu intent WhatsApp dengan lebih handal di HP
             const waUrl = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(msg)}`;
             
-            const link = document.createElement('a');
-            link.href = waUrl;
-            link.target = '_blank'; // Penting: Membuka konteks baru agar aplikasi WA terpanggil
-            link.rel = 'noopener noreferrer';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            // FIX: Menggunakan window.open untuk kompabilitas lebih baik
+            const win = window.open(waUrl, '_blank');
+            if (!win) {
+                // Fallback jika popup blocker aktif
+                window.location.href = waUrl;
+            }
         }
 
         function updatePointsUI() {
