@@ -1322,11 +1322,12 @@
 
             msg += `Mohon info ongkirnya kak.`;
 
+            // UPDATE 1: Status pesanan diubah
             const newOrder = {
                 id: `ORD-${Date.now()}`,
                 date: new Date().toLocaleDateString('id-ID'),
                 total: grandTotal,
-                status: 'Menunggu Konfirmasi',
+                status: 'Terkirim ke Admin', // Status baru
                 items: cart.length
             };
             orderHistory.unshift(newOrder);
@@ -1337,14 +1338,12 @@
             updateCartBadge();
             renderCartPage();
 
-            const waUrl = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(msg)}`;
+            // UPDATE 2: Menggunakan format wa.me dan window.location.href
+            // untuk kompatibilitas mobile yang lebih baik
+            const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
             
-            // FIX: Menggunakan window.open untuk kompabilitas lebih baik
-            const win = window.open(waUrl, '_blank');
-            if (!win) {
-                // Fallback jika popup blocker aktif
-                window.location.href = waUrl;
-            }
+            // Mencoba redirect langsung (biasanya lebih aman dari popup blocker)
+            window.location.href = waUrl;
         }
 
         function updatePointsUI() {
@@ -1537,7 +1536,7 @@
                 const bizName = document.getElementById('reg-seller-biz').value;
                 const category = document.getElementById('reg-seller-cat').value;
                 const address = document.getElementById('reg-seller-addr').value;
-                if (!name || !phone || !bizName) { alert("Harap isi semua data wajib!"); return; }
+                if (!name || !bizName) { alert("Harap isi semua data wajib!"); return; }
                 payload.name = name; payload.phone = phone; payload.bizName = bizName; payload.category = category; payload.address = address;
             }
             const modalId = 'seller-register-modal';
