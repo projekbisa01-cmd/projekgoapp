@@ -130,14 +130,22 @@
 
                                 <!-- Input File (Galeri) -->
                                 <div id="input-mode-upload" class="block">
-                                    <!-- FIX: Mengganti div dengan label agar kompatibel dengan Mobile -->
-                                    <label for="file-upload-prod" class="block w-full border-2 border-dashed border-gray-300 rounded-xl p-6 text-center bg-gray-50 hover:bg-gray-100 cursor-pointer transition relative group">
-                                        <input type="file" id="file-upload-prod" class="hidden" accept="image/*" onchange="handleImageUpload(this)">
-                                        <div id="upload-placeholder">
+                                    <!-- FIX FINAL: Menggunakan teknik Overlay Input Transparan -->
+                                    <!-- Input file diletakkan di atas (z-10) tapi transparan (opacity-0), menutupi seluruh area -->
+                                    <div class="relative w-full border-2 border-dashed border-gray-300 rounded-xl p-6 text-center bg-gray-50 hover:bg-gray-100 transition group">
+                                        
+                                        <!-- INPUT ASLI: Tidak hidden, tapi opacity 0 dan memenuhi kotak -->
+                                        <input type="file" id="file-upload-prod" 
+                                               class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                                               accept="image/*" 
+                                               onchange="handleImageUpload(this)">
+                                        
+                                        <!-- TAMPILAN VISUAL (Di bawah input) -->
+                                        <div id="upload-placeholder" class="relative z-0">
                                             <i class="fas fa-camera text-2xl text-gray-400 mb-1 group-hover:scale-110 transition"></i>
-                                            <p class="text-[10px] text-gray-500">Ketuk untuk buka Galeri</p>
+                                            <p class="text-[10px] text-gray-500">Ketuk area ini untuk buka Galeri</p>
                                         </div>
-                                    </label>
+                                    </div>
                                 </div>
 
                                 <!-- Input URL (Link) -->
