@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- Meta PWA -->
-    <meta name="theme-color" content="#ea580c">
+    <meta name="theme-color" content="#ffffff">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default"> 
     <meta name="apple-mobile-web-app-title" content="ProjekGo">
@@ -44,10 +44,11 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
         }
 
+        /* Fallback Backdrop Blur untuk performa mobile rendah */
         .backdrop-blur, .backdrop-blur-sm, .backdrop-blur-md {
-            backdrop-filter: none !important;
-            -webkit-backdrop-filter: none !important;
-            background-color: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            background-color: rgba(255, 255, 255, 0.85);
         }
         
         .bg-black\/20, .bg-black\/50, .bg-black\/60 {
@@ -83,9 +84,9 @@
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* FIX SCROLL ISSUE: Memastikan slider horizontal tidak memblokir scroll vertikal */
+        /* FIX SCROLL ISSUE */
         .horizontal-slider {
-            touch-action: pan-x pan-y; /* KUNCI PERBAIKAN: Izinkan scroll X dan Y */
+            touch-action: pan-x pan-y; 
         }
 
         .optimized-list {
@@ -136,95 +137,97 @@
         
         <!-- === HALAMAN UTAMA (HOME) === -->
         <div id="home-page" class="page-section z-20 bg-gray-50">
-            <!-- Header Orange Modern (Diperbaiki: Warna Item jadi Hitam/Gelap) -->
-            <header class="bg-gradient-to-br from-orange-600 to-orange-500 pt-10 pb-6 px-5 shadow-lg z-30 relative shrink-0 rounded-b-[2rem] flex flex-col gap-4">
-                <div class="flex items-center justify-between gap-3">
-                    <!-- Brand & Location -->
-                    <div class="flex-1 min-w-0 flex flex-col justify-center">
-                        <div class="flex items-center gap-1 mb-1">
-                             <span class="text-white text-2xl font-black tracking-tighter italic drop-shadow-md">PROJEK<span class="text-yellow-300">GO</span></span>
+            <!-- 
+               PERUBAHAN STRUKTUR: 
+               Header dipindah ke dalam <main> agar bisa di-scroll.
+               Search bar dibuat sticky.
+            -->
+            <main class="flex-1 overflow-y-auto hide-scrollbar scrolling-wrapper bg-white z-0 relative w-full pb-24">
+                
+                <!-- 1. Header Minimalis (Ikut Scroll) -->
+                <div class="px-5 pt-12 pb-2 bg-white flex items-center justify-between gap-3">
+                    <div>
+                        <div class="flex items-center gap-1">
+                             <span class="text-orange-600 text-2xl font-black tracking-tighter italic">PROJEK<span class="text-gray-800">GO</span></span>
                         </div>
-                        <!-- Tombol Lokasi (Diperbaiki: Background Putih, Teks Hitam/Abu Gelap) -->
-                        <div class="flex items-center gap-1.5 cursor-pointer active:opacity-80 transition-opacity w-fit bg-white px-3 py-1.5 rounded-xl shadow-sm border border-white/50 hover:bg-gray-50" onclick="openLocationModal('header')">
-                            <i class="fas fa-map-marker-alt text-orange-600 text-[12px]"></i>
-                            <p class="text-xs font-bold text-gray-800 truncate max-w-[160px] leading-tight" id="header-address-text">Pilih Wilayah</p>
-                            <i class="fas fa-chevron-down text-[10px] text-gray-500 ml-1"></i>
+                        <div class="flex items-center gap-1 mt-0.5 cursor-pointer active:opacity-70 transition" onclick="openLocationModal('header')">
+                            <p class="text-xs font-bold text-gray-500 max-w-[180px] truncate" id="header-address-text">Pilih Wilayah</p>
+                            <i class="fas fa-chevron-down text-[10px] text-orange-500"></i>
                         </div>
                     </div>
-                    <!-- Menu Button (Diperbaiki: Background Putih, Ikon Hitam) -->
-                    <button class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-gray-900 active:scale-90 transition shadow-sm hover:bg-gray-50 shrink-0" onclick="openPartnershipModal()">
-                        <i class="fas fa-bars text-base"></i>
+                    <button class="w-10 h-10 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-700 active:scale-95 transition hover:bg-gray-100 shadow-sm" onclick="openPartnershipModal()">
+                        <i class="fas fa-bars"></i>
                     </button>
                 </div>
-                
-                <!-- Search Bar White (Pastikan di dalam flow header) -->
-                <div class="relative group active:scale-[0.98] transition w-full" onclick="navTo('search-page')">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <i class="fas fa-search text-orange-500 text-sm"></i>
-                    </div>
-                    <input type="text" placeholder="Mau makan apa hari ini?" readonly
-                        class="w-full py-3.5 pl-11 pr-5 rounded-2xl text-gray-700 text-sm font-semibold bg-white border-none focus:ring-0 cursor-pointer placeholder-gray-400 shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
-                </div>
-            </header>
 
-            <!-- Main Content -->
-            <main class="flex-1 overflow-y-auto hide-scrollbar scrolling-wrapper pb-24 relative pt-4 px-5 bg-gray-50 z-0">
-                <!-- Kategori (Diberi margin top sedikit agar tidak terlalu mepet header) -->
-                <div class="mb-6 mt-2">
-                    <div class="flex justify-between items-center px-1 mb-3">
-                        <h3 class="font-bold text-gray-800 text-sm">Kategori</h3>
-                    </div>
-                    <div class="grid grid-cols-4 gap-y-4" id="categories-container">
-                        <div class="col-span-4 text-center text-gray-400 text-xs py-4">
-                            <i class="fas fa-circle-notch fa-spin text-orange-500 mb-2"></i><br>Memuat...
+                <!-- 2. Sticky Search Bar (Menempel di atas) -->
+                <div class="sticky top-0 z-40 bg-white/95 backdrop-blur-md px-5 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.02)] transition-all">
+                    <div class="relative group active:scale-[0.98] transition w-full" onclick="navTo('search-page')">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-orange-500 text-sm"></i>
                         </div>
+                        <input type="text" placeholder="Cari makanan enak..." readonly
+                            class="w-full py-3.5 pl-11 pr-5 rounded-2xl text-gray-700 text-xs font-bold bg-gray-100 border-none focus:ring-0 cursor-pointer placeholder-gray-400">
                     </div>
                 </div>
 
-                <!-- Promo Banner (Fix Scroll: Removed touch-pan-x) -->
-                <div class="mb-6" style="contain: content;">
-                    <div class="flex justify-between items-center px-1 mb-3">
-                        <h3 class="font-bold text-gray-800 text-sm">Lagi Promo</h3>
-                        <span class="text-orange-600 text-[10px] font-bold cursor-pointer" onclick="openExclusivePage()">Lihat Semua</span>
-                    </div>
-                    <!-- Class horizontal-slider ditambahkan, touch-pan-x dihapus -->
-                    <div id="exclusive-slider" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2 snap-x min-h-[120px] horizontal-slider" style="scroll-behavior: auto;">
-                         <div class="w-full text-center text-gray-400 text-xs py-8">
-                            <i class="fas fa-spinner fa-spin"></i> Memuat...
+                <!-- 3. Konten Utama (Scrollable) -->
+                <div class="px-5 space-y-6 pt-2 pb-24">
+                    
+                    <!-- Kategori -->
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-bold text-gray-800 text-sm">Kategori</h3>
+                        </div>
+                        <div class="grid grid-cols-4 gap-y-4" id="categories-container">
+                            <div class="col-span-4 text-center text-gray-400 text-xs py-4">
+                                <i class="fas fa-circle-notch fa-spin text-orange-500 mb-2"></i><br>Memuat...
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Paling Laris (Fix Scroll: Removed touch-pan-x) -->
-                <div class="mb-6" style="contain: content;">
-                    <div class="flex justify-between items-center px-1 mb-3">
-                        <h3 class="font-bold text-gray-800 text-sm">Paling Laris</h3>
-                        <span class="text-orange-600 text-[10px] font-bold cursor-pointer" onclick="openCategory('all', 'Semua Menu')">Lihat Semua</span>
-                    </div>
-                    <!-- Class horizontal-slider ditambahkan, touch-pan-x dihapus -->
-                    <div id="recommendation-slider" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2 snap-x min-h-[120px] horizontal-slider" style="scroll-behavior: auto;">
-                        <div class="w-full text-center text-gray-400 text-xs py-8">
-                            <i class="fas fa-spinner fa-spin"></i> Memuat...
+                    <!-- Promo Banner -->
+                    <div style="contain: content;">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-bold text-gray-800 text-sm">Lagi Promo</h3>
+                            <span class="text-orange-600 text-[10px] font-bold cursor-pointer" onclick="openExclusivePage()">Lihat Semua</span>
+                        </div>
+                        <div id="exclusive-slider" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2 snap-x min-h-[120px] horizontal-slider" style="scroll-behavior: auto;">
+                             <div class="w-full text-center text-gray-400 text-xs py-8">
+                                <i class="fas fa-spinner fa-spin"></i> Memuat...
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Daftar Penjual -->
-                <div class="mb-4">
-                    <div class="flex justify-between items-end px-1 mb-3 sticky top-0 bg-gray-50 z-20 py-2">
-                        <h3 class="font-bold text-gray-800 text-sm">Warung Sekitar</h3>
-                        <button onclick="fetchData()" class="text-orange-600 text-[10px] font-semibold flex items-center gap-1 hover:text-orange-700 active:scale-95 transition">
-                            <i class="fas fa-sync-alt" id="refreshIcon"></i> Refresh
-                        </button>
-                    </div>
-                    <div id="vendor-list" class="space-y-4 optimized-list">
-                        <div class="text-center text-gray-400 text-xs py-10 bg-white rounded-2xl">
-                            <i class="fas fa-store text-xl mb-2 text-gray-300"></i><br>Mencari Mitra...
+                    <!-- Paling Laris -->
+                    <div style="contain: content;">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-bold text-gray-800 text-sm">Paling Laris</h3>
+                            <span class="text-orange-600 text-[10px] font-bold cursor-pointer" onclick="openCategory('all', 'Semua Menu')">Lihat Semua</span>
+                        </div>
+                        <div id="recommendation-slider" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2 snap-x min-h-[120px] horizontal-slider" style="scroll-behavior: auto;">
+                            <div class="w-full text-center text-gray-400 text-xs py-8">
+                                <i class="fas fa-spinner fa-spin"></i> Memuat...
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Daftar Penjual -->
+                    <div>
+                        <div class="flex justify-between items-end mb-3 sticky top-[70px] bg-white/95 backdrop-blur-sm z-10 py-2 -mx-5 px-5">
+                            <h3 class="font-bold text-gray-800 text-sm">Warung Sekitar</h3>
+                            <button onclick="fetchData()" class="text-orange-600 text-[10px] font-semibold flex items-center gap-1 hover:text-orange-700 active:scale-95 transition">
+                                <i class="fas fa-sync-alt" id="refreshIcon"></i> Refresh
+                            </button>
+                        </div>
+                        <div id="vendor-list" class="space-y-4 optimized-list">
+                            <div class="text-center text-gray-400 text-xs py-10 bg-white rounded-2xl">
+                                <i class="fas fa-store text-xl mb-2 text-gray-300"></i><br>Mencari Mitra...
+                            </div>
+                        </div>
+                    </div>
+                    
                 </div>
-                
-                <div class="h-10"></div>
             </main>
         </div>
 
@@ -806,9 +809,12 @@
             if(refreshBtn) refreshBtn.classList.add('fa-spin');
 
             try {
+                // --- KEMBALI KE LOGIKA AWAL: Ambil Kategori dari Sheet Categories ---
                 const catRes = await fetch(`${API_URL}?action=getCategories`);
                 const catJson = await catRes.json();
-                if(catJson.status === 'success') renderCategories(catJson.data);
+                if(catJson.status === 'success') {
+                    renderCategories(catJson.data);
+                }
 
                 const prodRes = await fetch(`${API_URL}?action=getProducts`);
                 const prodJson = await prodRes.json();
@@ -918,14 +924,39 @@
 
         function renderCategories(data) {
             const container = document.getElementById('categories-container');
-            container.innerHTML = data.map(cat => `
-                <div onclick="openCategory('${cat.Category_ID || cat.id}', '${cat.Name}')" class="flex flex-col items-center gap-1 cursor-pointer active:scale-95 transition">
-                    <div class="w-14 h-14 flex items-center justify-center">
-                        <img src="${cat.Icon_Image_URL}" class="w-10 h-10 object-contain mix-blend-multiply" style="mix-blend-mode: multiply; filter: contrast(1.1);" onerror="this.src='https://img.icons8.com/color/48/food.png'" loading="lazy" decoding="async">
+            
+            // Mapping Icon Manual untuk kategori spesifik
+            const iconMap = {
+                'Sarapan': 'https://img.icons8.com/color/48/breakfast.png',
+                'per Nasi an': 'https://img.icons8.com/color/48/rice-bowl.png',
+                'Minuman': 'https://img.icons8.com/color/48/orange-soda.png',
+                'Ayam': 'https://img.icons8.com/color/48/fried-chicken.png',
+                'Makanan kuah': 'https://img.icons8.com/color/48/soup-plate.png',
+                'Aneka mie': 'https://img.icons8.com/color/48/noodles.png',
+                'Makanan ringan': 'https://img.icons8.com/color/48/chips.png'
+            };
+
+            container.innerHTML = data.map(cat => {
+                // Fallback icon jika di sheet kosong, cek mapping, lalu cek default
+                let iconSrc = cat.Icon_Image_URL;
+                if (!iconSrc || iconSrc.trim() === '') {
+                    // Coba cari match di iconMap (case insensitive dikit)
+                    const key = Object.keys(iconMap).find(k => k.toLowerCase() === cat.Name.toLowerCase());
+                    iconSrc = key ? iconMap[key] : 'https://img.icons8.com/color/48/food.png';
+                }
+
+                // PENTING: Gunakan escape character untuk cat.Name di dalam onclick
+                // Agar nama kategori dengan tanda kutip (misal "Jum'at Berkah") tidak error
+                const safeName = cat.Name.replace(/'/g, "\\'");
+
+                return `
+                <div onclick="openCategory('${safeName}', '${safeName}')" class="flex flex-col items-center gap-1 cursor-pointer active:scale-95 transition">
+                    <div class="w-14 h-14 flex items-center justify-center bg-orange-50 rounded-2xl border border-orange-100 shadow-sm">
+                        <img src="${iconSrc}" class="w-8 h-8 object-contain" onerror="this.src='https://img.icons8.com/color/48/food.png'" loading="lazy" decoding="async">
                     </div>
-                    <span class="text-[10px] font-bold text-gray-600 text-center leading-tight px-1 truncate w-full">${cat.Name}</span>
+                    <span class="text-[10px] font-bold text-gray-600 text-center leading-tight px-1 truncate w-full mt-1">${cat.Name}</span>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         function renderProductLists() {
@@ -1517,13 +1548,31 @@
             navTo('category-page'); 
             document.getElementById('cat-page-title').innerText = catName; 
             const container = document.getElementById('category-content-container'); 
+            
+            // Show loading state
             container.innerHTML = '<div class="col-span-2 text-center py-10"><i class="fas fa-spinner fa-spin text-orange-500"></i> Memuat...</div>'; 
+            
             setTimeout(() => { 
-                const filtered = catId === 'all' ? productsData : productsData.filter(p => p.category === catId);
+                // FILTER LOGIC:
+                // 1. Source: productsData (from Sheet Products)
+                // 2. Filter Column: Category (p.Category)
+                // 3. Condition: Match the clicked category name (catId)
+                
+                const filtered = catId === 'all' ? productsData : productsData.filter(p => {
+                    // Normalize data from sheet (handle different casing/trimming)
+                    // UPDATE: Added 'Kategori' and 'kategori' for flexibility
+                    const pCat = p.Category || p.category || p.Kategori || p.kategori || ''; 
+                    
+                    // Compare case-insensitively
+                    return String(pCat).trim().toLowerCase() === String(catId).trim().toLowerCase();
+                });
+                
                 if (filtered.length === 0) { 
-                    container.innerHTML = '<div class="col-span-2 text-center text-gray-400 mt-10">Belum ada menu di kategori ini.</div>'; 
+                    // Debugging hint in UI (optional, kept simple)
+                    container.innerHTML = '<div class="col-span-2 text-center text-gray-400 mt-10">Belum ada menu di kategori ini.<br><span class="text-[8px]">Pastikan penulisan kategori di Sheet Produk sama persis.</span></div>'; 
                     return; 
                 } 
+                
                 renderProductGrid(filtered, container); 
             }, 300); 
         }
@@ -1547,6 +1596,43 @@
             fetch(API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
             .then(response => { alert(`Pendaftaran ${type} Berhasil dikirim!`); })
             .catch(error => { console.error("Error:", error); alert("Gagal Mengirim (Cek Koneksi)"); });
+        }
+
+        function renderCategories(data) {
+            const container = document.getElementById('categories-container');
+            
+            // Mapping Icon Manual untuk kategori spesifik
+            const iconMap = {
+                'Sarapan': 'https://img.icons8.com/color/48/breakfast.png',
+                'per Nasi an': 'https://img.icons8.com/color/48/rice-bowl.png',
+                'Minuman': 'https://img.icons8.com/color/48/orange-soda.png',
+                'Ayam': 'https://img.icons8.com/color/48/fried-chicken.png',
+                'Makanan kuah': 'https://img.icons8.com/color/48/soup-plate.png',
+                'Aneka mie': 'https://img.icons8.com/color/48/noodles.png',
+                'Makanan ringan': 'https://img.icons8.com/color/48/chips.png'
+            };
+
+            container.innerHTML = data.map(cat => {
+                // Fallback icon jika di sheet kosong, cek mapping, lalu cek default
+                let iconSrc = cat.Icon_Image_URL;
+                if (!iconSrc || iconSrc.trim() === '') {
+                    // Coba cari match di iconMap (case insensitive dikit)
+                    const key = Object.keys(iconMap).find(k => k.toLowerCase() === cat.Name.toLowerCase());
+                    iconSrc = key ? iconMap[key] : 'https://img.icons8.com/color/48/food.png';
+                }
+
+                // PENTING: Gunakan cat.Name sebagai ID untuk filter openCategory
+                // Karena user menyebutkan nama-nama kategori spesifik
+                const safeName = cat.Name.replace(/'/g, "\\'");
+
+                return `
+                <div onclick="openCategory('${safeName}', '${safeName}')" class="flex flex-col items-center gap-1 cursor-pointer active:scale-95 transition">
+                    <div class="w-14 h-14 flex items-center justify-center bg-orange-50 rounded-2xl border border-orange-100 shadow-sm">
+                        <img src="${iconSrc}" class="w-8 h-8 object-contain" onerror="this.src='https://img.icons8.com/color/48/food.png'" loading="lazy" decoding="async">
+                    </div>
+                    <span class="text-[10px] font-bold text-gray-600 text-center leading-tight px-1 truncate w-full mt-1">${cat.Name}</span>
+                </div>
+            `}).join('');
         }
     </script>
 </body>
