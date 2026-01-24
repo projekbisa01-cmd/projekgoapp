@@ -83,11 +83,13 @@
                             <div>
                                 <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 ml-1">Kategori</label>
                                 <select id="prod-cat" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 font-medium text-gray-700">
-                                    <option value="Aneka Nasi">Aneka Nasi</option>
+                                    <option value="Sarapan">Sarapan</option>
+                                    <option value="per Nasi an">per Nasi an</option>
                                     <option value="Minuman">Minuman</option>
-                                    <option value="Jajanan">Jajanan</option>
-                                    <option value="Roti & Kue">Roti & Kue</option>
-                                    <option value="Sate & BBQ">Sate & BBQ</option>
+                                    <option value="Ayam">Ayam</option>
+                                    <option value="Makanan kuah">Makanan kuah</option>
+                                    <option value="Aneka mie">Aneka mie</option>
+                                    <option value="Makanan ringan">Makanan ringan</option>
                                 </select>
                             </div>
 
@@ -128,13 +130,14 @@
 
                                 <!-- Input File (Galeri) -->
                                 <div id="input-mode-upload" class="block">
-                                    <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center bg-gray-50 hover:bg-gray-100 cursor-pointer transition relative group" onclick="document.getElementById('file-upload-prod').click()">
+                                    <!-- FIX: Mengganti div dengan label agar kompatibel dengan Mobile -->
+                                    <label for="file-upload-prod" class="block w-full border-2 border-dashed border-gray-300 rounded-xl p-6 text-center bg-gray-50 hover:bg-gray-100 cursor-pointer transition relative group">
                                         <input type="file" id="file-upload-prod" class="hidden" accept="image/*" onchange="handleImageUpload(this)">
                                         <div id="upload-placeholder">
                                             <i class="fas fa-camera text-2xl text-gray-400 mb-1 group-hover:scale-110 transition"></i>
                                             <p class="text-[10px] text-gray-500">Ketuk untuk buka Galeri</p>
                                         </div>
-                                    </div>
+                                    </label>
                                 </div>
 
                                 <!-- Input URL (Link) -->
@@ -316,11 +319,12 @@
             if(confirm("Keluar dari aplikasi penjual?")) {
                 localStorage.removeItem('pg_vendor_id');
                 localStorage.removeItem('pg_vendor_name');
+                localStorage.removeItem('pg_vendor_products_cache'); 
                 vendorData = { id: '', name: '' };
                 document.getElementById('login-page').classList.add('active');
                 document.getElementById('dashboard-page').classList.remove('active');
-                document.getElementById('dashboard-page').classList.remove('flex'); // Remove flex when hidden
-                document.getElementById('dashboard-page').classList.add('hidden'); // Add hidden class
+                document.getElementById('dashboard-page').classList.remove('flex'); 
+                document.getElementById('dashboard-page').classList.add('hidden'); 
                 document.getElementById('login-id').value = '';
                 document.getElementById('login-name').value = '';
             }
@@ -328,242 +332,50 @@
 
         function showDashboard() {
             document.getElementById('login-page').classList.remove('active');
-            document.getElementById('dashboard-page').classList.add('active');
-            document.getElementById('dashboard-page').classList.remove('hidden'); // Ensure hidden class is removed
-            document.getElementById('dashboard-page').classList.add('flex'); // Add flex class for layout
+            document.getElementById('dashboard-page').classList.remove('hidden');
+            document.getElementById('dashboard-page').classList.add('flex', 'active');
             
             document.getElementById('dashboard-vendor-name').innerText = vendorData.name;
             document.getElementById('dashboard-vendor-id').innerText = "ID: " + vendorData.id;
-            
+
+            // Load initial view
             switchTab('menu');
+            // Background fetch products
+            fetchVendorProducts();
         }
 
-        // --- NAVIGATION TABS ---
-        function switchTab(tabName) {
-            const menuContent = document.getElementById('tab-menu');
-            const listContent = document.getElementById('tab-list-menu');
-            const statusContent = document.getElementById('tab-status');
-            
-            const navMenu = document.getElementById('nav-btn-menu');
-            const navList = document.getElementById('nav-btn-list-menu');
-            const navStatus = document.getElementById('nav-btn-status');
-
-            // Reset All Tabs
-            [menuContent, listContent, statusContent].forEach(el => el.classList.add('hidden'));
-            [navMenu, navList, navStatus].forEach(el => {
-                el.classList.replace('text-orange-600', 'text-gray-400');
-                el.querySelector('span').classList.replace('font-bold', 'font-medium');
-                // Remove active background
-                el.querySelector('div').classList.remove('bg-orange-50');
-            });
-
-            // Activate Selected Tab
-            let activeNav;
-            if (tabName === 'menu') {
-                menuContent.classList.remove('hidden');
-                activeNav = navMenu;
-            } else if (tabName === 'list-menu') {
-                listContent.classList.remove('hidden');
-                activeNav = navList;
-                // Auto fetch if list is empty
-                if(document.getElementById('vendor-product-list').children.length <= 1) {
-                    fetchVendorProducts();
-                }
-            } else if (tabName === 'status') {
-                statusContent.classList.remove('hidden');
-                activeNav = navStatus;
-            }
-
-            if (activeNav) {
-                activeNav.classList.replace('text-gray-400', 'text-orange-600');
-                activeNav.querySelector('span').classList.replace('font-medium', 'font-bold');
-                activeNav.querySelector('div').classList.add('bg-orange-50');
-            }
-        }
-
-        // --- LOGIKA HARGA OTOMATIS (NEW) ---
-        function calculateOrigPrice() {
-            const priceInput = document.getElementById('prod-price');
-            const origPriceInput = document.getElementById('prod-orig-price');
-            
-            const price = parseFloat(priceInput.value);
-            
-            if (!isNaN(price) && price > 0) {
-                // Tambah 20%
-                const markedUpPrice = Math.round(price * 1.20);
-                origPriceInput.value = markedUpPrice;
-            } else {
-                origPriceInput.value = '';
-            }
-        }
-
-        // --- LOGIKA GAMBAR (GALERI vs URL) ---
-        function toggleImageInput(mode) {
-            activeInputMode = mode;
-            const uploadDiv = document.getElementById('input-mode-upload');
-            const urlDiv = document.getElementById('input-mode-url');
-            const btnUpload = document.getElementById('btn-mode-upload');
-            const btnUrl = document.getElementById('btn-mode-url');
-
-            if (mode === 'upload') {
-                uploadDiv.classList.remove('hidden');
-                urlDiv.classList.add('hidden');
-                
-                btnUpload.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-orange-100 text-orange-600 border border-orange-200 transition-colors";
-                btnUrl.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-500 border border-gray-200 transition-colors";
-            } else {
-                uploadDiv.classList.add('hidden');
-                urlDiv.classList.remove('hidden');
-                
-                btnUpload.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-500 border border-gray-200 transition-colors";
-                btnUrl.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-orange-100 text-orange-600 border border-orange-200 transition-colors";
-            }
-        }
-
-        function handleImageUpload(input) {
-            if (input.files && input.files[0]) {
-                const file = input.files[0];
-                const uploadPlaceholder = document.getElementById('upload-placeholder');
-                
-                uploadPlaceholder.innerHTML = '<i class="fas fa-spinner fa-spin text-2xl text-orange-500"></i><p class="text-[10px] text-gray-500">Memproses...</p>';
-
-                // Kompresi Gambar (Max width 600px untuk menghemat kuota sheet)
-                compressImage(file, 600, 0.7, function(dataUrl) {
-                    compressedImageBlob = dataUrl;
-                    
-                    // Tampilkan Preview
-                    document.getElementById('img-preview-el').src = dataUrl;
-                    document.getElementById('img-preview-box').classList.remove('hidden');
-                    
-                    // Reset Placeholder
-                    uploadPlaceholder.innerHTML = '<i class="fas fa-check text-2xl text-green-500 mb-1"></i><p class="text-[10px] text-gray-500">Foto Siap!</p>';
-                });
-            }
-        }
-
-        function compressImage(file, maxWidth, quality, callback) {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = function(event) {
-                const img = new Image();
-                img.src = event.target.result;
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > maxWidth) {
-                        height *= maxWidth / width;
-                        width = maxWidth;
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-                    
-                    const dataUrl = canvas.toDataURL('image/jpeg', quality);
-                    callback(dataUrl);
-                }
-            }
-        }
-
-        function previewUrlImg() {
-            const url = document.getElementById('prod-img-url').value;
-            if(url) {
-                document.getElementById('img-preview-el').src = url;
-                document.getElementById('img-preview-box').classList.remove('hidden');
-                compressedImageBlob = null; // Reset blob jika user preview URL
-            } else {
-                alert("Isi URL gambar dulu.");
-            }
-        }
-
-        function removeImage() {
-            document.getElementById('img-preview-box').classList.add('hidden');
-            document.getElementById('img-preview-el').src = '';
-            document.getElementById('file-upload-prod').value = ''; // Reset file input
-            document.getElementById('prod-img-url').value = '';   // Reset url input
-            compressedImageBlob = null;
-            document.getElementById('upload-placeholder').innerHTML = '<i class="fas fa-camera text-2xl text-gray-400 mb-1 group-hover:scale-110 transition"></i><p class="text-[10px] text-gray-500">Ketuk untuk buka Galeri</p>';
-        }
-
-        // --- FITUR TAMBAH PRODUK ---
-        function submitProduct() {
-            const name = document.getElementById('prod-name').value;
-            const category = document.getElementById('prod-cat').value;
-            const variants = document.getElementById('prod-variants').value;
-            const price = document.getElementById('prod-price').value;
-            const origPrice = document.getElementById('prod-orig-price').value || price;
-            const description = document.getElementById('prod-desc').value;
-            
-            // Tentukan gambar mana yang dipakai (Upload vs URL)
-            let finalImage = "";
-            if (activeInputMode === 'upload' && compressedImageBlob) {
-                finalImage = compressedImageBlob;
-            } else {
-                finalImage = document.getElementById('prod-img-url').value;
-            }
-
-            if (!finalImage) {
-                alert("Mohon upload foto atau isi link gambar!");
-                return;
-            }
-
-            if(!vendorData.id) { alert("Sesi habis, login ulang."); handleLogout(); return; }
-
-            // Generate ID Unik
-            const prodId = Date.now().toString().slice(-6) + Math.floor(Math.random() * 100);
-
-            const payload = {
-                action: 'addProduct',
-                id: prodId,
-                name: name,
-                vendorName: vendorData.name,
-                category: category,
-                variants: variants, // Mengirim data varian
-                price: price,
-                originalPrice: origPrice,
-                rating: 4.5,
-                image: finalImage,
-                description: description // Mengirim data deskripsi
-            };
-
-            setLoading(true, "Menyimpan Menu...");
-
-            fetch(API_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-            .then(response => {
-                setLoading(false);
-                alert("Menu berhasil ditambahkan ke database!");
-                // Reset Form
-                document.getElementById('form-add-product').reset();
-                removeImage(); 
-                fetchVendorProducts(); // Refresh list tab
-            })
-            .catch(error => {
-                setLoading(false);
-                alert("Gagal menyimpan: " + error);
-            });
-        }
-
-        // --- FITUR LIST MENU ---
+        // --- FITUR LIST MENU (DIPERBARUI DENGAN CACHE/HISTORY) ---
         async function fetchVendorProducts() {
             const container = document.getElementById('vendor-product-list');
             const icon = document.getElementById('refresh-list-icon');
             
-            icon.classList.add('fa-spin');
-            container.innerHTML = `
-                <div class="text-center py-10 text-gray-400 text-xs">
-                    <i class="fas fa-circle-notch fa-spin text-2xl text-orange-500 mb-2"></i><br>Sedang memuat data...
-                </div>
-            `;
+            // 1. CEK CACHE LOKAL DULU
+            const cachedData = localStorage.getItem('pg_vendor_products_cache');
+            let isUsingCache = false;
+
+            if (cachedData) {
+                const products = JSON.parse(cachedData);
+                renderVendorProducts(products);
+                
+                const loadingIndicator = document.createElement('div');
+                loadingIndicator.id = 'bg-loading-indicator';
+                loadingIndicator.className = "text-center py-2 text-[10px] text-orange-500 bg-orange-50 rounded-lg mb-2 animate-pulse flex items-center justify-center gap-2";
+                loadingIndicator.innerHTML = '<i class="fas fa-sync fa-spin"></i> Memperbarui data dari server...';
+                container.prepend(loadingIndicator);
+                
+                isUsingCache = true;
+            } else {
+                container.innerHTML = `
+                    <div class="text-center py-10 text-gray-400 text-xs">
+                        <i class="fas fa-circle-notch fa-spin text-2xl text-orange-500 mb-2"></i><br>Sedang memuat data...
+                    </div>
+                `;
+            }
+
+            if(icon) icon.classList.add('fa-spin'); 
 
             try {
+                // 2. AMBIL DATA BARU
                 const response = await fetch(`${API_URL}?action=getProducts`);
                 const result = await response.json();
 
@@ -571,15 +383,24 @@
                     const myProducts = result.data.filter(p => 
                         String(p.Vendor_Name).toLowerCase().trim() === String(vendorData.name).toLowerCase().trim()
                     );
+                    
+                    localStorage.setItem('pg_vendor_products_cache', JSON.stringify(myProducts));
                     renderVendorProducts(myProducts);
                 } else {
-                    container.innerHTML = `<div class="text-center text-red-500 py-4 text-xs">Gagal memuat data.</div>`;
+                    if (!isUsingCache) {
+                        container.innerHTML = `<div class="text-center text-red-500 py-4 text-xs">Gagal memuat data.</div>`;
+                    }
                 }
             } catch (error) {
                 console.error(error);
-                container.innerHTML = `<div class="text-center text-gray-400 py-4 text-xs">Terjadi kesalahan koneksi.<br>Cek internet Anda.</div>`;
+                if (!isUsingCache) {
+                    container.innerHTML = `<div class="text-center text-gray-400 py-4 text-xs">Terjadi kesalahan koneksi.<br>Cek internet Anda.</div>`;
+                } else {
+                    const indicator = document.getElementById('bg-loading-indicator');
+                    if(indicator) indicator.remove();
+                }
             } finally {
-                icon.classList.remove('fa-spin');
+                if(icon) icon.classList.remove('fa-spin');
             }
         }
 
@@ -600,7 +421,6 @@
             const sortedProducts = products.reverse(); 
 
             container.innerHTML = sortedProducts.map(item => {
-                // Cleaning status string (remove extra spaces if any)
                 const rawStatus = item.Availability ? String(item.Availability).trim() : 'Tersedia';
                 const isHabis = rawStatus === 'Habis';
                 const displayStatus = isHabis ? 'Stok: Habis' : 'Stok: Tersedia';
@@ -634,14 +454,172 @@
             `}).join('');
         }
 
+        // --- FITUR NAVIGATION (SWITCH TAB) ---
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.getElementById('tab-menu').classList.add('hidden');
+            document.getElementById('tab-list-menu').classList.add('hidden');
+            document.getElementById('tab-status').classList.add('hidden');
+
+            // Reset Nav Buttons
+            const navIds = ['menu', 'list-menu', 'status'];
+            navIds.forEach(id => {
+                const btn = document.getElementById(`nav-btn-${id}`);
+                const iconContainer = btn.querySelector('div');
+                btn.classList.remove('text-orange-600');
+                btn.classList.add('text-gray-400');
+                iconContainer.classList.remove('bg-orange-50');
+            });
+
+            // Show Selected Tab
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+
+            // Highlight Selected Nav
+            const activeBtn = document.getElementById(`nav-btn-${tabName}`);
+            activeBtn.classList.remove('text-gray-400');
+            activeBtn.classList.add('text-orange-600');
+            activeBtn.querySelector('div').classList.add('bg-orange-50');
+
+            if (tabName === 'list-menu') {
+                fetchVendorProducts();
+            }
+        }
+
+        // --- FITUR SUBMIT PRODUCT ---
+        function submitProduct() {
+            if (!vendorData.id) { alert("Sesi habis, silakan login ulang."); return; }
+
+            const name = document.getElementById('prod-name').value;
+            const category = document.getElementById('prod-cat').value;
+            const price = document.getElementById('prod-price').value;
+            const variants = document.getElementById('prod-variants').value;
+            const desc = document.getElementById('prod-desc').value;
+
+            // Handle Image
+            let finalImage = "https://placehold.co/300?text=No+Image";
+            if (activeInputMode === 'url') {
+                const urlInput = document.getElementById('prod-img-url').value;
+                if (urlInput) finalImage = urlInput;
+            } else if (activeInputMode === 'upload' && compressedImageBlob) {
+                finalImage = compressedImageBlob; // Base64
+            }
+
+            const payload = {
+                action: 'addProduct',
+                vendorId: vendorData.id,
+                vendorName: vendorData.name,
+                productName: name,
+                category: category,
+                price: price,
+                variants: variants,
+                description: desc,
+                imageUrl: finalImage
+            };
+
+            setLoading(true, "Menyimpan Menu...");
+
+            fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                setLoading(false);
+                alert("Menu Berhasil Disimpan!");
+                document.getElementById('form-add-product').reset();
+                removeImage();
+                switchTab('list-menu');
+            })
+            .catch(error => {
+                setLoading(false);
+                alert("Gagal menyimpan: " + error);
+            });
+        }
+
+        // --- HELPER FUNCTIONS ---
+        function calculateOrigPrice() {
+            const price = document.getElementById('prod-price').value;
+            if(price) {
+                const orig = Math.round(price * 1.2);
+                document.getElementById('prod-orig-price').value = orig;
+            }
+        }
+
+        function toggleImageInput(mode) {
+            activeInputMode = mode;
+            const btnUpload = document.getElementById('btn-mode-upload');
+            const btnUrl = document.getElementById('btn-mode-url');
+            const boxUpload = document.getElementById('input-mode-upload');
+            const boxUrl = document.getElementById('input-mode-url');
+
+            if (mode === 'upload') {
+                btnUpload.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-orange-100 text-orange-600 border border-orange-200 transition-colors";
+                btnUrl.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-500 border border-gray-200 transition-colors";
+                boxUpload.classList.remove('hidden');
+                boxUpload.classList.add('block');
+                boxUrl.classList.add('hidden');
+            } else {
+                btnUrl.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-orange-100 text-orange-600 border border-orange-200 transition-colors";
+                btnUpload.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-500 border border-gray-200 transition-colors";
+                boxUrl.classList.remove('hidden');
+                boxUpload.classList.add('hidden');
+                boxUpload.classList.remove('block');
+            }
+        }
+
+        function handleImageUpload(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = function() {
+                        // Compress Image logic simple
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const maxWidth = 500; 
+                        const scaleSize = maxWidth / img.width;
+                        canvas.width = maxWidth;
+                        canvas.height = img.height * scaleSize;
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        
+                        compressedImageBlob = canvas.toDataURL('image/jpeg', 0.7); // 70% quality
+                        
+                        document.getElementById('img-preview-el').src = compressedImageBlob;
+                        document.getElementById('img-preview-box').classList.remove('hidden');
+                        document.getElementById('input-mode-upload').classList.add('hidden'); // Hide input box
+                    }
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function previewUrlImg() {
+            const url = document.getElementById('prod-img-url').value;
+            if(url) {
+                document.getElementById('img-preview-el').src = url;
+                document.getElementById('img-preview-box').classList.remove('hidden');
+            }
+        }
+
+        function removeImage() {
+            document.getElementById('file-upload-prod').value = "";
+            document.getElementById('prod-img-url').value = "";
+            compressedImageBlob = null;
+            document.getElementById('img-preview-box').classList.add('hidden');
+            
+            // Show input box again based on active mode
+            if(activeInputMode === 'upload') {
+                document.getElementById('input-mode-upload').classList.remove('hidden');
+            }
+        }
+
         // --- FITUR STATUS & HAPUS (FIXED) ---
         function toggleProductStatus(id, currentStatus) {
-            // Logic to switch status
             const newStatus = currentStatus === 'Habis' ? 'Tersedia' : 'Habis';
-            
-            // Konfirmasi sederhana (Opsional, bisa dihapus jika ingin cepat)
-            // if(!confirm(`Ubah status menu ini menjadi ${newStatus}?`)) return;
-
             setLoading(true, `Mengubah ke ${newStatus}...`);
             
             fetch(API_URL, { 
@@ -652,7 +630,6 @@
             })
             .then(() => { 
                 setLoading(false); 
-                // Optimistic UI update or fetch again
                 fetchVendorProducts(); 
             })
             .catch(e => { 
