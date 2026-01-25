@@ -75,7 +75,7 @@
             overflow-x: hidden;
             will-change: scroll-position;
             overscroll-behavior-y: none;
-            padding-bottom: 6rem;
+            padding-bottom: 7rem; /* Adjusted for higher sticky button */
             scroll-behavior: auto; 
             transform: translateZ(0); 
             contain: content;
@@ -87,6 +87,8 @@
         /* FIX SCROLL ISSUE */
         .horizontal-slider {
             touch-action: pan-x pan-y; 
+            min-height: 140px; /* Menjaga tinggi agar tidak collapse saat loading */
+            display: flex; /* Pastikan flex agar loading state di tengah */
         }
 
         .optimized-list {
@@ -176,7 +178,12 @@
                         </div>
                         <div class="grid grid-cols-4 gap-y-4" id="categories-container">
                             <div class="col-span-4 text-center text-gray-400 text-xs py-4">
-                                <i class="fas fa-circle-notch fa-spin text-orange-500 mb-2"></i><br>Memuat...
+                                <!-- Skeleton Loading Sederhana -->
+                                <div class="animate-pulse flex gap-4 justify-center">
+                                    <div class="w-14 h-14 bg-gray-200 rounded-2xl"></div>
+                                    <div class="w-14 h-14 bg-gray-200 rounded-2xl"></div>
+                                    <div class="w-14 h-14 bg-gray-200 rounded-2xl"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -188,8 +195,8 @@
                             <span class="text-orange-600 text-[10px] font-bold cursor-pointer" onclick="openExclusivePage()">Lihat Semua</span>
                         </div>
                         <div id="exclusive-slider" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2 snap-x min-h-[120px] horizontal-slider" style="scroll-behavior: auto;">
-                             <div class="w-full text-center text-gray-400 text-xs py-8">
-                                <i class="fas fa-spinner fa-spin"></i> Memuat...
+                             <div class="w-full text-center text-gray-400 text-xs py-8 animate-pulse flex flex-col justify-center items-center h-full">
+                                <span>Memuat promo...</span>
                             </div>
                         </div>
                     </div>
@@ -201,8 +208,8 @@
                             <span class="text-orange-600 text-[10px] font-bold cursor-pointer" onclick="openCategory('all', 'Semua Menu')">Lihat Semua</span>
                         </div>
                         <div id="recommendation-slider" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2 snap-x min-h-[120px] horizontal-slider" style="scroll-behavior: auto;">
-                            <div class="w-full text-center text-gray-400 text-xs py-8">
-                                <i class="fas fa-spinner fa-spin"></i> Memuat...
+                            <div class="w-full text-center text-gray-400 text-xs py-8 animate-pulse flex flex-col justify-center items-center h-full">
+                                <span>Memuat rekomendasi...</span>
                             </div>
                         </div>
                     </div>
@@ -211,7 +218,7 @@
                     <div>
                         <div class="flex justify-between items-end mb-3 sticky top-[70px] bg-white/95 backdrop-blur-sm z-10 py-2 -mx-5 px-5">
                             <h3 class="font-bold text-gray-800 text-sm">Warung Sekitar</h3>
-                            <button onclick="fetchData()" class="text-orange-600 text-[10px] font-semibold flex items-center gap-1 hover:text-orange-700 active:scale-95 transition">
+                            <button onclick="fetchData(true)" class="text-orange-600 text-[10px] font-semibold flex items-center gap-1 hover:text-orange-700 active:scale-95 transition">
                                 <i class="fas fa-sync-alt" id="refreshIcon"></i> Refresh
                             </button>
                         </div>
@@ -224,6 +231,122 @@
                     
                 </div>
             </main>
+        </div>
+
+        <!-- === HALAMAN DETAIL PRODUK (UPDATED: FIXED STICKY BUTTON) === -->
+        <div id="product-detail-page" class="page-section hidden-page z-50 bg-white flex flex-col h-full">
+            
+            <!-- Tombol Back & Share Floating (Absolute to page) -->
+            <div class="absolute top-0 left-0 right-0 z-[60] p-4 flex justify-between pointer-events-none">
+                <button onclick="handleBack()" class="pointer-events-auto w-10 h-10 bg-white/80 backdrop-blur-md rounded-full text-gray-700 flex items-center justify-center shadow-sm border border-gray-100 active:scale-90 transition">
+                    <i class="fas fa-arrow-left text-sm"></i>
+                </button>
+                 <button class="pointer-events-auto w-10 h-10 bg-white/80 backdrop-blur-md rounded-full text-gray-700 flex items-center justify-center shadow-sm border border-gray-100 active:scale-90 transition">
+                    <i class="fas fa-share-alt text-sm"></i>
+                </button>
+            </div>
+
+            <!-- Scrollable Content Wrapper -->
+            <div class="flex-1 overflow-y-auto scrolling-wrapper w-full relative">
+                <!-- Wrapper agar konten paling bawah tidak tertutup tombol -->
+                <div class="pb-40"> 
+                    <!-- Gambar Produk -->
+                    <div class="relative h-80 bg-gray-100 w-full shrink-0">
+                        <img id="detail-img" src="" class="w-full h-full object-cover" loading="lazy">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                    </div>
+
+                    <!-- Konten Detail -->
+                    <div class="relative z-10 -mt-8 bg-white rounded-t-[2.5rem] p-6 min-h-[50vh]">
+                        <!-- Header Info -->
+                        <div class="mb-6">
+                            <div class="flex justify-between items-start mb-2">
+                                 <h2 id="detail-name" class="text-2xl font-black text-gray-800 leading-tight w-3/4">Nama Makanan</h2>
+                                 <div class="flex flex-col items-end">
+                                     <p id="detail-price" class="text-orange-600 font-black text-xl">Rp 0</p>
+                                     <p id="detail-ori-price" class="text-gray-400 text-xs line-through hidden">Rp 0</p>
+                                 </div>
+                            </div>
+                            
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="flex items-center gap-1 text-yellow-500 bg-yellow-50 px-2 py-1 rounded-lg border border-yellow-100">
+                                    <i class="fas fa-star text-xs"></i> 
+                                    <span id="detail-rating-avg" class="text-xs font-bold text-gray-800">4.8</span>
+                                    <span class="text-[10px] text-gray-500">(<span id="detail-review-count">0</span>)</span>
+                                </div>
+                                <div class="w-[1px] h-4 bg-gray-300"></div>
+                                <div class="flex items-center gap-1 cursor-pointer active:opacity-50" id="detail-vendor-link">
+                                    <i class="fas fa-store text-orange-500 text-xs"></i>
+                                    <span id="detail-vendor" class="text-xs font-bold text-gray-600 underline">Nama Warung</span>
+                                </div>
+                            </div>
+
+                            <p id="detail-desc" class="text-sm text-gray-600 leading-relaxed">Deskripsi produk...</p>
+                        </div>
+
+                        <div class="h-2 bg-gray-50 -mx-6 mb-6"></div>
+
+                        <!-- Pilihan Varian (Jika Ada) -->
+                        <div id="detail-variant-section" class="mb-6 hidden">
+                            <h3 class="font-bold text-gray-800 text-sm mb-3">Pilih Varian</h3>
+                            <div id="detail-variant-options" class="space-y-2"></div>
+                        </div>
+
+                        <!-- Bagian Ulasan (Reviews) -->
+                        <div class="mb-10">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-bold text-gray-800 text-lg">Ulasan Pembeli</h3>
+                            </div>
+
+                            <div id="detail-reviews-list" class="space-y-4">
+                                <div class="text-center text-gray-400 py-4 text-xs">Belum ada ulasan. Jadilah yang pertama!</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sticky Footer Action (Absolute to container, outside scroll) -->
+            <div class="absolute bottom-[90px] left-4 right-4 bg-white/95 backdrop-blur-sm border border-gray-100 p-4 rounded-2xl z-[60] flex items-center gap-3 shadow-[0_10px_40px_rgba(0,0,0,0.15)] max-w-md mx-auto ring-1 ring-black/5">
+                 <div class="flex items-center gap-3 border border-gray-200 rounded-xl px-3 py-2.5">
+                    <button onclick="adjustDetailQty(-1)" class="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-orange-600 font-bold active:scale-90 transition">-</button>
+                    <span id="detail-qty" class="text-sm font-bold text-gray-800 w-4 text-center">1</span>
+                    <button onclick="adjustDetailQty(1)" class="w-6 h-6 flex items-center justify-center text-green-600 font-bold active:scale-90 transition">+</button>
+                </div>
+                <button onclick="addToCartFromDetail()" class="flex-1 bg-orange-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-orange-200 active:scale-[0.98] transition flex items-center justify-center gap-2 text-sm">
+                    <i class="fas fa-shopping-basket"></i> Tambah Pesanan
+                </button>
+            </div>
+        </div>
+
+        <!-- FORM ULASAN (SHEET) -->
+        <div id="write-review-modal" class="absolute inset-0 z-[100] hidden">
+            <div class="absolute inset-0 bg-black/50" onclick="closeReviewForm()"></div>
+            <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] p-6 min-h-[50%] flex flex-col transition-transform duration-300 transform translate-y-full" id="write-review-content">
+                <div class="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-6 cursor-grab" onclick="closeReviewForm()"></div>
+                
+                <h3 id="review-modal-title" class="font-bold text-xl text-gray-800 mb-2 text-center">Bagaimana makanannya?</h3>
+                <p id="review-item-name" class="text-center text-gray-500 text-xs mb-6">Nama Makanan</p>
+                
+                <div class="flex justify-center gap-2 mb-6">
+                    <i class="fas fa-star text-3xl text-gray-300 cursor-pointer hover:text-yellow-400 transition review-star" onclick="setRating(1)"></i>
+                    <i class="fas fa-star text-3xl text-gray-300 cursor-pointer hover:text-yellow-400 transition review-star" onclick="setRating(2)"></i>
+                    <i class="fas fa-star text-3xl text-gray-300 cursor-pointer hover:text-yellow-400 transition review-star" onclick="setRating(3)"></i>
+                    <i class="fas fa-star text-3xl text-gray-300 cursor-pointer hover:text-yellow-400 transition review-star" onclick="setRating(4)"></i>
+                    <i class="fas fa-star text-3xl text-gray-300 cursor-pointer hover:text-yellow-400 transition review-star" onclick="setRating(5)"></i>
+                </div>
+                <input type="hidden" id="review-rating-value" value="0">
+                <input type="hidden" id="review-item-id" value="">
+
+                <div class="mb-4">
+                    <label class="block text-xs font-bold text-gray-500 mb-2">Ceritakan pengalamanmu</label>
+                    <textarea id="review-text" rows="4" class="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 text-sm focus:outline-none focus:border-orange-500 resize-none font-medium" placeholder="Rasanya enak, porsi banyak..."></textarea>
+                </div>
+
+                <button onclick="submitReview()" class="w-full bg-orange-600 text-white font-bold py-3.5 rounded-2xl shadow-lg mt-auto active:scale-[0.98] transition">
+                    <span id="submit-review-btn-text">Kirim Ulasan</span>
+                </button>
+            </div>
         </div>
 
         <!-- === HALAMAN PENCARIAN === -->
@@ -315,7 +438,7 @@
                 </div>
             </div>
             <div class="flex-1 overflow-y-auto p-4 scrolling-wrapper optimized-list" id="order-history-container">
-                 <!-- Content akan diisi JS -->
+                 <div class="text-center text-gray-400 mt-10 text-xs">Belum ada pesanan. Pesan dulu yuk!</div>
             </div>
         </div>
 
@@ -666,48 +789,6 @@
             </div>
         </div>
 
-        <!-- VARIANT MODAL (LARGE IMAGE FIX) -->
-        <div id="variant-modal" class="absolute inset-0 z-[80] hidden flex items-center justify-center bg-black/60 p-4 transition-opacity duration-200">
-            <div class="bg-white rounded-[2rem] w-full max-w-sm overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
-                <!-- Gambar Besar Penuh -->
-                <div class="relative h-72 shrink-0 bg-gray-200">
-                    <img id="variant-modal-img" src="" class="w-full h-full object-cover transition-opacity duration-300" loading="lazy" decoding="async">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                    <button onclick="closeVariantModal()" class="absolute top-4 right-4 w-9 h-9 bg-black/30 rounded-full flex items-center justify-center text-white hover:bg-black/50 transition">
-                        <i class="fas fa-times"></i>
-                    </button>
-                    <div class="absolute bottom-4 left-4 right-4">
-                        <h3 id="variant-modal-title" class="font-bold text-xl text-white leading-tight shadow-black drop-shadow-md">Nama Produk</h3>
-                        <p id="variant-modal-vendor" class="text-xs text-gray-200 mt-1">Nama Toko</p>
-                    </div>
-                </div>
-                
-                <!-- Content Scrollable -->
-                <div class="p-5 overflow-y-auto flex-1">
-                    <div class="flex justify-between items-center mb-4">
-                        <p id="variant-modal-price" class="text-orange-600 font-black text-2xl">Rp 0</p>
-                        <div class="flex items-center gap-1 text-yellow-500 text-xs font-bold">
-                            <i class="fas fa-star"></i> <span>4.8</span>
-                        </div>
-                    </div>
-                    
-                    <p id="variant-modal-desc" class="text-xs text-gray-600 leading-relaxed mb-5">Deskripsi produk akan muncul di sini.</p>
-
-                    <div id="variant-options-wrapper" class="mb-6 hidden">
-                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Pilih Varian</p>
-                        <div id="variant-options-container" class="space-y-2"></div>
-                    </div>
-                </div>
-
-                <!-- Footer Action -->
-                <div class="p-4 border-t border-gray-100 bg-gray-50">
-                    <button id="btn-add-variant" onclick="confirmVariantAdd()" class="w-full bg-orange-600 text-white font-bold py-3.5 rounded-xl shadow-lg active:scale-[0.98] transition flex items-center justify-center gap-2">
-                        <span>Tambah Pesanan</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
         <!-- BOTTOM NAV -->
         <nav class="bg-white border-t border-gray-100 flex justify-around items-center px-2 py-3 pb-6 shrink-0 z-[60] absolute bottom-0 left-0 right-0 w-full rounded-t-[2rem] shadow-[0_-5px_15px_rgba(0,0,0,0.03)]" style="contain: layout size;">
             <button onclick="navTo('home-page')" class="nav-item active flex flex-col items-center gap-1 text-gray-400 w-16 active:scale-90 transition" id="nav-home">
@@ -740,6 +821,9 @@
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbw65jWYm1cmPsXPM22Hsi9LH0FrY2AiIPNHE-16uvhEaVsx-KrgZ8KWw0K0cpAVA5Sj/exec"; 
         
+        // --- CACHE CONSTANTS ---
+        const CACHE_DURATION = 30 * 60 * 1000; // 30 Menit (dalam milidetik)
+        
         let map, marker;
         let selectedLat, selectedLng;
         let cart = [];
@@ -750,6 +834,11 @@
         let mapLocationMode = 'header';
         let favorites = new Set(JSON.parse(localStorage.getItem('pg_favorites')) || []);
         
+        // --- REVIEW SYSTEM ---
+        let productReviews = JSON.parse(localStorage.getItem('pg_reviews')) || {}; 
+        let currentDetailItem = null;
+        let currentDetailQty = 1;
+
         let userProfile = {
             name: "User ProjekGo",
             phone: "+62 812-3456-7890",
@@ -785,7 +874,6 @@
             }
             
             const lowerQ = query.toLowerCase();
-            // FILTER: Hanya cari produk di wilayah aktif
             const applicableProducts = getAppplicableProducts(); 
             const results = applicableProducts.filter(p => 
                 p.Name.toLowerCase().includes(lowerQ) || 
@@ -802,13 +890,9 @@
         // --- HELPER UNTUK GAMBAR GOOGLE DRIVE ---
         function convertDriveImage(url) {
             if (!url) return 'https://placehold.co/200?text=No+Img';
-            
-            // Cek apakah ini link Google Drive (biasanya dari upload form)
             if (url.includes('drive.google.com') || url.includes('docs.google.com')) {
-                // Ekstrak ID file menggunakan Regex
                 const idMatch = url.match(/[-\w]{25,}/);
                 if (idMatch) {
-                    // Gunakan format lh3.googleusercontent.com yang lebih cepat dan stabil
                     return `https://lh3.googleusercontent.com/d/${idMatch[0]}`;
                 }
             }
@@ -816,7 +900,7 @@
         }
 
         window.addEventListener('load', () => {
-            fetchData();
+            fetchData(); // Sekarang menggunakan cache
             if(!userRegionPref) {
                 setTimeout(() => {
                     document.getElementById('region-choice-modal').classList.remove('hidden');
@@ -834,8 +918,6 @@
             localStorage.setItem('pg_region_pref', userRegionPref);
             document.getElementById('header-address-text').innerText = userRegionPref;
             document.getElementById('region-choice-modal').classList.add('hidden');
-            
-            // LOGIC BARU: REFRESH TAMPILAN SESUAI WILAYAH
             refreshDashboard();
         }
 
@@ -844,44 +926,91 @@
         }
         
         function refreshDashboard() {
-            // Re-render vendor list dan product list dengan filter baru
             if(vendorsData.length > 0) renderVendorList(vendorsData);
             if(productsData.length > 0) renderProductLists();
         }
 
-        async function fetchData() {
+        // --- OPTIMASI FETCH DATA DENGAN CACHE & RETRY ---
+        async function fetchData(forceRefresh = false) {
             const refreshBtn = document.getElementById('refreshIcon');
             if(refreshBtn) refreshBtn.classList.add('fa-spin');
 
+            // 1. CEK CACHE LOCALSTORAGE
+            const now = Date.now();
+            const cachedCats = JSON.parse(localStorage.getItem('pg_cache_cats'));
+            const cachedProds = JSON.parse(localStorage.getItem('pg_cache_prods'));
+            const cachedVends = JSON.parse(localStorage.getItem('pg_cache_vends'));
+            
+            let isCacheValid = cachedCats && cachedProds && cachedVends && 
+                               (now - cachedCats.timestamp < CACHE_DURATION);
+
+            // Jika cache ada & valid & tidak dipaksa refresh, tampilkan langsung
+            if (isCacheValid && !forceRefresh) {
+                console.log("Using Cached Data");
+                renderCategories(cachedCats.data);
+                productsData = cachedProds.data;
+                vendorsData = cachedVends.data;
+                renderProductLists();
+                renderVendorList(vendorsData);
+                if(refreshBtn) refreshBtn.classList.remove('fa-spin');
+                
+                // Opsional: Tetap fetch di background untuk update diam-diam (Stale-while-revalidate)
+                fetchFromNetwork(false); 
+                return;
+            }
+
+            // Jika tidak ada cache atau force refresh, ambil dari jaringan
+            await fetchFromNetwork(true);
+            if(refreshBtn) refreshBtn.classList.remove('fa-spin');
+        }
+
+        async function fetchFromNetwork(renderImmediately) {
             try {
-                // --- KEMBALI KE LOGIKA AWAL: Ambil Kategori dari Sheet Categories ---
-                const catRes = await fetch(`${API_URL}?action=getCategories`);
+                // Timeout logic for safer network requests
+                const timeout = (ms, promise) => {
+                    return new Promise((resolve, reject) => {
+                        setTimeout(() => reject(new Error("Timeout")), ms);
+                        promise.then(resolve, reject);
+                    });
+                };
+
+                // Fetch Categories
+                const catRes = await timeout(10000, fetch(`${API_URL}?action=getCategories`));
                 const catJson = await catRes.json();
                 if(catJson.status === 'success') {
-                    renderCategories(catJson.data);
+                    localStorage.setItem('pg_cache_cats', JSON.stringify({timestamp: Date.now(), data: catJson.data}));
+                    if(renderImmediately) renderCategories(catJson.data);
                 }
 
-                const prodRes = await fetch(`${API_URL}?action=getProducts`);
+                // Fetch Products
+                const prodRes = await timeout(10000, fetch(`${API_URL}?action=getProducts`));
                 const prodJson = await prodRes.json();
                 if(prodJson.status === 'success') {
                     productsData = prodJson.data; 
-                    renderProductLists();
+                    localStorage.setItem('pg_cache_prods', JSON.stringify({timestamp: Date.now(), data: productsData}));
+                    if(renderImmediately) renderProductLists();
                 }
 
-                const vendRes = await fetch(`${API_URL}?action=getVendors`);
+                // Fetch Vendors
+                const vendRes = await timeout(10000, fetch(`${API_URL}?action=getVendors`));
                 const vendJson = await vendRes.json();
                 if(vendJson.status === 'success') {
                     vendorsData = vendJson.data;
-                    renderVendorList(vendorsData);
+                    localStorage.setItem('pg_cache_vends', JSON.stringify({timestamp: Date.now(), data: vendorsData}));
+                    if(renderImmediately) renderVendorList(vendorsData);
                 }
 
             } catch (error) {
                 console.error("Gagal memuat data:", error);
-            } finally {
-                if(refreshBtn) refreshBtn.classList.remove('fa-spin');
+                // Trigger fallback rendering jika gagal fetch (misal load kosong agar skeleton hilang)
+                if(renderImmediately) {
+                    renderProductLists(); 
+                    renderVendorList(vendorsData || []);
+                }
             }
         }
 
+        // --- MAPS FUNCTIONS (SAMA SEPERTI SEBELUMNYA) ---
         function openLocationModal(mode = 'header') {
             mapLocationMode = mode;
             const modal = document.getElementById('location-modal');
@@ -959,18 +1088,12 @@
             const addrText = document.getElementById('selected-address').innerText;
             if (mapLocationMode === 'header') {
                 document.getElementById('header-address-text').innerText = addrText;
-            } else if (mapLocationMode === 'checkout') {
-                document.getElementById('checkout-address-text').innerText = addrText;
-                document.getElementById('checkout-lat').value = selectedLat;
-                document.getElementById('checkout-lng').value = selectedLng;
             }
             closeLocationModal();
         }
 
         function renderCategories(data) {
             const container = document.getElementById('categories-container');
-            
-            // Mapping Icon Manual untuk kategori spesifik
             const iconMap = {
                 'Sarapan': 'https://img.icons8.com/color/48/breakfast.png',
                 'per Nasi an': 'https://img.icons8.com/color/48/rice-bowl.png',
@@ -982,18 +1105,12 @@
             };
 
             container.innerHTML = data.map(cat => {
-                // Fallback icon jika di sheet kosong, cek mapping, lalu cek default
                 let iconSrc = cat.Icon_Image_URL;
                 if (!iconSrc || iconSrc.trim() === '') {
-                    // Coba cari match di iconMap (case insensitive dikit)
                     const key = Object.keys(iconMap).find(k => k.toLowerCase() === cat.Name.toLowerCase());
                     iconSrc = key ? iconMap[key] : 'https://img.icons8.com/color/48/food.png';
                 }
-
-                // PENTING: Gunakan escape character untuk cat.Name di dalam onclick
-                // Agar nama kategori dengan tanda kutip (misal "Jum'at Berkah") tidak error
                 const safeName = cat.Name.replace(/'/g, "\\'");
-
                 return `
                 <div onclick="openCategory('${safeName}', '${safeName}')" class="flex flex-col items-center gap-1 cursor-pointer active:scale-95 transition">
                     <div class="w-14 h-14 flex items-center justify-center bg-orange-50 rounded-2xl border border-orange-100 shadow-sm">
@@ -1004,20 +1121,15 @@
             `}).join('');
         }
 
-        // --- HELPER UNTUK FILTER PRODUK BERDASARKAN WILAYAH ---
         function getAppplicableProducts() {
             if (!userRegionPref) return productsData;
-            
-            // 1. Cari Vendor yang aktif di wilayah terpilih
             const validVendors = vendorsData.filter(v => {
                 const region = (v.Region || v.City || v.Alamat || v.Address || '').toLowerCase();
                 const pref = userRegionPref.toLowerCase();
                 if (pref.includes('gombong')) return region.includes('gombong');
                 if (pref.includes('kebumen')) return region.includes('kebumen');
                 return true; 
-            }).map(v => v.Vendor_Name); // Ambil nama vendornya saja
-
-            // 2. Filter produk yang Vendor Name-nya ada di list validVendors
+            }).map(v => v.Vendor_Name);
             return productsData.filter(p => validVendors.includes(p.Vendor_Name));
         }
 
@@ -1025,22 +1137,35 @@
             const exclusiveContainer = document.getElementById('exclusive-slider');
             const recContainer = document.getElementById('recommendation-slider');
             
-            // Gunakan helper filter
-            const applicableProducts = getAppplicableProducts();
+            // Fallback empty UI yang bisa di klik retry
+            const emptyUI = (msg) => `
+                <div class="w-full text-center py-4 flex flex-col items-center justify-center h-full">
+                    <p class="text-xs text-gray-400 mb-2">${msg}</p>
+                    <button onclick="fetchData(true)" class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-[10px] font-bold py-1 px-3 rounded-full transition">
+                        <i class="fas fa-sync-alt mr-1"></i> Coba Lagi
+                    </button>
+                </div>`;
 
+            if (!productsData || productsData.length === 0) {
+                exclusiveContainer.innerHTML = emptyUI("Gagal memuat data / Kosong.");
+                recContainer.innerHTML = emptyUI("Gagal memuat data / Kosong.");
+                return;
+            }
+
+            const applicableProducts = getAppplicableProducts();
             const exclusive = applicableProducts.filter(p => String(p.Is_Exclusive || p.Exclusive || 'false').toLowerCase() === 'true');
             const normal = applicableProducts; 
 
             if(exclusive.length > 0) {
                 exclusiveContainer.innerHTML = exclusive.map(p => createProductCard(p, 'horizontal')).join('');
             } else {
-                exclusiveContainer.innerHTML = '<div class="text-xs text-gray-400 w-full text-center py-4">Belum ada promo di wilayah ini.</div>';
+                exclusiveContainer.innerHTML = '<div class="text-xs text-gray-400 w-full text-center py-4 flex flex-col justify-center h-full">Belum ada promo di wilayah ini.</div>';
             }
 
             if(normal.length > 0) {
                 recContainer.innerHTML = normal.slice(0, 5).map(p => createProductCard(p, 'vertical')).join('');
             } else {
-                recContainer.innerHTML = '<div class="text-xs text-gray-400 w-full text-center py-4">Belum ada data di wilayah ini.</div>';
+                recContainer.innerHTML = '<div class="text-xs text-gray-400 w-full text-center py-4 flex flex-col justify-center h-full">Belum ada data di wilayah ini.</div>';
             }
         }
 
@@ -1057,26 +1182,21 @@
             const originalPriceVal = parseFloat(item.Original_Price);
             const price = new Intl.NumberFormat('id-ID').format(priceVal);
             const oriPrice = new Intl.NumberFormat('id-ID').format(originalPriceVal);
-            
-            // GUNAKAN HELPER UNTUK GAMBAR
             let rawImgUrl = item.Image_URL && item.Image_URL.trim() !== '' ? item.Image_URL : 'https://placehold.co/200?text=No+Img';
             const imgUrl = convertDriveImage(rawImgUrl);
-            
             const availability = item.Availability ? String(item.Availability) : '';
             const isHabis = availability.trim() === 'Habis';
-            const clickAction = isHabis ? "" : `onclick='openProductModal(${JSON.stringify(item)})'`;
+            
+            // Klik membuka Product Detail Page
+            const clickAction = isHabis ? "" : `onclick='openProductDetail(${JSON.stringify(item)})'`;
+            
             const opacityClass = isHabis ? "opacity-60 grayscale cursor-not-allowed" : "cursor-pointer active:scale-[0.98]";
             const overlay = isHabis ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center text-xs text-white font-bold rounded-xl z-20">HABIS</div>' : '';
             const isHemat = originalPriceVal > priceVal;
             const hematAmount = isHemat ? (originalPriceVal - priceVal) : 0;
             const hematLabel = isHemat ? `<div class="absolute top-2 left-2 bg-red-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-md z-10 shadow-sm border border-white">Hemat Rp${new Intl.NumberFormat('id-ID').format(hematAmount)}</div>` : '';
-            
-            const priorityBadge = `<span class="bg-blue-50 text-blue-600 text-[8px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 border border-blue-100 ml-auto whitespace-nowrap"><i class="fas fa-check-circle text-[7px]"></i> Prioritas</span>`;
-
             const isFav = favorites.has(String(item.ID));
             const favIcon = isFav ? '<i class="fas fa-heart text-red-500 text-xs"></i>' : '<i class="far fa-heart text-gray-400 text-xs"></i>';
-            
-            // UPDATE POSISI FAVORIT: Bottom-Right
             const favButton = `
                 <button onclick="toggleFavorite(event, '${item.ID}')" class="absolute bottom-2 right-2 w-7 h-7 bg-white/90 rounded-full flex items-center justify-center shadow-sm z-20 active:scale-90 transition fav-btn-${item.ID}">
                     ${favIcon}
@@ -1117,13 +1237,10 @@
                         ${!isHabis ? favButton : ''}
                         ${!isHabis ? `<div class="absolute bottom-2 left-2 bg-white/90 px-1.5 rounded text-[9px] font-bold shadow-sm z-10"><i class="fas fa-star text-yellow-500 text-[8px]"></i> ${item.Rating || '4.5'}</div>` : ''}
                     </div>
-                    
                     <div class="flex items-center gap-1 mb-1 w-full">
                         <i class="fas fa-store text-orange-500 text-[9px]"></i>
                         <span class="text-[9px] text-gray-600 font-bold truncate max-w-[70px]">${item.Vendor_Name}</span>
-                        ${priorityBadge}
                     </div>
-
                     <h4 class="font-bold text-gray-800 text-xs line-clamp-2 mb-0.5 h-8">${item.Name}</h4>
                     <p class="text-[9px] text-gray-500 line-clamp-1 mb-2 h-4">${item.Description || ''}</p>
                     <div class="mt-auto flex justify-between items-end">
@@ -1139,21 +1256,14 @@
 
         function renderVendorList(vendors) {
             const container = document.getElementById('vendor-list');
-            
-            // --- LOGIC FILTER WILAYAH ---
-            if (!userRegionPref) userRegionPref = 'Gombong'; // Default
+            if (!userRegionPref) userRegionPref = 'Gombong';
             
             const filteredVendors = vendors.filter(v => {
-                // Cek apakah ada kolom Region/City, atau fallback ke pencarian string di Alamat
                 const region = (v.Region || v.City || v.Alamat || v.Address || '').toLowerCase();
                 const pref = userRegionPref.toLowerCase();
-                
-                if (pref.includes('gombong')) {
-                    return region.includes('gombong');
-                } else if (pref.includes('kebumen')) {
-                    return region.includes('kebumen');
-                }
-                return true; // Fallback jika tidak ada pref
+                if (pref.includes('gombong')) { return region.includes('gombong'); } 
+                else if (pref.includes('kebumen')) { return region.includes('kebumen'); }
+                return true;
             });
 
             if(!filteredVendors || filteredVendors.length === 0) {
@@ -1179,24 +1289,16 @@
                             <h4 class="font-bold text-gray-800 text-sm truncate pr-2">${v.Vendor_Name}</h4>
                             <span class="text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${v.Status === 'Buka' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-500'}">${v.Status}</span>
                         </div>
-                        
                         <div class="flex items-center gap-1 mb-2">
                              <span class="bg-blue-50 text-blue-600 text-[9px] font-bold px-2 py-0.5 rounded-full border border-blue-100 flex items-center gap-1"><i class="fas fa-shield-alt text-[8px]"></i> Super Partner</span>
                         </div>
-
                         <p class="text-[10px] text-gray-500 line-clamp-1 mb-2">${v.Type || 'Aneka Makanan'} • Indonesia</p>
-                        
                         <div class="flex items-center gap-3 border-t border-gray-50 pt-2 mt-auto">
                             <div class="flex items-center gap-1">
                                 <i class="fas fa-star text-yellow-400 text-[10px]"></i>
                                 <span class="text-[10px] font-bold text-gray-700">${v.Rating || '4.8'}</span>
                             </div>
                             <div class="w-[1px] h-3 bg-gray-200"></div>
-                            <div class="flex items-center gap-1">
-                                <i class="fas fa-map-marker-alt text-gray-400 text-[10px]"></i>
-                                <span class="text-[10px] text-gray-500 font-medium">${distance} km</span>
-                            </div>
-                             <div class="w-[1px] h-3 bg-gray-200"></div>
                             <div class="flex items-center gap-1">
                                 <i class="fas fa-clock text-gray-400 text-[10px]"></i>
                                 <span class="text-[10px] text-gray-500 font-medium">${time} mnt</span>
@@ -1213,7 +1315,6 @@
             document.getElementById('vendor-banner-img').src = convertDriveImage(vendor.Image_URL);
             document.getElementById('vendor-name-title').innerText = vendor.Vendor_Name;
             
-            // Set status text and styling
             const statusEl = document.getElementById('vendor-info-status');
             statusEl.innerText = vendor.Status || 'Buka';
             if(vendor.Status === 'Tutup') {
@@ -1221,7 +1322,6 @@
             } else {
                 statusEl.className = "bg-green-500/20 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] font-medium border border-green-500/10 text-green-100";
             }
-
             document.getElementById('vendor-info-type').innerText = vendor.Type || 'Umum';
             document.getElementById('vendor-rating-badge').innerText = vendor.Rating || '4.5';
             
@@ -1230,67 +1330,214 @@
             renderProductGrid(vendorProducts, container);
             
             navTo('vendor-page');
-            
-            // Scroll to top
             const page = document.getElementById('vendor-page');
             if(page) page.scrollTop = 0;
         }
 
-        function openProductModal(item) {
-            const availability = item.Availability ? String(item.Availability) : '';
-            if (availability.trim() === 'Habis') return; 
+        function openProductDetail(item) {
             if (typeof item === 'string') item = JSON.parse(item);
-            currentItem = item;
-            document.getElementById('variant-modal-img').src = convertDriveImage(item.Image_URL);
-            document.getElementById('variant-modal-title').innerText = item.Name;
-            document.getElementById('variant-modal-vendor').innerText = item.Vendor_Name;
-            document.getElementById('variant-modal-price').innerText = "Rp " + new Intl.NumberFormat('id-ID').format(item.Price);
-            document.getElementById('variant-modal-desc').innerText = item.Description || "Tidak ada deskripsi.";
-            const wrapper = document.getElementById('variant-options-wrapper');
-            const container = document.getElementById('variant-options-container');
+            currentDetailItem = item;
+            currentDetailQty = 1;
+
+            // Populate Data
+            document.getElementById('detail-img').src = convertDriveImage(item.Image_URL);
+            document.getElementById('detail-name').innerText = item.Name;
+            document.getElementById('detail-price').innerText = "Rp " + new Intl.NumberFormat('id-ID').format(item.Price);
+            
+            if (item.Original_Price > item.Price) {
+                document.getElementById('detail-ori-price').innerText = "Rp " + new Intl.NumberFormat('id-ID').format(item.Original_Price);
+                document.getElementById('detail-ori-price').classList.remove('hidden');
+            } else {
+                document.getElementById('detail-ori-price').classList.add('hidden');
+            }
+
+            document.getElementById('detail-desc').innerText = item.Description || "Tidak ada deskripsi.";
+            document.getElementById('detail-vendor').innerText = item.Vendor_Name;
+            document.getElementById('detail-qty').innerText = "1";
+            
+            const vData = vendorsData.find(v => v.Vendor_Name === item.Vendor_Name);
+            const vLink = document.getElementById('detail-vendor-link');
+            if(vData) {
+                vLink.onclick = () => openVendor(vData.ID);
+            }
+
+            const variantSection = document.getElementById('detail-variant-section');
+            const variantContainer = document.getElementById('detail-variant-options');
             if (item.Variants && item.Variants.trim() !== "") {
-                wrapper.classList.remove('hidden');
+                variantSection.classList.remove('hidden');
                 const vars = item.Variants.split(',').map(v => v.trim());
-                container.innerHTML = vars.map((v, i) => `
-                    <label class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-200 cursor-pointer active:bg-orange-50">
+                variantContainer.innerHTML = vars.map((v, i) => `
+                    <label class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-200 cursor-pointer active:bg-orange-50 transition">
                         <span class="text-sm font-medium text-gray-700">${v}</span>
-                        <input type="radio" name="prod_var" value="${v}" class="accent-orange-600 w-4 h-4" ${i===0 ? 'checked' : ''}>
+                        <input type="radio" name="detail_prod_var" value="${v}" class="accent-orange-600 w-4 h-4" ${i===0 ? 'checked' : ''}>
                     </label>
                 `).join('');
-            } else { wrapper.classList.add('hidden'); container.innerHTML = ''; }
-            const modal = document.getElementById('variant-modal');
-            modal.classList.remove('hidden');
-            setTimeout(() => modal.classList.remove('opacity-0'), 10);
+            } else {
+                variantSection.classList.add('hidden');
+                variantContainer.innerHTML = '';
+            }
+
+            renderReviews(item.ID);
+            navTo('product-detail-page');
         }
 
-        function closeVariantModal() {
-            const modal = document.getElementById('variant-modal');
-            modal.classList.add('opacity-0');
-            setTimeout(() => modal.classList.add('hidden'), 200);
-            currentItem = null;
+        function adjustDetailQty(delta) {
+            let newQty = currentDetailQty + delta;
+            if(newQty < 1) newQty = 1;
+            currentDetailQty = newQty;
+            document.getElementById('detail-qty').innerText = newQty;
         }
 
-        function confirmVariantAdd() {
-            if(!currentItem) return;
+        function addToCartFromDetail() {
+            if(!currentDetailItem) return;
+            
             let selectedVariant = null;
-            const radios = document.getElementsByName('prod_var');
+            const radios = document.getElementsByName('detail_prod_var');
             if (radios.length > 0) {
                 for (const r of radios) { if (r.checked) { selectedVariant = r.value; break; } }
             }
-            addToCart(currentItem, selectedVariant);
-            closeVariantModal();
+
+            const item = currentDetailItem;
+            const cartId = item.ID + (selectedVariant ? '-' + selectedVariant : '');
+            const existing = cart.find(c => c.cartId === cartId);
+            if (existing) { existing.qty += currentDetailQty; } 
+            else { cart.push({ ...item, cartId: cartId, variant: selectedVariant || '', qty: currentDetailQty }); }
+            
+            updateCartBadge();
+            
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white text-xs font-bold py-3 px-6 rounded-full shadow-2xl z-[100] animate-bounce flex items-center gap-2';
+            toast.innerHTML = `<i class="fas fa-check-circle"></i> Berhasil masuk keranjang!`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+
+            handleBack(); 
         }
 
-        function addToCart(item, variant) {
-            const cartId = item.ID + (variant ? '-' + variant : '');
-            const existing = cart.find(c => c.cartId === cartId);
-            if (existing) { existing.qty++; } 
-            else { cart.push({ ...item, cartId: cartId, variant: variant || '', qty: 1 }); }
-            updateCartBadge();
-            const btn = document.getElementById('btn-add-variant');
-            btn.innerHTML = '<i class="fas fa-check"></i> Masuk Keranjang';
-            btn.classList.add('bg-green-600');
-            setTimeout(() => { btn.innerHTML = '<span>Tambah Pesanan</span>'; btn.classList.remove('bg-green-600'); }, 1000);
+        // --- REVIEW LOGIC (DI PERBARUI) ---
+        function renderReviews(itemId) {
+            const list = document.getElementById('detail-reviews-list');
+            const reviews = productReviews[itemId] || [];
+            
+            let avg = 4.8; 
+            if(reviews.length > 0) {
+                const sum = reviews.reduce((acc, r) => acc + parseInt(r.rating), 0);
+                avg = (sum / reviews.length).toFixed(1);
+            }
+            document.getElementById('detail-rating-avg').innerText = avg;
+            document.getElementById('detail-review-count').innerText = reviews.length;
+
+            if(reviews.length === 0) {
+                list.innerHTML = `<div class="bg-gray-50 rounded-xl p-6 text-center text-gray-400 border border-gray-100 border-dashed"><i class="far fa-comment-dots text-3xl mb-2"></i><p class="text-xs">Belum ada ulasan. Jadilah yang pertama!</p></div>`;
+                return;
+            }
+
+            list.innerHTML = reviews.map(r => `
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2">
+                             <div class="w-6 h-6 rounded-full bg-gray-200 overflow-hidden"><img src="https://ui-avatars.com/api/?name=${encodeURIComponent(r.user)}&background=random" class="w-full h-full"></div>
+                             <span class="text-xs font-bold text-gray-700">${r.user}</span>
+                        </div>
+                        <span class="text-[10px] text-gray-400">${r.date}</span>
+                    </div>
+                    <div class="flex text-yellow-400 text-[10px] mb-1">
+                        ${[...Array(5)].map((_, i) => i < r.rating ? '<i class="fas fa-star"></i>' : '<i class="far fa-star text-gray-300"></i>').join('')}
+                    </div>
+                    <p class="text-xs text-gray-600 leading-snug">${r.text}</p>
+                </div>
+            `).join('');
+        }
+
+        // FUNGSI MEMBUKA FORM ULASAN DARI ORDER HISTORY
+        function openReviewFormFromHistory(itemId, itemName) {
+            document.getElementById('review-item-name').innerText = itemName;
+            document.getElementById('review-item-id').value = itemId;
+            
+            // Cek apakah user sudah pernah review item ini
+            const existingReviews = productReviews[itemId] || [];
+            const myReview = existingReviews.find(r => r.user === userProfile.name);
+
+            if (myReview) {
+                // Mode Edit
+                document.getElementById('review-text').value = myReview.text;
+                setRating(myReview.rating);
+                document.getElementById('submit-review-btn-text').innerText = "Simpan Perubahan";
+                document.getElementById('review-modal-title').innerText = "Edit Ulasanmu";
+            } else {
+                // Mode Baru
+                document.getElementById('review-text').value = '';
+                setRating(0);
+                document.getElementById('submit-review-btn-text').innerText = "Kirim Ulasan";
+                document.getElementById('review-modal-title').innerText = "Bagaimana makanannya?";
+            }
+
+            document.getElementById('write-review-modal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('write-review-content').classList.remove('translate-y-full'), 10);
+        }
+
+        function closeReviewForm() {
+            document.getElementById('write-review-content').classList.add('translate-y-full');
+            setTimeout(() => document.getElementById('write-review-modal').classList.add('hidden'), 300);
+        }
+
+        function setRating(val) {
+            document.getElementById('review-rating-value').value = val;
+            const stars = document.querySelectorAll('.review-star');
+            stars.forEach((s, i) => {
+                if(i < val) {
+                    s.classList.remove('text-gray-300');
+                    s.classList.add('text-yellow-400');
+                } else {
+                    s.classList.add('text-gray-300');
+                    s.classList.remove('text-yellow-400');
+                }
+            });
+        }
+
+        function submitReview() {
+            const itemId = document.getElementById('review-item-id').value;
+            const rating = document.getElementById('review-rating-value').value;
+            const text = document.getElementById('review-text').value;
+
+            if(!itemId) return; // Safety check
+            if(rating == 0) { alert("Mohon berikan bintang!"); return; }
+            if(!text) { alert("Mohon isi ulasanmu!"); return; }
+
+            // Ambil array review untuk item ini
+            if(!productReviews[itemId]) productReviews[itemId] = [];
+            
+            // Cek apakah ini edit atau baru
+            const existingIndex = productReviews[itemId].findIndex(r => r.user === userProfile.name);
+            
+            const reviewData = {
+                user: userProfile.name,
+                rating: rating,
+                text: text,
+                date: new Date().toLocaleDateString('id-ID')
+            };
+
+            if (existingIndex > -1) {
+                // Update review yang ada
+                productReviews[itemId][existingIndex] = reviewData;
+                alert("Ulasan berhasil diperbarui!");
+            } else {
+                // Tambah review baru di atas
+                productReviews[itemId].unshift(reviewData);
+                
+                // --- LIMITASI JUMLAH REVIEW PER ITEM (AGAR TIDAK MEMBERATKAN) ---
+                if (productReviews[itemId].length > 50) {
+                    productReviews[itemId].pop(); // Hapus review terlama jika lebih dari 50
+                }
+                
+                alert("Terima kasih atas ulasanmu!");
+            }
+
+            localStorage.setItem('pg_reviews', JSON.stringify(productReviews));
+            
+            // Refresh tampilan history agar tombol berubah jadi 'Edit'
+            renderOrderHistory(); 
+            closeReviewForm();
         }
 
         function updateCartBadge() {
@@ -1386,12 +1633,6 @@
                         </div>
                         ${savings > 0 ? `<div class="flex justify-end"><span class="text-[10px] bg-red-50 text-red-600 px-2 py-1 rounded-lg font-bold">Anda lebih hemat ${formatRupiah(savings)}</span></div>` : ''}
                         
-                        <div class="bg-blue-50 p-3 rounded-xl border border-blue-100 mt-2">
-                             <p class="text-[10px] text-blue-800 leading-tight">
-                                <i class="fas fa-info-circle mr-1"></i> Setelah pesanan diantar, minta <b>Kode Poin</b> ke admin/kurir untuk menambah poinmu.
-                             </p>
-                        </div>
-
                         <button onclick="checkoutToWA()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98] mt-2">
                             <i class="fab fa-whatsapp text-xl"></i> Pesan via WhatsApp
                         </button>
@@ -1399,11 +1640,6 @@
                 `;
                 summaryArea.innerHTML = summaryHtml;
             }
-        }
-
-        function openCart() {
-             navTo('cart-page');
-             renderCartPage();
         }
 
         function updateQty(id, delta) {
@@ -1416,29 +1652,35 @@
             }
         }
 
+        // --- CHECKOUT LOGIC UPDATED: WA DULU BARU HAPUS ---
         function checkoutToWA() {
             if(cart.length === 0) return;
-            
-            // MODIFIKASI: Hanya mengambil text note, tidak perlu validasi Lat/Lng lagi
             const noteText = document.getElementById('checkout-note').value.trim();
-            
             if(!noteText) { 
                 alert("Mohon isi alamat lengkap pengantaran!"); 
                 document.getElementById('checkout-note').focus();
                 return; 
             }
-
             const phone = "6281292802623";
             let msg = `Halo Admin, saya mau pesan:\n\n`;
             let grandTotal = 0;
             const grouped = {};
             
+            // Simpan detail item ke history agar bisa direview nanti
+            const orderItemsDetail = cart.map(c => ({
+                id: c.ID,
+                name: c.Name,
+                price: c.Price,
+                qty: c.qty,
+                variant: c.variant || '',
+                image: c.Image_URL
+            }));
+
             cart.forEach(item => {
                 if(!grouped[item.Vendor_Name]) grouped[item.Vendor_Name] = [];
                 grouped[item.Vendor_Name].push(item);
                 grandTotal += (item.Price * item.qty);
             });
-
             for(const [vendor, items] of Object.entries(grouped)) {
                 msg += `*🏪 ${vendor}*\n`;
                 items.forEach(i => {
@@ -1446,42 +1688,39 @@
                 });
                 msg += `\n`;
             }
-
             msg += `💰 *Total Makanan: Rp ${new Intl.NumberFormat('id-ID').format(grandTotal)}*\n`;
-            
-            // MODIFIKASI: Hapus link Maps, gunakan teks alamat manual
             msg += `📍 *Alamat Pengantaran:*\n${noteText}\n\n`;
             msg += `Mohon info ongkirnya kak.`;
 
-            // UPDATE 1: Status pesanan diubah
-            const newOrder = {
-                id: `ORD-${Date.now()}`,
-                date: new Date().toLocaleDateString('id-ID'),
-                total: grandTotal,
-                status: 'Terkirim ke Admin', // Status baru
-                items: cart.length
-            };
-            orderHistory.unshift(newOrder);
-            localStorage.setItem('pg_orders', JSON.stringify(orderHistory));
-            renderOrderHistory();
-
-            cart = [];
-            updateCartBadge();
-            renderCartPage();
-
-            // UPDATE 2: Menggunakan format wa.me dan window.location.href
-            // untuk kompatibilitas mobile yang lebih baik
             const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
             
-            // Mencoba redirect langsung (biasanya lebih aman dari popup blocker)
-            window.location.href = waUrl;
+            // LOGIKA BARU: Buka WA Dulu
+            window.open(waUrl, '_blank');
+
+            // Set Timeout untuk hapus keranjang setelah membuka WA
+            setTimeout(() => {
+                const newOrder = {
+                    id: `ORD-${Date.now()}`,
+                    date: new Date().toLocaleDateString('id-ID'),
+                    total: grandTotal,
+                    status: 'Terkirim ke Admin',
+                    items: cart.length,
+                    itemsDetail: orderItemsDetail 
+                };
+                orderHistory.unshift(newOrder);
+                localStorage.setItem('pg_orders', JSON.stringify(orderHistory));
+                
+                cart = []; // Kosongkan keranjang
+                updateCartBadge();
+                renderCartPage();
+                renderOrderHistory(); // Refresh halaman history
+            }, 1000); // Delay 1 detik
         }
 
         function updatePointsUI() {
             document.getElementById('point-display-count').innerText = userPoints;
             const percentage = Math.min((userPoints / 10) * 100, 100);
             document.getElementById('point-progress-bar').style.width = `${percentage}%`;
-            
             const btn = document.getElementById('btn-redeem-point');
             if(userPoints >= 10) {
                 btn.disabled = false;
@@ -1502,7 +1741,6 @@
             const input = document.getElementById('claim-code-input');
             const code = input.value.trim().toUpperCase();
             if(!code) return;
-
             if(VALID_POINT_CODES.includes(code)) {
                 if(claimedCodes.includes(code)) {
                     alert("Kode ini sudah pernah kamu gunakan!");
@@ -1531,30 +1769,62 @@
             }
         }
         
+        // --- RENDER HISTORY WITH REVIEWS (DIPERBARUI) ---
         function renderOrderHistory() {
             const container = document.getElementById('order-history-container');
-            if(orderHistory.length === 0) return;
+            if(orderHistory.length === 0) {
+                 container.innerHTML = `<div class="text-center text-gray-400 mt-10 text-xs">Belum ada pesanan. Pesan dulu yuk!</div>`;
+                 return;
+            }
+            container.innerHTML = orderHistory.map(o => {
+                let itemsHtml = '';
+                if(o.itemsDetail && o.itemsDetail.length > 0) {
+                    itemsHtml = '<div class="mt-3 space-y-2 border-t border-gray-100 pt-2">';
+                    o.itemsDetail.forEach(item => {
+                        // Cek apakah user sudah mereview item ini
+                        const hasReviewed = (productReviews[item.id] || []).some(r => r.user === userProfile.name);
+                        const btnText = hasReviewed ? "Edit Ulasan" : "Beri Ulasan";
+                        const btnClass = hasReviewed 
+                            ? "bg-gray-100 text-gray-600 border border-gray-300" 
+                            : "bg-orange-50 text-orange-600 border border-orange-200";
 
-            container.innerHTML = orderHistory.map(o => `
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-3 flex justify-between items-center">
-                    <div>
-                        <p class="text-xs text-gray-400 mb-1">${o.date} • ${o.id}</p>
-                        <h4 class="font-bold text-gray-800 text-sm">${o.items} Item Makanan</h4>
-                        <p class="text-orange-600 font-bold text-xs mt-1">Rp ${new Intl.NumberFormat('id-ID').format(o.total)}</p>
+                        itemsHtml += `
+                            <div class="flex justify-between items-center bg-gray-50 p-2 rounded-lg">
+                                <div class="flex items-center gap-2 overflow-hidden">
+                                     <div class="w-8 h-8 bg-white rounded-md shrink-0"><img src="${convertDriveImage(item.image)}" class="w-full h-full object-cover rounded-md"></div>
+                                     <div class="min-w-0">
+                                        <p class="text-xs font-bold text-gray-700 truncate">${item.name}</p>
+                                        <p class="text-[9px] text-gray-500">${item.qty}x</p>
+                                     </div>
+                                </div>
+                                <button onclick="openReviewFormFromHistory('${item.id}', '${item.name.replace(/'/g, "\\'")}')" class="${btnClass} text-[10px] font-bold px-3 py-1.5 rounded-full shadow-sm hover:brightness-95 active:scale-95 transition">
+                                    ${btnText}
+                                </button>
+                            </div>
+                        `;
+                    });
+                    itemsHtml += '</div>';
+                }
+
+                return `
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-3">
+                    <div class="flex justify-between items-center mb-1">
+                         <p class="text-[10px] text-gray-400">${o.date} • ${o.id}</p>
+                         <span class="text-[10px] px-2 py-0.5 rounded bg-yellow-100 text-yellow-700 font-bold">${o.status}</span>
                     </div>
-                    <div>
-                        <span class="text-[10px] px-2 py-1 rounded bg-yellow-100 text-yellow-700 font-bold">${o.status}</span>
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold text-gray-800 text-sm">Total Belanja</h4>
+                        <p class="text-orange-600 font-black text-sm">Rp ${new Intl.NumberFormat('id-ID').format(o.total)}</p>
                     </div>
+                    ${itemsHtml}
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         function openPartnershipModal() { document.getElementById('partnership-modal').classList.remove('hidden'); }
         function closePartnershipModal() { document.getElementById('partnership-modal').classList.add('hidden'); }
         function openSellerRegistration() { closePartnershipModal(); document.getElementById('seller-register-modal').classList.remove('hidden'); setTimeout(() => document.getElementById('seller-register-content').classList.remove('translate-y-full'), 10); }
         function closeSellerRegistration() { document.getElementById('seller-register-content').classList.add('translate-y-full'); setTimeout(() => document.getElementById('seller-register-modal').classList.add('hidden'), 300); }
-        function openRiderRegistration() { closePartnershipModal(); document.getElementById('rider-info-modal').classList.remove('hidden'); }
-        function closeRiderInfo() { document.getElementById('rider-info-modal').classList.add('hidden'); }
         
         function updateProfileUI() { document.getElementById('profile-name-text').innerText = userProfile.name; document.getElementById('profile-phone-text').innerText = userProfile.phone; document.getElementById('profile-avatar-img').src = userProfile.avatar; }
         function openEditProfile() { document.getElementById('edit-name-input').value = userProfile.name; document.getElementById('edit-phone-input').value = userProfile.phone; document.getElementById('edit-profile-modal').classList.remove('hidden'); }
@@ -1603,7 +1873,6 @@
             if(target) {
                 target.classList.remove('hidden-page');
                 target.classList.add('z-30');
-                
                 const scroller = target.querySelector('.scrolling-wrapper');
                 if (scroller) scroller.scrollTop = 0;
             }
@@ -1627,6 +1896,12 @@
         }
         
         function handleBack() {
+            // Logika Back untuk Halaman Detail
+            const detailPage = document.getElementById('product-detail-page');
+            if (!detailPage.classList.contains('hidden-page')) {
+                navTo('home-page');
+                return;
+            }
             navTo('home-page');
         }
 
@@ -1635,9 +1910,7 @@
             const container = document.getElementById('exclusive-content-container');
             container.innerHTML = '<div class="col-span-2 text-center py-10"><i class="fas fa-spinner fa-spin text-orange-500"></i> Memuat...</div>';
             setTimeout(() => {
-                // FILTER: Gunakan produk yang sudah disaring wilayahnya
                 const applicableProducts = getAppplicableProducts();
-                
                 const exclusiveProducts = applicableProducts.filter(p => String(p.Is_Exclusive || p.Exclusive || 'false').toLowerCase() === 'true');
                 if (exclusiveProducts.length === 0) { 
                     container.innerHTML = '<div class="col-span-2 text-center text-gray-400 mt-10">Belum ada menu eksklusif saat ini.</div>'; 
@@ -1652,16 +1925,10 @@
             document.getElementById('cat-page-title').innerText = catName; 
             const container = document.getElementById('category-content-container'); 
             
-            // Show loading state
             container.innerHTML = '<div class="col-span-2 text-center py-10"><i class="fas fa-spinner fa-spin text-orange-500"></i> Memuat...</div>'; 
             
             setTimeout(() => { 
-                console.log("=== DEBUG FILTER KATEGORI ===");
-                console.log("Mencari kategori:", catId);
-                
-                // FILTER: Gunakan produk yang sudah disaring wilayahnya
                 const applicableProducts = getAppplicableProducts();
-
                 const filtered = catId === 'all' ? applicableProducts : applicableProducts.filter(p => {
                     let pCat = '';
                     if (p.Category) pCat = p.Category;
@@ -1686,7 +1953,6 @@
                         </div>`; 
                     return; 
                 } 
-                
                 renderProductGrid(filtered, container); 
             }, 300); 
         }
@@ -1698,17 +1964,15 @@
                 const phone = document.getElementById('reg-seller-phone').value;
                 const bizName = document.getElementById('reg-seller-biz').value;
                 const category = document.getElementById('reg-seller-cat').value;
-                const region = document.getElementById('reg-seller-region').value; // Ambil Region
+                const region = document.getElementById('reg-seller-region').value; 
                 const address = document.getElementById('reg-seller-addr').value;
                 
                 if (!name || !bizName || !region) { alert("Harap isi semua data wajib (termasuk Area Operasional)!"); return; }
-                
-                // Kirim Region ke Spreadsheet (pastikan header di sheet ada kolom Region atau Area)
                 payload.name = name; 
                 payload.phone = phone; 
                 payload.bizName = bizName; 
                 payload.category = category; 
-                payload.region = region; // Kirim region
+                payload.region = region; 
                 payload.address = address;
             }
             const modalId = 'seller-register-modal';
