@@ -137,11 +137,6 @@
         
         <!-- === HALAMAN UTAMA (HOME) === -->
         <div id="home-page" class="page-section z-20 bg-gray-50">
-            <!-- 
-               PERUBAHAN STRUKTUR: 
-               Header dipindah ke dalam <main> agar bisa di-scroll.
-               Search bar dibuat sticky.
-            -->
             <main class="flex-1 overflow-y-auto hide-scrollbar scrolling-wrapper bg-white z-0 relative w-full pb-24">
                 
                 <!-- 1. Header Minimalis (Ikut Scroll) -->
@@ -150,7 +145,7 @@
                         <div class="flex items-center gap-1">
                              <span class="text-orange-600 text-2xl font-black tracking-tighter italic">PROJEK<span class="text-gray-800">GO</span></span>
                         </div>
-                        <div class="flex items-center gap-1 mt-0.5 cursor-pointer active:opacity-70 transition" onclick="openLocationModal('header')">
+                        <div class="flex items-center gap-1 mt-0.5 cursor-pointer active:opacity-70 transition" onclick="openRegionModal()">
                             <p class="text-xs font-bold text-gray-500 max-w-[180px] truncate" id="header-address-text">Pilih Wilayah</p>
                             <i class="fas fa-chevron-down text-[10px] text-orange-500"></i>
                         </div>
@@ -378,26 +373,12 @@
                 <!-- Checkout Form Area (Static part in scroll flow) -->
                 <div id="checkout-form-container" class="border-t border-gray-200 pt-6 hidden pb-24">
                     <div class="mb-4">
-                        <label class="block text-xs font-bold text-gray-700 mb-2">Lokasi Pengantaran</label>
+                        <label class="block text-xs font-bold text-gray-700 mb-2">Alamat Pengantaran</label>
                         <div class="flex flex-col gap-2">
-                             <!-- Tombol Pin Lokasi -->
-                            <div onclick="openLocationModal('checkout')" class="bg-orange-50 border border-orange-200 rounded-xl p-3 flex items-center gap-3 cursor-pointer active:scale-[0.99] transition">
-                                <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 shrink-0">
-                                    <i class="fas fa-map-marked-alt text-sm"></i>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-[10px] font-bold text-orange-600 mb-0.5">Titik Lokasi</p>
-                                    <p id="checkout-address-text" class="text-xs font-medium text-gray-800 line-clamp-2 leading-tight">Klik untuk atur pin lokasi di peta</p>
-                                    <input type="hidden" id="checkout-lat">
-                                    <input type="hidden" id="checkout-lng">
-                                </div>
-                                <i class="fas fa-chevron-right text-orange-300 text-xs"></i>
-                            </div>
-                            
-                            <!-- Detail Alamat -->
+                            <!-- Detail Alamat (Hanya Textarea) -->
                             <div class="relative">
-                                <i class="fas fa-pen absolute left-3 top-3 text-gray-400 text-xs"></i>
-                                <textarea id="checkout-note" rows="2" class="w-full bg-white border border-gray-200 rounded-xl py-2.5 pl-9 pr-4 text-xs focus:outline-none focus:border-orange-500 resize-none font-medium text-gray-700 shadow-sm" placeholder="Detail: Pagar hitam, Lantai 2, Depan Warung..."></textarea>
+                                <i class="fas fa-map-marker-alt absolute left-3 top-3 text-orange-500 text-xs"></i>
+                                <textarea id="checkout-note" rows="3" class="w-full bg-orange-50/50 border border-orange-200 rounded-xl py-2.5 pl-9 pr-4 text-xs focus:outline-none focus:border-orange-500 resize-none font-medium text-gray-700 shadow-sm placeholder-gray-400" placeholder="Ketik alamat lengkap (Jalan, No. Rumah, Patokan)..."></textarea>
                             </div>
                         </div>
                     </div>
@@ -438,30 +419,50 @@
             </div>
         </div>
 
-        <!-- === HALAMAN DETAIL PENJUAL === -->
-        <div id="vendor-page" class="page-section hidden-page z-50 bg-gray-50">
-            <div class="relative h-48 bg-gray-300">
-                <img id="vendor-banner-img" src="" class="w-full h-full object-cover rounded-none" loading="lazy" decoding="async">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-                <button onclick="handleBack()" class="absolute top-4 left-4 w-9 h-9 bg-white/90 rounded-full text-black flex items-center justify-center hover:bg-white transition shadow-sm">
+        <!-- === HALAMAN DETAIL PENJUAL (TERBARU) === -->
+        <div id="vendor-page" class="page-section hidden-page z-50 bg-gray-50 block overflow-y-auto scrolling-wrapper">
+            
+            <!-- Tombol Back Floating (Fixed Header Orange) -->
+            <div class="fixed top-0 left-0 z-[60] p-4">
+                <button onclick="handleBack()" class="w-10 h-10 bg-orange-600 rounded-full text-white flex items-center justify-center shadow-lg hover:bg-orange-700 transition active:scale-90 border-2 border-white/20">
                     <i class="fas fa-arrow-left text-sm"></i>
                 </button>
-                <div class="absolute bottom-4 left-4 text-white w-full pr-4">
+            </div>
+
+            <!-- Banner Image (Scrolls away) -->
+            <div class="relative h-72 bg-gray-300 w-full shrink-0"> 
+                <img id="vendor-banner-img" src="" class="w-full h-full object-cover" loading="lazy" decoding="async">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent"></div>
+                
+                <div class="absolute bottom-10 left-5 text-white w-full pr-5 z-10">
                     <div class="flex justify-between items-end">
                         <div>
-                            <h2 id="vendor-name-title" class="text-xl font-bold leading-tight">Nama Warung</h2>
-                            <p id="vendor-info-subtitle" class="text-[10px] opacity-90 mt-1">Status • Kategori</p>
-                        </div>
-                        <div class="bg-white/90 px-2 py-1 rounded-full flex items-center gap-1 text-black shadow-sm">
-                            <i class="fas fa-star text-yellow-500 text-[10px]"></i>
-                            <span id="vendor-rating-badge" class="text-[10px] font-bold">4.8</span>
+                            <h2 id="vendor-name-title" class="text-3xl font-black leading-none mb-2 shadow-black drop-shadow-md tracking-tight">Nama Warung</h2>
+                            <div class="flex items-center gap-2">
+                                <span class="bg-orange-600/90 backdrop-blur-sm px-2.5 py-0.5 rounded-lg text-[10px] font-bold border border-orange-500/30 text-white shadow-sm" id="vendor-info-status">Buka</span>
+                                <span class="text-xs opacity-90 font-medium text-gray-100 bg-black/20 px-2 py-0.5 rounded-lg backdrop-blur-sm" id="vendor-info-type">Kategori</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="flex-1 overflow-y-auto p-4 -mt-4 bg-gray-50 rounded-t-[1.5rem] relative z-10 hide-scrollbar scrolling-wrapper">
-                <h3 class="font-bold text-gray-800 mb-4 text-sm">Daftar Menu</h3>
-                <div id="vendor-menu-container" class="grid grid-cols-2 gap-3 pb-24 optimized-list"></div>
+            
+            <!-- Content Container -->
+            <div class="relative z-10 -mt-6 bg-gray-50 rounded-t-[2rem] min-h-[calc(100vh-16rem)] p-5 pb-32 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
+                <!-- Rating Badge Floating di perbatasan -->
+                <div class="absolute right-8 -top-6 bg-white px-4 py-2 rounded-2xl shadow-xl flex flex-col items-center justify-center border border-gray-100 w-16 h-16">
+                    <i class="fas fa-star text-yellow-400 text-sm mb-0.5"></i>
+                    <span id="vendor-rating-badge" class="text-sm font-black text-gray-800 leading-none">4.8</span>
+                </div>
+
+                <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6 opacity-60"></div>
+                
+                <div class="flex items-center justify-between mb-5 sticky top-0 bg-gray-50/95 backdrop-blur-sm py-2 z-20">
+                    <h3 class="font-bold text-gray-800 text-lg">Daftar Menu</h3>
+                    <span class="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-lg">Scroll &darr;</span>
+                </div>
+                
+                <div id="vendor-menu-container" class="grid grid-cols-2 gap-3 optimized-list"></div>
             </div>
         </div>
 
@@ -517,7 +518,7 @@
             </div>
         </div>
 
-        <!-- SELLER REGISTRATION SHEET -->
+        <!-- SELLER REGISTRATION SHEET (DENGAN DROPDOWN WILAYAH) -->
         <div id="seller-register-modal" class="absolute inset-0 z-[100] hidden">
             <div class="absolute inset-0 bg-black/50" onclick="closeSellerRegistration()"></div> <!-- Removed backdrop-blur -->
             <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] p-6 min-h-[85%] flex flex-col transition-transform duration-300 transform translate-y-full" id="seller-register-content">
@@ -539,15 +540,28 @@
                         <h4 class="text-sm font-bold text-gray-800 mb-3 border-l-4 border-orange-500 pl-2">Informasi Usaha</h4>
                         <div class="space-y-3">
                             <div><label class="block text-xs font-bold text-gray-500 mb-1">Nama Resto / Warung</label><input type="text" id="reg-seller-biz" class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 font-medium" placeholder="Contoh: Warung Sejahtera"></div>
+                            
+                            <!-- DROPDOWN WILAYAH (BARU) -->
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 mb-1">Area Operasional (Wajib Pilih)</label>
+                                <select id="reg-seller-region" class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 font-medium text-gray-700">
+                                    <option value="" disabled selected>Pilih Wilayah Warung</option>
+                                    <option value="Gombong">Area Gombong</option>
+                                    <option value="Kebumen Kota">Kebumen Kota</option>
+                                </select>
+                            </div>
+
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 mb-1">Kategori Makanan</label>
                                 <select id="reg-seller-cat" class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 font-medium text-gray-700">
                                     <option value="" disabled selected>Pilih Kategori Utama</option>
-                                    <option value="Aneka Nasi">Aneka Nasi</option>
+                                    <option value="Sarapan">Sarapan</option>
+                                    <option value="per Nasi an">per Nasi an</option>
                                     <option value="Minuman">Minuman</option>
-                                    <option value="Jajanan">Jajanan</option>
-                                    <option value="Roti & Kue">Roti & Kue</option>
-                                    <option value="Sate & BBQ">Sate & BBQ</option>
+                                    <option value="Ayam">Ayam</option>
+                                    <option value="Makanan kuah">Makanan kuah</option>
+                                    <option value="Aneka mie">Aneka mie</option>
+                                    <option value="Makanan ringan">Makanan ringan</option>
                                 </select>
                             </div>
                             <div><label class="block text-xs font-bold text-gray-500 mb-1">Alamat Lengkap Usaha</label><textarea id="reg-seller-addr" rows="2" class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 font-medium resize-none" placeholder="Jalan, No, RT/RW, Kelurahan..."></textarea></div>
@@ -771,7 +785,9 @@
             }
             
             const lowerQ = query.toLowerCase();
-            const results = productsData.filter(p => 
+            // FILTER: Hanya cari produk di wilayah aktif
+            const applicableProducts = getAppplicableProducts(); 
+            const results = applicableProducts.filter(p => 
                 p.Name.toLowerCase().includes(lowerQ) || 
                 p.Vendor_Name.toLowerCase().includes(lowerQ)
             );
@@ -781,6 +797,22 @@
             } else {
                 renderProductGrid(results, container);
             }
+        }
+
+        // --- HELPER UNTUK GAMBAR GOOGLE DRIVE ---
+        function convertDriveImage(url) {
+            if (!url) return 'https://placehold.co/200?text=No+Img';
+            
+            // Cek apakah ini link Google Drive (biasanya dari upload form)
+            if (url.includes('drive.google.com') || url.includes('docs.google.com')) {
+                // Ekstrak ID file menggunakan Regex
+                const idMatch = url.match(/[-\w]{25,}/);
+                if (idMatch) {
+                    // Gunakan format lh3.googleusercontent.com yang lebih cepat dan stabil
+                    return `https://lh3.googleusercontent.com/d/${idMatch[0]}`;
+                }
+            }
+            return url;
         }
 
         window.addEventListener('load', () => {
@@ -802,6 +834,19 @@
             localStorage.setItem('pg_region_pref', userRegionPref);
             document.getElementById('header-address-text').innerText = userRegionPref;
             document.getElementById('region-choice-modal').classList.add('hidden');
+            
+            // LOGIC BARU: REFRESH TAMPILAN SESUAI WILAYAH
+            refreshDashboard();
+        }
+
+        function openRegionModal() {
+            document.getElementById('region-choice-modal').classList.remove('hidden');
+        }
+        
+        function refreshDashboard() {
+            // Re-render vendor list dan product list dengan filter baru
+            if(vendorsData.length > 0) renderVendorList(vendorsData);
+            if(productsData.length > 0) renderProductLists();
         }
 
         async function fetchData() {
@@ -959,22 +1004,43 @@
             `}).join('');
         }
 
+        // --- HELPER UNTUK FILTER PRODUK BERDASARKAN WILAYAH ---
+        function getAppplicableProducts() {
+            if (!userRegionPref) return productsData;
+            
+            // 1. Cari Vendor yang aktif di wilayah terpilih
+            const validVendors = vendorsData.filter(v => {
+                const region = (v.Region || v.City || v.Alamat || v.Address || '').toLowerCase();
+                const pref = userRegionPref.toLowerCase();
+                if (pref.includes('gombong')) return region.includes('gombong');
+                if (pref.includes('kebumen')) return region.includes('kebumen');
+                return true; 
+            }).map(v => v.Vendor_Name); // Ambil nama vendornya saja
+
+            // 2. Filter produk yang Vendor Name-nya ada di list validVendors
+            return productsData.filter(p => validVendors.includes(p.Vendor_Name));
+        }
+
         function renderProductLists() {
             const exclusiveContainer = document.getElementById('exclusive-slider');
             const recContainer = document.getElementById('recommendation-slider');
-            const exclusive = productsData.filter(p => String(p.Is_Exclusive || p.Exclusive || 'false').toLowerCase() === 'true');
-            const normal = productsData; 
+            
+            // Gunakan helper filter
+            const applicableProducts = getAppplicableProducts();
+
+            const exclusive = applicableProducts.filter(p => String(p.Is_Exclusive || p.Exclusive || 'false').toLowerCase() === 'true');
+            const normal = applicableProducts; 
 
             if(exclusive.length > 0) {
                 exclusiveContainer.innerHTML = exclusive.map(p => createProductCard(p, 'horizontal')).join('');
             } else {
-                exclusiveContainer.innerHTML = '<div class="text-xs text-gray-400 w-full text-center py-4">Belum ada promo.</div>';
+                exclusiveContainer.innerHTML = '<div class="text-xs text-gray-400 w-full text-center py-4">Belum ada promo di wilayah ini.</div>';
             }
 
             if(normal.length > 0) {
                 recContainer.innerHTML = normal.slice(0, 5).map(p => createProductCard(p, 'vertical')).join('');
             } else {
-                recContainer.innerHTML = '<div class="text-xs text-gray-400 w-full text-center py-4">Belum ada data.</div>';
+                recContainer.innerHTML = '<div class="text-xs text-gray-400 w-full text-center py-4">Belum ada data di wilayah ini.</div>';
             }
         }
 
@@ -991,7 +1057,11 @@
             const originalPriceVal = parseFloat(item.Original_Price);
             const price = new Intl.NumberFormat('id-ID').format(priceVal);
             const oriPrice = new Intl.NumberFormat('id-ID').format(originalPriceVal);
-            const imgUrl = item.Image_URL && item.Image_URL.startsWith('http') ? item.Image_URL : 'https://placehold.co/200?text=No+Img';
+            
+            // GUNAKAN HELPER UNTUK GAMBAR
+            let rawImgUrl = item.Image_URL && item.Image_URL.trim() !== '' ? item.Image_URL : 'https://placehold.co/200?text=No+Img';
+            const imgUrl = convertDriveImage(rawImgUrl);
+            
             const availability = item.Availability ? String(item.Availability) : '';
             const isHabis = availability.trim() === 'Habis';
             const clickAction = isHabis ? "" : `onclick='openProductModal(${JSON.stringify(item)})'`;
@@ -1005,8 +1075,10 @@
 
             const isFav = favorites.has(String(item.ID));
             const favIcon = isFav ? '<i class="fas fa-heart text-red-500 text-xs"></i>' : '<i class="far fa-heart text-gray-400 text-xs"></i>';
+            
+            // UPDATE POSISI FAVORIT: Bottom-Right
             const favButton = `
-                <button onclick="toggleFavorite(event, '${item.ID}')" class="absolute top-2 right-2 w-7 h-7 bg-white/90 rounded-full flex items-center justify-center shadow-sm z-20 active:scale-90 transition fav-btn-${item.ID}">
+                <button onclick="toggleFavorite(event, '${item.ID}')" class="absolute bottom-2 right-2 w-7 h-7 bg-white/90 rounded-full flex items-center justify-center shadow-sm z-20 active:scale-90 transition fav-btn-${item.ID}">
                     ${favIcon}
                 </button>
             `;
@@ -1067,21 +1139,39 @@
 
         function renderVendorList(vendors) {
             const container = document.getElementById('vendor-list');
-            if(!vendors || vendors.length === 0) {
-                container.innerHTML = '<div class="text-center text-gray-400 text-xs py-8">Belum ada warung terdaftar.</div>';
+            
+            // --- LOGIC FILTER WILAYAH ---
+            if (!userRegionPref) userRegionPref = 'Gombong'; // Default
+            
+            const filteredVendors = vendors.filter(v => {
+                // Cek apakah ada kolom Region/City, atau fallback ke pencarian string di Alamat
+                const region = (v.Region || v.City || v.Alamat || v.Address || '').toLowerCase();
+                const pref = userRegionPref.toLowerCase();
+                
+                if (pref.includes('gombong')) {
+                    return region.includes('gombong');
+                } else if (pref.includes('kebumen')) {
+                    return region.includes('kebumen');
+                }
+                return true; // Fallback jika tidak ada pref
+            });
+
+            if(!filteredVendors || filteredVendors.length === 0) {
+                container.innerHTML = `<div class="text-center text-gray-400 text-xs py-8">Belum ada warung di ${userRegionPref}.</div>`;
                 return;
             }
-            const sorted = vendors.sort((a, b) => (a.Status === 'Buka' ? -1 : 1));
+            const sorted = filteredVendors.sort((a, b) => (a.Status === 'Buka' ? -1 : 1));
 
             container.innerHTML = sorted.map(v => {
                 const distance = (Math.random() * 3 + 0.2).toFixed(1);
                 const time = Math.floor(Math.random() * (25 - 10) + 10);
                 const isPromo = Math.random() > 0.5;
+                const imgUrl = convertDriveImage(v.Image_URL);
 
                 return `
                 <div onclick="openVendor('${v.ID}')" class="product-card bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-3 cursor-pointer active:scale-[0.99] ${v.Status === 'Tutup' ? 'grayscale opacity-60' : ''}">
                     <div class="w-24 h-24 rounded-2xl bg-gray-100 overflow-hidden border border-gray-200 shrink-0 relative">
-                        <img src="${v.Image_URL || 'https://placehold.co/100?text=W'}" class="w-full h-full object-cover" loading="lazy" decoding="async">
+                        <img src="${imgUrl}" class="w-full h-full object-cover" loading="lazy" decoding="async">
                         ${isPromo && v.Status === 'Buka' ? '<div class="absolute bottom-0 left-0 right-0 bg-red-600 text-white text-[8px] font-bold text-center py-0.5">DISKON 20%</div>' : ''}
                     </div>
                     <div class="flex-1 min-w-0 py-1">
@@ -1120,14 +1210,30 @@
         function openVendor(vendorId) {
             const vendor = vendorsData.find(v => String(v.ID) === String(vendorId));
             if (!vendor) return;
-            document.getElementById('vendor-banner-img').src = vendor.Image_URL || "https://placehold.co/600x200?text=Resto";
+            document.getElementById('vendor-banner-img').src = convertDriveImage(vendor.Image_URL);
             document.getElementById('vendor-name-title').innerText = vendor.Vendor_Name;
-            document.getElementById('vendor-info-subtitle').innerText = `${vendor.Status} • ${vendor.Type || 'Umum'}`;
+            
+            // Set status text and styling
+            const statusEl = document.getElementById('vendor-info-status');
+            statusEl.innerText = vendor.Status || 'Buka';
+            if(vendor.Status === 'Tutup') {
+                statusEl.className = "bg-red-500/20 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] font-medium border border-red-500/10 text-red-100";
+            } else {
+                statusEl.className = "bg-green-500/20 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] font-medium border border-green-500/10 text-green-100";
+            }
+
+            document.getElementById('vendor-info-type').innerText = vendor.Type || 'Umum';
             document.getElementById('vendor-rating-badge').innerText = vendor.Rating || '4.5';
+            
             const container = document.getElementById('vendor-menu-container');
             const vendorProducts = productsData.filter(p => p.Vendor_Name === vendor.Vendor_Name);
             renderProductGrid(vendorProducts, container);
+            
             navTo('vendor-page');
+            
+            // Scroll to top
+            const page = document.getElementById('vendor-page');
+            if(page) page.scrollTop = 0;
         }
 
         function openProductModal(item) {
@@ -1135,7 +1241,7 @@
             if (availability.trim() === 'Habis') return; 
             if (typeof item === 'string') item = JSON.parse(item);
             currentItem = item;
-            document.getElementById('variant-modal-img').src = item.Image_URL || 'https://placehold.co/400?text=No+Img';
+            document.getElementById('variant-modal-img').src = convertDriveImage(item.Image_URL);
             document.getElementById('variant-modal-title').innerText = item.Name;
             document.getElementById('variant-modal-vendor').innerText = item.Vendor_Name;
             document.getElementById('variant-modal-price').innerText = "Rp " + new Intl.NumberFormat('id-ID').format(item.Price);
@@ -1231,11 +1337,12 @@
                          const priceVal = parseFloat(item.Price);
                          const originalPriceVal = parseFloat(item.Original_Price);
                          const isHemat = originalPriceVal > priceVal;
+                         const imgUrl = convertDriveImage(item.Image_URL);
 
                         html += `
                         <div class="flex justify-between items-start mb-3 last:mb-0">
                             <div class="flex gap-3 items-center flex-1">
-                                <div class="w-12 h-12 rounded-xl bg-gray-200 overflow-hidden shrink-0"><img src="${item.Image_URL}" class="w-full h-full object-cover" loading="lazy" decoding="async"></div>
+                                <div class="w-12 h-12 rounded-xl bg-gray-200 overflow-hidden shrink-0"><img src="${imgUrl}" class="w-full h-full object-cover" loading="lazy" decoding="async"></div>
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-bold text-gray-800 line-clamp-1">${item.Name}</p>
                                     ${item.variant ? `<p class="text-[10px] text-gray-500 mb-1">Varian: ${item.variant}</p>` : ''}
@@ -1312,13 +1419,12 @@
         function checkoutToWA() {
             if(cart.length === 0) return;
             
-            const addressText = document.getElementById('checkout-address-text').innerText;
-            const noteText = document.getElementById('checkout-note').value;
-            const lat = document.getElementById('checkout-lat').value;
-            const lng = document.getElementById('checkout-lng').value;
+            // MODIFIKASI: Hanya mengambil text note, tidak perlu validasi Lat/Lng lagi
+            const noteText = document.getElementById('checkout-note').value.trim();
             
-            if(addressText.includes("Klik untuk atur") || !lat) { 
-                alert("Mohon pin titik lokasi pengantaran di peta terlebih dahulu!"); 
+            if(!noteText) { 
+                alert("Mohon isi alamat lengkap pengantaran!"); 
+                document.getElementById('checkout-note').focus();
                 return; 
             }
 
@@ -1342,15 +1448,9 @@
             }
 
             msg += `💰 *Total Makanan: Rp ${new Intl.NumberFormat('id-ID').format(grandTotal)}*\n`;
-            const fullAddress = noteText ? `${addressText} (Detail: ${noteText})` : addressText;
-            msg += `📍 *Lokasi:* ${fullAddress}\n`;
             
-            if(lat && lng) {
-                msg += `🔗 *Maps:* https://www.google.com/maps?q=${lat},${lng}\n\n`;
-            } else {
-                msg += `\n`;
-            }
-
+            // MODIFIKASI: Hapus link Maps, gunakan teks alamat manual
+            msg += `📍 *Alamat Pengantaran:*\n${noteText}\n\n`;
             msg += `Mohon info ongkirnya kak.`;
 
             // UPDATE 1: Status pesanan diubah
@@ -1535,7 +1635,10 @@
             const container = document.getElementById('exclusive-content-container');
             container.innerHTML = '<div class="col-span-2 text-center py-10"><i class="fas fa-spinner fa-spin text-orange-500"></i> Memuat...</div>';
             setTimeout(() => {
-                const exclusiveProducts = productsData.filter(p => String(p.Is_Exclusive || p.Exclusive || 'false').toLowerCase() === 'true');
+                // FILTER: Gunakan produk yang sudah disaring wilayahnya
+                const applicableProducts = getAppplicableProducts();
+                
+                const exclusiveProducts = applicableProducts.filter(p => String(p.Is_Exclusive || p.Exclusive || 'false').toLowerCase() === 'true');
                 if (exclusiveProducts.length === 0) { 
                     container.innerHTML = '<div class="col-span-2 text-center text-gray-400 mt-10">Belum ada menu eksklusif saat ini.</div>'; 
                     return; 
@@ -1553,23 +1656,34 @@
             container.innerHTML = '<div class="col-span-2 text-center py-10"><i class="fas fa-spinner fa-spin text-orange-500"></i> Memuat...</div>'; 
             
             setTimeout(() => { 
-                // FILTER LOGIC:
-                // 1. Source: productsData (from Sheet Products)
-                // 2. Filter Column: Category (p.Category)
-                // 3. Condition: Match the clicked category name (catId)
+                console.log("=== DEBUG FILTER KATEGORI ===");
+                console.log("Mencari kategori:", catId);
                 
-                const filtered = catId === 'all' ? productsData : productsData.filter(p => {
-                    // Normalize data from sheet (handle different casing/trimming)
-                    // UPDATE: Added 'Kategori' and 'kategori' for flexibility
-                    const pCat = p.Category || p.category || p.Kategori || p.kategori || ''; 
-                    
-                    // Compare case-insensitively
+                // FILTER: Gunakan produk yang sudah disaring wilayahnya
+                const applicableProducts = getAppplicableProducts();
+
+                const filtered = catId === 'all' ? applicableProducts : applicableProducts.filter(p => {
+                    let pCat = '';
+                    if (p.Category) pCat = p.Category;
+                    else if (p.category) pCat = p.category;
+                    else if (p.Kategori) pCat = p.Kategori;
+                    else if (p.kategori) pCat = p.kategori;
+                    else {
+                        const keys = Object.keys(p);
+                        const fuzzyKey = keys.find(k => k.toLowerCase().includes('category') || k.toLowerCase().includes('kategori'));
+                        if (fuzzyKey) {
+                            pCat = p[fuzzyKey];
+                        }
+                    }
                     return String(pCat).trim().toLowerCase() === String(catId).trim().toLowerCase();
                 });
                 
                 if (filtered.length === 0) { 
-                    // Debugging hint in UI (optional, kept simple)
-                    container.innerHTML = '<div class="col-span-2 text-center text-gray-400 mt-10">Belum ada menu di kategori ini.<br><span class="text-[8px]">Pastikan penulisan kategori di Sheet Produk sama persis.</span></div>'; 
+                    container.innerHTML = `
+                        <div class="col-span-2 text-center text-gray-400 mt-10 px-4">
+                            <i class="far fa-folder-open text-4xl mb-2 text-gray-300"></i>
+                            <p class="font-bold text-gray-600">Tidak ada produk ditemukan di ${userRegionPref}.</p>
+                        </div>`; 
                     return; 
                 } 
                 
@@ -1584,9 +1698,18 @@
                 const phone = document.getElementById('reg-seller-phone').value;
                 const bizName = document.getElementById('reg-seller-biz').value;
                 const category = document.getElementById('reg-seller-cat').value;
+                const region = document.getElementById('reg-seller-region').value; // Ambil Region
                 const address = document.getElementById('reg-seller-addr').value;
-                if (!name || !bizName) { alert("Harap isi semua data wajib!"); return; }
-                payload.name = name; payload.phone = phone; payload.bizName = bizName; payload.category = category; payload.address = address;
+                
+                if (!name || !bizName || !region) { alert("Harap isi semua data wajib (termasuk Area Operasional)!"); return; }
+                
+                // Kirim Region ke Spreadsheet (pastikan header di sheet ada kolom Region atau Area)
+                payload.name = name; 
+                payload.phone = phone; 
+                payload.bizName = bizName; 
+                payload.category = category; 
+                payload.region = region; // Kirim region
+                payload.address = address;
             }
             const modalId = 'seller-register-modal';
             const contentId = 'seller-register-content';
@@ -1596,43 +1719,6 @@
             fetch(API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
             .then(response => { alert(`Pendaftaran ${type} Berhasil dikirim!`); })
             .catch(error => { console.error("Error:", error); alert("Gagal Mengirim (Cek Koneksi)"); });
-        }
-
-        function renderCategories(data) {
-            const container = document.getElementById('categories-container');
-            
-            // Mapping Icon Manual untuk kategori spesifik
-            const iconMap = {
-                'Sarapan': 'https://img.icons8.com/color/48/breakfast.png',
-                'per Nasi an': 'https://img.icons8.com/color/48/rice-bowl.png',
-                'Minuman': 'https://img.icons8.com/color/48/orange-soda.png',
-                'Ayam': 'https://img.icons8.com/color/48/fried-chicken.png',
-                'Makanan kuah': 'https://img.icons8.com/color/48/soup-plate.png',
-                'Aneka mie': 'https://img.icons8.com/color/48/noodles.png',
-                'Makanan ringan': 'https://img.icons8.com/color/48/chips.png'
-            };
-
-            container.innerHTML = data.map(cat => {
-                // Fallback icon jika di sheet kosong, cek mapping, lalu cek default
-                let iconSrc = cat.Icon_Image_URL;
-                if (!iconSrc || iconSrc.trim() === '') {
-                    // Coba cari match di iconMap (case insensitive dikit)
-                    const key = Object.keys(iconMap).find(k => k.toLowerCase() === cat.Name.toLowerCase());
-                    iconSrc = key ? iconMap[key] : 'https://img.icons8.com/color/48/food.png';
-                }
-
-                // PENTING: Gunakan cat.Name sebagai ID untuk filter openCategory
-                // Karena user menyebutkan nama-nama kategori spesifik
-                const safeName = cat.Name.replace(/'/g, "\\'");
-
-                return `
-                <div onclick="openCategory('${safeName}', '${safeName}')" class="flex flex-col items-center gap-1 cursor-pointer active:scale-95 transition">
-                    <div class="w-14 h-14 flex items-center justify-center bg-orange-50 rounded-2xl border border-orange-100 shadow-sm">
-                        <img src="${iconSrc}" class="w-8 h-8 object-contain" onerror="this.src='https://img.icons8.com/color/48/food.png'" loading="lazy" decoding="async">
-                    </div>
-                    <span class="text-[10px] font-bold text-gray-600 text-center leading-tight px-1 truncate w-full mt-1">${cat.Name}</span>
-                </div>
-            `}).join('');
         }
     </script>
 </body>
