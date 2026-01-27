@@ -190,7 +190,7 @@
                     <!-- Promo Banner (Horizontal Card) -->
                     <div style="contain: content;">
                         <div class="flex justify-between items-center mb-3">
-                            <h3 class="font-bold text-gray-800 text-sm">Hanya Ada Di ProjekGo</h3>
+                            <h3 class="font-bold text-gray-800 text-sm">Lagi Promo</h3>
                             <span class="text-orange-600 text-[10px] font-bold cursor-pointer" onclick="openExclusivePage()">Lihat Semua</span>
                         </div>
                         <div id="exclusive-slider" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2 snap-x min-h-[120px] horizontal-slider" style="scroll-behavior: auto;">
@@ -1571,24 +1571,39 @@
                 const savings = totalOriginal - total;
                 const summaryHtml = `
                     <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-3">
-                        <div class="flex justify-between items-center">
-                            <span class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">PROJEKGO tidak markup harga</span>
-                            <span class="text-xs text-gray-400 line-through">${formatRupiah(totalOriginal)}</span>
+                        <!-- Baris 1: Markup Info (Tanpa Label Warna) -->
+                        <div class="flex justify-between items-center text-xs text-gray-500 font-medium">
+                            <span>PROJEKGO tidak markup harga</span>
+                            <span class="text-gray-400 line-through">${formatRupiah(totalOriginal)}</span>
                         </div>
+                        
+                        <!-- Baris 2: Biaya App -->
                         <div class="flex justify-between items-center text-xs text-gray-600 font-medium">
                             <span>Biaya Aplikasi</span>
                             <div class="flex items-center gap-1"><span class="text-[9px] bg-green-100 text-green-600 px-1.5 py-0.5 rounded font-bold">Gratis</span> <span>Rp 0</span></div>
                         </div>
+                        
                         <div class="border-t border-dashed border-gray-200 my-2"></div>
+                        
+                        <!-- Baris 3: Total Harga -->
                         <div class="flex justify-between items-center">
                             <span class="font-bold text-gray-800 text-sm">Total harga makanan</span>
-                            <div class="text-right">
-                                <span class="text-[10px] bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded font-bold border border-orange-100 mb-1 inline-block">Harga Asli</span>
-                                <span class="block text-xl font-black text-orange-600">${formatRupiah(total)}</span>
+                            <div class="text-right flex flex-col items-end">
+                                <span class="text-xl font-black text-orange-600 leading-none">${formatRupiah(total)}</span>
+                                <span class="text-[10px] text-gray-400 font-medium mt-1">Harga Asli</span>
                             </div>
                         </div>
+                        
                         ${savings > 0 ? `<div class="flex justify-end"><span class="text-[10px] bg-red-50 text-red-600 px-2 py-1 rounded-lg font-bold">Anda lebih hemat ${formatRupiah(savings)}</span></div>` : ''}
                         
+                        <!-- INFO ONGKIR -->
+                        <div class="bg-blue-50 border border-blue-100 p-3 rounded-xl mt-2 flex gap-2 items-start">
+                            <i class="fas fa-info-circle text-blue-500 mt-0.5 text-xs"></i>
+                            <p class="text-[10px] text-blue-800 font-medium leading-tight">
+                                Ongkir nanti akan diinfokan oleh admin (ongkir prioritas, pasti lebih hemat).
+                            </p>
+                        </div>
+
                         <button onclick="checkoutToWA()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98] mt-2">
                             <i class="fab fa-whatsapp text-xl"></i> Pesan via WhatsApp
                         </button>
@@ -1620,6 +1635,8 @@
             }
             
             const phone = "6281292802623";
+            
+            // === FORMAT PESANAN BARU (LEBIH RAPI & TANPA EMOT) ===
             let msg = `Halo Admin, saya mau pesan:\n\n`;
             let grandTotal = 0;
             const grouped = {};
@@ -1638,19 +1655,34 @@
                 grouped[item.Vendor_Name].push(item);
                 grandTotal += (item.Price * item.qty);
             });
+
             for(const [vendor, items] of Object.entries(grouped)) {
-                msg += `*🏪 ${vendor}*\n`;
+                // Header Warung
+                msg += `[ ${vendor.toUpperCase()} ]\n`; 
+                
                 items.forEach(i => {
-                    msg += `- ${i.qty}x ${i.Name} ${i.variant ? `(${i.variant})` : ''} @ ${i.Price/1000}k\n`;
+                    // Format harga: 15.000
+                    const priceFormatted = new Intl.NumberFormat('id-ID').format(i.Price);
+                    // Format item: 2x Nasi Goreng (Pedas) @ 15.000
+                    msg += `${i.qty}x ${i.Name} ${i.variant ? `(${i.variant})` : ''} @ ${priceFormatted}\n`;
                 });
-                msg += `\n`;
+                
+                // Garis Pemisah
+                msg += `--------------------------------\n`; 
             }
-            msg += `💰 *Total Makanan: Rp ${new Intl.NumberFormat('id-ID').format(grandTotal)}*\n`;
-            msg += `📍 *Alamat Pengantaran:*\n${address}\n`;
-            if(orderNote) msg += `📝 *Catatan Pesanan:*\n${orderNote}\n\n`;
-            else msg += `\n`;
             
-            msg += `Mohon info ongkirnya kak.`;
+            msg += `\n*Total Harga Makanan: Rp ${new Intl.NumberFormat('id-ID').format(grandTotal)}*\n\n`;
+            msg += `*Alamat Pengantaran:*\n${address}\n\n`;
+            
+            if(orderNote) {
+                msg += `*Catatan:*\n${orderNote}\n\n`;
+            } else {
+                // Tambahan baris kosong jika tidak ada catatan agar rapi
+                // msg += `\n`; 
+            }
+            
+            msg += `Mohon info ongkirnya. Terima kasih.`;
+            // ======================================================
 
             const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
             
