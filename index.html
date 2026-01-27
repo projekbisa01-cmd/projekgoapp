@@ -141,7 +141,7 @@
         <div id="home-page" class="page-section z-20 bg-gray-50">
             <main class="flex-1 overflow-y-auto hide-scrollbar scrolling-wrapper bg-white z-0 relative w-full pb-24">
                 
-                <!-- 1. Header ORANGE (Update) -->
+                <!-- 1. Header ORANGE -->
                 <div class="px-5 pt-12 pb-8 bg-orange-600 flex items-center justify-between gap-3 rounded-b-[2.5rem] shadow-lg relative z-50 mb-2">
                     <div>
                         <div class="flex items-center gap-1">
@@ -157,7 +157,7 @@
                     </button>
                 </div>
 
-                <!-- 2. Sticky Search Bar (Menempel di atas) -->
+                <!-- 2. Sticky Search Bar -->
                 <div class="sticky top-0 z-40 bg-white/95 backdrop-blur-md px-5 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.02)] transition-all">
                     <div class="relative group active:scale-[0.98] transition w-full" onclick="navTo('search-page')">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -178,7 +178,6 @@
                         </div>
                         <div class="grid grid-cols-4 gap-y-4" id="categories-container">
                             <div class="col-span-4 text-center text-gray-400 text-xs py-4">
-                                <!-- Skeleton Loading Sederhana -->
                                 <div class="animate-pulse flex gap-4 justify-center">
                                     <div class="w-14 h-14 bg-gray-200 rounded-2xl"></div>
                                     <div class="w-14 h-14 bg-gray-200 rounded-2xl"></div>
@@ -191,7 +190,7 @@
                     <!-- Promo Banner (Horizontal Card) -->
                     <div style="contain: content;">
                         <div class="flex justify-between items-center mb-3">
-                            <h3 class="font-bold text-gray-800 text-sm">Lagi Promo</h3>
+                            <h3 class="font-bold text-gray-800 text-sm">Hanya Ada Di ProjekGo</h3>
                             <span class="text-orange-600 text-[10px] font-bold cursor-pointer" onclick="openExclusivePage()">Lihat Semua</span>
                         </div>
                         <div id="exclusive-slider" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2 snap-x min-h-[120px] horizontal-slider" style="scroll-behavior: auto;">
@@ -214,7 +213,7 @@
                         </div>
                     </div>
 
-                    <!-- Daftar Penjual -->
+                    <!-- Daftar Penjual (Warung Sekitar - Big Cards) -->
                     <div>
                         <div class="flex justify-between items-end mb-3 sticky top-[70px] bg-white/95 backdrop-blur-sm z-10 py-2 -mx-5 px-5">
                             <h3 class="font-bold text-gray-800 text-sm">Warung Sekitar</h3>
@@ -222,7 +221,7 @@
                                 <i class="fas fa-sync-alt" id="refreshIcon"></i> Refresh
                             </button>
                         </div>
-                        <div id="vendor-list" class="space-y-4 optimized-list">
+                        <div id="vendor-list" class="space-y-6 optimized-list">
                             <div class="text-center text-gray-400 text-xs py-10 bg-white rounded-2xl">
                                 <i class="fas fa-store text-xl mb-2 text-gray-300"></i><br>Mencari Mitra...
                             </div>
@@ -834,46 +833,61 @@
         try { claimedCodes = JSON.parse(safeStorage.getItem('pg_claimed_codes')) || []; } catch(e) { }
         
         const VALID_POINT_CODES = ['PROJEKGO', 'MAKANENAK', 'SENIN', 'JUMATBERKAH', 'TEST1234'];
-        const COORDS_GOMBONG = [-7.607865, 109.513824];
-        const COORDS_KEBUMEN = [-7.6797, 109.6644];
 
-        // --- HISTORY API HANDLING (Custom Back Button Logic) ---
+        // Helper untuk format nominal pendek (misal: 5rb)
+        function formatRupiahShort(num) {
+            if(num >= 1000) {
+                // Jika kelipatan 1000, tampilkan bulat, jika tidak 1 desimal
+                return (num / 1000).toFixed(num % 1000 === 0 ? 0 : 1) + 'rb';
+            }
+            return num;
+        }
+
+        function toggleFavorite(e, itemId) {
+            e.stopPropagation();
+            if(favorites.has(itemId)) {
+                favorites.delete(itemId);
+            } else {
+                favorites.add(itemId);
+            }
+            safeStorage.setItem('pg_favorites', JSON.stringify([...favorites]));
+            
+            // Re-render UI: Cari tombol dan ubah classnya
+            const btnIcon = e.currentTarget.querySelector('i');
+            if(btnIcon) {
+                if(favorites.has(itemId)) {
+                    btnIcon.className = 'fas fa-heart text-red-500 text-xs';
+                } else {
+                    btnIcon.className = 'far fa-heart text-white text-xs';
+                }
+            }
+            
+            // Animasi kecil
+            e.currentTarget.classList.add('scale-125');
+            setTimeout(() => e.currentTarget.classList.remove('scale-125'), 200);
+        }
+
+        // --- HISTORY API HANDLING ---
         window.addEventListener('load', () => {
-            // Push initial state dengan TRY CATCH untuk mencegah SecurityError
             try {
                 history.pushState({page: 'home'}, document.title, window.location.href);
-            } catch(e) {
-                console.warn("History API access denied/restricted.");
-            }
+            } catch(e) { console.warn("History API access denied/restricted."); }
 
             fetchData();
             if(!userRegionPref) {
-                setTimeout(() => {
-                    document.getElementById('region-choice-modal').classList.remove('hidden');
-                }, 1000);
+                setTimeout(() => { document.getElementById('region-choice-modal').classList.remove('hidden'); }, 1000);
             } else {
                 document.getElementById('header-address-text').innerText = userRegionPref;
             }
-            updateProfileUI(); 
-            updatePointsUI();
-            renderOrderHistory();
+            updateProfileUI(); updatePointsUI(); renderOrderHistory();
         });
 
-        // Event listener ketika tombol back HP ditekan
         window.addEventListener('popstate', (event) => {
-            // Selalu push state lagi agar browser tidak keluar (Trap) dengan TRY CATCH
-            try {
-                history.pushState({page: 'home'}, document.title, window.location.href);
-            } catch(e) {
-                // Ignore error if restricted
-            }
-            
-            // Jalankan logika custom back kita
+            try { history.pushState({page: 'home'}, document.title, window.location.href); } catch(e) { }
             handleHardwareBack();
         });
 
         function handleHardwareBack() {
-            // 1. Cek Modals - Tutup jika terbuka
             if(!document.getElementById('write-review-modal').classList.contains('hidden')) { closeReviewForm(); return; }
             if(!document.getElementById('seller-register-modal').classList.contains('hidden')) { closeSellerRegistration(); return; }
             if(!document.getElementById('add-address-modal').classList.contains('hidden')) { closeAddAddressModal(); return; }
@@ -881,59 +895,38 @@
             if(!document.getElementById('edit-profile-modal').classList.contains('hidden')) { closeEditProfile(); return; }
             if(!document.getElementById('partnership-modal').classList.contains('hidden')) { closePartnershipModal(); return; }
             
-            // 2. Cek Detail Product
             const detailPage = document.getElementById('product-detail-page');
             if (!detailPage.classList.contains('hidden-page')) { navTo('home-page'); return; }
 
-            // 3. Cek Halaman Lain selain Home
             const activePage = document.querySelector('.page-section.z-30');
-            if (activePage && activePage.id !== 'home-page') {
-                navTo('home-page');
-                return;
-            }
-
-            // 4. Jika sudah di Home Page, jangan lakukan apa-apa (Cegah Keluar)
-            // console.log("User at Home, Prevent Exit");
+            if (activePage && activePage.id !== 'home-page') { navTo('home-page'); return; }
         }
 
         // --- DEBOUNCE SEARCH ---
         let searchTimeout;
         function debouncedSearch(query) {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                handleGlobalSearch(query);
-            }, 300); 
+            searchTimeout = setTimeout(() => { handleGlobalSearch(query); }, 300); 
         }
 
-        // --- SEARCH LOGIC ---
         function handleGlobalSearch(query) {
             const container = document.getElementById('search-results');
             if(!query) {
                 container.innerHTML = `<div class="text-center mt-10 text-gray-400"><i class="fas fa-search text-3xl mb-2"></i><p class="text-xs">Ketik untuk mencari...</p></div>`;
                 return;
             }
-            
             const lowerQ = query.toLowerCase();
             const applicableProducts = getAppplicableProducts(); 
-            const results = applicableProducts.filter(p => 
-                p.Name.toLowerCase().includes(lowerQ) || 
-                p.Vendor_Name.toLowerCase().includes(lowerQ)
-            );
-
-            if(results.length === 0) {
-                container.innerHTML = `<div class="text-center mt-10 text-gray-400"><p class="text-xs">Tidak ditemukan.</p></div>`;
-            } else {
-                renderProductGrid(results, container);
-            }
+            const results = applicableProducts.filter(p => p.Name.toLowerCase().includes(lowerQ) || p.Vendor_Name.toLowerCase().includes(lowerQ));
+            if(results.length === 0) { container.innerHTML = `<div class="text-center mt-10 text-gray-400"><p class="text-xs">Tidak ditemukan.</p></div>`; } 
+            else { renderProductGrid(results, container); }
         }
 
         function convertDriveImage(url) {
             if (!url) return 'https://placehold.co/200?text=No+Img';
             if (url.includes('drive.google.com') || url.includes('docs.google.com')) {
                 const idMatch = url.match(/[-\w]{25,}/);
-                if (idMatch) {
-                    return `https://lh3.googleusercontent.com/d/${idMatch[0]}`;
-                }
+                if (idMatch) { return `https://lh3.googleusercontent.com/d/${idMatch[0]}`; }
             }
             return url;
         }
@@ -946,48 +939,41 @@
             refreshDashboard();
         }
 
-        function openRegionModal() {
-            document.getElementById('region-choice-modal').classList.remove('hidden');
-        }
+        function openRegionModal() { document.getElementById('region-choice-modal').classList.remove('hidden'); }
         
         function refreshDashboard() {
-            if(vendorsData.length > 0) renderVendorList(vendorsData);
-            if(productsData.length > 0) renderProductLists();
+            if(productsData.length > 0) {
+                renderProductLists();
+                // Panggil fungsi render baru untuk "Warung Sekitar"
+                renderNearbyBigCards(vendorsData, productsData);
+            }
         }
 
-        // --- OPTIMASI FETCH DATA ---
         async function fetchData(forceRefresh = false) {
             const refreshBtn = document.getElementById('refreshIcon');
             if(refreshBtn) refreshBtn.classList.add('fa-spin');
 
             const now = Date.now();
             let cachedCats = null, cachedProds = null, cachedVends = null;
-            
             try {
                 cachedCats = JSON.parse(safeStorage.getItem('pg_cache_cats'));
                 cachedProds = JSON.parse(safeStorage.getItem('pg_cache_prods'));
                 cachedVends = JSON.parse(safeStorage.getItem('pg_cache_vends'));
             } catch(e) {}
             
-            let isCacheValid = cachedCats && cachedProds && cachedVends && 
-                               (now - cachedCats.timestamp < CACHE_DURATION);
+            let isCacheValid = cachedCats && cachedProds && cachedVends && (now - cachedCats.timestamp < CACHE_DURATION);
 
             if (isCacheValid && !forceRefresh) {
                 console.log("Using Cached Data");
                 renderCategories(cachedCats.data);
-                
-                // PRIORITAS: Load Vendors dulu agar filter region bekerja saat load product
                 vendorsData = cachedVends.data;
                 productsData = cachedProds.data;
-                
-                renderVendorList(vendorsData);
                 renderProductLists();
-                
+                renderNearbyBigCards(vendorsData, productsData);
                 if(refreshBtn) refreshBtn.classList.remove('fa-spin');
                 fetchFromNetwork(false); 
                 return;
             }
-
             await fetchFromNetwork(true);
             if(refreshBtn) refreshBtn.classList.remove('fa-spin');
         }
@@ -1001,37 +987,37 @@
                     });
                 };
 
-                // 1. PRIORITAS UTAMA: Fetch Vendors Dulu!
-                const vendRes = await timeout(10000, fetch(`${API_URL}?action=getVendors`));
+                // UPDATED TIMEOUT: Increased from 10000ms (10s) to 25000ms (25s) to prevent timeout errors on slow connections
+                const vendRes = await timeout(25000, fetch(`${API_URL}?action=getVendors`));
                 const vendJson = await vendRes.json();
                 if(vendJson.status === 'success') {
                     vendorsData = vendJson.data;
                     safeStorage.setItem('pg_cache_vends', JSON.stringify({timestamp: Date.now(), data: vendorsData}));
-                    if(renderImmediately) renderVendorList(vendorsData);
                 }
 
-                // 2. Fetch Categories
-                const catRes = await timeout(10000, fetch(`${API_URL}?action=getCategories`));
+                const catRes = await timeout(25000, fetch(`${API_URL}?action=getCategories`));
                 const catJson = await catRes.json();
                 if(catJson.status === 'success') {
                     safeStorage.setItem('pg_cache_cats', JSON.stringify({timestamp: Date.now(), data: catJson.data}));
                     if(renderImmediately) renderCategories(catJson.data);
                 }
 
-                // 3. Fetch Products (Sekarang filter region sudah aman karena vendorsData sudah ada)
-                const prodRes = await timeout(10000, fetch(`${API_URL}?action=getProducts`));
+                const prodRes = await timeout(25000, fetch(`${API_URL}?action=getProducts`));
                 const prodJson = await prodRes.json();
                 if(prodJson.status === 'success') {
                     productsData = prodJson.data; 
                     safeStorage.setItem('pg_cache_prods', JSON.stringify({timestamp: Date.now(), data: productsData}));
-                    if(renderImmediately) renderProductLists();
+                    if(renderImmediately) {
+                        renderProductLists();
+                        renderNearbyBigCards(vendorsData, productsData);
+                    }
                 }
 
             } catch (error) {
                 console.error("Gagal memuat data:", error);
                 if(renderImmediately) {
                     renderProductLists(); 
-                    renderVendorList(vendorsData || []);
+                    renderNearbyBigCards(vendorsData || [], productsData || []);
                 }
             }
         }
@@ -1082,14 +1068,7 @@
         function renderProductLists() {
             const exclusiveContainer = document.getElementById('exclusive-slider');
             const recContainer = document.getElementById('recommendation-slider');
-            
-            const emptyUI = (msg) => `
-                <div class="w-full text-center py-4 flex flex-col items-center justify-center h-full">
-                    <p class="text-xs text-gray-400 mb-2">${msg}</p>
-                    <button onclick="fetchData(true)" class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-[10px] font-bold py-1 px-3 rounded-full transition">
-                        <i class="fas fa-sync-alt mr-1"></i> Coba Lagi
-                    </button>
-                </div>`;
+            const emptyUI = (msg) => `<div class="w-full text-center py-4 flex flex-col items-center justify-center h-full"><p class="text-xs text-gray-400 mb-2">${msg}</p><button onclick="fetchData(true)" class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-[10px] font-bold py-1 px-3 rounded-full transition"><i class="fas fa-sync-alt mr-1"></i> Coba Lagi</button></div>`;
 
             if (!productsData || productsData.length === 0) {
                 exclusiveContainer.innerHTML = emptyUI("Sedang memuat...");
@@ -1108,12 +1087,8 @@
             }
 
             if(normal.length > 0) {
-                // MODIFIKASI: Paling Laris sekarang Horizontal List tapi ITEMNYA Vertikal (Grid style)
-                // Kita bungkus createProductCard('vertical') dalam div dengan width fixed agar bisa di-scroll horizontal
                 recContainer.innerHTML = normal.slice(0, 10).map(p => 
-                    `<div class="min-w-[150px] w-40 snap-center h-full">` + 
-                    createProductCard(p, 'vertical') + 
-                    `</div>`
+                    `<div class="min-w-[150px] w-40 snap-center h-full">` + createProductCard(p, 'vertical') + `</div>`
                 ).join('');
             } else {
                 recContainer.innerHTML = '<div class="text-xs text-gray-400 w-full text-center py-4 flex flex-col justify-center h-full">Belum ada data di wilayah ini.</div>';
@@ -1121,29 +1096,20 @@
         }
 
         function renderProductGrid(products, container) {
-            if(!products || products.length === 0) { 
-                container.innerHTML = '<div class="col-span-2 text-center text-gray-400 text-sm py-10">Tidak ada produk ditemukan.</div>'; 
-                return; 
-            }
+            if(!products || products.length === 0) { container.innerHTML = '<div class="col-span-2 text-center text-gray-400 text-sm py-10">Tidak ada produk ditemukan.</div>'; return; }
             container.innerHTML = products.map(item => createProductCard(item, 'vertical')).join('');
         }
 
         function addToCartDirect(e, item) {
             e.stopPropagation(); 
-            if (typeof item === 'string') {
-                try { item = JSON.parse(decodeURIComponent(item)); } catch(err) { console.error(err); return; }
-            }
-
-            if (item.Variants && item.Variants.trim() !== "") {
-                openProductDetail(item);
-            } else {
+            if (typeof item === 'string') { try { item = JSON.parse(decodeURIComponent(item)); } catch(err) { console.error(err); return; } }
+            if (item.Variants && item.Variants.trim() !== "") { openProductDetail(item); } 
+            else {
                 const cartId = item.ID;
                 const existing = cart.find(c => c.cartId === cartId);
                 if (existing) { existing.qty += 1; } 
                 else { cart.push({ ...item, cartId: cartId, variant: '', qty: 1 }); }
-                
                 updateCartBadge();
-                
                 const toast = document.createElement('div');
                 toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs font-bold py-2 px-4 rounded-full shadow-lg z-[100] animate-bounce flex items-center gap-2 backdrop-blur';
                 toast.innerHTML = `<i class="fas fa-check text-green-400"></i> ${item.Name} +1`;
@@ -1167,9 +1133,19 @@
             
             const opacityClass = isHabis ? "opacity-60 grayscale cursor-not-allowed" : "cursor-pointer active:scale-[0.98]";
             const overlay = isHabis ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center text-xs text-white font-bold rounded-xl z-20">HABIS</div>' : '';
-            const isHemat = originalPriceVal > priceVal;
-            const hematLabel = isHemat ? `<div class="absolute top-2 left-2 bg-red-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-md z-10 shadow-sm border border-white">Hemat</div>` : '';
             
+            // Hemat Logic
+            const isHemat = originalPriceVal > priceVal;
+            const saving = originalPriceVal - priceVal;
+            // Tampilkan nominal hemat (misal: Hemat 5rb)
+            const hematLabel = isHemat ? `<div class="absolute top-2 left-2 bg-red-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-md z-10 shadow-sm border border-white">Hemat ${formatRupiahShort(saving)}</div>` : '';
+            
+            // Favorite Button Logic
+            const isFav = favorites.has(String(item.ID));
+            const favIconClass = isFav ? 'fas fa-heart text-red-500' : 'far fa-heart text-white';
+            // Tombol love di pojok kiri bawah gambar
+            const favBtn = isHabis ? '' : `<button onclick="toggleFavorite(event, '${item.ID}')" class="absolute bottom-2 left-2 z-20 w-7 h-7 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center active:scale-90 transition hover:bg-black/50"><i class="${favIconClass} text-xs"></i></button>`;
+
             const addButton = isHabis ? '' : `
                 <button onclick="addToCartDirect(event, '${itemString}')" class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 shadow-sm hover:bg-orange-200 active:scale-90 transition shrink-0">
                     <i class="fas fa-plus text-xs"></i>
@@ -1182,6 +1158,7 @@
                     <div class="w-32 h-32 bg-gray-100 rounded-xl overflow-hidden shrink-0 relative">
                         <img src="${imgUrl}" class="w-full h-full object-cover" loading="lazy" decoding="async">
                         ${overlay} ${hematLabel}
+                        ${favBtn}
                     </div>
                     <div class="flex-1 flex flex-col justify-between min-w-0 py-1">
                         <div>
@@ -1190,7 +1167,7 @@
                                 <span class="text-[10px] text-gray-600 truncate font-bold">${item.Vendor_Name}</span>
                             </div>
                             <h4 class="font-bold text-gray-800 text-sm leading-tight line-clamp-2">${item.Name}</h4>
-                            <p class="text-[10px] text-gray-500 line-clamp-1 mt-1">${item.Description || 'Menu spesial.'}</p>
+                            <p class="text-[10px] text-gray-500 line-clamp-2 mt-1 leading-tight">${item.Description || 'Menu spesial.'}</p>
                         </div>
                         <div class="flex items-end justify-between mt-2">
                             <div class="flex flex-col items-start leading-none">
@@ -1202,13 +1179,14 @@
                     </div>
                 </div>`;
             } else {
-                // VERTIKAL GRID STYLE
+                // VERTIKAL GRID STYLE (Paling Laris)
                 return `
                 <div class="product-card w-full bg-white p-2.5 pb-3 rounded-2xl shadow-sm border border-gray-100 flex flex-col ${opacityClass} relative h-full overflow-hidden" ${clickAction}>
                     <div class="w-full h-44 bg-gray-100 rounded-xl overflow-hidden mb-2 relative">
                         <img src="${imgUrl}" class="w-full h-full object-cover" loading="lazy" decoding="async">
                         ${overlay} ${hematLabel}
-                        ${!isHabis ? `<div class="absolute bottom-2 left-2 bg-white/90 px-1.5 rounded text-[9px] font-bold shadow-sm z-10"><i class="fas fa-star text-yellow-500 text-[8px]"></i> ${item.Rating || '4.8'}</div>` : ''}
+                        ${favBtn}
+                        ${!isHabis ? `<div class="absolute bottom-2 right-2 bg-white/90 px-1.5 rounded text-[9px] font-bold shadow-sm z-10"><i class="fas fa-star text-yellow-500 text-[8px]"></i> ${item.Rating || '4.8'}</div>` : ''}
                     </div>
                     
                     <div class="flex items-center gap-1 mb-1 w-full">
@@ -1216,10 +1194,12 @@
                         <span class="text-[9px] text-gray-600 font-bold truncate max-w-[100px]">${item.Vendor_Name}</span>
                     </div>
                     
-                    <h4 class="font-bold text-gray-800 text-sm leading-tight line-clamp-2 mb-1 h-9">${item.Name}</h4>
+                    <h4 class="font-bold text-gray-800 text-sm leading-tight line-clamp-2 mb-0.5 h-9">${item.Name}</h4>
                     
-                    <!-- Area Harga dan Tombol (PERBAIKAN: sejajar dengan items-center dan justify-between) -->
-                    <div class="mt-auto pt-3 flex justify-between items-center border-t border-gray-50">
+                    <!-- Deskripsi tambahan di kartu vertikal -->
+                    <p class="text-[9px] text-gray-400 line-clamp-2 mt-0.5 mb-2 h-6 leading-tight">${item.Description || ''}</p>
+                    
+                    <div class="mt-auto pt-2 flex justify-between items-center border-t border-gray-50">
                         <div class="flex flex-col items-start leading-none">
                             ${isHemat ? `<span class="text-[9px] text-gray-400 line-through mb-0.5">Rp${oriPrice}</span>` : ''}
                             <span class="text-orange-600 font-black text-[13px] whitespace-nowrap">Rp${price}</span>
@@ -1230,58 +1210,107 @@
             }
         }
 
-        function renderVendorList(vendors) {
+        // --- FUNGSI BARU: Render "Warung Sekitar" sebagai Feed Produk (Kartu Besar) ---
+        function renderNearbyBigCards(vendors, products) {
             const container = document.getElementById('vendor-list');
             if (!userRegionPref) userRegionPref = 'Gombong';
             
-            const filteredVendors = vendors.filter(v => {
+            // 1. Filter Vendor based on Region
+            const applicableVendors = vendors.filter(v => {
                 const region = (v.Region || v.City || v.Alamat || v.Address || '').toLowerCase();
                 const pref = userRegionPref.toLowerCase();
-                if (pref.includes('gombong')) { return region.includes('gombong'); } 
-                else if (pref.includes('kebumen')) { return region.includes('kebumen'); }
-                return true;
+                if (pref.includes('gombong')) return region.includes('gombong');
+                if (pref.includes('kebumen')) return region.includes('kebumen');
+                return true; 
             });
 
-            if(!filteredVendors || filteredVendors.length === 0) {
+            if(!applicableVendors || applicableVendors.length === 0) {
                 container.innerHTML = `<div class="text-center text-gray-400 text-xs py-8">Belum ada warung di ${userRegionPref}.</div>`;
                 return;
             }
-            const sorted = filteredVendors.sort((a, b) => (a.Status === 'Buka' ? -1 : 1));
 
-            container.innerHTML = sorted.map(v => {
-                const time = Math.floor(Math.random() * (25 - 10) + 10);
-                const isPromo = Math.random() > 0.5;
-                const imgUrl = convertDriveImage(v.Image_URL);
+            // 2. Render Vendor Cards
+            container.innerHTML = applicableVendors.map(vendor => {
+                // Get products for this vendor to calculate price range
+                const vProducts = products.filter(p => p.Vendor_Name === vendor.Vendor_Name);
+                
+                let priceRangeDisplay = "Harga belum tersedia";
+                let isPromo = false;
+                let lowestItem = null;
+
+                if (vProducts.length > 0) {
+                    // Sort by Price to find cheapest
+                    vProducts.sort((a, b) => parseFloat(a.Price) - parseFloat(b.Price));
+                    lowestItem = vProducts[0];
+                    const minPrice = parseFloat(lowestItem.Price);
+                    
+                    // Check for promo in the lowest item
+                    const lowestOri = parseFloat(lowestItem.Original_Price);
+                    if (!isNaN(lowestOri) && lowestOri > minPrice) {
+                        isPromo = true;
+                        // Format: Rp 10rb (Asli 15rb)
+                        priceRangeDisplay = `Mulai <span class="text-orange-600 font-bold">Rp${formatRupiahShort(minPrice)}</span> <span class="text-[10px] text-gray-400 line-through">Rp${formatRupiahShort(lowestOri)}</span>`;
+                    } else {
+                         priceRangeDisplay = `Mulai <span class="text-orange-600 font-bold">Rp${formatRupiahShort(minPrice)}</span>`;
+                    }
+                }
+
+                const vendorImg = convertDriveImage(vendor.Image_URL);
+                const rating = vendor.Rating || '4.8';
+                // Randomize mock data for demo
+                const distance = (Math.random() * (4.5 - 0.5) + 0.5).toFixed(1); // 0.5 - 5.0 km
+                const time = Math.floor(Math.random() * (45 - 15) + 15); // 15 - 45 min
 
                 return `
-                <div onclick="openVendor('${v.ID}')" class="product-card bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-3 cursor-pointer active:scale-[0.99] ${v.Status === 'Tutup' ? 'grayscale opacity-60' : ''}">
-                    <div class="w-24 h-24 rounded-2xl bg-gray-100 overflow-hidden border border-gray-200 shrink-0 relative">
-                        <img src="${imgUrl}" class="w-full h-full object-cover" loading="lazy" decoding="async">
-                        ${isPromo && v.Status === 'Buka' ? '<div class="absolute bottom-0 left-0 right-0 bg-red-600 text-white text-[8px] font-bold text-center py-0.5">DISKON 20%</div>' : ''}
+                <div class="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden mb-6 cursor-pointer active:scale-[0.99] transition group" onclick="openVendor('${vendor.ID}')">
+                    <!-- Image Header -->
+                    <div class="relative w-full h-48 bg-gray-200">
+                        <img src="${vendorImg}" class="w-full h-full object-cover transition duration-500 group-hover:scale-110" loading="lazy">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                        
+                        <!-- Rating Badge -->
+                        <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
+                            <i class="fas fa-star text-yellow-400 text-xs"></i>
+                            <span class="text-xs font-bold text-gray-800">${rating}</span>
+                        </div>
+
+                        <!-- Promo Badge if applicable -->
+                        ${isPromo ? `<div class="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm animate-pulse">Hemat Harga Asli</div>` : ''}
+
+                        <div class="absolute bottom-3 left-3 right-3 text-white">
+                            <h3 class="font-black text-xl leading-tight mb-1 shadow-black drop-shadow-md">${vendor.Vendor_Name}</h3>
+                            <p class="text-[10px] opacity-90 font-medium">${vendor.Type || 'Aneka Kuliner'}</p>
+                        </div>
                     </div>
-                    <div class="flex-1 min-w-0 py-1">
-                        <div class="flex justify-between items-start mb-1">
-                            <h4 class="font-bold text-gray-800 text-sm truncate pr-2">${v.Vendor_Name}</h4>
-                            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${v.Status === 'Buka' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-500'}">${v.Status}</span>
-                        </div>
-                        <div class="flex items-center gap-1 mb-2">
-                             <span class="bg-blue-50 text-blue-600 text-[9px] font-bold px-2 py-0.5 rounded-full border border-blue-100 flex items-center gap-1"><i class="fas fa-shield-alt text-[8px]"></i> Super Partner</span>
-                        </div>
-                        <p class="text-[10px] text-gray-500 line-clamp-1 mb-2">${v.Type || 'Aneka Makanan'} • Indonesia</p>
-                        <div class="flex items-center gap-3 border-t border-gray-50 pt-2 mt-auto">
-                            <div class="flex items-center gap-1">
-                                <i class="fas fa-star text-yellow-400 text-[10px]"></i>
-                                <span class="text-[10px] font-bold text-gray-700">${v.Rating || '4.8'}</span>
+
+                    <!-- Content Body -->
+                    <div class="p-4">
+                        <div class="flex items-center justify-between text-gray-600 text-xs font-medium mb-3">
+                            <div class="flex items-center gap-4">
+                                <div class="flex items-center gap-1.5">
+                                    <i class="fas fa-clock text-orange-500"></i>
+                                    <span>${time} mnt</span>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                    <i class="fas fa-map-marker-alt text-orange-500"></i>
+                                    <span>${distance} km</span>
+                                </div>
                             </div>
-                            <div class="w-[1px] h-3 bg-gray-200"></div>
-                            <div class="flex items-center gap-1">
-                                <i class="fas fa-clock text-gray-400 text-[10px]"></i>
-                                <span class="text-[10px] text-gray-500 font-medium">${time} mnt</span>
-                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 flex items-center justify-between">
+                             <div class="flex flex-col">
+                                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Harga Makanan</span>
+                                <div class="text-sm text-gray-800">${priceRangeDisplay}</div>
+                             </div>
+                             <div class="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 group-hover:bg-orange-600 group-hover:text-white group-hover:border-orange-600 transition">
+                                <i class="fas fa-arrow-right text-xs"></i>
+                             </div>
                         </div>
                     </div>
                 </div>
-            `}).join('');
+                `;
+            }).join('');
         }
 
         function openVendor(vendorId) {
@@ -1625,37 +1654,36 @@
 
             const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
             
-            // --- PERBAIKAN UNTUK MOBILE ---
-            // Menggunakan elemen <a> tersembunyi untuk memicu pembukaan link
-            // Ini lebih andal daripada window.open di beberapa browser mobile
-            const link = document.createElement('a');
-            link.href = waUrl;
-            link.target = '_blank';
-            link.rel = 'noopener noreferrer';
-            document.body.appendChild(link);
-            link.click();
-            setTimeout(() => document.body.removeChild(link), 100);
+            // --- FIX FOR MOBILE REDIRECT ---
+            // Deteksi apakah user menggunakan mobile atau desktop
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-            // Jeda waktu sebelum menghapus keranjang agar WA terbuka dulu
-            setTimeout(() => {
-                const newOrder = {
-                    id: `ORD-${Date.now()}`,
-                    date: new Date().toLocaleDateString('id-ID'),
-                    total: grandTotal,
-                    status: 'Terkirim ke Admin',
-                    items: cart.length,
-                    itemsDetail: orderItemsDetail 
-                };
-                orderHistory.unshift(newOrder);
-                safeStorage.setItem('pg_orders', JSON.stringify(orderHistory));
-                cart = []; 
-                updateCartBadge();
-                renderCartPage();
-                renderOrderHistory();
-                
-                // Pindah ke halaman riwayat agar user melihat status pesanannya
-                navTo('orders-page');
-            }, 2000); 
+            // Simpan Order History & Kosongkan Keranjang DULUAN
+            // (Agar data tersimpan meskipun redirect browser menghentikan eksekusi script selanjutnya)
+            const newOrder = {
+                id: `ORD-${Date.now()}`,
+                date: new Date().toLocaleDateString('id-ID'),
+                total: grandTotal,
+                status: 'Menunggu Konfirmasi WA',
+                items: cart.length,
+                itemsDetail: orderItemsDetail 
+            };
+            orderHistory.unshift(newOrder);
+            safeStorage.setItem('pg_orders', JSON.stringify(orderHistory));
+            
+            cart = []; 
+            updateCartBadge();
+            renderCartPage();
+            renderOrderHistory();
+
+            // Redirect ke WhatsApp
+            // window.location.href lebih kuat di Mobile untuk memicu "Deep Link" (membuka aplikasi WA)
+            // window.open lebih baik di Desktop (tab baru)
+            if (isMobile) {
+                window.location.href = waUrl;
+            } else {
+                window.open(waUrl, '_blank');
+            }
         }
 
         function updatePointsUI() {
@@ -1837,8 +1865,6 @@
             setTimeout(() => { 
                 const applicableProducts = getAppplicableProducts();
                 let filteredProducts;
-
-                // Filter Logic (sama seperti sebelumnya)
                 if (catId === 'all') {
                     filteredProducts = applicableProducts;
                 } else {
@@ -1852,36 +1878,29 @@
                         return String(pCat).trim().toLowerCase() === String(catId).trim().toLowerCase();
                     });
                 }
-
                 if (filteredProducts.length === 0) { 
                     container.innerHTML = `<div class="col-span-2 text-center text-gray-400 mt-10 px-4"><i class="far fa-folder-open text-4xl mb-2 text-gray-300"></i><p class="font-bold text-gray-600">Tidak ada produk ditemukan di ${userRegionPref}.</p></div>`; 
                     return; 
                 } 
 
-                // --- LOGIKA BARU: Grouping by Vendor ---
                 const vendorMap = {};
                 filteredProducts.forEach(product => {
-                    if (!vendorMap[product.Vendor_Name]) {
-                        vendorMap[product.Vendor_Name] = [];
-                    }
+                    if (!vendorMap[product.Vendor_Name]) { vendorMap[product.Vendor_Name] = []; }
                     vendorMap[product.Vendor_Name].push(product);
                 });
 
                 let html = '';
                 for (const [vName, items] of Object.entries(vendorMap)) {
-                    // Cari info vendor lengkap untuk gambar & rating
                     const vInfo = vendorsData.find(v => v.Vendor_Name === vName);
                     const vImage = vInfo ? convertDriveImage(vInfo.Image_URL) : 'https://placehold.co/100?text=Warung';
                     const vRating = vInfo ? vInfo.Rating : '4.8';
                     const vId = vInfo ? vInfo.ID : '';
 
-                    // Generate Product Mini Cards
                     const productsHtml = items.map(item => {
                         const priceVal = parseFloat(item.Price);
                         const price = new Intl.NumberFormat('id-ID').format(priceVal);
                         const imgUrl = convertDriveImage(item.Image_URL);
                         const itemString = encodeURIComponent(JSON.stringify(item));
-
                         return `
                         <div class="min-w-[120px] w-32 snap-center flex flex-col bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm" onclick='openProductDetail(JSON.parse(decodeURIComponent("${itemString}")))' style="flex-shrink: 0;">
                             <div class="h-24 w-full bg-gray-100 relative">
@@ -1922,11 +1941,8 @@
                     </div>
                     `;
                 }
-
-                // Hapus class grid lama jika ada, ganti dengan vertical stack
                 container.className = "space-y-2 pb-24 optimized-list";
                 container.innerHTML = html;
-
             }, 300); 
         }
 
