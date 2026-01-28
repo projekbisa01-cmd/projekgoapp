@@ -331,7 +331,7 @@
                     <textarea id="review-text" rows="4" class="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 text-sm focus:outline-none focus:border-orange-500 resize-none font-medium" placeholder="Rasanya enak, porsi banyak..."></textarea>
                 </div>
 
-                <button onclick="submitReview()" class="w-full bg-orange-600 text-white font-bold py-3.5 rounded-2xl shadow-lg mt-auto active:scale-[0.98] transition">
+                <button onclick="submitReview()" id="btn-submit-review" class="w-full bg-orange-600 text-white font-bold py-3.5 rounded-2xl shadow-lg mt-auto active:scale-[0.98] transition flex justify-center items-center gap-2">
                     <span id="submit-review-btn-text">Kirim Ulasan</span>
                 </button>
             </div>
@@ -805,6 +805,7 @@
 
         let productsData = [];
         let vendorsData = [];
+        let globalReviews = []; // Store fetched reviews here
         let userRegionPref = safeStorage.getItem('pg_region_pref') || null;
         
         let favorites = new Set();
@@ -954,20 +955,22 @@
             if(refreshBtn) refreshBtn.classList.add('fa-spin');
 
             const now = Date.now();
-            let cachedCats = null, cachedProds = null, cachedVends = null;
+            let cachedCats = null, cachedProds = null, cachedVends = null, cachedReviews = null;
             try {
                 cachedCats = JSON.parse(safeStorage.getItem('pg_cache_cats'));
                 cachedProds = JSON.parse(safeStorage.getItem('pg_cache_prods'));
                 cachedVends = JSON.parse(safeStorage.getItem('pg_cache_vends'));
+                cachedReviews = JSON.parse(safeStorage.getItem('pg_cache_reviews'));
             } catch(e) {}
             
-            let isCacheValid = cachedCats && cachedProds && cachedVends && (now - cachedCats.timestamp < CACHE_DURATION);
+            let isCacheValid = cachedCats && cachedProds && cachedVends && cachedReviews && (now - cachedCats.timestamp < CACHE_DURATION);
 
             if (isCacheValid && !forceRefresh) {
                 console.log("Using Cached Data");
                 renderCategories(cachedCats.data);
                 vendorsData = cachedVends.data;
                 productsData = cachedProds.data;
+                globalReviews = cachedReviews.data;
                 renderProductLists();
                 renderNearbyBigCards(vendorsData, productsData);
                 if(refreshBtn) refreshBtn.classList.remove('fa-spin');
@@ -987,7 +990,6 @@
                     });
                 };
 
-                // UPDATED TIMEOUT: Increased from 10000ms (10s) to 25000ms (25s) to prevent timeout errors on slow connections
                 const vendRes = await timeout(25000, fetch(`${API_URL}?action=getVendors`));
                 const vendJson = await vendRes.json();
                 if(vendJson.status === 'success') {
@@ -1011,6 +1013,14 @@
                         renderProductLists();
                         renderNearbyBigCards(vendorsData, productsData);
                     }
+                }
+
+                // --- FETCH REVIEWS FROM API ---
+                const revRes = await timeout(25000, fetch(`${API_URL}?action=getReviews`));
+                const revJson = await revRes.json();
+                if(revJson.status === 'success') {
+                    globalReviews = revJson.data;
+                    safeStorage.setItem('pg_cache_reviews', JSON.stringify({timestamp: Date.now(), data: globalReviews}));
                 }
 
             } catch (error) {
@@ -1134,16 +1144,12 @@
             const opacityClass = isHabis ? "opacity-60 grayscale cursor-not-allowed" : "cursor-pointer active:scale-[0.98]";
             const overlay = isHabis ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center text-xs text-white font-bold rounded-xl z-20">HABIS</div>' : '';
             
-            // Hemat Logic
             const isHemat = originalPriceVal > priceVal;
             const saving = originalPriceVal - priceVal;
-            // Tampilkan nominal hemat (misal: Hemat 5rb)
             const hematLabel = isHemat ? `<div class="absolute top-2 left-2 bg-red-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-md z-10 shadow-sm border border-white">Hemat ${formatRupiahShort(saving)}</div>` : '';
             
-            // Favorite Button Logic
             const isFav = favorites.has(String(item.ID));
             const favIconClass = isFav ? 'fas fa-heart text-red-500' : 'far fa-heart text-white';
-            // Tombol love di pojok kiri bawah gambar
             const favBtn = isHabis ? '' : `<button onclick="toggleFavorite(event, '${item.ID}')" class="absolute bottom-2 left-2 z-20 w-7 h-7 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center active:scale-90 transition hover:bg-black/50"><i class="${favIconClass} text-xs"></i></button>`;
 
             const addButton = isHabis ? '' : `
@@ -1179,7 +1185,6 @@
                     </div>
                 </div>`;
             } else {
-                // VERTIKAL GRID STYLE (Paling Laris)
                 return `
                 <div class="product-card w-full bg-white p-2.5 pb-3 rounded-2xl shadow-sm border border-gray-100 flex flex-col ${opacityClass} relative h-full overflow-hidden" ${clickAction}>
                     <div class="w-full h-44 bg-gray-100 rounded-xl overflow-hidden mb-2 relative">
@@ -1195,8 +1200,6 @@
                     </div>
                     
                     <h4 class="font-bold text-gray-800 text-sm leading-tight line-clamp-2 mb-0.5 h-9">${item.Name}</h4>
-                    
-                    <!-- Deskripsi tambahan di kartu vertikal -->
                     <p class="text-[9px] text-gray-400 line-clamp-2 mt-0.5 mb-2 h-6 leading-tight">${item.Description || ''}</p>
                     
                     <div class="mt-auto pt-2 flex justify-between items-center border-t border-gray-50">
@@ -1215,7 +1218,6 @@
             const container = document.getElementById('vendor-list');
             if (!userRegionPref) userRegionPref = 'Gombong';
             
-            // 1. Filter Vendor based on Region
             const applicableVendors = vendors.filter(v => {
                 const region = (v.Region || v.City || v.Alamat || v.Address || '').toLowerCase();
                 const pref = userRegionPref.toLowerCase();
@@ -1229,9 +1231,7 @@
                 return;
             }
 
-            // 2. Render Vendor Cards
             container.innerHTML = applicableVendors.map(vendor => {
-                // Get products for this vendor to calculate price range
                 const vProducts = products.filter(p => p.Vendor_Name === vendor.Vendor_Name);
                 
                 let priceRangeDisplay = "Harga belum tersedia";
@@ -1239,16 +1239,12 @@
                 let lowestItem = null;
 
                 if (vProducts.length > 0) {
-                    // Sort by Price to find cheapest
                     vProducts.sort((a, b) => parseFloat(a.Price) - parseFloat(b.Price));
                     lowestItem = vProducts[0];
                     const minPrice = parseFloat(lowestItem.Price);
-                    
-                    // Check for promo in the lowest item
                     const lowestOri = parseFloat(lowestItem.Original_Price);
                     if (!isNaN(lowestOri) && lowestOri > minPrice) {
                         isPromo = true;
-                        // Format: Rp 10rb (Asli 15rb)
                         priceRangeDisplay = `Mulai <span class="text-orange-600 font-bold">Rp${formatRupiahShort(minPrice)}</span> <span class="text-[10px] text-gray-400 line-through">Rp${formatRupiahShort(lowestOri)}</span>`;
                     } else {
                          priceRangeDisplay = `Mulai <span class="text-orange-600 font-bold">Rp${formatRupiahShort(minPrice)}</span>`;
@@ -1257,9 +1253,8 @@
 
                 const vendorImg = convertDriveImage(vendor.Image_URL);
                 const rating = vendor.Rating || '4.8';
-                // Randomize mock data for demo
-                const distance = (Math.random() * (4.5 - 0.5) + 0.5).toFixed(1); // 0.5 - 5.0 km
-                const time = Math.floor(Math.random() * (45 - 15) + 15); // 15 - 45 min
+                const distance = (Math.random() * (4.5 - 0.5) + 0.5).toFixed(1); 
+                const time = Math.floor(Math.random() * (45 - 15) + 15); 
 
                 return `
                 <div class="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden mb-6 cursor-pointer active:scale-[0.99] transition group" onclick="openVendor('${vendor.ID}')">
@@ -1274,7 +1269,6 @@
                             <span class="text-xs font-bold text-gray-800">${rating}</span>
                         </div>
 
-                        <!-- Promo Badge if applicable -->
                         ${isPromo ? `<div class="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm animate-pulse">Hemat Harga Asli</div>` : ''}
 
                         <div class="absolute bottom-3 left-3 right-3 text-white">
@@ -1331,7 +1325,95 @@
             
             const container = document.getElementById('vendor-menu-container');
             const vendorProducts = productsData.filter(p => p.Vendor_Name === vendor.Vendor_Name);
-            renderProductGrid(vendorProducts, container);
+            
+            // --- LOGIC BARU: SISIPKAN ULASAN (KATA PELANGGAN) DARI DATA REAL API ---
+            
+            // 1. Filter ulasan dari Global Review berdasarkan Vendor ID
+            const myVendorReviews = globalReviews.filter(r => String(r.Vendor_ID) === String(vendorId));
+            
+            // 2. Buat HTML untuk produk awal (2 produk pertama)
+            const firstBatch = vendorProducts.slice(0, 2);
+            const remainingBatch = vendorProducts.slice(2);
+            
+            let htmlContent = '';
+            
+            if(firstBatch.length > 0) {
+                htmlContent += firstBatch.map(item => createProductCard(item, 'vertical')).join('');
+            }
+
+            // 3. Render Bagian "Kata Pelanggan" (Jika ada ulasan REAL)
+            if(myVendorReviews.length > 0) {
+                // Urutkan review terbaru (asumsi backend mengirim berurutan atau kita balik)
+                const reviewsToShow = myVendorReviews.reverse().slice(0, 5); // Tampilkan maks 5 terbaru
+
+                const reviewsHtml = reviewsToShow.map(r => {
+                    // Cek jika ada nama menu di komentar (format: (Menu: ...) text)
+                    let displayComment = r.Comment;
+                    let displayMenu = "";
+                    if(r.Comment && r.Comment.includes('(Menu:')) {
+                         const split = r.Comment.split(')');
+                         displayMenu = split[0].replace('(Menu:', '').trim();
+                         displayComment = split.slice(1).join(')').trim();
+                    }
+
+                    return `
+                    <div class="min-w-[240px] bg-white p-3 rounded-2xl border border-gray-100 shadow-sm snap-center flex flex-col justify-between h-full relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-2 opacity-10"><i class="fas fa-quote-right text-4xl text-orange-500"></i></div>
+                        <div>
+                            <div class="flex justify-between items-start mb-2 relative z-10">
+                                <div class="flex items-center gap-2">
+                                     <div class="w-8 h-8 rounded-full bg-gray-200 overflow-hidden border border-white shadow-sm">
+                                        <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(r.Customer_Name)}&background=random" class="w-full h-full">
+                                     </div>
+                                     <div>
+                                         <p class="text-xs font-bold text-gray-800 line-clamp-1">${r.Customer_Name}</p>
+                                         <div class="flex text-yellow-400 text-[9px]">
+                                            ${[...Array(5)].map((_, i) => i < r.Rating ? '<i class="fas fa-star"></i>' : '<i class="far fa-star text-gray-300"></i>').join('')}
+                                         </div>
+                                     </div>
+                                </div>
+                                <span class="text-[9px] text-gray-400 font-medium">${r.Date ? r.Date.split('T')[0] : ''}</span>
+                            </div>
+                            <p class="text-xs text-gray-600 italic leading-snug relative z-10 line-clamp-3">"${displayComment}"</p>
+                        </div>
+                        ${displayMenu ? `
+                        <div class="mt-3 pt-2 border-t border-gray-50 flex items-center gap-1">
+                            <i class="fas fa-utensils text-[9px] text-orange-400"></i>
+                            <p class="text-[9px] text-gray-500 font-medium truncate">Pesan: <span class="text-gray-700">${displayMenu}</span></p>
+                        </div>` : ''}
+                    </div>
+                `}).join('');
+
+                htmlContent += `
+                    <div class="col-span-2 py-4 -mx-2 bg-gradient-to-r from-orange-50/50 to-white my-2 px-2">
+                        <div class="flex items-center gap-2 mb-3 px-2">
+                            <h3 class="font-bold text-gray-800 text-sm">Kata Pelanggan</h3>
+                            <span class="bg-orange-100 text-orange-600 text-[9px] font-bold px-1.5 py-0.5 rounded-md">${myVendorReviews.length} Ulasan</span>
+                        </div>
+                        <div class="flex gap-3 overflow-x-auto hide-scrollbar snap-x pb-2 px-2" style="scroll-padding-left: 1rem;">
+                            ${reviewsHtml}
+                        </div>
+                    </div>
+                `;
+            } else {
+                 // Placeholder jika belum ada review
+                 htmlContent += `
+                    <div class="col-span-2 py-3 px-4 bg-gray-50 rounded-xl my-2 border border-gray-100 border-dashed text-center">
+                        <p class="text-[10px] text-gray-400 italic">Belum ada ulasan untuk warung ini.</p>
+                    </div>
+                `;
+            }
+
+            // 4. Render sisa produk
+            if(remainingBatch.length > 0) {
+                htmlContent += remainingBatch.map(item => createProductCard(item, 'vertical')).join('');
+            }
+            
+            if(vendorProducts.length === 0) {
+                htmlContent = '<div class="col-span-2 text-center text-gray-400 text-sm py-10">Belum ada menu di warung ini.</div>';
+            }
+
+            container.innerHTML = htmlContent;
             
             navTo('vendor-page');
             const page = document.getElementById('vendor-page');
@@ -1379,7 +1461,11 @@
                 variantContainer.innerHTML = '';
             }
 
+            // Tampilkan reviews lokal hanya untuk detail produk (atau bisa ganti fetch global jika mau)
             renderReviews(item.ID);
+            
+            // RESET SCROLL HALAMAN DETAIL
+            document.getElementById('product-detail-page').querySelector('.scrolling-wrapper').scrollTop = 0;
             navTo('product-detail-page');
         }
 
@@ -1410,6 +1496,8 @@
         }
 
         function renderReviews(itemId) {
+            // Untuk detail produk, sementara masih pakai local storage review (per item)
+            // Bisa diupgrade nanti untuk filter globalReviews by product ID jika backend support
             const list = document.getElementById('detail-reviews-list');
             const reviews = productReviews[itemId] || [];
             
@@ -1446,19 +1534,13 @@
         function openReviewFormFromHistory(itemId, itemName) {
             document.getElementById('review-item-name').innerText = itemName;
             document.getElementById('review-item-id').value = itemId;
-            const existingReviews = productReviews[itemId] || [];
-            const myReview = existingReviews.find(r => r.user === userProfile.name);
-            if (myReview) {
-                document.getElementById('review-text').value = myReview.text;
-                setRating(myReview.rating);
-                document.getElementById('submit-review-btn-text').innerText = "Simpan Perubahan";
-                document.getElementById('review-modal-title').innerText = "Edit Ulasanmu";
-            } else {
-                document.getElementById('review-text').value = '';
-                setRating(0);
-                document.getElementById('submit-review-btn-text').innerText = "Kirim Ulasan";
-                document.getElementById('review-modal-title').innerText = "Bagaimana makanannya?";
-            }
+            
+            // Reset form
+            document.getElementById('review-text').value = '';
+            setRating(0);
+            document.getElementById('submit-review-btn-text').innerText = "Kirim Ulasan";
+            document.getElementById('review-modal-title').innerText = "Bagaimana makanannya?";
+            
             document.getElementById('write-review-modal').classList.remove('hidden');
             setTimeout(() => document.getElementById('write-review-content').classList.remove('translate-y-full'), 10);
         }
@@ -1481,19 +1563,65 @@
             const itemId = document.getElementById('review-item-id').value;
             const rating = document.getElementById('review-rating-value').value;
             const text = document.getElementById('review-text').value;
+            const itemName = document.getElementById('review-item-name').innerText;
 
             if(!itemId) return; 
             if(rating == 0) { alert("Mohon berikan bintang!"); return; }
             if(!text) { alert("Mohon isi ulasanmu!"); return; }
 
-            if(!productReviews[itemId]) productReviews[itemId] = [];
-            const existingIndex = productReviews[itemId].findIndex(r => r.user === userProfile.name);
-            const reviewData = { user: userProfile.name, rating: rating, text: text, date: new Date().toLocaleDateString('id-ID') };
-            if (existingIndex > -1) { productReviews[itemId][existingIndex] = reviewData; alert("Ulasan berhasil diperbarui!"); } 
-            else { productReviews[itemId].unshift(reviewData); if (productReviews[itemId].length > 50) productReviews[itemId].pop(); alert("Terima kasih atas ulasanmu!"); }
-            safeStorage.setItem('pg_reviews', JSON.stringify(productReviews));
-            renderOrderHistory(); 
-            closeReviewForm();
+            // 1. Cari Vendor ID dari item ID
+            let vendorId = '';
+            const prod = productsData.find(p => String(p.ID) === String(itemId));
+            if(prod) {
+                const vendor = vendorsData.find(v => v.Vendor_Name === prod.Vendor_Name);
+                if(vendor) vendorId = vendor.ID;
+            }
+
+            // 2. Format Komentar (Sisipkan Nama Menu agar bisa diparsing nanti)
+            const formattedComment = `(Menu: ${itemName}) ${text}`;
+
+            // 3. UI Loading state
+            const btn = document.getElementById('btn-submit-review');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
+            btn.disabled = true;
+
+            // 4. Kirim ke API Google Sheet
+            const payload = {
+                action: 'addReview',
+                vendorId: vendorId, // Penting untuk filter di halaman profil penjual
+                customerName: userProfile.name,
+                rating: rating,
+                comment: formattedComment
+            };
+
+            fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                alert("Ulasan berhasil dikirim! Terima kasih.");
+                
+                // Simpan lokal juga agar UX instan (walaupun fetch ulang nanti menimpa)
+                if(!productReviews[itemId]) productReviews[itemId] = [];
+                productReviews[itemId].unshift({ user: userProfile.name, rating: rating, text: text, date: new Date().toLocaleDateString('id-ID') });
+                safeStorage.setItem('pg_reviews', JSON.stringify(productReviews));
+                
+                // Reset dan Tutup
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                closeReviewForm();
+                
+                // Refresh data background agar ulasan muncul di vendor page nanti
+                setTimeout(() => fetchData(true), 1000);
+            })
+            .catch(e => {
+                alert("Gagal mengirim ulasan. Cek koneksi internet.");
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
         }
 
         function updateCartBadge() {
@@ -1842,15 +1970,36 @@
         function selectAddress(detail) { document.getElementById('header-address-text').innerText = detail; closeAddressModal(); }
         function formatRupiah(number) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumSignificantDigits: 3 }).format(number); }
 
+        // --- FUNGSI NAVIGASI DENGAN SCROLL MEMORY ---
+        let pageScrollPositions = {};
+
         function navTo(pageId) {
+            // 1. Simpan posisi scroll halaman yang sedang aktif
+            const activePage = document.querySelector('.page-section:not(.hidden-page)');
+            if (activePage) {
+                const scroller = activePage.classList.contains('scrolling-wrapper') ? activePage : activePage.querySelector('.scrolling-wrapper');
+                if (scroller) {
+                    pageScrollPositions[activePage.id] = scroller.scrollTop;
+                }
+            }
+
+            // 2. Pindah Halaman
             document.querySelectorAll('.page-section').forEach(el => {
                 if(el.id !== pageId) { el.classList.add('hidden-page'); el.classList.remove('z-30'); }
             });
             const target = document.getElementById(pageId);
             if(target) {
                 target.classList.remove('hidden-page'); target.classList.add('z-30');
-                const scroller = target.querySelector('.scrolling-wrapper');
-                if (scroller) scroller.scrollTop = 0;
+                
+                // 3. Restore Posisi Scroll (Jika ada)
+                const scroller = target.classList.contains('scrolling-wrapper') ? target : target.querySelector('.scrolling-wrapper');
+                if (scroller) {
+                    if (pageScrollPositions[pageId] !== undefined) {
+                        scroller.scrollTop = pageScrollPositions[pageId];
+                    } else {
+                        scroller.scrollTop = 0; // Default ke atas jika belum pernah dibuka
+                    }
+                }
             }
 
             document.querySelectorAll('.nav-item').forEach(el => {
@@ -1865,7 +2014,7 @@
             else if(pageId === 'profile-page') activeNav = document.getElementById('nav-profile');
             if(activeNav) {
                 activeNav.classList.add('active');
-                activeNav.querySelector('i').classList.replace('text-orange-600', 'text-orange-600'); 
+                activeNav.querySelector('i').classList.replace('text-gray-400', 'text-orange-600'); 
                 activeNav.querySelector('span').classList.add('font-bold', 'text-orange-600');
             }
         }
@@ -1877,6 +2026,8 @@
         }
 
         function openExclusivePage() {
+            // Reset scroll untuk halaman baru
+            document.getElementById('exclusive-page').querySelector('.scrolling-wrapper').scrollTop = 0;
             navTo('exclusive-page');
             const container = document.getElementById('exclusive-content-container');
             container.innerHTML = '<div class="col-span-2 text-center py-10"><i class="fas fa-spinner fa-spin text-orange-500"></i> Memuat...</div>';
@@ -1889,6 +2040,8 @@
         }
 
         function openCategory(catId, catName) { 
+            // Reset scroll untuk halaman kategori baru
+            document.getElementById('category-page').querySelector('.scrolling-wrapper').scrollTop = 0;
             navTo('category-page'); 
             document.getElementById('cat-page-title').innerText = catName; 
             const container = document.getElementById('category-content-container'); 
