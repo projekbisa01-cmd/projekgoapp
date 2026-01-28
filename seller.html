@@ -95,21 +95,17 @@
                                 <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-orange-600"><i class="fas fa-utensils text-xs"></i></div>
                                 <h3 class="font-bold text-gray-800" id="form-title">Tambah Menu Baru</h3>
                             </div>
-                            <!-- Tombol Batal Edit (Hidden by default) -->
                             <button id="btn-cancel-edit" onclick="cancelEditMode()" class="hidden text-xs text-red-500 font-bold bg-red-50 px-3 py-1 rounded-full hover:bg-red-100">Batal Edit</button>
                         </div>
 
                         <form id="form-add-product" onsubmit="event.preventDefault(); submitProduct();" class="space-y-4">
-                            <!-- Hidden ID for Edit Mode -->
                             <input type="hidden" id="edit-prod-id" value="">
 
-                            <!-- Nama Menu -->
                             <div>
                                 <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 ml-1">Nama Makanan/Minuman</label>
                                 <input type="text" id="prod-name" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 font-medium" placeholder="Cth: Nasi Goreng Spesial">
                             </div>
 
-                            <!-- Kategori -->
                             <div>
                                 <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 ml-1">Kategori</label>
                                 <select id="prod-cat" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 font-medium text-gray-700">
@@ -123,13 +119,11 @@
                                 </select>
                             </div>
 
-                            <!-- Variasi -->
                             <div>
                                 <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 ml-1">Varian (Pisahkan dengan koma)</label>
                                 <input type="text" id="prod-variants" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 font-medium" placeholder="Cth: Pedas, Sedang, Tidak Pedas">
                             </div>
 
-                            <!-- Harga -->
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 ml-1">Harga Jual (Rp)</label>
@@ -141,13 +135,11 @@
                                 </div>
                             </div>
 
-                            <!-- Deskripsi -->
                             <div>
                                 <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 ml-1">Deskripsi Produk</label>
                                 <textarea id="prod-desc" rows="3" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 font-medium resize-none" placeholder="Jelaskan detail menu semenarik mungkin..."></textarea>
                             </div>
 
-                            <!-- Upload Gambar -->
                             <div>
                                 <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 ml-1">Foto Menu</label>
                                 
@@ -195,7 +187,6 @@
                     <div class="flex justify-between items-center mb-1 px-1">
                         <h3 class="font-bold text-gray-800 text-lg">Menu Terdaftar</h3>
                         <div class="flex items-center gap-2">
-                            <!-- Indikator Loading Background -->
                             <div id="bg-sync-indicator" class="hidden text-[10px] text-orange-600 font-bold items-center gap-1 bg-white px-2 py-1 rounded-full shadow-sm border border-orange-100">
                                 <i class="fas fa-circle-notch fa-spin"></i> Sync...
                             </div>
@@ -231,7 +222,6 @@
 
                     <!-- Toggle Controls -->
                     <div class="grid grid-cols-2 gap-4">
-                        <!-- Button Buka -->
                         <button onclick="updateStatus('Buka')" class="group relative overflow-hidden rounded-2xl bg-white p-4 shadow-sm border border-green-100 hover:border-green-300 hover:shadow-md transition-all active:scale-95 text-left">
                             <div class="absolute -right-2 -top-2 w-16 h-16 bg-green-50 rounded-full blur-xl opacity-50 group-hover:opacity-100 transition"></div>
                             <div class="relative z-10">
@@ -243,7 +233,6 @@
                             </div>
                         </button>
 
-                        <!-- Button Tutup -->
                         <button onclick="updateStatus('Tutup')" class="group relative overflow-hidden rounded-2xl bg-white p-4 shadow-sm border border-red-100 hover:border-red-300 hover:shadow-md transition-all active:scale-95 text-left">
                             <div class="absolute -right-2 -top-2 w-16 h-16 bg-red-50 rounded-full blur-xl opacity-50 group-hover:opacity-100 transition"></div>
                             <div class="relative z-10">
@@ -253,6 +242,27 @@
                                 <h3 class="font-bold text-gray-800 text-sm">Tutup Toko</h3>
                                 <span class="text-[10px] text-red-600 font-medium bg-red-50 px-2 py-0.5 rounded-full inline-block mt-1">Offline</span>
                             </div>
+                        </button>
+                    </div>
+
+                    <!-- FEEDBACK PELANGGAN -->
+                    <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-gray-100">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center text-blue-600">
+                                    <i class="fas fa-comments text-xs"></i>
+                                </div>
+                                <h3 class="font-bold text-gray-800">Kata Pelanggan</h3>
+                            </div>
+                        </div>
+
+                        <div class="text-center py-6 text-gray-400">
+                            <i class="fas fa-star text-4xl text-yellow-400 mb-2"></i>
+                            <p class="text-xs">Klik tombol di bawah untuk melihat semua ulasan pelanggan.</p>
+                        </div>
+                        
+                        <button onclick="openReviewsPage()" class="w-full mt-2 text-xs font-bold text-gray-600 bg-gray-50 py-3 rounded-xl hover:bg-gray-100 transition border border-gray-200 flex items-center justify-center gap-2">
+                            Lihat Semua Ulasan <i class="fas fa-arrow-right text-[10px]"></i>
                         </button>
                     </div>
                 </div>
@@ -284,7 +294,27 @@
             </nav>
         </div>
 
-        <!-- Loading Overlay (Hanya untuk Login/Submit Menu) -->
+        <!-- === HALAMAN FULL SCREEN REVIEW === -->
+        <div id="reviews-page-modal" class="absolute inset-0 z-40 bg-gray-50 flex flex-col translate-y-full transition-transform duration-300 ease-in-out">
+            <div class="bg-white p-5 shadow-sm border-b border-gray-100 flex items-center gap-3 rounded-b-3xl z-10">
+                <button onclick="closeReviewsPage()" class="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-100 active:scale-90 transition">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div>
+                    <h2 class="font-bold text-gray-800 text-lg">Semua Ulasan</h2>
+                    <p class="text-[10px] text-gray-400">Feedback Pelanggan</p>
+                </div>
+            </div>
+
+            <div id="reviews-list-container" class="flex-1 overflow-y-auto p-5 space-y-4 pb-20">
+                <div class="text-center py-10 text-gray-400">
+                    <i class="fas fa-circle-notch fa-spin text-2xl text-orange-500"></i>
+                    <p class="text-xs mt-2">Memuat semua ulasan...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
         <div id="loading-overlay" class="absolute inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex-col items-center justify-center text-white">
             <div class="w-12 h-12 border-4 border-white/30 border-t-orange-500 rounded-full loader mb-3"></div>
             <p class="font-bold text-sm tracking-wide" id="loading-text">Memproses...</p>
@@ -293,9 +323,7 @@
     </div>
 
     <script>
-        // =========================================================================
-        // URL API GOOGLE APPS SCRIPT (WEB APP)
-        // =========================================================================
+        // --- URL WEB APP (Updated) ---
         const API_URL = "https://script.google.com/macros/s/AKfycbw65jWYm1cmPsXPM22Hsi9LH0FrY2AiIPNHE-16uvhEaVsx-KrgZ8KWw0K0cpAVA5Sj/exec"; 
         
         let vendorData = {
@@ -304,11 +332,10 @@
         };
         let compressedImageBlob = null; 
         let activeInputMode = 'upload';
-        let isEditMode = false; // State untuk mode edit
+        let isEditMode = false;
 
         window.addEventListener('load', () => {
             if (vendorData.id && vendorData.name) {
-                // Render status terakhir yang tersimpan jika ada
                 const savedStatus = localStorage.getItem('pg_vendor_status');
                 if (savedStatus) renderStatusUI(savedStatus);
                 showDashboard();
@@ -331,8 +358,6 @@
                         vendorData.id = found.ID; vendorData.name = found.Vendor_Name;
                         localStorage.setItem('pg_vendor_id', found.ID); localStorage.setItem('pg_vendor_name', found.Vendor_Name);
                         
-                        // Simpan dan Render Status Toko dari Database
-                        // Cek field 'Status' atau 'Shop_Status' atau default 'Tutup'
                         const currentStatus = found.Status || found.Shop_Status || 'Tutup';
                         localStorage.setItem('pg_vendor_status', currentStatus);
                         renderStatusUI(currentStatus);
@@ -358,6 +383,81 @@
             switchTab('menu');
             fetchVendorProducts();
         }
+
+        // --- FEATURE: REVIEWS ---
+        function openReviewsPage() {
+            document.getElementById('reviews-page-modal').classList.remove('translate-y-full');
+            loadAllReviews();
+        }
+
+        function closeReviewsPage() {
+            document.getElementById('reviews-page-modal').classList.add('translate-y-full');
+        }
+
+        async function loadAllReviews() {
+            const container = document.getElementById('reviews-list-container');
+            container.innerHTML = `<div class="text-center py-10 text-gray-400"><i class="fas fa-circle-notch fa-spin text-2xl text-orange-500"></i><p class="text-xs mt-2">Mengambil data ulasan...</p></div>`;
+
+            try {
+                const response = await fetch(`${API_URL}?action=getReviews`);
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    const myReviews = result.data.filter(r => String(r.Vendor_ID) === String(vendorData.id));
+                    
+                    if (myReviews.length === 0) {
+                         container.innerHTML = `<div class="text-center py-10 text-gray-400 text-xs">Belum ada ulasan untuk toko Anda.</div>`;
+                         return;
+                    }
+                    
+                    renderReviews(myReviews.reverse()); 
+                } else {
+                    container.innerHTML = `<div class="text-center py-10 text-red-400 text-xs">Gagal mengambil data.</div>`;
+                }
+            } catch (error) {
+                container.innerHTML = `<div class="text-center text-red-500 py-10 text-xs">Koneksi Error: ${error}</div>`;
+            }
+        }
+
+        function renderReviews(reviews) {
+             const container = document.getElementById('reviews-list-container');
+             const html = reviews.map(review => {
+                let stars = '';
+                const rating = parseInt(review.Rating) || 0;
+                const custName = review.Customer_Name || 'Pelanggan';
+                const comment = review.Comment || '-';
+                
+                let displayDate = review.Date;
+                if(displayDate && displayDate.includes('T')) displayDate = displayDate.split('T')[0];
+
+                for(let i=0; i<5; i++) {
+                    if(i < rating) stars += '<i class="fas fa-star"></i>';
+                    else stars += '<i class="far fa-star text-gray-300"></i>';
+                }
+
+                return `
+                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-orange-100 to-orange-200 text-orange-600 flex items-center justify-center font-bold text-xs">
+                                ${custName.charAt(0)}
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-gray-800">${custName}</h4>
+                                <div class="flex text-[10px] text-yellow-400 gap-0.5">
+                                    ${stars}
+                                </div>
+                            </div>
+                        </div>
+                        <span class="text-[9px] text-gray-400 font-medium">${displayDate || ''}</span>
+                    </div>
+                    <p class="text-xs text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-xl italic">"${comment}"</p>
+                </div>
+                `;
+            }).join('');
+            container.innerHTML = html;
+        }
+
 
         // --- FITUR LIST MENU & RENDER ---
         async function fetchVendorProducts() {
@@ -398,35 +498,23 @@
             container.innerHTML = sortedProducts.map(item => {
                 const rawStatus = item.Availability ? String(item.Availability).trim() : 'Tersedia';
                 const isHabis = rawStatus === 'Habis';
-                // Deskripsi: Tampilkan '-' jika kosong/undefined
                 const description = item.Description && item.Description !== 'undefined' ? item.Description : '-';
 
                 return `
                 <div onclick="editProduct('${item.ID}')" class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex gap-3 items-start relative overflow-hidden group hover:border-orange-200 transition cursor-pointer">
-                    <!-- Label Edit -->
                     <div class="absolute top-0 left-0 bg-orange-100 text-orange-600 text-[8px] font-bold px-2 py-0.5 rounded-br-lg opacity-0 group-hover:opacity-100 transition">EDIT</div>
-
-                    <!-- Gambar -->
                     <div class="w-16 h-16 bg-gray-100 rounded-xl overflow-hidden shrink-0 relative shadow-inner mt-1">
                         <img src="${item.Image_URL}" loading="lazy" class="w-full h-full object-cover ${isHabis ? 'grayscale' : ''}" onerror="this.src='https://placehold.co/100?text=No+Img'">
                     </div>
-
-                    <!-- Info -->
                     <div class="flex-1 min-w-0 pr-2">
                         <h4 class="font-bold text-gray-800 text-sm truncate">${item.Name}</h4>
-                        <!-- Tampilkan Deskripsi di sini -->
                         <p class="text-[10px] text-gray-500 mb-1 line-clamp-2 leading-tight">${description}</p>
-                        
                         ${item.Variants ? `<p class="text-[9px] text-orange-600 bg-orange-50 inline-block px-1.5 rounded mb-1 border border-orange-100 truncate max-w-full">Varian: ${item.Variants}</p>` : ''}
-                        
                         <div class="flex items-center gap-2 mt-1">
                             <span class="text-orange-600 font-bold text-xs">Rp ${new Intl.NumberFormat('id-ID').format(item.Price)}</span>
                         </div>
                     </div>
-
-                    <!-- Actions (Toggle & Delete) -->
                     <div class="flex flex-col items-end gap-3 z-10" onclick="event.stopPropagation()">
-                        <!-- Toggle Switch -->
                         <div class="flex flex-col items-center">
                             <label for="toggle-${item.ID}" class="flex items-center cursor-pointer relative">
                                 <input type="checkbox" id="toggle-${item.ID}" class="sr-only toggle-checkbox" 
@@ -438,7 +526,6 @@
                                 ${isHabis ? 'Habis' : 'Ada'}
                             </span>
                         </div>
-
                         <button onclick="deleteProduct('${item.ID}')" class="text-gray-300 hover:text-red-500 bg-gray-50 rounded-full w-7 h-7 flex items-center justify-center transition active:scale-90">
                             <i class="fas fa-trash-alt text-xs"></i>
                         </button>
@@ -446,12 +533,10 @@
                 </div>
             `}).join('');
             
-            // Re-apply styles for toggles manually via JS style if needed, but CSS class handles it
-            // Need to handle dot position manually via style in HTML above based on checked state
             document.querySelectorAll('.toggle-checkbox').forEach(cb => {
                 const dot = cb.nextElementSibling.nextElementSibling;
                 if(cb.checked) {
-                    cb.nextElementSibling.classList.add('bg-orange-500'); // Label bg
+                    cb.nextElementSibling.classList.add('bg-orange-500'); 
                     dot.classList.add('translate-x-4');
                 }
             });
@@ -460,20 +545,12 @@
         // --- FITUR EDIT PRODUCT ---
         function editProduct(id) {
             const cachedData = JSON.parse(localStorage.getItem('pg_vendor_products_cache') || '[]');
-            
-            // FIX: Gunakan String() untuk memastikan ID Angka bisa dibandingkan dengan ID String
             const product = cachedData.find(p => String(p.ID) === String(id));
             
-            if (!product) {
-                console.error("Produk tidak ditemukan di cache untuk ID:", id);
-                return;
-            }
+            if (!product) return;
 
-            // Masuk Mode Edit
             isEditMode = true;
             document.getElementById('edit-prod-id').value = product.ID;
-            
-            // Isi Form
             document.getElementById('prod-name').value = product.Name;
             document.getElementById('prod-cat').value = product.Category;
             document.getElementById('prod-price').value = product.Price;
@@ -481,7 +558,6 @@
             document.getElementById('prod-desc').value = product.Description && product.Description !== 'undefined' ? product.Description : '';
             calculateOrigPrice();
 
-            // Handle Gambar Preview
             if(product.Image_URL && product.Image_URL.includes('http')) {
                 activeInputMode = 'url';
                 document.getElementById('prod-img-url').value = product.Image_URL;
@@ -490,14 +566,12 @@
                 toggleImageInput('url');
             }
 
-            // Ubah UI menjadi Mode Edit
             document.getElementById('form-title').innerText = "Edit Menu";
             document.getElementById('btn-submit-prod').innerHTML = '<i class="fas fa-save"></i> Update Menu';
             document.getElementById('btn-submit-prod').classList.remove('bg-orange-600');
             document.getElementById('btn-submit-prod').classList.add('bg-blue-600');
             document.getElementById('btn-cancel-edit').classList.remove('hidden');
 
-            // Pindah ke Tab Input
             switchTab('menu');
         }
 
@@ -514,7 +588,6 @@
             toggleImageInput('upload');
         }
 
-        // --- SUBMIT (ADD / EDIT) ---
         function submitProduct() {
             if (!vendorData.id) { alert("Sesi habis, silakan login ulang."); return; }
 
@@ -522,6 +595,7 @@
             const name = document.getElementById('prod-name').value;
             const category = document.getElementById('prod-cat').value;
             const price = document.getElementById('prod-price').value;
+            const origPrice = document.getElementById('prod-orig-price').value; 
             const variants = document.getElementById('prod-variants').value;
             const desc = document.getElementById('prod-desc').value;
 
@@ -530,33 +604,35 @@
                 const urlInput = document.getElementById('prod-img-url').value;
                 if (urlInput) finalImage = urlInput;
             } else if (activeInputMode === 'upload' && compressedImageBlob) {
-                // VALIDASI FINAL SEBELUM KIRIM
                 if (compressedImageBlob.length > 50000) {
                      alert("Maaf, ukuran data gambar masih terlalu besar untuk disimpan. Mohon gunakan gambar yang lebih sederhana atau gunakan URL.");
                      return;
                 }
                 finalImage = compressedImageBlob;
             } else if (isEditMode) {
-                // Jika edit dan tidak ada gambar baru, gunakan gambar lama dari cache
-                // FIX: Gunakan String comparison di sini juga
                 const cached = JSON.parse(localStorage.getItem('pg_vendor_products_cache') || '[]').find(p => String(p.ID) === String(id));
                 if (cached) finalImage = cached.Image_URL;
             }
 
-            // Tentukan Action: addProduct atau editProduct
+            const finalId = isEditMode ? id : ('P-' + Date.now()); 
             const action = isEditMode ? 'editProduct' : 'addProduct';
             
             const payload = {
                 action: action,
-                prodId: id, // Hanya dipakai jika edit
+                id: finalId,
+                prodId: finalId,
                 vendorId: vendorData.id,
                 vendorName: vendorData.name,
-                productName: name,
+                name: name,
+                productName: name, 
                 category: category,
                 price: price,
+                originalPrice: origPrice, 
                 variants: variants,
                 description: desc,
-                imageUrl: finalImage
+                image: finalImage,
+                imageUrl: finalImage,
+                Image_URL: finalImage 
             };
 
             setLoading(true, isEditMode ? "Mengupdate Menu..." : "Menyimpan Menu...");
@@ -570,9 +646,9 @@
             .then(() => {
                 setLoading(false);
                 alert(isEditMode ? "Menu Berhasil Diupdate!" : "Menu Berhasil Disimpan!");
-                cancelEditMode(); // Reset form & mode
-                switchTab('list-menu'); // Kembali ke list
-                fetchVendorProducts(); // Refresh data
+                cancelEditMode(); 
+                switchTab('list-menu');
+                fetchVendorProducts();
             })
             .catch(error => {
                 setLoading(false);
@@ -580,7 +656,7 @@
             });
         }
 
-        // --- FITUR TOGGLE STATUS (BACKGROUND LOADING) ---
+        // --- FITUR TOGGLE STATUS ---
         function toggleProductStatus(id, checkboxEl) {
             const isChecked = checkboxEl.checked;
             const newStatus = isChecked ? 'Tersedia' : 'Habis';
@@ -588,7 +664,6 @@
             const dot = checkboxEl.nextElementSibling.nextElementSibling;
             const labelBg = checkboxEl.nextElementSibling;
 
-            // 1. UI Update (Optimistic)
             if (isChecked) {
                 statusText.innerText = "Ada";
                 statusText.className = "text-[8px] font-bold mt-1 text-orange-600";
@@ -603,20 +678,16 @@
                 dot.classList.remove('translate-x-4');
             }
 
-            // 2. Show Background Loading Indicator
             document.getElementById('bg-sync-indicator').classList.remove('hidden');
             document.getElementById('bg-sync-indicator').classList.add('flex');
 
-            // 3. Update Local Cache Immediately (Supaya kalau refresh cepat tidak balik)
             const cached = JSON.parse(localStorage.getItem('pg_vendor_products_cache') || '[]');
-            // FIX: Gunakan String comparison
             const idx = cached.findIndex(p => String(p.ID) === String(id));
             if(idx > -1) {
                 cached[idx].Availability = newStatus;
                 localStorage.setItem('pg_vendor_products_cache', JSON.stringify(cached));
             }
 
-            // 4. Send API Request in Background
             fetch(API_URL, { 
                 method: 'POST', 
                 mode: 'no-cors', 
@@ -624,7 +695,6 @@
                 body: JSON.stringify({ action: 'updateProductStatus', prodId: id, status: newStatus }) 
             })
             .then(() => { 
-                // Sukses diam-diam
                 setTimeout(() => {
                     document.getElementById('bg-sync-indicator').classList.add('hidden');
                 }, 1000);
@@ -650,29 +720,18 @@
             .catch(e => { setLoading(false); alert("Error: " + e); });
         }
 
-        // --- FITUR UPDATE STATUS TOKO MODERN ---
         function updateStatus(status) {
             if(!vendorData.id) { alert("Sesi habis."); return; }
-            
-            // 1. Optimistic UI Update (Langsung ubah tampilan sebelum request selesai)
             renderStatusUI(status);
             localStorage.setItem('pg_vendor_status', status);
 
-            // 2. Kirim Request
             setLoading(true, "Sinkronisasi Status...");
             fetch(API_URL, {
                 method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'updateVendorStatus', vendorId: vendorData.id, status: status })
             })
-            .then(() => {
-                setLoading(false);
-                // Tidak perlu alert sukses yang mengganggu, cukup UI yang sudah berubah
-            })
-            .catch(e => { 
-                setLoading(false); 
-                alert("Gagal update status: " + e);
-                // Revert jika gagal (Opsional, tapi demi UX biarkan saja dulu)
-            });
+            .then(() => { setLoading(false); })
+            .catch(e => { setLoading(false); alert("Gagal update status: " + e); });
         }
 
         function renderStatusUI(status) {
@@ -684,45 +743,22 @@
             const desc = document.getElementById('status-desc');
 
             if (status === 'Buka') {
-                // Style BUKA
-                card.classList.remove('border-gray-200');
-                card.classList.add('border-green-200');
-                
-                bgAnim.classList.remove('opacity-0', 'from-red-50');
-                bgAnim.classList.add('opacity-100', 'from-green-50');
-                
-                iconContainer.classList.remove('bg-gray-100', 'border-white');
-                iconContainer.classList.add('bg-green-100', 'border-green-50', 'status-pulse');
-                
+                card.classList.remove('border-gray-200'); card.classList.add('border-green-200');
+                bgAnim.classList.remove('opacity-0', 'from-red-50'); bgAnim.classList.add('opacity-100', 'from-green-50');
+                iconContainer.classList.remove('bg-gray-100', 'border-white'); iconContainer.classList.add('bg-green-100', 'border-green-50', 'status-pulse');
                 icon.className = "fas fa-door-open text-4xl text-green-600";
-                
-                mainText.innerText = "TOKO BUKA";
-                mainText.className = "text-3xl font-black text-green-700 tracking-tight";
-                
-                desc.innerText = "Pesanan dapat masuk sekarang";
-                desc.className = "text-xs font-bold text-green-600/70";
+                mainText.innerText = "TOKO BUKA"; mainText.className = "text-3xl font-black text-green-700 tracking-tight";
+                desc.innerText = "Pesanan dapat masuk sekarang"; desc.className = "text-xs font-bold text-green-600/70";
             } else {
-                // Style TUTUP
-                card.classList.remove('border-green-200');
-                card.classList.add('border-red-100');
-                
-                bgAnim.classList.remove('from-green-50');
-                bgAnim.classList.add('from-red-50', 'opacity-100');
-                
-                iconContainer.classList.remove('bg-green-100', 'border-green-50', 'status-pulse');
-                iconContainer.classList.add('bg-white', 'border-red-50');
-                
+                card.classList.remove('border-green-200'); card.classList.add('border-red-100');
+                bgAnim.classList.remove('from-green-50'); bgAnim.classList.add('from-red-50', 'opacity-100');
+                iconContainer.classList.remove('bg-green-100', 'border-green-50', 'status-pulse'); iconContainer.classList.add('bg-white', 'border-red-50');
                 icon.className = "fas fa-store-slash text-4xl text-red-400";
-                
-                mainText.innerText = "TOKO TUTUP";
-                mainText.className = "text-3xl font-black text-red-800 tracking-tight";
-                
-                desc.innerText = "Tidak menerima pesanan baru";
-                desc.className = "text-xs font-bold text-red-400/70";
+                mainText.innerText = "TOKO TUTUP"; mainText.className = "text-3xl font-black text-red-800 tracking-tight";
+                desc.innerText = "Tidak menerima pesanan baru"; desc.className = "text-xs font-bold text-red-400/70";
             }
         }
 
-        // --- HELPER & SYSTEM ---
         function switchTab(tabName) {
             document.querySelectorAll('.page-section').forEach(el => {
                if(el.id !== 'login-page' && el.id !== 'dashboard-page') el.classList.add('hidden'); 
@@ -776,26 +812,17 @@
                     const img = new Image(); img.src = e.target.result;
                     img.onload = function() {
                         const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
-                        
-                        // OPTIMISASI AGAR MASUK KE GOOGLE SHEET (Max 50.000 Karakter)
-                        // Kita kecilkan dimensi agar Base64 String tidak terpotong
-                        const maxWidth = 350; // Diperkecil dari 500 agar aman
+                        const maxWidth = 350; 
                         let scaleSize = 1;
-                        if (img.width > maxWidth) {
-                            scaleSize = maxWidth / img.width;
-                        }
+                        if (img.width > maxWidth) scaleSize = maxWidth / img.width;
                         
                         canvas.width = img.width * scaleSize; 
                         canvas.height = img.height * scaleSize;
                         
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                         
-                        // Kompresi agresif (0.5 - 0.6)
                         let quality = 0.6;
                         let dataUrl = canvas.toDataURL('image/jpeg', quality);
-
-                        // Cek apakah hasil string masih terlalu panjang untuk Google Sheet
-                        // Batas aman cell sheet ~50k karakter
                         while (dataUrl.length > 48000 && quality > 0.1) {
                             quality -= 0.1;
                             dataUrl = canvas.toDataURL('image/jpeg', quality);
@@ -803,8 +830,7 @@
                         
                         if (dataUrl.length > 50000) {
                             alert("Gambar terlalu detail/besar untuk disimpan di Sheet. Mohon gunakan gambar lain atau gunakan fitur Link/URL.");
-                            input.value = ""; // Reset input
-                            return;
+                            input.value = ""; return;
                         }
 
                         compressedImageBlob = dataUrl;
