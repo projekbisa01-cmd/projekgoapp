@@ -30,7 +30,7 @@
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #f3f4f6;
+            background-color: #f8fafc; /* Warna background lebih kalem (Slate-50) */
             margin: 0;
             padding: 0;
             overflow: hidden; 
@@ -40,15 +40,23 @@
             overscroll-behavior: none;
         }
 
-        .shadow-xl, .shadow-2xl, .shadow-lg {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+        /* 3D Shadow Effect Classes */
+        .shadow-3d {
+            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04) !important;
+            transform: translateZ(0); /* Hardware acceleration trigger */
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .shadow-3d:active {
+            transform: scale(0.98) translateZ(0);
+            box-shadow: 0 5px 10px -3px rgba(0, 0, 0, 0.08);
         }
 
         /* Fallback Backdrop Blur untuk performa mobile rendah */
         .backdrop-blur, .backdrop-blur-sm, .backdrop-blur-md {
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
-            background-color: rgba(255, 255, 255, 0.85);
+            background-color: rgba(255, 255, 255, 0.90); /* Sedikit lebih solid agar scroll lebih ringan */
         }
         
         .bg-black\/20, .bg-black\/50, .bg-black\/60 {
@@ -60,7 +68,7 @@
             height: 100dvh; 
             max-width: 28rem;
             margin: 0 auto;
-            background-color: #ffffff;
+            background-color: #f8fafc; /* Konsisten dengan body */
             position: relative;
             overflow: hidden;
             display: flex;
@@ -75,8 +83,8 @@
             overflow-x: hidden;
             will-change: scroll-position;
             overscroll-behavior-y: none;
-            padding-bottom: 7rem; /* Adjusted for higher sticky button */
-            scroll-behavior: auto; 
+            padding-bottom: 6rem; /* Adjusted */
+            scroll-behavior: smooth; 
             transform: translateZ(0); 
             contain: content;
         }
@@ -84,7 +92,6 @@
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* FIX SCROLL ISSUE */
         .horizontal-slider {
             touch-action: pan-x pan-y; 
             min-height: 140px; 
@@ -99,12 +106,12 @@
         .category-icon:active { transform: scale(0.9); }
         
         .page-section {
-            transition: opacity 0.15s ease-out;
+            transition: opacity 0.2s ease-out; /* Sedikit diperlambat agar halus */
             opacity: 1;
             pointer-events: auto;
             position: absolute;
             inset: 0;
-            background-color: #fff; 
+            background-color: #f8fafc; 
             z-index: 10;
             display: flex;
             flex-direction: column;
@@ -138,11 +145,11 @@
     <div id="app-container">
         
         <!-- === HALAMAN UTAMA (HOME) === -->
-        <div id="home-page" class="page-section z-20 bg-gray-50">
-            <main class="flex-1 overflow-y-auto hide-scrollbar scrolling-wrapper bg-white z-0 relative w-full pb-24">
+        <div id="home-page" class="page-section z-20 bg-slate-50">
+            <main class="flex-1 overflow-y-auto hide-scrollbar scrolling-wrapper bg-slate-50 z-0 relative w-full pb-24">
                 
                 <!-- 1. Header ORANGE -->
-                <div class="px-5 pt-12 pb-8 bg-orange-600 flex items-center justify-between gap-3 rounded-b-[2.5rem] shadow-lg relative z-50 mb-2">
+                <div class="px-5 pt-12 pb-8 bg-orange-600 flex items-center justify-between gap-3 rounded-b-[2rem] shadow-3d relative z-50 mb-2">
                     <div>
                         <div class="flex items-center gap-1">
                              <span class="text-white text-2xl font-black tracking-tighter italic">PROJEK<span class="text-yellow-300">GO</span></span>
@@ -158,25 +165,25 @@
                 </div>
 
                 <!-- 2. Sticky Search Bar -->
-                <div class="sticky top-0 z-40 bg-white/95 backdrop-blur-md px-5 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.02)] transition-all">
+                <div class="sticky top-0 z-40 bg-slate-50/95 backdrop-blur-md px-4 py-2 shadow-sm transition-all -mt-4 pt-4">
                     <div class="relative group active:scale-[0.98] transition w-full" onclick="navTo('search-page')">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <i class="fas fa-search text-orange-500 text-sm"></i>
                         </div>
                         <input type="text" placeholder="Cari makanan enak..." readonly
-                            class="w-full py-3.5 pl-11 pr-5 rounded-2xl text-gray-700 text-xs font-bold bg-gray-100 border-none focus:ring-0 cursor-pointer placeholder-gray-400">
+                            class="w-full py-3 pl-11 pr-5 rounded-2xl text-gray-700 text-xs font-bold bg-white shadow-3d border-none focus:ring-0 cursor-pointer placeholder-gray-400">
                     </div>
                 </div>
 
-                <!-- 3. Konten Utama (Scrollable) -->
-                <div class="px-5 space-y-6 pt-2 pb-24">
+                <!-- 3. Konten Utama (Scrollable - Layout Padat) -->
+                <div class="px-3 space-y-4 pt-2 pb-24">
                     
                     <!-- Kategori -->
                     <div>
-                        <div class="flex justify-between items-center mb-3">
+                        <div class="flex justify-between items-center mb-2 px-1">
                             <h3 class="font-bold text-gray-800 text-sm">Kategori</h3>
                         </div>
-                        <div class="grid grid-cols-4 gap-y-4" id="categories-container">
+                        <div class="grid grid-cols-4 gap-y-3" id="categories-container">
                             <div class="col-span-4 text-center text-gray-400 text-xs py-4">
                                 <div class="animate-pulse flex gap-4 justify-center">
                                     <div class="w-14 h-14 bg-gray-200 rounded-2xl"></div>
@@ -189,40 +196,41 @@
 
                     <!-- Promo Banner (Horizontal Card) -->
                     <div style="contain: content;">
-                        <div class="flex justify-between items-center mb-3">
+                        <div class="flex justify-between items-center mb-2 px-1">
                             <h3 class="font-bold text-gray-800 text-sm">Lagi Promo</h3>
                             <span class="text-orange-600 text-[10px] font-bold cursor-pointer" onclick="openExclusivePage()">Lihat Semua</span>
                         </div>
-                        <div id="exclusive-slider" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2 snap-x min-h-[120px] horizontal-slider" style="scroll-behavior: auto;">
-                             <div class="w-full text-center text-gray-400 text-xs py-8 animate-pulse flex flex-col justify-center items-center h-full">
-                                <span>Memuat data...</span>
+                        <div id="exclusive-slider" class="flex gap-2 overflow-x-auto hide-scrollbar pb-2 snap-x min-h-[120px] horizontal-slider" style="scroll-behavior: smooth;">
+                             <div class="w-full text-center text-gray-500 text-xs py-8 animate-pulse flex flex-col justify-center items-center h-full px-10">
+                                <i class="fas fa-utensils text-2xl mb-2 text-orange-300"></i>
+                                <span class="leading-relaxed">Tunggu yah, menunya sedang kami siapkan dulu, agar kamu bisa lebih banyak pilihan...</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Paling Laris (Horizontal List of Vertical Grids) -->
+                    <!-- Paling Laris (Horizontal List) -->
                     <div style="contain: content;">
-                        <div class="flex justify-between items-center mb-3">
+                        <div class="flex justify-between items-center mb-2 px-1">
                             <h3 class="font-bold text-gray-800 text-sm">Paling Laris</h3>
                             <span class="text-orange-600 text-[10px] font-bold cursor-pointer" onclick="openCategory('all', 'Semua Menu')">Lihat Semua</span>
                         </div>
-                        <div id="recommendation-slider" class="flex gap-3 overflow-x-auto hide-scrollbar pb-2 snap-x min-h-[120px] horizontal-slider" style="scroll-behavior: auto;">
+                        <div id="recommendation-slider" class="flex gap-2 overflow-x-auto hide-scrollbar pb-2 snap-x min-h-[120px] horizontal-slider" style="scroll-behavior: smooth;">
                             <div class="w-full text-center text-gray-400 text-xs py-8 animate-pulse flex flex-col justify-center items-center h-full">
-                                <span>Memuat rekomendasi...</span>
+                                <!-- Placeholder loading sudah tercover di atas -->
                             </div>
                         </div>
                     </div>
 
-                    <!-- Daftar Penjual (Warung Sekitar - Big Cards) -->
+                    <!-- Daftar Penjual (Warung Sekitar) -->
                     <div>
-                        <div class="flex justify-between items-end mb-3 sticky top-[70px] bg-white/95 backdrop-blur-sm z-10 py-2 -mx-5 px-5">
+                        <div class="flex justify-between items-end mb-2 sticky top-[60px] bg-slate-50/95 backdrop-blur-sm z-10 py-2 -mx-3 px-3">
                             <h3 class="font-bold text-gray-800 text-sm">Warung Sekitar</h3>
                             <button onclick="fetchData(true)" class="text-orange-600 text-[10px] font-semibold flex items-center gap-1 hover:text-orange-700 active:scale-95 transition">
                                 <i class="fas fa-sync-alt" id="refreshIcon"></i> Refresh
                             </button>
                         </div>
-                        <div id="vendor-list" class="space-y-6 optimized-list">
-                            <div class="text-center text-gray-400 text-xs py-10 bg-white rounded-2xl">
+                        <div id="vendor-list" class="space-y-4 optimized-list">
+                            <div class="text-center text-gray-400 text-xs py-10 bg-white rounded-2xl shadow-3d mx-1">
                                 <i class="fas fa-store text-xl mb-2 text-gray-300"></i><br>Mencari Mitra...
                             </div>
                         </div>
@@ -235,22 +243,22 @@
         <!-- === HALAMAN DETAIL PRODUK === -->
         <div id="product-detail-page" class="page-section hidden-page z-50 bg-white flex flex-col h-full">
             <div class="absolute top-0 left-0 right-0 z-[60] p-4 flex justify-between pointer-events-none">
-                <button onclick="handleBack()" class="pointer-events-auto w-10 h-10 bg-white/80 backdrop-blur-md rounded-full text-gray-700 flex items-center justify-center shadow-sm border border-gray-100 active:scale-90 transition">
+                <button onclick="handleBack()" class="pointer-events-auto w-10 h-10 bg-white/80 backdrop-blur-md rounded-full text-gray-700 flex items-center justify-center shadow-lg border border-gray-100 active:scale-90 transition">
                     <i class="fas fa-arrow-left text-sm"></i>
                 </button>
-                 <button class="pointer-events-auto w-10 h-10 bg-white/80 backdrop-blur-md rounded-full text-gray-700 flex items-center justify-center shadow-sm border border-gray-100 active:scale-90 transition">
+                 <button class="pointer-events-auto w-10 h-10 bg-white/80 backdrop-blur-md rounded-full text-gray-700 flex items-center justify-center shadow-lg border border-gray-100 active:scale-90 transition">
                     <i class="fas fa-share-alt text-sm"></i>
                 </button>
             </div>
 
-            <div class="flex-1 overflow-y-auto scrolling-wrapper w-full relative">
+            <div class="flex-1 overflow-y-auto scrolling-wrapper w-full relative bg-slate-50">
                 <div class="pb-40"> 
-                    <div class="relative h-96 bg-gray-100 w-full shrink-0">
+                    <div class="relative h-96 bg-gray-200 w-full shrink-0">
                         <img id="detail-img" src="" class="w-full h-full object-cover" loading="lazy">
                         <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                     </div>
 
-                    <div class="relative z-10 -mt-8 bg-white rounded-t-[2.5rem] p-6 min-h-[50vh]">
+                    <div class="relative z-10 -mt-8 bg-white rounded-t-[2.5rem] p-6 min-h-[50vh] shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
                         <div class="mb-6">
                             <div class="flex justify-between items-start mb-2">
                                  <h2 id="detail-name" class="text-2xl font-black text-gray-800 leading-tight w-3/4">Nama Makanan</h2>
@@ -276,7 +284,7 @@
                             <p id="detail-desc" class="text-sm text-gray-600 leading-relaxed">Deskripsi produk...</p>
                         </div>
 
-                        <div class="h-2 bg-gray-50 -mx-6 mb-6"></div>
+                        <div class="h-2 bg-slate-50 -mx-6 mb-6 shadow-inner"></div>
 
                         <div id="detail-variant-section" class="mb-6 hidden">
                             <h3 class="font-bold text-gray-800 text-sm mb-3">Pilih Varian</h3>
@@ -295,7 +303,7 @@
                 </div>
             </div>
 
-            <div class="absolute bottom-[90px] left-4 right-4 bg-white/95 backdrop-blur-sm border border-gray-100 p-4 rounded-2xl z-[60] flex items-center gap-3 shadow-[0_10px_40px_rgba(0,0,0,0.15)] max-w-md mx-auto ring-1 ring-black/5">
+            <div class="absolute bottom-[90px] left-4 right-4 bg-white/95 backdrop-blur-md border border-gray-100 p-3 rounded-2xl z-[60] flex items-center gap-3 shadow-[0_10px_40px_rgba(0,0,0,0.15)] max-w-md mx-auto ring-1 ring-black/5">
                  <div class="flex items-center gap-3 border border-gray-200 rounded-xl px-3 py-2.5">
                     <button onclick="adjustDetailQty(-1)" class="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-orange-600 font-bold active:scale-90 transition">-</button>
                     <span id="detail-qty" class="text-sm font-bold text-gray-800 w-4 text-center">1</span>
@@ -310,7 +318,7 @@
         <!-- FORM ULASAN -->
         <div id="write-review-modal" class="absolute inset-0 z-[100] hidden">
             <div class="absolute inset-0 bg-black/50" onclick="closeReviewForm()"></div>
-            <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] p-6 min-h-[50%] flex flex-col transition-transform duration-300 transform translate-y-full" id="write-review-content">
+            <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] p-6 min-h-[50%] flex flex-col transition-transform duration-300 transform translate-y-full shadow-2xl" id="write-review-content">
                 <div class="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-6 cursor-grab" onclick="closeReviewForm()"></div>
                 
                 <h3 id="review-modal-title" class="font-bold text-xl text-gray-800 mb-2 text-center">Bagaimana makanannya?</h3>
@@ -328,7 +336,7 @@
 
                 <div class="mb-4">
                     <label class="block text-xs font-bold text-gray-500 mb-2">Ceritakan pengalamanmu</label>
-                    <textarea id="review-text" rows="4" class="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 text-sm focus:outline-none focus:border-orange-500 resize-none font-medium" placeholder="Rasanya enak, porsi banyak..."></textarea>
+                    <textarea id="review-text" rows="4" class="w-full bg-slate-50 border border-gray-200 rounded-2xl p-4 text-sm focus:outline-none focus:border-orange-500 resize-none font-medium" placeholder="Rasanya enak, porsi banyak..."></textarea>
                 </div>
 
                 <button onclick="submitReview()" id="btn-submit-review" class="w-full bg-orange-600 text-white font-bold py-3.5 rounded-2xl shadow-lg mt-auto active:scale-[0.98] transition flex justify-center items-center gap-2">
@@ -338,7 +346,7 @@
         </div>
 
         <!-- === HALAMAN PENCARIAN === -->
-        <div id="search-page" class="page-section hidden-page z-30 bg-gray-50">
+        <div id="search-page" class="page-section hidden-page z-30 bg-slate-50">
             <div class="bg-white p-3 shadow-sm flex items-center gap-3 sticky top-0 z-10">
                 <button onclick="handleBack()" class="p-2 hover:bg-gray-100 rounded-full transition text-gray-700 active:bg-gray-200">
                     <i class="fas fa-arrow-left text-lg"></i>
@@ -359,7 +367,7 @@
         </div>
 
         <!-- === HALAMAN POIN === -->
-        <div id="points-page" class="page-section hidden-page z-30 bg-gray-50">
+        <div id="points-page" class="page-section hidden-page z-30 bg-slate-50">
             <div class="bg-white p-4 shadow-sm flex items-center gap-4 sticky top-0 z-10">
                 <button onclick="handleBack()" class="p-2 hover:bg-gray-100 rounded-full transition text-gray-700 active:bg-gray-200">
                     <i class="fas fa-arrow-left text-lg"></i>
@@ -369,7 +377,7 @@
                 </div>
             </div>
             <div class="flex-1 overflow-y-auto p-4 hide-scrollbar scrolling-wrapper">
-                <div class="bg-gradient-to-br from-orange-500 to-red-600 rounded-[1.5rem] p-5 text-white shadow-xl mb-6 relative overflow-hidden">
+                <div class="bg-gradient-to-br from-orange-500 to-red-600 rounded-[1.5rem] p-5 text-white shadow-3d mb-6 relative overflow-hidden">
                     <div class="absolute -top-10 -right-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
                     <div class="absolute bottom-0 left-0 w-32 h-32 bg-yellow-400 opacity-10 rounded-full blur-xl"></div>
                     
@@ -386,7 +394,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white p-5 rounded-[1.5rem] shadow-sm mb-6 border border-gray-100">
+                <div class="bg-white p-5 rounded-[1.5rem] shadow-3d mb-4 border border-gray-100">
                     <h3 class="font-bold text-gray-800 text-sm mb-3">Punya Kode Voucher?</h3>
                     <div class="flex gap-2">
                         <input type="text" id="claim-code-input" placeholder="Masukkan kode dari Admin" class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-orange-500 uppercase">
@@ -395,7 +403,7 @@
                     <p class="text-[10px] text-gray-400 mt-2 italic">*Minta kode ke admin setelah pesananmu selesai diantar.</p>
                 </div>
 
-                <div class="bg-white p-5 rounded-[1.5rem] shadow-sm mb-6 border border-gray-100">
+                <div class="bg-white p-5 rounded-[1.5rem] shadow-3d mb-6 border border-gray-100">
                     <div class="flex items-center gap-3 mb-4">
                         <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-lg">
                             <i class="fas fa-truck-fast"></i>
@@ -413,7 +421,7 @@
         </div>
 
         <!-- === HALAMAN PESANAN (History) === -->
-        <div id="orders-page" class="page-section hidden-page z-30 bg-gray-50">
+        <div id="orders-page" class="page-section hidden-page z-30 bg-slate-50">
              <div class="bg-white p-4 shadow-sm flex items-center gap-4 sticky top-0 z-10">
                 <button onclick="handleBack()" class="p-2 hover:bg-gray-100 rounded-full transition text-gray-700 active:bg-gray-200">
                     <i class="fas fa-arrow-left text-lg"></i>
@@ -428,10 +436,10 @@
         </div>
 
         <!-- === HALAMAN PROFIL === -->
-        <div id="profile-page" class="page-section hidden-page z-30 bg-gray-50">
+        <div id="profile-page" class="page-section hidden-page z-30 bg-slate-50">
             <div class="bg-orange-600 h-24 relative shrink-0"></div>
             <div class="px-4 -mt-10 relative z-10 mb-4 shrink-0">
-                <div class="bg-white p-4 rounded-[1.5rem] shadow-md flex flex-col items-center relative">
+                <div class="bg-white p-4 rounded-[1.5rem] shadow-3d flex flex-col items-center relative">
                     <div class="w-16 h-16 bg-gray-200 rounded-full border-4 border-white -mt-10 mb-2 overflow-hidden shadow-sm">
                         <img src="https://ui-avatars.com/api/?name=User+ProjekGo&background=random" class="w-full h-full" id="profile-avatar-img" loading="lazy">
                     </div>
@@ -444,15 +452,15 @@
             </div>
             <div class="flex-1 overflow-y-auto px-4 pb-20 scrolling-wrapper">
                 <div class="space-y-3">
-                    <button onclick="openAddressModal()" class="w-full bg-white p-3 rounded-2xl shadow-sm flex justify-between items-center text-gray-700 active:bg-gray-50 transition">
+                    <button onclick="openAddressModal()" class="w-full bg-white p-3 rounded-2xl shadow-3d flex justify-between items-center text-gray-700 active:bg-gray-50 transition border border-gray-50">
                         <span class="font-medium text-xs flex items-center gap-3"><div class="w-7 h-7 rounded-full bg-orange-100 flex items-center justify-center text-orange-500"><i class="fas fa-map-marker-alt text-xs"></i></div> Alamat Tersimpan</span>
                         <i class="fas fa-chevron-right text-gray-300 text-xs"></i>
                     </button>
-                    <button onclick="openFavoritesPage()" class="w-full bg-white p-3 rounded-2xl shadow-sm flex justify-between items-center text-gray-700 active:bg-gray-50 transition">
+                    <button onclick="openFavoritesPage()" class="w-full bg-white p-3 rounded-2xl shadow-3d flex justify-between items-center text-gray-700 active:bg-gray-50 transition border border-gray-50">
                         <span class="font-medium text-xs flex items-center gap-3"><div class="w-7 h-7 rounded-full bg-red-100 flex items-center justify-center text-red-500"><i class="fas fa-heart text-xs"></i></div> Makanan Favorit</span>
                         <i class="fas fa-chevron-right text-gray-300 text-xs"></i>
                     </button>
-                    <button class="w-full bg-white p-3 rounded-2xl shadow-sm flex justify-between items-center text-gray-700 active:bg-gray-50 transition">
+                    <button class="w-full bg-white p-3 rounded-2xl shadow-3d flex justify-between items-center text-gray-700 active:bg-gray-50 transition border border-gray-50">
                         <span class="font-medium text-xs flex items-center gap-3"><div class="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-500"><i class="fas fa-headset text-xs"></i></div> Bantuan</span>
                         <i class="fas fa-chevron-right text-gray-300 text-xs"></i>
                     </button>
@@ -461,7 +469,7 @@
         </div>
 
         <!-- === HALAMAN KERANJANG === -->
-        <div id="cart-page" class="page-section hidden-page z-50 bg-gray-50 flex flex-col h-full absolute inset-0">
+        <div id="cart-page" class="page-section hidden-page z-50 bg-slate-50 flex flex-col h-full absolute inset-0">
             <!-- Header Cart -->
             <div class="bg-white p-4 shadow-sm flex items-center gap-4 sticky top-0 z-20 flex-shrink-0">
                 <button onclick="handleBack()" class="p-2 hover:bg-gray-100 rounded-full transition text-gray-700 active:bg-gray-200">
@@ -474,7 +482,7 @@
 
             <!-- Scrollable Content -->
             <div class="flex-1 overflow-y-auto p-4 hide-scrollbar scrolling-wrapper">
-                <div id="cart-items-container" class="space-y-4 pb-4 optimized-list">
+                <div id="cart-items-container" class="space-y-3 pb-4 optimized-list">
                     <!-- Cart items will be rendered here -->
                 </div>
                 
@@ -490,24 +498,23 @@
                             </div>
                         </div>
 
-                        <!-- Catatan Pesanan (BARU) -->
+                        <!-- Catatan Pesanan -->
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-2">Catatan Pesanan (Opsional)</label>
                             <div class="relative">
                                 <i class="fas fa-edit absolute left-3 top-3 text-gray-400 text-xs"></i>
-                                <textarea id="checkout-note" rows="2" class="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 pl-9 pr-4 text-xs focus:outline-none focus:border-orange-500 resize-none font-medium text-gray-700 placeholder-gray-400" placeholder="Contoh: Jangan pedas, kuah dipisah, banyakin kecap..."></textarea>
+                                <textarea id="checkout-note" rows="2" class="w-full bg-slate-50 border border-gray-200 rounded-xl py-2.5 pl-9 pr-4 text-xs focus:outline-none focus:border-orange-500 resize-none font-medium text-gray-700 placeholder-gray-400" placeholder="Contoh: Jangan pedas, kuah dipisah, banyakin kecap..."></textarea>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Dynamic Summary will be injected here via JS -->
                     <div id="cart-summary-area"></div>
                 </div>
             </div>
         </div>
 
         <!-- === HALAMAN KATEGORI / FAVORIT === -->
-        <div id="category-page" class="page-section hidden-page z-40 bg-gray-50">
+        <div id="category-page" class="page-section hidden-page z-40 bg-slate-50">
             <div class="bg-white p-4 shadow-sm flex items-center gap-4 z-10 shrink-0 sticky top-0">
                 <button onclick="handleBack()" class="p-2 hover:bg-gray-100 rounded-full transition text-gray-700 active:bg-gray-200">
                     <i class="fas fa-arrow-left text-lg"></i>
@@ -516,13 +523,13 @@
                     <h2 id="cat-page-title" class="text-lg font-bold text-gray-800">Kategori</h2>
                 </div>
             </div>
-            <div class="flex-1 overflow-y-auto p-4 hide-scrollbar scrolling-wrapper">
+            <div class="flex-1 overflow-y-auto p-3 hide-scrollbar scrolling-wrapper">
                 <div id="category-content-container" class="space-y-4 pb-24 optimized-list"></div>
             </div>
         </div>
 
         <!-- HALAMAN "HANYA ADA DI PROJEKGO" -->
-        <div id="exclusive-page" class="page-section hidden-page z-40 bg-gray-50">
+        <div id="exclusive-page" class="page-section hidden-page z-40 bg-slate-50">
             <div class="bg-white p-4 shadow-sm flex items-center gap-4 z-10 shrink-0 sticky top-0">
                 <button onclick="handleBack()" class="p-2 hover:bg-gray-100 rounded-full transition text-gray-700 active:bg-gray-200">
                     <i class="fas fa-arrow-left text-lg"></i>
@@ -531,13 +538,13 @@
                     <h2 class="text-lg font-bold text-gray-800">Eksklusif</h2>
                 </div>
             </div>
-            <div class="flex-1 overflow-y-auto p-4 hide-scrollbar scrolling-wrapper">
-                <div id="exclusive-content-container" class="grid grid-cols-2 gap-3 pb-24 optimized-list"></div>
+            <div class="flex-1 overflow-y-auto p-3 hide-scrollbar scrolling-wrapper">
+                <div id="exclusive-content-container" class="grid grid-cols-2 gap-2 pb-24 optimized-list"></div>
             </div>
         </div>
 
-        <!-- === HALAMAN DETAIL PENJUAL (TERBARU) === -->
-        <div id="vendor-page" class="page-section hidden-page z-50 bg-gray-50 block overflow-y-auto scrolling-wrapper">
+        <!-- === HALAMAN DETAIL PENJUAL === -->
+        <div id="vendor-page" class="page-section hidden-page z-50 bg-slate-50 block overflow-y-auto scrolling-wrapper">
             <div class="fixed top-0 left-0 z-[60] p-4">
                 <button onclick="handleBack()" class="w-10 h-10 bg-orange-600 rounded-full text-white flex items-center justify-center shadow-lg hover:bg-orange-700 transition active:scale-90 border-2 border-white/20">
                     <i class="fas fa-arrow-left text-sm"></i>
@@ -561,7 +568,7 @@
                 </div>
             </div>
             
-            <div class="relative z-10 -mt-6 bg-gray-50 rounded-t-[2rem] min-h-[calc(100vh-16rem)] p-5 pb-32 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
+            <div class="relative z-10 -mt-6 bg-slate-50 rounded-t-[2rem] min-h-[calc(100vh-16rem)] p-4 pb-32 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
                 <div class="absolute right-8 -top-6 bg-white px-4 py-2 rounded-2xl shadow-xl flex flex-col items-center justify-center border border-gray-100 w-16 h-16">
                     <i class="fas fa-star text-yellow-400 text-sm mb-0.5"></i>
                     <span id="vendor-rating-badge" class="text-sm font-black text-gray-800 leading-none">4.8</span>
@@ -569,12 +576,12 @@
 
                 <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6 opacity-60"></div>
                 
-                <div class="flex items-center justify-between mb-5 sticky top-0 bg-gray-50/95 backdrop-blur-sm py-2 z-20">
+                <div class="flex items-center justify-between mb-4 sticky top-0 bg-slate-50/95 backdrop-blur-sm py-2 z-20">
                     <h3 class="font-bold text-gray-800 text-lg">Daftar Menu</h3>
                     <span class="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-lg">Scroll &darr;</span>
                 </div>
                 
-                <div id="vendor-menu-container" class="grid grid-cols-2 gap-3 optimized-list"></div>
+                <div id="vendor-menu-container" class="grid grid-cols-2 gap-2 optimized-list"></div>
             </div>
         </div>
 
@@ -606,7 +613,7 @@
         <!-- SELLER REGISTRATION SHEET -->
         <div id="seller-register-modal" class="absolute inset-0 z-[100] hidden">
             <div class="absolute inset-0 bg-black/50" onclick="closeSellerRegistration()"></div>
-            <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] p-6 min-h-[85%] flex flex-col transition-transform duration-300 transform translate-y-full" id="seller-register-content">
+            <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] p-6 min-h-[85%] flex flex-col transition-transform duration-300 transform translate-y-full shadow-2xl" id="seller-register-content">
                 <button onclick="closeSellerRegistration()" class="absolute top-4 right-4 w-9 h-9 flex items-center justify-center bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 hover:text-red-500 transition z-20"><i class="fas fa-times"></i></button>
                 <div class="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-4 cursor-grab" onclick="closeSellerRegistration()"></div>
                 <div class="flex items-center gap-3 mb-6">
@@ -682,7 +689,7 @@
         </div>
 
         <!-- ADDRESS MODAL -->
-        <div id="address-modal" class="absolute inset-0 z-[85] hidden bg-gray-50 flex flex-col">
+        <div id="address-modal" class="absolute inset-0 z-[85] hidden bg-slate-50 flex flex-col">
             <div class="bg-white p-4 shadow-sm flex items-center gap-4 z-10">
                 <button onclick="closeAddressModal()" class="p-2 hover:bg-gray-100 rounded-full text-gray-700">
                     <i class="fas fa-arrow-left text-lg"></i>
@@ -700,7 +707,7 @@
         <!-- ADD ADDRESS SHEET -->
         <div id="add-address-modal" class="absolute inset-0 z-[90] hidden">
             <div class="absolute inset-0 bg-black/50" onclick="closeAddAddressModal()"></div>
-            <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] p-6 min-h-[50%] flex flex-col transition-transform duration-300 transform translate-y-full" id="add-address-content">
+            <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] p-6 min-h-[50%] flex flex-col transition-transform duration-300 transform translate-y-full shadow-2xl" id="add-address-content">
                 <div class="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-6 cursor-grab" onclick="closeAddAddressModal()"></div>
                 <h3 class="font-bold text-xl text-gray-800 mb-6">Tambah Alamat Baru</h3>
                 <div class="space-y-5 mb-6 flex-1 overflow-y-auto hide-scrollbar">
@@ -738,11 +745,11 @@
 
         <!-- PARTNERSHIP MODAL -->
         <div id="partnership-modal" class="absolute inset-0 z-[95] hidden flex items-end justify-center bg-black/50" onclick="closePartnershipModal()">
-            <div class="bg-white w-full rounded-t-[2.5rem] p-6 pb-10" onclick="event.stopPropagation()">
+            <div class="bg-white w-full rounded-t-[2.5rem] p-6 pb-10 shadow-2xl" onclick="event.stopPropagation()">
                 <div class="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-6"></div>
                 <h3 class="font-bold text-xl text-gray-800 mb-4">Menu Mitra</h3>
                 <div class="space-y-3">
-                    <div onclick="openSellerRegistration()" class="bg-green-50 p-4 rounded-2xl flex items-center gap-4 hover:bg-green-100 transition border border-green-100 cursor-pointer">
+                    <div onclick="openSellerRegistration()" class="bg-green-50 p-4 rounded-2xl flex items-center gap-4 hover:bg-green-100 transition border border-green-100 cursor-pointer shadow-sm">
                         <div class="bg-green-500 text-white w-10 h-10 rounded-full flex items-center justify-center"><i class="fas fa-user-plus"></i></div>
                         <div><h4 class="font-bold text-gray-800">Daftar Mitra Baru</h4><p class="text-xs text-gray-600">Gabung jadi penjual/rider sekarang</p></div>
                     </div>
@@ -817,6 +824,9 @@
 
         let currentDetailItem = null;
         let currentDetailQty = 1;
+        
+        // --- NAVIGATION STATE ---
+        let lastActivePage = 'home-page';
 
         let userProfile = {
             name: "User ProjekGo",
@@ -846,6 +856,8 @@
 
         function toggleFavorite(e, itemId) {
             e.stopPropagation();
+            const btn = e.currentTarget; // FIX: Capture currentTarget immediately
+
             if(favorites.has(itemId)) {
                 favorites.delete(itemId);
             } else {
@@ -854,7 +866,7 @@
             safeStorage.setItem('pg_favorites', JSON.stringify([...favorites]));
             
             // Re-render UI: Cari tombol dan ubah classnya
-            const btnIcon = e.currentTarget.querySelector('i');
+            const btnIcon = btn.querySelector('i');
             if(btnIcon) {
                 if(favorites.has(itemId)) {
                     btnIcon.className = 'fas fa-heart text-red-500 text-xs';
@@ -864,8 +876,12 @@
             }
             
             // Animasi kecil
-            e.currentTarget.classList.add('scale-125');
-            setTimeout(() => e.currentTarget.classList.remove('scale-125'), 200);
+            if(btn) {
+                btn.classList.add('scale-125');
+                setTimeout(() => {
+                    if(btn) btn.classList.remove('scale-125');
+                }, 200);
+            }
         }
 
         // --- HISTORY API HANDLING ---
@@ -897,7 +913,7 @@
             if(!document.getElementById('partnership-modal').classList.contains('hidden')) { closePartnershipModal(); return; }
             
             const detailPage = document.getElementById('product-detail-page');
-            if (!detailPage.classList.contains('hidden-page')) { navTo('home-page'); return; }
+            if (!detailPage.classList.contains('hidden-page')) { handleBack(); return; }
 
             const activePage = document.querySelector('.page-section.z-30');
             if (activePage && activePage.id !== 'home-page') { navTo('home-page'); return; }
@@ -1053,8 +1069,8 @@
                 const safeName = cat.Name.replace(/'/g, "\\'");
                 return `
                 <div onclick="openCategory('${safeName}', '${safeName}')" class="flex flex-col items-center gap-1 cursor-pointer active:scale-95 transition">
-                    <div class="w-20 h-20 flex items-center justify-center rounded-full bg-orange-600/10 backdrop-blur-sm transition hover:scale-105 border border-orange-600/5">
-                        <img src="${iconSrc}" class="w-12 h-12 object-contain drop-shadow-sm mix-blend-multiply" onerror="this.src='https://img.icons8.com/color/48/food.png'" loading="lazy" decoding="async">
+                    <div class="w-20 h-20 flex items-center justify-center rounded-3xl bg-white shadow-3d transition hover:scale-105 border border-gray-50">
+                        <img src="${iconSrc}" class="w-10 h-10 object-contain mix-blend-multiply opacity-90" onerror="this.src='https://img.icons8.com/color/48/food.png'" loading="lazy" decoding="async">
                     </div>
                     <span class="text-[10px] font-bold text-gray-700 text-center leading-tight px-1 truncate w-full mt-1">${cat.Name}</span>
                 </div>
@@ -1078,11 +1094,19 @@
         function renderProductLists() {
             const exclusiveContainer = document.getElementById('exclusive-slider');
             const recContainer = document.getElementById('recommendation-slider');
+            
+            // PESAN LOADING BARU YANG LEBIH RAMAH
+            const loadingUI = `
+            <div class="w-full text-center text-gray-500 text-xs py-8 animate-pulse flex flex-col justify-center items-center h-full px-10">
+                <i class="fas fa-utensils text-2xl mb-3 text-orange-300"></i>
+                <span class="leading-relaxed font-medium">Tunggu yah, menunya sedang kami siapkan dulu, agar kamu bisa lebih banyak pilihan...</span>
+            </div>`;
+            
             const emptyUI = (msg) => `<div class="w-full text-center py-4 flex flex-col items-center justify-center h-full"><p class="text-xs text-gray-400 mb-2">${msg}</p><button onclick="fetchData(true)" class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-[10px] font-bold py-1 px-3 rounded-full transition"><i class="fas fa-sync-alt mr-1"></i> Coba Lagi</button></div>`;
 
             if (!productsData || productsData.length === 0) {
-                exclusiveContainer.innerHTML = emptyUI("Sedang memuat...");
-                recContainer.innerHTML = emptyUI("Sedang memuat...");
+                exclusiveContainer.innerHTML = loadingUI;
+                recContainer.innerHTML = loadingUI;
                 return;
             }
 
@@ -1153,20 +1177,20 @@
             const favBtn = isHabis ? '' : `<button onclick="toggleFavorite(event, '${item.ID}')" class="absolute bottom-2 left-2 z-20 w-7 h-7 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center active:scale-90 transition hover:bg-black/50"><i class="${favIconClass} text-xs"></i></button>`;
 
             const addButton = isHabis ? '' : `
-                <button onclick="addToCartDirect(event, '${itemString}')" class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 shadow-sm hover:bg-orange-200 active:scale-90 transition shrink-0">
-                    <i class="fas fa-plus text-xs"></i>
+                <button onclick="addToCartDirect(event, '${itemString}')" class="w-7 h-7 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 shadow-sm hover:bg-orange-200 active:scale-90 transition shrink-0">
+                    <i class="fas fa-plus text-[10px]"></i>
                 </button>
             `;
 
             if (type === 'horizontal') {
                 return `
-                <div class="product-card min-w-[320px] bg-white rounded-2xl p-2.5 shadow-sm border border-gray-100 flex gap-3 snap-center ${opacityClass} relative overflow-hidden" ${clickAction}>
-                    <div class="w-32 h-32 bg-gray-100 rounded-xl overflow-hidden shrink-0 relative">
+                <div class="product-card min-w-[300px] bg-white rounded-2xl p-2 shadow-3d border border-gray-50 flex gap-2 snap-center ${opacityClass} relative overflow-hidden" ${clickAction}>
+                    <div class="w-28 h-28 bg-gray-100 rounded-xl overflow-hidden shrink-0 relative">
                         <img src="${imgUrl}" class="w-full h-full object-cover" loading="lazy" decoding="async">
                         ${overlay} ${hematLabel}
                         ${favBtn}
                     </div>
-                    <div class="flex-1 flex flex-col justify-between min-w-0 py-1">
+                    <div class="flex-1 flex flex-col justify-between min-w-0 py-0.5">
                         <div>
                             <div class="flex items-center gap-1 mb-1">
                                 <i class="fas fa-store text-orange-500 text-[10px]"></i>
@@ -1175,7 +1199,7 @@
                             <h4 class="font-bold text-gray-800 text-sm leading-tight line-clamp-2">${item.Name}</h4>
                             <p class="text-[10px] text-gray-500 line-clamp-2 mt-1 leading-tight">${item.Description || 'Menu spesial.'}</p>
                         </div>
-                        <div class="flex items-end justify-between mt-2">
+                        <div class="flex items-end justify-between mt-1">
                             <div class="flex flex-col items-start leading-none">
                                 ${isHemat ? `<span class="text-[9px] text-gray-400 line-through mb-0.5">Rp${oriPrice}</span>` : ''}
                                 <span class="text-orange-600 font-black text-base">Rp${price}</span>
@@ -1186,8 +1210,8 @@
                 </div>`;
             } else {
                 return `
-                <div class="product-card w-full bg-white p-2.5 pb-3 rounded-2xl shadow-sm border border-gray-100 flex flex-col ${opacityClass} relative h-full overflow-hidden" ${clickAction}>
-                    <div class="w-full h-44 bg-gray-100 rounded-xl overflow-hidden mb-2 relative">
+                <div class="product-card w-full bg-white p-2 pb-2.5 rounded-2xl shadow-3d border border-gray-50 flex flex-col ${opacityClass} relative h-full overflow-hidden" ${clickAction}>
+                    <div class="w-full h-40 bg-gray-100 rounded-xl overflow-hidden mb-2 relative">
                         <img src="${imgUrl}" class="w-full h-full object-cover" loading="lazy" decoding="async">
                         ${overlay} ${hematLabel}
                         ${favBtn}
@@ -1257,9 +1281,9 @@
                 const time = Math.floor(Math.random() * (45 - 15) + 15); 
 
                 return `
-                <div class="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden mb-6 cursor-pointer active:scale-[0.99] transition group" onclick="openVendor('${vendor.ID}')">
+                <div class="bg-white rounded-3xl shadow-3d border border-gray-50 overflow-hidden mb-4 cursor-pointer active:scale-[0.99] transition group" onclick="openVendor('${vendor.ID}')">
                     <!-- Image Header -->
-                    <div class="relative w-full h-48 bg-gray-200">
+                    <div class="relative w-full h-44 bg-gray-200">
                         <img src="${vendorImg}" class="w-full h-full object-cover transition duration-500 group-hover:scale-110" loading="lazy">
                         <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                         
@@ -1278,7 +1302,7 @@
                     </div>
 
                     <!-- Content Body -->
-                    <div class="p-4">
+                    <div class="p-3">
                         <div class="flex items-center justify-between text-gray-600 text-xs font-medium mb-3">
                             <div class="flex items-center gap-4">
                                 <div class="flex items-center gap-1.5">
@@ -1326,12 +1350,8 @@
             const container = document.getElementById('vendor-menu-container');
             const vendorProducts = productsData.filter(p => p.Vendor_Name === vendor.Vendor_Name);
             
-            // --- LOGIC BARU: SISIPKAN ULASAN (KATA PELANGGAN) DARI DATA REAL API ---
-            
-            // 1. Filter ulasan dari Global Review berdasarkan Vendor ID
             const myVendorReviews = globalReviews.filter(r => String(r.Vendor_ID) === String(vendorId));
             
-            // 2. Buat HTML untuk produk awal (2 produk pertama)
             const firstBatch = vendorProducts.slice(0, 2);
             const remainingBatch = vendorProducts.slice(2);
             
@@ -1341,13 +1361,9 @@
                 htmlContent += firstBatch.map(item => createProductCard(item, 'vertical')).join('');
             }
 
-            // 3. Render Bagian "Kata Pelanggan" (Jika ada ulasan REAL)
             if(myVendorReviews.length > 0) {
-                // Urutkan review terbaru (asumsi backend mengirim berurutan atau kita balik)
-                const reviewsToShow = myVendorReviews.reverse().slice(0, 5); // Tampilkan maks 5 terbaru
-
+                const reviewsToShow = myVendorReviews.reverse().slice(0, 5);
                 const reviewsHtml = reviewsToShow.map(r => {
-                    // Cek jika ada nama menu di komentar (format: (Menu: ...) text)
                     let displayComment = r.Comment;
                     let displayMenu = "";
                     if(r.Comment && r.Comment.includes('(Menu:')) {
@@ -1396,7 +1412,6 @@
                     </div>
                 `;
             } else {
-                 // Placeholder jika belum ada review
                  htmlContent += `
                     <div class="col-span-2 py-3 px-4 bg-gray-50 rounded-xl my-2 border border-gray-100 border-dashed text-center">
                         <p class="text-[10px] text-gray-400 italic">Belum ada ulasan untuk warung ini.</p>
@@ -1404,7 +1419,6 @@
                 `;
             }
 
-            // 4. Render sisa produk
             if(remainingBatch.length > 0) {
                 htmlContent += remainingBatch.map(item => createProductCard(item, 'vertical')).join('');
             }
@@ -1461,10 +1475,8 @@
                 variantContainer.innerHTML = '';
             }
 
-            // Tampilkan reviews lokal hanya untuk detail produk (atau bisa ganti fetch global jika mau)
             renderReviews(item.ID);
             
-            // RESET SCROLL HALAMAN DETAIL
             document.getElementById('product-detail-page').querySelector('.scrolling-wrapper').scrollTop = 0;
             navTo('product-detail-page');
         }
@@ -1492,12 +1504,12 @@
             else { cart.push({ ...item, cartId: cartId, variant: selectedVariant || '', qty: currentDetailQty }); }
             
             updateCartBadge();
+            
+            // --- FIX NAVIGASI: KEMBALI KE HALAMAN TERAKHIR ---
             handleBack(); 
         }
 
         function renderReviews(itemId) {
-            // Untuk detail produk, sementara masih pakai local storage review (per item)
-            // Bisa diupgrade nanti untuk filter globalReviews by product ID jika backend support
             const list = document.getElementById('detail-reviews-list');
             const reviews = productReviews[itemId] || [];
             
@@ -1535,7 +1547,6 @@
             document.getElementById('review-item-name').innerText = itemName;
             document.getElementById('review-item-id').value = itemId;
             
-            // Reset form
             document.getElementById('review-text').value = '';
             setRating(0);
             document.getElementById('submit-review-btn-text').innerText = "Kirim Ulasan";
@@ -1569,7 +1580,6 @@
             if(rating == 0) { alert("Mohon berikan bintang!"); return; }
             if(!text) { alert("Mohon isi ulasanmu!"); return; }
 
-            // 1. Cari Vendor ID dari item ID
             let vendorId = '';
             const prod = productsData.find(p => String(p.ID) === String(itemId));
             if(prod) {
@@ -1577,19 +1587,16 @@
                 if(vendor) vendorId = vendor.ID;
             }
 
-            // 2. Format Komentar (Sisipkan Nama Menu agar bisa diparsing nanti)
             const formattedComment = `(Menu: ${itemName}) ${text}`;
 
-            // 3. UI Loading state
             const btn = document.getElementById('btn-submit-review');
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
             btn.disabled = true;
 
-            // 4. Kirim ke API Google Sheet
             const payload = {
                 action: 'addReview',
-                vendorId: vendorId, // Penting untuk filter di halaman profil penjual
+                vendorId: vendorId, 
                 customerName: userProfile.name,
                 rating: rating,
                 comment: formattedComment
@@ -1604,17 +1611,14 @@
             .then(() => {
                 alert("Ulasan berhasil dikirim! Terima kasih.");
                 
-                // Simpan lokal juga agar UX instan (walaupun fetch ulang nanti menimpa)
                 if(!productReviews[itemId]) productReviews[itemId] = [];
                 productReviews[itemId].unshift({ user: userProfile.name, rating: rating, text: text, date: new Date().toLocaleDateString('id-ID') });
                 safeStorage.setItem('pg_reviews', JSON.stringify(productReviews));
                 
-                // Reset dan Tutup
                 btn.innerHTML = originalText;
                 btn.disabled = false;
                 closeReviewForm();
                 
-                // Refresh data background agar ulasan muncul di vendor page nanti
                 setTimeout(() => fetchData(true), 1000);
             })
             .catch(e => {
@@ -1663,7 +1667,7 @@
                 }
 
                 for(const [vendor, items] of Object.entries(grouped)) {
-                    html += `<div class="bg-white rounded-2xl p-4 border border-gray-100 mb-3 shadow-sm"><div class="flex items-center gap-2 mb-3 pb-2 border-b border-gray-100"><i class="fas fa-store text-orange-600 text-sm"></i><h4 class="font-bold text-sm text-gray-800">${vendor}</h4></div>`;
+                    html += `<div class="bg-white rounded-2xl p-3 border border-gray-100 mb-3 shadow-3d"><div class="flex items-center gap-2 mb-3 pb-2 border-b border-gray-100"><i class="fas fa-store text-orange-600 text-sm"></i><h4 class="font-bold text-sm text-gray-800">${vendor}</h4></div>`;
                     items.forEach(item => {
                          const priceVal = parseFloat(item.Price);
                          const originalPriceVal = parseFloat(item.Original_Price);
@@ -1672,7 +1676,7 @@
 
                         html += `
                         <div class="flex justify-between items-start mb-3 last:mb-0">
-                            <div class="flex gap-3 items-center flex-1">
+                            <div class="flex gap-2 items-center flex-1">
                                 <div class="w-12 h-12 rounded-xl bg-gray-200 overflow-hidden shrink-0"><img src="${imgUrl}" class="w-full h-full object-cover" loading="lazy" decoding="async"></div>
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-bold text-gray-800 line-clamp-1">${item.Name}</p>
@@ -1698,22 +1702,16 @@
                 
                 const savings = totalOriginal - total;
                 const summaryHtml = `
-                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-3">
-                        <!-- Baris 1: Markup Info (Tanpa Label Warna) -->
+                    <div class="bg-white p-5 rounded-2xl shadow-3d border border-gray-100 space-y-3">
                         <div class="flex justify-between items-center text-xs text-gray-500 font-medium">
                             <span>PROJEKGO tidak markup harga</span>
                             <span class="text-gray-400 line-through">${formatRupiah(totalOriginal)}</span>
                         </div>
-                        
-                        <!-- Baris 2: Biaya App -->
                         <div class="flex justify-between items-center text-xs text-gray-600 font-medium">
                             <span>Biaya Aplikasi</span>
                             <div class="flex items-center gap-1"><span class="text-[9px] bg-green-100 text-green-600 px-1.5 py-0.5 rounded font-bold">Gratis</span> <span>Rp 0</span></div>
                         </div>
-                        
                         <div class="border-t border-dashed border-gray-200 my-2"></div>
-                        
-                        <!-- Baris 3: Total Harga -->
                         <div class="flex justify-between items-center">
                             <span class="font-bold text-gray-800 text-sm">Total harga makanan</span>
                             <div class="text-right flex flex-col items-end">
@@ -1721,10 +1719,8 @@
                                 <span class="text-[10px] text-gray-400 font-medium mt-1">Harga Asli</span>
                             </div>
                         </div>
-                        
                         ${savings > 0 ? `<div class="flex justify-end"><span class="text-[10px] bg-red-50 text-red-600 px-2 py-1 rounded-lg font-bold">Anda lebih hemat ${formatRupiah(savings)}</span></div>` : ''}
                         
-                        <!-- INFO ONGKIR -->
                         <div class="bg-blue-50 border border-blue-100 p-3 rounded-xl mt-2 flex gap-2 items-start">
                             <i class="fas fa-info-circle text-blue-500 mt-0.5 text-xs"></i>
                             <p class="text-[10px] text-blue-800 font-medium leading-tight">
@@ -1764,7 +1760,6 @@
             
             const phone = "6281292802623";
             
-            // === FORMAT PESANAN BARU (LEBIH RAPI & TANPA EMOT) ===
             let msg = `Halo Admin, saya mau pesan:\n\n`;
             let grandTotal = 0;
             const grouped = {};
@@ -1785,17 +1780,11 @@
             });
 
             for(const [vendor, items] of Object.entries(grouped)) {
-                // Header Warung
                 msg += `[ ${vendor.toUpperCase()} ]\n`; 
-                
                 items.forEach(i => {
-                    // Format harga: 15.000
                     const priceFormatted = new Intl.NumberFormat('id-ID').format(i.Price);
-                    // Format item: 2x Nasi Goreng (Pedas) @ 15.000
                     msg += `${i.qty}x ${i.Name} ${i.variant ? `(${i.variant})` : ''} @ ${priceFormatted}\n`;
                 });
-                
-                // Garis Pemisah
                 msg += `--------------------------------\n`; 
             }
             
@@ -1804,22 +1793,13 @@
             
             if(orderNote) {
                 msg += `*Catatan:*\n${orderNote}\n\n`;
-            } else {
-                // Tambahan baris kosong jika tidak ada catatan agar rapi
-                // msg += `\n`; 
             }
             
             msg += `Mohon info ongkirnya. Terima kasih.`;
-            // ======================================================
 
             const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
-            
-            // --- FIX FOR MOBILE REDIRECT ---
-            // Deteksi apakah user menggunakan mobile atau desktop
             const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-            // Simpan Order History & Kosongkan Keranjang DULUAN
-            // (Agar data tersimpan meskipun redirect browser menghentikan eksekusi script selanjutnya)
             const newOrder = {
                 id: `ORD-${Date.now()}`,
                 date: new Date().toLocaleDateString('id-ID'),
@@ -1836,9 +1816,6 @@
             renderCartPage();
             renderOrderHistory();
 
-            // Redirect ke WhatsApp
-            // window.location.href lebih kuat di Mobile untuk memicu "Deep Link" (membuka aplikasi WA)
-            // window.open lebih baik di Desktop (tab baru)
             if (isMobile) {
                 window.location.href = waUrl;
             } else {
@@ -1934,7 +1911,7 @@
                 }
 
                 return `
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-3">
+                <div class="bg-white p-4 rounded-2xl shadow-3d border border-gray-100 mb-3">
                     <div class="flex justify-between items-center mb-1">
                          <p class="text-[10px] text-gray-400">${o.date} • ${o.id}</p>
                          <span class="text-[10px] px-2 py-0.5 rounded bg-yellow-100 text-yellow-700 font-bold">${o.status}</span>
@@ -1976,6 +1953,13 @@
         function navTo(pageId) {
             // 1. Simpan posisi scroll halaman yang sedang aktif
             const activePage = document.querySelector('.page-section:not(.hidden-page)');
+            
+            // LOGIC "LAST VISITED"
+            // Sebelum pindah, jika kita akan ke product-detail-page, ingat halaman sebelumnya
+            if(activePage && pageId === 'product-detail-page') {
+                lastActivePage = activePage.id;
+            }
+
             if (activePage) {
                 const scroller = activePage.classList.contains('scrolling-wrapper') ? activePage : activePage.querySelector('.scrolling-wrapper');
                 if (scroller) {
@@ -2020,8 +2004,14 @@
         }
         
         function handleBack() {
+            // FIX NAVIGASI: Cek dulu jika sedang di detail produk
             const detailPage = document.getElementById('product-detail-page');
-            if (!detailPage.classList.contains('hidden-page')) { navTo('home-page'); return; }
+            if (!detailPage.classList.contains('hidden-page')) { 
+                // Kembali ke halaman terakhir yang disimpan (misal vendor page atau search page)
+                navTo(lastActivePage || 'home-page'); 
+                return; 
+            }
+            
             navTo('home-page');
         }
 
@@ -2040,7 +2030,6 @@
         }
 
         function openCategory(catId, catName) { 
-            // Reset scroll untuk halaman kategori baru
             document.getElementById('category-page').querySelector('.scrolling-wrapper').scrollTop = 0;
             navTo('category-page'); 
             document.getElementById('cat-page-title').innerText = catName; 
@@ -2102,7 +2091,7 @@
                     }).join('');
 
                     html += `
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-4">
+                    <div class="bg-white p-3 rounded-2xl shadow-3d border border-gray-50 mb-4">
                         <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-50 cursor-pointer" onclick="openVendor('${vId}')">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-full bg-gray-200 overflow-hidden border border-gray-100">
@@ -2120,7 +2109,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="flex gap-3 overflow-x-auto hide-scrollbar pb-1 snap-x">
+                        <div class="flex gap-2 overflow-x-auto hide-scrollbar pb-1 snap-x">
                             ${productsHtml}
                         </div>
                     </div>
