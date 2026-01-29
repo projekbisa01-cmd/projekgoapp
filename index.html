@@ -151,15 +151,8 @@
                 <!-- 1. Header ORANGE -->
                 <div class="px-5 pt-12 pb-8 bg-orange-600 flex items-center justify-between gap-3 rounded-b-[2rem] shadow-3d relative z-50 mb-2">
                     <div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-1">
                              <span class="text-white text-2xl font-black tracking-tighter italic">PROJEK<span class="text-yellow-300">GO</span></span>
-                             
-                             <!-- INDIKATOR LOADING BACKGROUND (BARU) -->
-                             <div id="bg-sync-indicator" class="hidden bg-white/20 backdrop-blur-md rounded-full px-2 py-0.5 flex items-center gap-1 border border-white/10 animate-pulse">
-                                <i class="fas fa-sync-alt fa-spin text-[8px] text-white"></i>
-                                <span class="text-[8px] text-white font-bold">Update...</span>
-                             </div>
-
                         </div>
                         <div class="flex items-center gap-1 mt-0.5 cursor-pointer active:opacity-70 transition" onclick="openRegionModal()">
                             <p class="text-xs font-bold text-orange-50 max-w-[180px] truncate" id="header-address-text">Pilih Wilayah</p>
@@ -916,9 +909,7 @@
                 history.pushState({page: 'home'}, document.title, window.location.href);
             } catch(e) { console.warn("History API access denied/restricted."); }
 
-            // Ubah cara pemanggilan fetchData saat load
             fetchData();
-            
             if(!userRegionPref) {
                 setTimeout(() => { document.getElementById('region-choice-modal').classList.remove('hidden'); }, 1000);
             } else {
@@ -989,14 +980,14 @@
         function refreshDashboard() {
             if(productsData.length > 0) {
                 renderProductLists();
+                // Panggil fungsi render baru untuk "Warung Sekitar"
                 renderNearbyBigCards(vendorsData, productsData);
             }
         }
 
-        // --- FUNGSI UPDATE BARU DENGAN BACKGROUND FETCH ---
         async function fetchData(forceRefresh = false) {
             const refreshBtn = document.getElementById('refreshIcon');
-            if(forceRefresh && refreshBtn) refreshBtn.classList.add('fa-spin');
+            if(refreshBtn) refreshBtn.classList.add('fa-spin');
 
             const now = Date.now();
             let cachedCats = null, cachedProds = null, cachedVends = null, cachedReviews = null;
@@ -1007,119 +998,71 @@
                 cachedReviews = JSON.parse(safeStorage.getItem('pg_cache_reviews'));
             } catch(e) {}
             
-            // Cek validitas cache
-            let isCacheValid = cachedCats && cachedProds && cachedVends && cachedReviews; // Kita hapus durasi agar selalu pakai cache dulu jika ada
-            
+            let isCacheValid = cachedCats && cachedProds && cachedVends && cachedReviews && (now - cachedCats.timestamp < CACHE_DURATION);
+
             if (isCacheValid && !forceRefresh) {
-                console.log("Using Cached Data First (Instant Load)");
-                
-                // 1. Render data lama dulu (Instan)
+                console.log("Using Cached Data");
                 renderCategories(cachedCats.data);
                 vendorsData = cachedVends.data;
                 productsData = cachedProds.data;
                 globalReviews = cachedReviews.data;
                 renderProductLists();
                 renderNearbyBigCards(vendorsData, productsData);
-                
-                // 2. Lakukan update di background setelah 2 detik (agar animasi awal mulus dulu)
-                // "Jangan menjadikan aplikasi lambat" -> Kita delay sedikit
-                setTimeout(() => {
-                    fetchFromNetwork(true, true); // true = render if changed, true = isBackground
-                }, 2000);
-                
+                if(refreshBtn) refreshBtn.classList.remove('fa-spin');
+                fetchFromNetwork(false); 
                 return;
             }
-
-            // Jika tidak ada cache atau force refresh, loading biasa (blocking)
-            await fetchFromNetwork(true, false);
+            await fetchFromNetwork(true);
             if(refreshBtn) refreshBtn.classList.remove('fa-spin');
         }
 
-        async function fetchFromNetwork(renderUI, isBackground) {
-            // Indikator UI
-            const syncIndicator = document.getElementById('bg-sync-indicator');
-            if(isBackground) {
-                if(syncIndicator) syncIndicator.classList.remove('hidden');
-            }
-
+        async function fetchFromNetwork(renderImmediately) {
             try {
-                // Gunakan Promise.all untuk fetch paralel (lebih cepat)
-                // Kita buat fungsi fetch ringan tanpa timeout agresif untuk background
-                const fetchAPI = async (action) => {
-                    const res = await fetch(`${API_URL}?action=${action}`);
-                    return await res.json();
+                const timeout = (ms, promise) => {
+                    return new Promise((resolve, reject) => {
+                        setTimeout(() => reject(new Error("Timeout")), ms);
+                        promise.then(resolve, reject);
+                    });
                 };
 
-                const [vendRes, catRes, prodRes, revRes] = await Promise.all([
-                    fetchAPI('getVendors'),
-                    fetchAPI('getCategories'),
-                    fetchAPI('getProducts'),
-                    fetchAPI('getReviews')
-                ]);
-
-                let dataChanged = false;
-
-                // Cek Perubahan & Update Data
-                if(vendRes.status === 'success') {
-                    // Cek apakah data berubah (Simple JSON string compare untuk efisiensi)
-                    if(JSON.stringify(vendorsData) !== JSON.stringify(vendRes.data)) {
-                        vendorsData = vendRes.data;
-                        safeStorage.setItem('pg_cache_vends', JSON.stringify({timestamp: Date.now(), data: vendorsData}));
-                        dataChanged = true;
-                    }
+                const vendRes = await timeout(25000, fetch(`${API_URL}?action=getVendors`));
+                const vendJson = await vendRes.json();
+                if(vendJson.status === 'success') {
+                    vendorsData = vendJson.data;
+                    safeStorage.setItem('pg_cache_vends', JSON.stringify({timestamp: Date.now(), data: vendorsData}));
                 }
 
-                if(catRes.status === 'success') {
-                    // Kategori jarang berubah, kita cek juga
-                    const currentCats = JSON.parse(safeStorage.getItem('pg_cache_cats') || '{}').data;
-                    if(JSON.stringify(currentCats) !== JSON.stringify(catRes.data)) {
-                        renderCategories(catRes.data); // Kategori ringan, langsung render
-                        safeStorage.setItem('pg_cache_cats', JSON.stringify({timestamp: Date.now(), data: catRes.data}));
-                    }
+                const catRes = await timeout(25000, fetch(`${API_URL}?action=getCategories`));
+                const catJson = await catRes.json();
+                if(catJson.status === 'success') {
+                    safeStorage.setItem('pg_cache_cats', JSON.stringify({timestamp: Date.now(), data: catJson.data}));
+                    if(renderImmediately) renderCategories(catJson.data);
                 }
 
-                if(prodRes.status === 'success') {
-                     if(JSON.stringify(productsData) !== JSON.stringify(prodRes.data)) {
-                        productsData = prodRes.data;
-                        safeStorage.setItem('pg_cache_prods', JSON.stringify({timestamp: Date.now(), data: productsData}));
-                        dataChanged = true;
-                    }
-                }
-
-                if(revRes.status === 'success') {
-                     if(JSON.stringify(globalReviews) !== JSON.stringify(revRes.data)) {
-                        globalReviews = revRes.data;
-                        safeStorage.setItem('pg_cache_reviews', JSON.stringify({timestamp: Date.now(), data: globalReviews}));
-                        // Review tidak perlu trigger re-render halaman utama yang berat
-                    }
-                }
-
-                // Render UI HANYA JIKA ada data penting yang berubah
-                if (renderUI && dataChanged) {
-                    // Cek apakah user sedang di halaman home agar tidak ganggu navigasi
-                    const activePage = document.querySelector('.page-section.z-30');
-                    if(activePage && activePage.id === 'home-page') {
-                        console.log("Data updated in background, refreshing view...");
+                const prodRes = await timeout(25000, fetch(`${API_URL}?action=getProducts`));
+                const prodJson = await prodRes.json();
+                if(prodJson.status === 'success') {
+                    productsData = prodJson.data; 
+                    safeStorage.setItem('pg_cache_prods', JSON.stringify({timestamp: Date.now(), data: productsData}));
+                    if(renderImmediately) {
                         renderProductLists();
                         renderNearbyBigCards(vendorsData, productsData);
-                        
-                        // Opsional: Tampilkan notifikasi kecil
-                        if(isBackground) {
-                             const toast = document.createElement('div');
-                             toast.className = 'fixed top-24 left-1/2 transform -translate-x-1/2 bg-black/70 text-white text-[10px] font-bold py-1.5 px-4 rounded-full shadow-lg z-[100] backdrop-blur animate-fade-in-out pointer-events-none';
-                             toast.innerHTML = `<i class="fas fa-check-circle text-green-400 mr-1"></i> Data Diperbarui`;
-                             document.body.appendChild(toast);
-                             setTimeout(() => toast.remove(), 2000);
-                        }
                     }
+                }
+
+                // --- FETCH REVIEWS FROM API ---
+                const revRes = await timeout(25000, fetch(`${API_URL}?action=getReviews`));
+                const revJson = await revRes.json();
+                if(revJson.status === 'success') {
+                    globalReviews = revJson.data;
+                    safeStorage.setItem('pg_cache_reviews', JSON.stringify({timestamp: Date.now(), data: globalReviews}));
                 }
 
             } catch (error) {
-                console.error("Background update failed (silent):", error);
-            } finally {
-                if(isBackground && syncIndicator) {
-                    // Beri delay sedikit agar user sempat lihat indikator (UX)
-                    setTimeout(() => syncIndicator.classList.add('hidden'), 500);
+                console.error("Gagal memuat data:", error);
+                if(renderImmediately) {
+                    renderProductLists(); 
+                    renderNearbyBigCards(vendorsData || [], productsData || []);
                 }
             }
         }
@@ -1133,7 +1076,7 @@
                 'Ayam': 'https://img.icons8.com/color/48/fried-chicken.png',
                 'Makanan kuah': 'https://img.icons8.com/color/48/soup-plate.png',
                 'Aneka mie': 'https://img.icons8.com/color/48/noodles.png',
-                'Makanan ringan': 'https://i.pinimg.com/474x/0c/06/c1/0c06c1743c25b6f6e87a9a63731bf3cb.jpg'
+                'Makanan ringan': 'https://img.icons8.com/color/48/chips.png'
             };
 
             container.innerHTML = data.map(cat => {
@@ -1144,12 +1087,11 @@
                 }
                 const safeName = cat.Name.replace(/'/g, "\\'");
                 return `
-                <div onclick="openCategory('${safeName}', '${safeName}')" class="flex flex-col items-center gap-1 cursor-pointer active:scale-95 transition group">
-                    <div class="w-20 h-20 flex items-center justify-center rounded-3xl bg-white shadow-3d transition hover:shadow-lg border border-gray-50 relative overflow-hidden">
-                        <!-- UPDATE: Icon diperbesar (w-14), transparan (opacity-80), blend mode -->
-                        <img src="${iconSrc}" class="w-14 h-14 object-contain mix-blend-multiply opacity-80 group-hover:scale-110 group-hover:opacity-100 transition duration-500" onerror="this.src='https://img.icons8.com/color/48/food.png'" loading="lazy" decoding="async">
+                <div onclick="openCategory('${safeName}', '${safeName}')" class="flex flex-col items-center gap-1 cursor-pointer active:scale-95 transition">
+                    <div class="w-20 h-20 flex items-center justify-center rounded-3xl bg-white shadow-3d transition hover:scale-105 border border-gray-50">
+                        <img src="${iconSrc}" class="w-10 h-10 object-contain mix-blend-multiply opacity-90" onerror="this.src='https://img.icons8.com/color/48/food.png'" loading="lazy" decoding="async">
                     </div>
-                    <span class="text-[10px] font-bold text-gray-700 text-center leading-tight px-1 truncate w-full mt-1 group-hover:text-orange-600 transition">${cat.Name}</span>
+                    <span class="text-[10px] font-bold text-gray-700 text-center leading-tight px-1 truncate w-full mt-1">${cat.Name}</span>
                 </div>
             `}).join('');
         }
@@ -1343,35 +1285,6 @@
                 return true; 
             });
 
-            // --- FITUR BARU: SHUFFLE ADIL (Fair Ordering) ---
-            // Mengacak urutan setiap 1 jam sekali agar posisi bergantian
-            // Menggunakan "Seeded Random" berdasarkan jam saat ini
-            let seed = Math.floor(Date.now() / (3600 * 1000)); // Angka ini berubah setiap 1 jam
-            
-            // Fungsi Random sederhana (Linear Congruential Generator)
-            const random = () => {
-                seed = (seed * 9301 + 49297) % 233280;
-                return seed / 233280;
-            };
-            
-            // Fisher-Yates Shuffle (Mengacak array)
-            for (let i = applicableVendors.length - 1; i > 0; i--) {
-                const j = Math.floor(random() * (i + 1));
-                [applicableVendors[i], applicableVendors[j]] = [applicableVendors[j], applicableVendors[i]];
-            }
-
-            // --- SORTING: Warung TUTUP pindah ke paling bawah ---
-            // Note: Karena Array.sort modern bersifat "stable", urutan acak dari langkah sebelumnya
-            // akan tetap terjaga untuk sesama warung yang BUKA.
-            applicableVendors.sort((a, b) => {
-                const statusA = (a.Status || 'Buka').toLowerCase();
-                const statusB = (b.Status || 'Buka').toLowerCase();
-                
-                if (statusA === 'tutup' && statusB !== 'tutup') return 1; // A Tutup -> Pindah ke Bawah
-                if (statusA !== 'tutup' && statusB === 'tutup') return -1; // A Buka -> Pindah ke Atas
-                return 0; // Sama-sama Buka/Tutup, urutan tetap (hasil shuffle tadi)
-            });
-
             if(!applicableVendors || applicableVendors.length === 0) {
                 container.innerHTML = `<div class="text-center text-gray-400 text-xs py-8">Belum ada warung di ${userRegionPref}.</div>`;
                 return;
@@ -1402,40 +1315,22 @@
                 const distance = (Math.random() * (4.5 - 0.5) + 0.5).toFixed(1); 
                 const time = Math.floor(Math.random() * (45 - 15) + 15); 
 
-                // --- LOGIKA STATUS TOKO (BARU) ---
-                const isClosed = vendor.Status === 'Tutup';
-                
-                // Jika tutup: abu-abu, tidak bisa diklik, opacity turun
-                const cardStateClass = isClosed 
-                    ? "grayscale opacity-80 cursor-not-allowed" 
-                    : "cursor-pointer active:scale-[0.99] transition group";
-                
-                // Hapus event onclick jika tutup
-                const clickEvent = isClosed ? "" : `onclick="openVendor('${vendor.ID}')"`;
-                
-                // Overlay Badge TUTUP
-                const closedOverlay = isClosed 
-                    ? `<div class="absolute inset-0 z-30 flex items-center justify-center bg-black/10 backdrop-grayscale"><span class="bg-gray-800 text-white px-6 py-2 rounded-2xl font-bold text-sm shadow-2xl border border-gray-600 tracking-widest">TUTUP</span></div>` 
-                    : '';
-
                 return `
-                <div class="bg-white rounded-3xl shadow-3d border border-gray-50 overflow-hidden mb-4 relative ${cardStateClass}" ${clickEvent}>
-                    ${closedOverlay}
-                    
+                <div class="bg-white rounded-3xl shadow-3d border border-gray-50 overflow-hidden mb-4 cursor-pointer active:scale-[0.99] transition group" onclick="openVendor('${vendor.ID}')">
                     <!-- Image Header -->
                     <div class="relative w-full h-44 bg-gray-200">
                         <img src="${vendorImg}" class="w-full h-full object-cover transition duration-500 group-hover:scale-110" loading="lazy">
                         <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                         
                         <!-- Rating Badge -->
-                        <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm z-10">
+                        <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
                             <i class="fas fa-star text-yellow-400 text-xs"></i>
                             <span class="text-xs font-bold text-gray-800">${rating}</span>
                         </div>
 
-                        ${isPromo ? `<div class="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm animate-pulse z-10">Hemat Harga Asli</div>` : ''}
+                        ${isPromo ? `<div class="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm animate-pulse">Hemat Harga Asli</div>` : ''}
 
-                        <div class="absolute bottom-3 left-3 right-3 text-white z-10">
+                        <div class="absolute bottom-3 left-3 right-3 text-white">
                             <h3 class="font-black text-xl leading-tight mb-1 shadow-black drop-shadow-md">${vendor.Vendor_Name}</h3>
                             <p class="text-[10px] opacity-90 font-medium">${vendor.Type || 'Aneka Kuliner'}</p>
                         </div>
@@ -1490,21 +1385,14 @@
             const container = document.getElementById('vendor-menu-container');
             let vendorProducts = productsData.filter(p => p.Vendor_Name === vendor.Vendor_Name);
             
-            // --- LOGIKA SORTING UPDATE: Exclusive First, Lalu Harga Mahal ke Murah ---
+            // --- LOGIKA SORTING BARU: Exclusive First ---
             vendorProducts.sort((a, b) => {
                 const isA = String(a.Is_Exclusive || a.Exclusive || 'false').toLowerCase() === 'true';
                 const isB = String(b.Is_Exclusive || b.Exclusive || 'false').toLowerCase() === 'true';
-                
-                // 1. Prioritas Utama: Status Exclusive
-                if (isA && !isB) return -1; // A exclusive, B tidak -> A di atas
-                if (!isA && isB) return 1;  // B exclusive, A tidak -> B di atas
-                
-                // 2. Prioritas Kedua: Harga (Mahal ke Murah)
-                // Tujuannya agar menu murah (seperti minuman) ada di paling bawah
-                const priceA = parseFloat(a.Price) || 0;
-                const priceB = parseFloat(b.Price) || 0;
-                
-                return priceB - priceA; // Descending (Besar ke Kecil)
+                // Jika A exclusive dan B tidak, A duluan (-1)
+                // Jika B exclusive dan A tidak, B duluan (1)
+                // Jika sama, urutan tetap (0)
+                return (isA === isB) ? 0 : isA ? -1 : 1;
             });
             
             const myVendorReviews = globalReviews.filter(r => String(r.Vendor_ID) === String(vendorId));
@@ -1868,7 +1756,7 @@
                 const summaryHtml = `
                     <div class="bg-white p-5 rounded-2xl shadow-3d border border-gray-100 space-y-3">
                         <div class="flex justify-between items-center text-xs text-gray-500 font-medium">
-                            <span>PROJEKGO tidak Menaikan harga</span>
+                            <span>PROJEKGO tidak markup harga</span>
                             <span class="text-gray-400 line-through">${formatRupiah(totalOriginal)}</span>
                         </div>
                         <div class="flex justify-between items-center text-xs text-gray-600 font-medium">
