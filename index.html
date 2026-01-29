@@ -1017,29 +1017,35 @@
         }
 
         async function fetchFromNetwork(renderImmediately) {
+            // UPDATED TIMEOUT TO 60 SECONDS
+            const FETCH_TIMEOUT = 60000; 
+
             try {
+                // FIXED TIMEOUT LOGIC WITH CLEAR TIMEOUT
                 const timeout = (ms, promise) => {
                     return new Promise((resolve, reject) => {
-                        setTimeout(() => reject(new Error("Timeout")), ms);
-                        promise.then(resolve, reject);
+                        const timer = setTimeout(() => reject(new Error("Request timed out after " + ms + "ms")), ms);
+                        promise
+                            .then(value => { clearTimeout(timer); resolve(value); })
+                            .catch(reason => { clearTimeout(timer); reject(reason); });
                     });
                 };
 
-                const vendRes = await timeout(25000, fetch(`${API_URL}?action=getVendors`));
+                const vendRes = await timeout(FETCH_TIMEOUT, fetch(`${API_URL}?action=getVendors`));
                 const vendJson = await vendRes.json();
                 if(vendJson.status === 'success') {
                     vendorsData = vendJson.data;
                     safeStorage.setItem('pg_cache_vends', JSON.stringify({timestamp: Date.now(), data: vendorsData}));
                 }
 
-                const catRes = await timeout(25000, fetch(`${API_URL}?action=getCategories`));
+                const catRes = await timeout(FETCH_TIMEOUT, fetch(`${API_URL}?action=getCategories`));
                 const catJson = await catRes.json();
                 if(catJson.status === 'success') {
                     safeStorage.setItem('pg_cache_cats', JSON.stringify({timestamp: Date.now(), data: catJson.data}));
                     if(renderImmediately) renderCategories(catJson.data);
                 }
 
-                const prodRes = await timeout(25000, fetch(`${API_URL}?action=getProducts`));
+                const prodRes = await timeout(FETCH_TIMEOUT, fetch(`${API_URL}?action=getProducts`));
                 const prodJson = await prodRes.json();
                 if(prodJson.status === 'success') {
                     productsData = prodJson.data; 
@@ -1051,7 +1057,7 @@
                 }
 
                 // --- FETCH REVIEWS FROM API ---
-                const revRes = await timeout(25000, fetch(`${API_URL}?action=getReviews`));
+                const revRes = await timeout(FETCH_TIMEOUT, fetch(`${API_URL}?action=getReviews`));
                 const revJson = await revRes.json();
                 if(revJson.status === 'success') {
                     globalReviews = revJson.data;
@@ -1059,8 +1065,9 @@
                 }
 
             } catch (error) {
-                console.error("Gagal memuat data:", error);
+                console.error("Gagal memuat data (Jaringan/Timeout):", error);
                 if(renderImmediately) {
+                    // Render UI with whatever data we have or show empty state if critical data missing
                     renderProductLists(); 
                     renderNearbyBigCards(vendorsData || [], productsData || []);
                 }
@@ -1277,12 +1284,23 @@
             const container = document.getElementById('vendor-list');
             if (!userRegionPref) userRegionPref = 'Gombong';
             
-            const applicableVendors = vendors.filter(v => {
+            let applicableVendors = vendors.filter(v => {
                 const region = (v.Region || v.City || v.Alamat || v.Address || '').toLowerCase();
                 const pref = userRegionPref.toLowerCase();
                 if (pref.includes('gombong')) return region.includes('gombong');
                 if (pref.includes('kebumen')) return region.includes('kebumen');
                 return true; 
+            });
+
+            // LOGIKA SORTING: Toko Tutup ditaruh paling bawah
+            applicableVendors.sort((a, b) => {
+                const statusA = (a.Status || 'Buka').toLowerCase();
+                const statusB = (b.Status || 'Buka').toLowerCase();
+                // Jika A tutup dan B tidak, A pindah ke bawah (return 1)
+                if (statusA === 'tutup' && statusB !== 'tutup') return 1;
+                // Jika A tidak tutup dan B tutup, A pindah ke atas (return -1)
+                if (statusA !== 'tutup' && statusB === 'tutup') return -1;
+                return 0;
             });
 
             if(!applicableVendors || applicableVendors.length === 0) {
@@ -1292,6 +1310,7 @@
 
             container.innerHTML = applicableVendors.map(vendor => {
                 const vProducts = products.filter(p => p.Vendor_Name === vendor.Vendor_Name);
+                const isClosed = (vendor.Status || '').toLowerCase() === 'tutup';
                 
                 let priceRangeDisplay = "Harga belum tersedia";
                 let isPromo = false;
@@ -1315,11 +1334,22 @@
                 const distance = (Math.random() * (4.5 - 0.5) + 0.5).toFixed(1); 
                 const time = Math.floor(Math.random() * (45 - 15) + 15); 
 
+                // Setup Tampilan Tutup vs Buka
+                const containerClass = isClosed 
+                    ? "bg-gray-50 rounded-3xl shadow-none border border-gray-200 overflow-hidden mb-4 grayscale opacity-70 cursor-not-allowed relative" 
+                    : "bg-white rounded-3xl shadow-3d border border-gray-50 overflow-hidden mb-4 cursor-pointer active:scale-[0.99] transition group";
+                
+                const clickAction = isClosed ? "" : `onclick="openVendor('${vendor.ID}')"`;
+                
+                // Overlay Label "SEDANG TUTUP"
+                const closedOverlay = isClosed ? `<div class="absolute inset-0 z-20 flex items-center justify-center bg-black/10 backdrop-grayscale"><span class="bg-black/70 text-white px-4 py-2 rounded-xl font-bold text-xs shadow-lg border border-white/20 tracking-wider">SEDANG TUTUP</span></div>` : '';
+
                 return `
-                <div class="bg-white rounded-3xl shadow-3d border border-gray-50 overflow-hidden mb-4 cursor-pointer active:scale-[0.99] transition group" onclick="openVendor('${vendor.ID}')">
+                <div class="${containerClass}" ${clickAction}>
+                    ${closedOverlay}
                     <!-- Image Header -->
                     <div class="relative w-full h-44 bg-gray-200">
-                        <img src="${vendorImg}" class="w-full h-full object-cover transition duration-500 group-hover:scale-110" loading="lazy">
+                        <img src="${vendorImg}" class="w-full h-full object-cover transition duration-500 ${isClosed ? '' : 'group-hover:scale-110'}" loading="lazy">
                         <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                         
                         <!-- Rating Badge -->
@@ -1328,7 +1358,7 @@
                             <span class="text-xs font-bold text-gray-800">${rating}</span>
                         </div>
 
-                        ${isPromo ? `<div class="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm animate-pulse">Hemat Harga Asli</div>` : ''}
+                        ${isPromo && !isClosed ? `<div class="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm animate-pulse">Hemat Harga Asli</div>` : ''}
 
                         <div class="absolute bottom-3 left-3 right-3 text-white">
                             <h3 class="font-black text-xl leading-tight mb-1 shadow-black drop-shadow-md">${vendor.Vendor_Name}</h3>
@@ -1356,7 +1386,7 @@
                                 <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Harga Makanan</span>
                                 <div class="text-sm text-gray-800">${priceRangeDisplay}</div>
                              </div>
-                             <div class="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 group-hover:bg-orange-600 group-hover:text-white group-hover:border-orange-600 transition">
+                             <div class="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 ${isClosed ? '' : 'group-hover:bg-orange-600 group-hover:text-white group-hover:border-orange-600 transition'}">
                                 <i class="fas fa-arrow-right text-xs"></i>
                              </div>
                         </div>
