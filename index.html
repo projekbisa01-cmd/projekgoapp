@@ -194,16 +194,21 @@
                         </div>
                     </div>
 
-                    <!-- Promo Banner (Horizontal Card) -->
+                    <!-- Menu Exclusive Hanya Ada di ProjekGo (Sebelumnya Lagi Promo) -->
                     <div style="contain: content;">
                         <div class="flex justify-between items-center mb-2 px-1">
-                            <h3 class="font-bold text-gray-800 text-sm">Lagi Promo</h3>
+                            <h3 class="font-bold text-gray-800 text-sm flex items-center gap-1">
+                                <i class="fas fa-crown text-orange-500 text-xs"></i> Menu Exclusive
+                            </h3>
                             <span class="text-orange-600 text-[10px] font-bold cursor-pointer" onclick="openExclusivePage()">Lihat Semua</span>
                         </div>
+                         <!-- Subtitle kecil -->
+                         <p class="px-1 -mt-2 mb-2 text-[10px] text-gray-400 italic">Hanya ada di ProjekGo</p>
+
                         <div id="exclusive-slider" class="flex gap-2 overflow-x-auto hide-scrollbar pb-2 snap-x min-h-[120px] horizontal-slider" style="scroll-behavior: smooth;">
                              <div class="w-full text-center text-gray-500 text-xs py-8 animate-pulse flex flex-col justify-center items-center h-full px-10">
                                 <i class="fas fa-utensils text-2xl mb-2 text-orange-300"></i>
-                                <span class="leading-relaxed">Tunggu yah, menunya sedang kami siapkan dulu, agar kamu bisa lebih banyak pilihan...</span>
+                                <span class="leading-relaxed">Tunggu yah, menunya sedang kami siapkan dulu...</span>
                             </div>
                         </div>
                     </div>
@@ -491,7 +496,10 @@
                     <div class="mb-4 space-y-4">
                         <!-- Alamat -->
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-2">Alamat Pengantaran</label>
+                            <div class="flex justify-between items-end mb-2">
+                                <label class="block text-xs font-bold text-gray-700">Alamat Pengantaran</label>
+                                <button onclick="openAddressSelectionForCheckout()" class="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-md hover:bg-orange-100 transition"><i class="fas fa-map-marker-alt mr-1"></i> Pilih Alamat Tersimpan</button>
+                            </div>
                             <div class="relative">
                                 <i class="fas fa-map-marker-alt absolute left-3 top-3 text-orange-500 text-xs"></i>
                                 <textarea id="checkout-address" rows="3" class="w-full bg-white border border-gray-200 rounded-xl py-2.5 pl-9 pr-4 text-xs focus:outline-none focus:border-orange-500 resize-none font-medium text-gray-700 shadow-sm placeholder-gray-400" placeholder="Ketik alamat lengkap (Jalan, No. Rumah, Patokan)..."></textarea>
@@ -535,7 +543,7 @@
                     <i class="fas fa-arrow-left text-lg"></i>
                 </button>
                 <div>
-                    <h2 class="text-lg font-bold text-gray-800">Eksklusif</h2>
+                    <h2 class="text-lg font-bold text-gray-800">Exclusive ProjekGo</h2>
                 </div>
             </div>
             <div class="flex-1 overflow-y-auto p-3 hide-scrollbar scrolling-wrapper">
@@ -827,6 +835,7 @@
         
         // --- NAVIGATION STATE ---
         let lastActivePage = 'home-page';
+        let isSelectingForCheckout = false; // Flag untuk mode pemilihan alamat
 
         let userProfile = {
             name: "User ProjekGo",
@@ -844,6 +853,16 @@
         try { claimedCodes = JSON.parse(safeStorage.getItem('pg_claimed_codes')) || []; } catch(e) { }
         
         const VALID_POINT_CODES = ['PROJEKGO', 'MAKANENAK', 'SENIN', 'JUMATBERKAH', 'TEST1234'];
+
+        // Helper untuk masking nama (Privasi)
+        function maskName(name) {
+            if (!name) return "Pelanggan";
+            const parts = name.trim().split(' ');
+            if (parts.length === 1) {
+                return name.length > 3 ? name.substring(0, 3) + "***" : name + "***";
+            }
+            return parts[0] + " " + parts[1].charAt(0) + "***"; // "Budi Santoso" -> "Budi S***"
+        }
 
         // Helper untuk format nominal pendek (misal: 5rb)
         function formatRupiahShort(num) {
@@ -1099,7 +1118,7 @@
             const loadingUI = `
             <div class="w-full text-center text-gray-500 text-xs py-8 animate-pulse flex flex-col justify-center items-center h-full px-10">
                 <i class="fas fa-utensils text-2xl mb-3 text-orange-300"></i>
-                <span class="leading-relaxed font-medium">Tunggu yah, menunya sedang kami siapkan dulu, agar kamu bisa lebih banyak pilihan...</span>
+                <span class="leading-relaxed font-medium">Tunggu yah, menunya sedang kami siapkan dulu...</span>
             </div>`;
             
             const emptyUI = (msg) => `<div class="w-full text-center py-4 flex flex-col items-center justify-center h-full"><p class="text-xs text-gray-400 mb-2">${msg}</p><button onclick="fetchData(true)" class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-[10px] font-bold py-1 px-3 rounded-full transition"><i class="fas fa-sync-alt mr-1"></i> Coba Lagi</button></div>`;
@@ -1117,7 +1136,7 @@
             if(exclusive.length > 0) {
                 exclusiveContainer.innerHTML = exclusive.map(p => createProductCard(p, 'horizontal')).join('');
             } else {
-                exclusiveContainer.innerHTML = '<div class="text-xs text-gray-400 w-full text-center py-4 flex flex-col justify-center h-full">Belum ada promo di wilayah ini.</div>';
+                exclusiveContainer.innerHTML = '<div class="text-xs text-gray-400 w-full text-center py-4 flex flex-col justify-center h-full">Belum ada menu exclusive di wilayah ini.</div>';
             }
 
             if(normal.length > 0) {
@@ -1172,6 +1191,20 @@
             const saving = originalPriceVal - priceVal;
             const hematLabel = isHemat ? `<div class="absolute top-2 left-2 bg-red-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-md z-10 shadow-sm border border-white">Hemat ${formatRupiahShort(saving)}</div>` : '';
             
+            // --- LOGIKA BADGE EXCLUSIVE (UPDATED POSITION) ---
+            const isExclusive = String(item.Is_Exclusive || item.Exclusive || 'false').toLowerCase() === 'true';
+            
+            // Penyesuaian Posisi:
+            // Jika Vertical (Grid): Ada rating di pojok kanan bawah (bottom-2), jadi exclusive ditaruh diatasnya (bottom-9)
+            // Jika Horizontal (Slider): Tidak ada rating di gambar, jadi exclusive ditaruh di pojok kanan bawah (bottom-2)
+            const badgePos = type === 'vertical' ? 'bottom-9 right-2' : 'bottom-2 right-2';
+            
+            const exclusiveBadge = isExclusive ? `
+                <div class="absolute ${badgePos} bg-gradient-to-r from-orange-600 to-red-600 text-white px-1.5 py-0.5 rounded-md z-20 shadow-md border border-white/20 flex flex-col items-center justify-center leading-none">
+                    <span class="text-[7px] font-black tracking-wider">EXCLUSIVE</span>
+                    <span class="text-[5px] font-normal opacity-90">Hanya di ProjekGo</span>
+                </div>` : '';
+            
             const isFav = favorites.has(String(item.ID));
             const favIconClass = isFav ? 'fas fa-heart text-red-500' : 'far fa-heart text-white';
             const favBtn = isHabis ? '' : `<button onclick="toggleFavorite(event, '${item.ID}')" class="absolute bottom-2 left-2 z-20 w-7 h-7 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center active:scale-90 transition hover:bg-black/50"><i class="${favIconClass} text-xs"></i></button>`;
@@ -1188,6 +1221,7 @@
                     <div class="w-28 h-28 bg-gray-100 rounded-xl overflow-hidden shrink-0 relative">
                         <img src="${imgUrl}" class="w-full h-full object-cover" loading="lazy" decoding="async">
                         ${overlay} ${hematLabel}
+                        ${exclusiveBadge}
                         ${favBtn}
                     </div>
                     <div class="flex-1 flex flex-col justify-between min-w-0 py-0.5">
@@ -1214,6 +1248,7 @@
                     <div class="w-full h-40 bg-gray-100 rounded-xl overflow-hidden mb-2 relative">
                         <img src="${imgUrl}" class="w-full h-full object-cover" loading="lazy" decoding="async">
                         ${overlay} ${hematLabel}
+                        ${exclusiveBadge}
                         ${favBtn}
                         ${!isHabis ? `<div class="absolute bottom-2 right-2 bg-white/90 px-1.5 rounded text-[9px] font-bold shadow-sm z-10"><i class="fas fa-star text-yellow-500 text-[8px]"></i> ${item.Rating || '4.8'}</div>` : ''}
                     </div>
@@ -1348,7 +1383,24 @@
             document.getElementById('vendor-rating-badge').innerText = vendor.Rating || '4.5';
             
             const container = document.getElementById('vendor-menu-container');
-            const vendorProducts = productsData.filter(p => p.Vendor_Name === vendor.Vendor_Name);
+            let vendorProducts = productsData.filter(p => p.Vendor_Name === vendor.Vendor_Name);
+            
+            // --- LOGIKA SORTING UPDATE: Exclusive First, Lalu Harga Mahal ke Murah ---
+            vendorProducts.sort((a, b) => {
+                const isA = String(a.Is_Exclusive || a.Exclusive || 'false').toLowerCase() === 'true';
+                const isB = String(b.Is_Exclusive || b.Exclusive || 'false').toLowerCase() === 'true';
+                
+                // 1. Prioritas Utama: Status Exclusive
+                if (isA && !isB) return -1; // A exclusive, B tidak -> A di atas
+                if (!isA && isB) return 1;  // B exclusive, A tidak -> B di atas
+                
+                // 2. Prioritas Kedua: Harga (Mahal ke Murah)
+                // Tujuannya agar menu murah (seperti minuman) ada di paling bawah
+                const priceA = parseFloat(a.Price) || 0;
+                const priceB = parseFloat(b.Price) || 0;
+                
+                return priceB - priceA; // Descending (Besar ke Kecil)
+            });
             
             const myVendorReviews = globalReviews.filter(r => String(r.Vendor_ID) === String(vendorId));
             
@@ -1372,6 +1424,9 @@
                          displayComment = split.slice(1).join(')').trim();
                     }
 
+                    // --- IMPLEMENTASI MASKING NAMA ---
+                    const maskedName = maskName(r.Customer_Name);
+
                     return `
                     <div class="min-w-[240px] bg-white p-3 rounded-2xl border border-gray-100 shadow-sm snap-center flex flex-col justify-between h-full relative overflow-hidden">
                         <div class="absolute top-0 right-0 p-2 opacity-10"><i class="fas fa-quote-right text-4xl text-orange-500"></i></div>
@@ -1379,10 +1434,10 @@
                             <div class="flex justify-between items-start mb-2 relative z-10">
                                 <div class="flex items-center gap-2">
                                      <div class="w-8 h-8 rounded-full bg-gray-200 overflow-hidden border border-white shadow-sm">
-                                        <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(r.Customer_Name)}&background=random" class="w-full h-full">
+                                        <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(maskedName)}&background=random" class="w-full h-full">
                                      </div>
                                      <div>
-                                         <p class="text-xs font-bold text-gray-800 line-clamp-1">${r.Customer_Name}</p>
+                                         <p class="text-xs font-bold text-gray-800 line-clamp-1">${maskedName}</p>
                                          <div class="flex text-yellow-400 text-[9px]">
                                             ${[...Array(5)].map((_, i) => i < r.Rating ? '<i class="fas fa-star"></i>' : '<i class="far fa-star text-gray-300"></i>').join('')}
                                          </div>
@@ -1526,12 +1581,16 @@
                 return;
             }
 
-            list.innerHTML = reviews.map(r => `
+            list.innerHTML = reviews.map(r => {
+                // --- IMPLEMENTASI MASKING NAMA ---
+                const maskedName = maskName(r.user);
+                
+                return `
                 <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
                     <div class="flex items-center justify-between mb-2">
                         <div class="flex items-center gap-2">
-                             <div class="w-6 h-6 rounded-full bg-gray-200 overflow-hidden"><img src="https://ui-avatars.com/api/?name=${encodeURIComponent(r.user)}&background=random" class="w-full h-full"></div>
-                             <span class="text-xs font-bold text-gray-700">${r.user}</span>
+                             <div class="w-6 h-6 rounded-full bg-gray-200 overflow-hidden"><img src="https://ui-avatars.com/api/?name=${encodeURIComponent(maskedName)}&background=random" class="w-full h-full"></div>
+                             <span class="text-xs font-bold text-gray-700">${maskedName}</span>
                         </div>
                         <span class="text-[10px] text-gray-400">${r.date}</span>
                     </div>
@@ -1540,7 +1599,7 @@
                     </div>
                     <p class="text-xs text-gray-600 leading-snug">${r.text}</p>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         function openReviewFormFromHistory(itemId, itemName) {
@@ -1770,7 +1829,8 @@
                 price: c.Price,
                 qty: c.qty,
                 variant: c.variant || '',
-                image: c.Image_URL
+                image: c.Image_URL,
+                vendor: c.Vendor_Name // Simpan nama vendor untuk reorder nanti
             }));
 
             cart.forEach(item => {
@@ -1821,6 +1881,50 @@
             } else {
                 window.open(waUrl, '_blank');
             }
+        }
+
+        // --- FUNGSI PESAN LAGI (REORDER) ---
+        function reorderItems(orderId) {
+            const order = orderHistory.find(o => o.id === orderId);
+            if (!order || !order.itemsDetail) return;
+
+            order.itemsDetail.forEach(item => {
+                const cartId = item.id + (item.variant ? '-' + item.variant : '');
+                
+                // Cek apakah item sudah ada di produk data untuk memastikan data up-to-date (misal harga)
+                const liveProduct = productsData.find(p => String(p.ID) === String(item.id));
+                const vendorName = liveProduct ? liveProduct.Vendor_Name : (item.vendor || "Unknown Vendor");
+                const price = liveProduct ? parseFloat(liveProduct.Price) : parseFloat(item.price);
+                const originalPrice = liveProduct ? parseFloat(liveProduct.Original_Price) : parseFloat(item.price); // Fallback logic
+
+                const existing = cart.find(c => c.cartId === cartId);
+                
+                if (existing) {
+                    existing.qty += item.qty;
+                } else {
+                    cart.push({
+                        ID: item.id,
+                        Name: item.name,
+                        Price: price,
+                        Original_Price: originalPrice,
+                        Image_URL: item.image,
+                        Vendor_Name: vendorName,
+                        cartId: cartId,
+                        variant: item.variant || '',
+                        qty: item.qty
+                    });
+                }
+            });
+
+            updateCartBadge();
+            renderCartPage();
+            navTo('cart-page');
+            
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-orange-600 text-white text-xs font-bold py-2 px-4 rounded-full shadow-lg z-[100] animate-bounce flex items-center gap-2 backdrop-blur';
+            toast.innerHTML = `<i class="fas fa-check"></i> Menu berhasil dimasukkan keranjang!`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
         }
 
         function updatePointsUI() {
@@ -1921,6 +2025,11 @@
                         <p class="text-orange-600 font-black text-sm">Rp ${new Intl.NumberFormat('id-ID').format(o.total)}</p>
                     </div>
                     ${itemsHtml}
+                    <div class="mt-3 pt-2 border-t border-gray-100">
+                        <button onclick="reorderItems('${o.id}')" class="w-full bg-green-50 text-green-700 font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-green-100 transition">
+                            <i class="fas fa-cart-arrow-down"></i> Pesan Menu Ini Lagi
+                        </button>
+                    </div>
                 </div>
             `}).join('');
         }
@@ -1936,15 +2045,54 @@
         function saveProfile() { const newName = document.getElementById('edit-name-input').value; const newPhone = document.getElementById('edit-phone-input').value; if (newName && newPhone) { userProfile.name = newName; userProfile.phone = newPhone; userProfile.avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(newName)}&background=random`; updateProfileUI(); closeEditProfile(); } }
         
         function openFavoritesPage(navigate = true) { if (navigate) navTo('category-page'); document.getElementById('cat-page-title').innerText = 'Makanan Favorit'; const container = document.getElementById('category-content-container'); const favProducts = productsData.filter(p => favorites.has(String(p.ID))); if (favProducts.length === 0) { container.innerHTML = '<div class="col-span-2 text-center text-gray-400 mt-10"><i class="far fa-heart text-4xl mb-2"></i><p>Belum ada makanan favorit.</p></div>'; } else { renderProductGrid(favProducts, container); } }
-        function openAddressModal() { renderAddressList(); document.getElementById('address-modal').classList.remove('hidden'); }
-        function closeAddressModal() { document.getElementById('address-modal').classList.add('hidden'); }
-        function renderAddressList() { const container = document.getElementById('address-list-container'); container.innerHTML = savedAddresses.map(addr => `<div class="bg-white p-3 rounded-2xl border border-gray-200 flex justify-between items-center cursor-pointer hover:border-orange-500 group" onclick="selectAddress('${addr.detail}')"><div><span class="text-xs font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded mb-1 inline-block">${addr.label}</span><p class="text-sm text-gray-800 leading-tight">${addr.detail}</p></div><button onclick="event.stopPropagation(); deleteAddress(${addr.id})" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash-alt"></i></button></div>`).join(''); }
+        
+        function openAddressModal() { 
+            renderAddressList(); 
+            document.getElementById('address-modal').classList.remove('hidden'); 
+        }
+        
+        function closeAddressModal() { 
+            document.getElementById('address-modal').classList.add('hidden'); 
+            isSelectingForCheckout = false; // Reset mode saat tutup
+        }
+
+        // --- FUNGSI PILIH ALAMAT UNTUK CHECKOUT ---
+        function openAddressSelectionForCheckout() {
+            isSelectingForCheckout = true;
+            openAddressModal();
+        }
+
+        function renderAddressList() { 
+            const container = document.getElementById('address-list-container'); 
+            container.innerHTML = savedAddresses.map(addr => `
+                <div class="bg-white p-3 rounded-2xl border border-gray-200 flex justify-between items-center cursor-pointer hover:border-orange-500 group" onclick="selectAddress('${addr.detail}')">
+                    <div>
+                        <span class="text-xs font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded mb-1 inline-block">${addr.label}</span>
+                        <p class="text-sm text-gray-800 leading-tight">${addr.detail}</p>
+                    </div>
+                    <button onclick="event.stopPropagation(); deleteAddress(${addr.id})" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash-alt"></i></button>
+                </div>`
+            ).join(''); 
+        }
+        
         function deleteAddress(id) { if (confirm('Hapus alamat ini?')) { savedAddresses = savedAddresses.filter(a => a.id !== id); renderAddressList(); } }
         function openAddAddressModal() { const modal = document.getElementById('add-address-modal'); const content = document.getElementById('add-address-content'); document.getElementById('new-addr-detail').value = ''; document.getElementById('new-addr-note').value = ''; setAddressLabel('Rumah'); modal.classList.remove('hidden'); setTimeout(() => { content.classList.remove('translate-y-full'); }, 10); }
         function closeAddAddressModal() { const modal = document.getElementById('add-address-modal'); const content = document.getElementById('add-address-content'); content.classList.add('translate-y-full'); setTimeout(() => { modal.classList.add('hidden'); }, 300); }
         function setAddressLabel(label) { document.getElementById('new-addr-label').value = label; document.querySelectorAll('.addr-label-btn').forEach(btn => { if(btn.innerText === label) { btn.classList.add('border-orange-500', 'bg-orange-50', 'text-orange-600'); btn.classList.remove('border-gray-200', 'text-gray-600'); } else { btn.classList.remove('border-orange-500', 'bg-orange-50', 'text-orange-600'); btn.classList.add('border-gray-200', 'text-gray-600'); } }); }
         function saveNewAddress() { const label = document.getElementById('new-addr-label').value; const detail = document.getElementById('new-addr-detail').value; const note = document.getElementById('new-addr-note').value; if (!detail) { const input = document.getElementById('new-addr-detail'); input.classList.add('border-red-500', 'animate-pulse'); setTimeout(() => input.classList.remove('border-red-500', 'animate-pulse'), 1000); return; } const finalDetail = note ? `${detail} (${note})` : detail; savedAddresses.push({ id: Date.now(), label: label || "Alamat", detail: finalDetail }); renderAddressList(); closeAddAddressModal(); const toast = document.createElement('div'); toast.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs font-bold py-2 px-4 rounded-full shadow-lg z-[95] animate-bounce flex items-center'; toast.innerHTML = `<i class="fas fa-check-circle mr-2 text-green-400"></i> Alamat Berhasil Disimpan`; document.body.appendChild(toast); setTimeout(() => toast.remove(), 2000); }
-        function selectAddress(detail) { document.getElementById('header-address-text').innerText = detail; closeAddressModal(); }
+        
+        function selectAddress(detail) { 
+            if (isSelectingForCheckout) {
+                // Jika sedang mode checkout, isi textarea checkout
+                document.getElementById('checkout-address').value = detail;
+                isSelectingForCheckout = false; // Kembalikan mode
+            } else {
+                // Jika mode biasa (ganti wilayah/lokasi global), update header
+                document.getElementById('header-address-text').innerText = detail; 
+            }
+            closeAddressModal(); 
+        }
+        
         function formatRupiah(number) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumSignificantDigits: 3 }).format(number); }
 
         // --- FUNGSI NAVIGASI DENGAN SCROLL MEMORY ---
