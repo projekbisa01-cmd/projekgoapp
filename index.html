@@ -678,6 +678,7 @@
         let rawProducts = []; 
         let allProducts = []; 
         let allVendors = [];
+        let allReviews = []; // Store fetched reviews
         let cart = []; 
         let favorites = JSON.parse(localStorage.getItem('favs')) || [];
         let currentDetailProduct = null;
@@ -1021,22 +1022,25 @@
             }
 
             // RENDER REVIEWS (Real Data Logic)
-            const realReviews = []; 
-            const avgRating = realReviews.length > 0 
-                ? (realReviews.reduce((acc, curr) => acc + curr.rating, 0) / realReviews.length).toFixed(1) 
+            // Filter ulasan yang cocok dengan nama warung ini
+            // Note: Menggunakan pencocokan string nama warung.
+            const vendorReviews = allReviews.filter(r => r.vendor_name === vendor.nama_warung);
+            
+            const avgRating = vendorReviews.length > 0 
+                ? (vendorReviews.reduce((acc, curr) => acc + curr.rating, 0) / vendorReviews.length).toFixed(1) 
                 : "New";
             
             document.getElementById('vendor-avg-rating').innerText = avgRating;
             reviewsContainer.innerHTML = ''; 
 
-            if (realReviews.length === 0) {
+            if (vendorReviews.length === 0) {
                 reviewsContainer.innerHTML = `
                     <div style="padding:15px; color:#888; font-size:13px; font-style:italic; width:100%; text-align:center;">
                         Belum ada komentar.
                     </div>
                 `;
             } else {
-                realReviews.forEach(rev => {
+                vendorReviews.forEach(rev => {
                     let starsHtml = '';
                     for(let i=0; i<5; i++) {
                         starsHtml += i < rev.rating ? '<i class="ph-fill ph-star"></i>' : '<i class="ph ph-star"></i>';
@@ -1589,6 +1593,12 @@
                 snapshot.forEach(d => rawProducts.push({id:d.id, ...d.data()}));
                 
                 filterAndRenderProducts(); // Render ulang produk
+            });
+
+            // LISTENER REVIEWS (NEW - Agar ulasan muncul di vendor page)
+            onSnapshot(collection(db, "reviews"), (snapshot) => {
+                allReviews = [];
+                snapshot.forEach(doc => allReviews.push({id: doc.id, ...doc.data()}));
             });
         }
 
