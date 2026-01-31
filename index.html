@@ -660,7 +660,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDq0UCWj43rCP3rqvAGbdyr2FFV7kyhZTA",
@@ -675,7 +675,8 @@
         const db = getFirestore(app);
 
         // DATA STATE
-        let allProducts = [];
+        let rawProducts = []; 
+        let allProducts = []; 
         let allVendors = [];
         let cart = []; 
         let favorites = JSON.parse(localStorage.getItem('favs')) || [];
@@ -685,6 +686,7 @@
         
         let pendingVariantItem = null;
         let selectedVariantValue = null;
+        let currentReviewOrderId = null; // ID pesanan yang sedang diulas
 
         // LOAD PROFILE
         const savedProfile = JSON.parse(localStorage.getItem('user_profile')) || {name: 'User Projekgo', phone: '0812-XXXX-XXXX'};
@@ -693,15 +695,12 @@
 
         // OPERATIONAL HOURS LOGIC
         window.checkOperationalStatus = () => {
-            // Force Timezone to WIB (UTC+7)
             const now = new Date();
             const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
             const wibDate = new Date(utc + (3600000 * 7));
-            
             const hours = wibDate.getHours();
             const minutes = wibDate.getMinutes();
             const totalMinutes = (hours * 60) + minutes;
-
             const startMinutes = (6 * 60) + 30; // 06:30
             const endMinutes = (21 * 60) + 0;   // 21:00
 
@@ -735,7 +734,6 @@
                 }
             }, 4000); // 4 seconds
         }
-        // Initialize after load
         window.addEventListener('DOMContentLoaded', initBannerAutoScroll);
 
         // --- NAVIGASI ---
@@ -792,11 +790,14 @@
         }
 
         // --- LOGIC ULASAN & REORDER ---
-        window.openReviewModal = (vendorName) => {
+        window.openReviewModal = (vendorName, orderId) => {
+            currentReviewOrderId = orderId; // Simpan ID pesanan
             document.getElementById('review-vendor-name').innerText = vendorName;
             document.getElementById('review-modal').style.display = 'flex';
             document.getElementById('review-text').value = '';
+            setRating(5); // Reset bintang ke 5
         }
+
         window.setRating = (n) => {
             const stars = document.querySelectorAll('.star-rating');
             stars.forEach((s, i) => {
@@ -804,10 +805,44 @@
                 else s.classList.remove('active');
             });
         }
-        window.submitReview = () => {
-            showToast("Ulasan terkirim!");
-            document.getElementById('review-modal').style.display = 'none';
+
+        window.submitReview = async () => {
+            const text = document.getElementById('review-text').value;
+            const stars = document.querySelectorAll('.star-rating.active').length;
+            const vendorName = document.getElementById('review-vendor-name').innerText;
+            const user = savedProfile.name;
+
+            // 1. Simpan ke Firestore
+            try {
+                await addDoc(collection(db, "reviews"), {
+                    vendor_name: vendorName,
+                    user: user,
+                    rating: stars,
+                    text: text,
+                    timestamp: Date.now(),
+                    order_id: currentReviewOrderId
+                });
+
+                // 2. Update LocalStorage agar tombol hilang
+                const history = JSON.parse(localStorage.getItem('order_history')) || [];
+                const updatedHistory = history.map(order => {
+                    if (order.id === currentReviewOrderId) {
+                        return { ...order, isReviewed: true };
+                    }
+                    return order;
+                });
+                localStorage.setItem('order_history', JSON.stringify(updatedHistory));
+
+                showToast("Ulasan terkirim!");
+                document.getElementById('review-modal').style.display = 'none';
+                renderOrderHistory(); // Refresh tampilan agar tombol hilang
+
+            } catch (error) {
+                console.error("Error adding review: ", error);
+                showToast("Gagal mengirim ulasan.");
+            }
         }
+
         window.reorder = (itemsJson) => {
             const itemsToReorder = JSON.parse(decodeURIComponent(itemsJson));
             itemsToReorder.forEach(item => { cart.push(item); });
@@ -825,23 +860,58 @@
         function renderOrderHistory() {
             const container = document.getElementById('order-history-list');
             const history = JSON.parse(localStorage.getItem('order_history')) || [];
+            
             if(history.length === 0) {
                 container.innerHTML = '<div style="text-align:center; margin-top:50px; color:#999; font-size:12px;">Belum ada riwayat pesanan.</div>';
                 return;
             }
+            
             container.innerHTML = '';
-            history.reverse().forEach(order => {
+            
+            // Loop pesanan (reverse agar yang terbaru di atas)
+            history.slice().reverse().forEach(order => {
                 const reorderData = encodeURIComponent(JSON.stringify(order.rawItems));
+                
+                // LOGIKA WAKTU: Cek selisih waktu > 5 menit
+                const orderTime = order.id; // ID adalah timestamp (Date.now())
+                const currentTime = Date.now();
+                const diffMinutes = (currentTime - orderTime) / (1000 * 60);
+                
+                let displayStatus = order.status;
+                let statusColor = "#E8F5E9"; // Hijau muda default
+                let statusTextColor = "#2E7D32"; // Hijau tua default
+
+                // Jika status masih menunggu dan sudah > 5 menit, ubah tampilan (Client Side Visual Only)
+                if (displayStatus === 'MENUNGGU KONFIRMASI' && diffMinutes > 5) {
+                    displayStatus = 'TERIMAKASIH'; // Atau 'SELESAI'
+                }
+
+                // Warna status khusus jika Menunggu
+                if (displayStatus === 'MENUNGGU KONFIRMASI') {
+                    statusColor = "#FFF3E0"; // Oranye muda
+                    statusTextColor = "#E65100"; // Oranye tua
+                }
+
+                // LOGIKA TOMBOL ULASAN
+                // Tampilkan tombol HANYA JIKA belum diulas (isReviewed != true)
+                let reviewButtonHtml = '';
+                if (!order.isReviewed) {
+                    reviewButtonHtml = `<button class="btn-review-action" onclick="openReviewModal('${order.vendor}', ${order.id})">⭐ Beri Ulasan</button>`;
+                } else {
+                    reviewButtonHtml = `<span style="font-size:11px; color:#aaa; font-style:italic; padding:8px;">Ulasan Terkirim</span>`;
+                }
+
                 const html = `
                     <div class="order-card" style="background:white; padding:15px; border-radius:12px; box-shadow:var(--shadow-sm); margin-bottom:15px; border:1px solid rgba(0,0,0,0.03);">
                         <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:11px; color:#888;">
-                            <span>${order.date}</span><span style="background:#E8F5E9; color:#2E7D32; padding:3px 8px; border-radius:4px; font-weight:700; font-size:10px;">${order.status}</span>
+                            <span>${order.date}</span>
+                            <span style="background:${statusColor}; color:${statusTextColor}; padding:3px 8px; border-radius:4px; font-weight:700; font-size:10px;">${displayStatus}</span>
                         </div>
                         <div style="font-weight:700; font-size:14px; margin-bottom:4px;">${order.vendor}</div>
                         <div style="font-size:12px; color:#555; margin-bottom:8px; line-height:1.4;">${order.items}</div>
                         <div style="font-size:14px; font-weight:800; color:var(--primary); padding-bottom:10px; border-bottom:1px dashed #eee;">Total: Rp ${order.total.toLocaleString()}</div>
-                        <div style="margin-top:10px; text-align:right; display:flex; justify-content:flex-end; gap:8px;">
-                            <button class="btn-review-action" onclick="openReviewModal('${order.vendor}')">⭐ Beri Ulasan</button>
+                        <div style="margin-top:10px; text-align:right; display:flex; justify-content:flex-end; align-items:center; gap:8px;">
+                            ${reviewButtonHtml}
                             <button class="btn-reorder-action" onclick="reorder('${reorderData}')">Pesan Lagi ↻</button>
                         </div>
                     </div>
@@ -852,24 +922,19 @@
 
         // --- 6. FULL VENDOR PAGE IMPLEMENTATION ---
         window.openVendorPage = (vendorId) => {
-            // Find vendor object
             let vendor = allVendors.find(v => v.id === vendorId);
             
-            // Fallback logic if vendor object not found but ID passed (e.g. from product)
             if (!vendor) {
-                // Try to find any product with this vendor_id to get name
                 const prod = allProducts.find(p => p.vendor_id === vendorId);
                 if (prod) {
                     vendor = {id: vendorId, nama_warung: prod.vendor_name, shop_photo: null};
                 } else {
-                    // Last resort: maybe ID passed is the Name itself (from legacy code)
                     const vByName = allVendors.find(v => v.nama_warung === vendorId);
                     if (vByName) vendor = vByName;
                     else vendor = {id: 'temp', nama_warung: 'Detail Warung', shop_photo: null};
                 }
             }
 
-            // Header
             const img = vendor.shop_photo || 'https://cdn-icons-png.flaticon.com/512/1046/1046857.png';
             document.getElementById('vendor-header-content').innerHTML = `
                 <div class="vendor-header">
@@ -884,7 +949,6 @@
                 </div>
             `;
 
-            // Menu List
             const vendorMenu = allProducts.filter(p => p.vendor_name === vendor.nama_warung || p.vendor_id === vendor.id);
             const normal = vendorMenu.filter(i => parseInt(i.harga) >= 9000);
             const cheap = vendorMenu.filter(i => parseInt(i.harga) < 9000);
@@ -908,7 +972,6 @@
                     const isFav = favorites.includes(item.id) ? 'active' : '';
                     const desc = item.deskripsi || "Menu spesial warung ini, dijamin enak.";
 
-                    // GRID ITEM (Top 4)
                     if (index < 4) {
                         const div = document.createElement('div');
                         div.className = 'menu-grid-item';
@@ -930,9 +993,7 @@
                             </div>
                         `;
                         gridContainer.appendChild(div);
-                    } 
-                    // LIST ITEM (Rest) - IMPROVED LAYOUT
-                    else {
+                    } else {
                         const div = document.createElement('div');
                         div.className = 'menu-list-item';
                         div.innerHTML = `
@@ -960,16 +1021,13 @@
             }
 
             // RENDER REVIEWS (Real Data Logic)
-            const realReviews = []; // Saat ini kosong karena belum ada backend ulasan
-            
-            // Kalkulasi Rating Real
+            const realReviews = []; 
             const avgRating = realReviews.length > 0 
                 ? (realReviews.reduce((acc, curr) => acc + curr.rating, 0) / realReviews.length).toFixed(1) 
                 : "New";
             
             document.getElementById('vendor-avg-rating').innerText = avgRating;
-
-            reviewsContainer.innerHTML = ''; // Reset konten
+            reviewsContainer.innerHTML = ''; 
 
             if (realReviews.length === 0) {
                 reviewsContainer.innerHTML = `
@@ -983,7 +1041,6 @@
                     for(let i=0; i<5; i++) {
                         starsHtml += i < rev.rating ? '<i class="ph-fill ph-star"></i>' : '<i class="ph ph-star"></i>';
                     }
-
                     reviewsContainer.innerHTML += `
                         <div class="review-card-scroll">
                             <div class="rc-header">
@@ -999,7 +1056,7 @@
             openPage('vendor');
         }
 
-        // --- 7. CATEGORY PAGE IMPLEMENTATION (EXCLUSIVE & PALING LARIS) ---
+        // --- 7. CATEGORY PAGE IMPLEMENTATION ---
         window.openCategoryPage = (cat) => {
             const c = document.getElementById('list-content');
             c.innerHTML = '';
@@ -1018,7 +1075,6 @@
                 c.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:#999;">Produk tidak ditemukan.</div>';
             } else {
                 if (cat === 'Exclusive' || cat === 'Paling Laris') {
-                    // GROUP BY VENDOR FOR SPECIAL PAGES
                     c.classList.remove('product-list-grid'); 
 
                     const grouped = {};
@@ -1028,23 +1084,19 @@
                         grouped[vName].push(item);
                     });
 
-                    // Render Groups
                     for (const [vendorName, items] of Object.entries(grouped)) {
                         const prices = items.map(i => i.harga);
                         const minPrice = prices.length ? Math.min(...prices) : 0;
                         const rating = (4.0 + Math.random()).toFixed(1);
                         
-                        // Get Vendor ID from first item or find in allVendors
                         let vId = items[0].vendor_id;
                         if (!vId) {
                             const vObj = allVendors.find(v => v.nama_warung === vendorName);
-                            vId = vObj ? vObj.id : vendorName; // Fallback to name if ID missing
+                            vId = vObj ? vObj.id : vendorName; 
                         }
 
                         const groupDiv = document.createElement('div');
                         groupDiv.className = 'group-vendor-section';
-                        
-                        // Header CLICKABLE
                         groupDiv.innerHTML = `
                             <div class="group-vendor-header" onclick="openVendorPage('${vId}')" style="cursor:pointer;">
                                 <i class="ph-fill ph-storefront gvh-icon"></i>
@@ -1058,30 +1110,20 @@
                                 <i class="ph-bold ph-caret-right gvh-arrow"></i>
                             </div>
                         `;
-                        
-                        // Scroll Container
                         const scrollDiv = document.createElement('div');
                         scrollDiv.className = 'scroll-container';
-                        
-                        items.forEach(item => {
-                            renderHorizontalCard(scrollDiv, item);
-                        });
-                        
+                        items.forEach(item => { renderHorizontalCard(scrollDiv, item); });
                         groupDiv.appendChild(scrollDiv);
                         c.appendChild(groupDiv);
                     }
                 } else {
-                    // REGULAR GRID
-                    filteredItems.forEach(item => {
-                        renderPcard(c, item);
-                    });
+                    filteredItems.forEach(item => { renderPcard(c, item); });
                 }
             }
             document.getElementById('list-title').innerText = cat;
             openPage('list');
         }
 
-        // Helper render horizontal card (used in Home & Category)
         function renderHorizontalScroll(id, items) {
             const c = document.getElementById(id); c.innerHTML='';
             items.forEach(item => renderHorizontalCard(c, item));
@@ -1128,9 +1170,7 @@
             container.appendChild(div);
         }
 
-        // ... existing search, service, loadData ...
-
-        // 2. Open Detail Product (Same as before)
+        // ... existing detail product logic ...
         window.openProductDetail = (id) => {
             const item = allProducts.find(p => p.id === id);
             if(!item) return;
@@ -1172,10 +1212,10 @@
             openPage('product-detail');
         }
 
-        // 3. Add to Cart Logic (Same as before)
+        // Add to Cart Logic
         window.quickAdd = (e, id) => {
             e.stopPropagation();
-            if(!checkOperationalStatus()) return; // GUARD
+            if(!checkOperationalStatus()) return; 
 
             const item = allProducts.find(p => p.id === id);
             if (item.variant_options && item.variant_options.length > 0) {
@@ -1222,7 +1262,7 @@
         }
 
         window.confirmVariantAdd = () => {
-            if(!checkOperationalStatus()) return; // GUARD
+            if(!checkOperationalStatus()) return; 
 
             if (pendingVariantItem && selectedVariantValue) {
                 addToCartDirect(pendingVariantItem, selectedVariantValue, "");
@@ -1245,7 +1285,7 @@
         }
 
         window.addToCartFromDetail = () => {
-            if(!checkOperationalStatus()) return; // GUARD
+            if(!checkOperationalStatus()) return; 
 
             if(!currentDetailProduct) return;
             let variant = "-";
@@ -1405,7 +1445,7 @@
         }
 
         window.processCheckout = () => {
-            if(!checkOperationalStatus()) return; // GUARD
+            if(!checkOperationalStatus()) return; 
 
             const addrEl = document.getElementById('checkout-addr');
             if(!addrEl) return;
@@ -1424,7 +1464,6 @@
             let total = 0;
             let itemsSummary = [];
             
-            // Consolidated logic for WA message
             const consolidatedCart = [];
             cart.forEach(item => {
                 const key = item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase();
@@ -1535,23 +1574,47 @@
 
         // INITIAL LOAD & REALTIME DATA
         function loadData() {
-            onSnapshot(collection(db, "products"), (snapshot) => {
-                allProducts = []; 
-                snapshot.forEach(d => allProducts.push({id:d.id, ...d.data()}));
-                const exclusiveItems = allProducts.filter(p => p.is_exclusive === true);
-                renderHorizontalScroll('container-exclusive', exclusiveItems);
-                renderHorizontalScroll('container-best', allProducts.slice(0, 7));
-            });
-
+            // LISTENER VENDOR
             onSnapshot(collection(db, "vendors"), (snapshot) => {
                 allVendors = [];
                 snapshot.forEach(doc => { allVendors.push({id: doc.id, ...doc.data()}); });
-                if (allVendors.length === 0) {
-                     const u = [...new Set(allProducts.map(i=>i.vendor_name||'Warung Projekgo'))];
-                     allVendors = u.map((n,i)=>({id:'v'+i, nama_warung:n, status:'BUKA', shop_photo:null}));
-                }
-                renderWarungList(allVendors);
+                
+                renderWarungList(allVendors); // Render list warung
+                filterAndRenderProducts(); // Render ulang produk dengan filter baru
             });
+
+            // LISTENER PRODUK
+            onSnapshot(collection(db, "products"), (snapshot) => {
+                rawProducts = []; 
+                snapshot.forEach(d => rawProducts.push({id:d.id, ...d.data()}));
+                
+                filterAndRenderProducts(); // Render ulang produk
+            });
+        }
+
+        // FUNGSI UTAMA UNTUK MEMFILTER & MERENDER PRODUK
+        function filterAndRenderProducts() {
+            // Ambil daftar ID warung yang valid
+            const validVendorIds = allVendors.map(v => v.id);
+            
+            // Filter produk: Hanya simpan produk yang punya vendor_id VALID di daftar vendor
+            allProducts = rawProducts.filter(p => {
+                return p.vendor_id && validVendorIds.includes(p.vendor_id);
+            });
+
+            // Update Tampilan (Best Seller & Exclusive)
+            const exclusiveItems = allProducts.filter(p => p.is_exclusive === true);
+            renderHorizontalScroll('container-exclusive', exclusiveItems);
+            renderHorizontalScroll('container-best', allProducts.slice(0, 7));
+            
+            // Jika user sedang di halaman kategori, refresh halamannya juga (opsional)
+            const listTitle = document.getElementById('list-title');
+            if (document.getElementById('page-list').style.display === 'block' && listTitle) {
+                const currentCat = listTitle.innerText;
+                if (!currentCat.includes('Hasil:')) { // Jangan refresh kalau lagi search
+                     openCategoryPage(currentCat);
+                }
+            }
         }
         
         function renderWarungList(vends) {
@@ -1562,7 +1625,8 @@
                 const st = s ? '<span style="color:#00AA13">● BUKA</span>' : '<span style="color:#D32F2F">● TUTUP</span>';
                 const img = v.shop_photo || 'https://cdn-icons-png.flaticon.com/512/1046/1046857.png'; 
                 
-                const vendorProds = allProducts.filter(p => p.vendor_name === v.nama_warung || p.vendor_id === v.id);
+                // Gunakan allProducts (yang sudah difilter) untuk menghitung harga termurah warung ini
+                const vendorProds = allProducts.filter(p => p.vendor_id === v.id);
                 const prices = vendorProds.map(p => parseInt(p.harga));
                 const minPrice = prices.length ? Math.min(...prices) : 10000;
                 const formattedPrice = (minPrice/1000).toFixed(0) + 'rb';
