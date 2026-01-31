@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Admin Pusat - Projekgo</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -10,264 +10,351 @@
         :root {
             --primary: #FF6600;
             --dark: #1A1A1A;
-            --bg: #F0F2F5;
+            --bg: #F8F9FB;
             --white: #ffffff;
             --gray: #64748b;
-            --danger: #d32f2f;
-            --success: #2e7d32;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --nav-height: 75px;
         }
         
-        * { box-sizing: border-box; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; background: var(--bg); color: var(--dark); }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            margin: 0; 
+            background: var(--bg); 
+            color: var(--dark);
+            padding-bottom: var(--nav-height); 
+        }
 
         /* LOGIN SCREEN */
-        #login-overlay { position: fixed; inset: 0; background: var(--primary); z-index: 9999; display: flex; align-items: center; justify-content: center; }
-        .login-box { background: white; padding: 40px; border-radius: 20px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
-        .login-input { width: 100%; padding: 15px; border: 1px solid #ddd; border-radius: 10px; margin: 20px 0; font-size: 16px; outline: none; }
-        .btn-login { width: 100%; padding: 15px; background: var(--dark); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; }
+        #login-overlay { position: fixed; inset: 0; background: var(--primary); z-index: 10001; display: flex; align-items: center; justify-content: center; }
+        .login-box { background: white; padding: 40px; border-radius: 24px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
+        .login-input { width: 100%; padding: 15px; border: 1.5px solid #eee; border-radius: 12px; margin: 20px 0; font-size: 16px; outline: none; transition: 0.3s; }
+        .login-input:focus { border-color: var(--primary); }
+        .btn-login { width: 100%; padding: 15px; background: var(--dark); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 16px; }
 
-        /* LAYOUT */
-        .admin-container { display: flex; min-height: 100vh; }
-        
-        /* SIDEBAR */
-        .sidebar { width: 250px; background: white; border-right: 1px solid #eee; display: flex; flex-direction: column; position: fixed; top: 0; bottom: 0; }
-        .brand { padding: 25px; font-size: 24px; font-weight: 800; color: var(--primary); border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 10px; }
-        .menu { flex-grow: 1; padding: 20px; }
-        .menu-item { display: flex; align-items: center; gap: 12px; padding: 15px; color: var(--gray); cursor: pointer; border-radius: 10px; margin-bottom: 5px; transition: 0.2s; font-weight: 600; }
-        .menu-item:hover, .menu-item.active { background: #FFF0E5; color: var(--primary); }
-        .menu-item i { font-size: 20px; }
-        .logout { padding: 20px; border-top: 1px solid #f0f0f0; color: var(--danger); cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        /* HEADER */
+        .top-header {
+            position: sticky;
+            top: 0;
+            background: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 900;
+            border-bottom: 1px solid #eee;
+        }
+        .brand-mobile { font-size: 20px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+        .btn-logout-top { background: #f1f5f9; border: none; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--danger); cursor: pointer; }
 
         /* MAIN CONTENT */
-        .main-content { flex-grow: 1; margin-left: 250px; padding: 30px; }
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .page-title { font-size: 24px; font-weight: 800; }
+        .main-content { padding: 20px; max-width: 800px; margin: 0 auto; }
+        .page-header { margin-bottom: 25px; }
+        .page-title { font-size: 22px; font-weight: 800; margin: 0; color: var(--dark); }
+        .page-subtitle { font-size: 14px; color: var(--gray); margin-top: 5px; }
         
-        /* STATS CARDS */
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 20px; }
-        .stat-icon { width: 60px; height: 60px; border-radius: 12px; background: #FFF0E5; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 28px; }
-        .stat-info div { font-size: 14px; color: var(--gray); margin-bottom: 5px; }
-        .stat-info span { font-size: 24px; font-weight: 800; color: var(--dark); }
+        /* BOTTOM NAVIGATION */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: var(--nav-height);
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid #eee;
+            padding: 0 5px;
+            z-index: 1000;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--gray);
+            text-decoration: none;
+            flex: 1;
+            padding: 10px 0;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .nav-item i { font-size: 22px; }
+        .nav-item span { font-size: 10px; font-weight: 600; }
+        .nav-item.active { color: var(--primary); }
 
-        /* DATA TABLE / LIST */
-        .data-card { background: white; border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); overflow: hidden; margin-bottom: 20px; }
-        .card-header { padding: 20px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; font-weight: 700; }
-        .table-responsive { width: 100%; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 15px 20px; text-align: left; border-bottom: 1px solid #f9f9f9; font-size: 14px; vertical-align: middle; }
-        th { background: #f8f9fb; color: var(--gray); font-weight: 600; font-size: 12px; text-transform: uppercase; }
+        /* CARDS & STATS */
+        .stats-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: white; padding: 20px; border-radius: 20px; display: flex; align-items: center; gap: 15px; border: 1px solid #f0f0f0; }
+        .stat-icon { width: 50px; height: 50px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .stat-info div { font-size: 13px; color: var(--gray); }
+        .stat-info span { font-size: 20px; font-weight: 800; }
+
+        .data-card { background: white; border-radius: 20px; border: 1px solid #f0f0f0; overflow: hidden; margin-bottom: 20px; }
+        .card-header { padding: 18px 20px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 16px; }
         
+        /* TABLES */
+        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        th { background: #f8fafc; padding: 12px 20px; text-align: left; font-size: 11px; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; }
+        td { padding: 16px 20px; border-bottom: 1px solid #f8fafc; font-size: 14px; }
+
         /* BUTTONS */
-        .action-btn { padding: 8px 14px; border-radius: 8px; border: none; cursor: pointer; font-size: 12px; font-weight: 700; transition: 0.2s; display: inline-flex; align-items: center; gap: 5px; }
-        
-        .btn-delete { background: #ffebee; color: var(--danger); }
-        .btn-delete:hover { background: #ffcdd2; }
-        
-        .btn-view { background: #e3f2fd; color: #1976d2; margin-right: 5px; }
-        .btn-view:hover { background: #bbdefb; }
-        
-        .btn-add { background: var(--primary); color: white; padding: 10px 20px; font-size: 14px; display: flex; align-items: center; gap: 5px; border-radius: 8px; border: none; cursor: pointer; }
-        .btn-add:hover { background: #e65100; }
-        
-        /* STATUS & STOCK BUTTONS */
-        .btn-status { padding: 6px 12px; border-radius: 20px; font-weight: 800; font-size: 11px; cursor: pointer; border: none; min-width: 80px; text-align: center; }
-        .btn-status.open { background: #E8F5E9; color: var(--success); border: 1px solid #C8E6C9; }
-        .btn-status.closed { background: #FFEBEE; color: var(--danger); border: 1px solid #FFCDD2; }
-        
-        .btn-stock { padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 11px; cursor: pointer; border: none; }
-        .btn-stock.ready { background: #E3F2FD; color: #1565C0; border: 1px solid #BBDEFB; }
-        .btn-stock.empty { background: #FFEBEE; color: #D32F2F; border: 1px solid #FFCDD2; opacity: 0.7; }
+        .btn-add-float { position: fixed; bottom: 90px; right: 20px; width: 56px; height: 56px; border-radius: 18px; background: var(--primary); color: white; border: none; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 10px 25px rgba(255, 102, 0, 0.3); z-index: 800; }
+        .btn-status { padding: 6px 12px; border-radius: 10px; font-weight: 700; font-size: 11px; border: none; cursor: pointer; }
+        .btn-status.open { background: #ecfdf5; color: var(--success); }
+        .btn-status.closed { background: #fef2f2; color: var(--danger); }
+        .action-btn { width: 36px; height: 36px; border-radius: 8px; border: none; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+        .btn-delete { background: #fef2f2; color: var(--danger); }
+        .btn-view { background: #eff6ff; color: #2563eb; }
 
-        .img-thumb { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; background: #eee; }
-        
-        /* BACK BUTTON */
-        .btn-back { display: inline-flex; align-items: center; gap: 5px; background: #eee; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: 700; margin-bottom: 20px; }
-        .btn-back:hover { background: #ddd; }
+        /* REVIEW COMPONENTS */
+        .rating-badge { display: inline-flex; align-items: center; gap: 4px; background: #fffbeb; color: #d97706; padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 13px; }
+        .review-item { padding: 15px 20px; border-bottom: 1px solid #f8fafc; }
+        .review-user { font-weight: 700; font-size: 14px; display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .review-date { font-size: 11px; color: var(--gray); font-weight: 400; }
+        .review-stars { color: var(--warning); font-size: 12px; margin-bottom: 8px; }
+        .review-comment { font-size: 14px; line-height: 1.5; color: #4b5563; }
 
         /* MODAL */
-        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center; }
-        .modal-box { background: white; padding: 30px; border-radius: 16px; width: 90%; max-width: 400px; animation: slideUp 0.3s; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .modal-title { font-size: 18px; font-weight: 800; margin-bottom: 20px; }
-        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
-        .btn-cancel { flex: 1; background: #eee; color: #333; padding: 12px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
-        .btn-save { flex: 1; background: var(--primary); color: white; padding: 12px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
-        .btn-danger { flex: 1; background: var(--danger); color: white; padding: 12px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 10002; align-items: flex-end; justify-content: center; }
+        .modal-box { background: white; padding: 30px; border-radius: 24px 24px 0 0; width: 100%; max-width: 500px; animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .modal-title { font-size: 20px; font-weight: 800; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: var(--gray); }
+        .form-input, textarea { width: 100%; padding: 12px; border: 1.5px solid #eee; border-radius: 12px; font-family: inherit; font-size: 15px; outline: none; }
+        .modal-actions { display: flex; gap: 12px; margin-top: 25px; }
+        .btn-modal { flex: 1; padding: 14px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; }
 
-        /* BROADCAST FORM */
-        .broadcast-box { max-width: 600px; padding: 20px; }
-        .form-group { margin-bottom: 20px; }
-        .form-label { display: block; margin-bottom: 8px; font-weight: 600; }
-        .form-input, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-family: inherit; font-size: 14px; }
-        .btn-send { background: var(--primary); color: white; padding: 12px 25px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; }
-
-        /* RESPONSIVE */
-        @media (max-width: 768px) {
-            .sidebar { width: 70px; }
-            .brand span, .menu-item span, .logout span { display: none; }
-            .main-content { margin-left: 70px; padding: 15px; }
-            .stats-grid { grid-template-columns: 1fr; }
-            .brand { justify-content: center; padding: 20px 0; }
-            .menu-item { justify-content: center; }
+        @media (min-width: 640px) {
+            .stats-grid { grid-template-columns: repeat(3, 1fr); }
         }
     </style>
 </head>
 <body>
 
-    <!-- LOGIN -->
+    <!-- LOGIN OVERLAY -->
     <div id="login-overlay">
         <div class="login-box">
-            <h2>Admin Login</h2>
-            <p style="color:#666; font-size:14px;">Masukkan kode akses admin</p>
-            <input type="password" id="admin-pass" class="login-input" placeholder="Password">
-            <button class="btn-login" onclick="checkLogin()">Masuk Dashboard</button>
+            <i class="ph-fill ph-rocket" style="font-size: 48px; color: var(--primary);"></i>
+            <h2 style="margin: 15px 0 5px;">Admin Pusat</h2>
+            <p style="color:var(--gray); font-size:14px;">Dashboard Manajemen Projekgo</p>
+            <input type="password" id="admin-pass" class="login-input" placeholder="Masukkan Password">
+            <button class="btn-login" onclick="checkLogin()">Masuk Sekarang</button>
         </div>
     </div>
 
-    <!-- ADD VENDOR MODAL -->
+    <!-- TOP HEADER -->
+    <div class="top-header">
+        <div class="brand-mobile">
+            <i class="ph-fill ph-rocket"></i>
+            <span>Projekgo</span>
+        </div>
+        <button class="btn-logout-top" onclick="logout()" title="Keluar">
+            <i class="ph-bold ph-sign-out"></i>
+        </button>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        
+        <!-- DASHBOARD PAGE -->
+        <div id="page-dashboard">
+            <div class="page-header">
+                <h1 class="page-title">Ringkasan</h1>
+                <p class="page-subtitle">Performa ekosistem hari ini</p>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#fff7ed; color:#ea580c;"><i class="ph-fill ph-storefront"></i></div>
+                    <div class="stat-info"><div>Mitra</div><span id="count-vendors">0</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#eff6ff; color:#2563eb;"><i class="ph-fill ph-bowl-food"></i></div>
+                    <div class="stat-info"><div>Menu</div><span id="count-products">0</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#fffbeb; color:#d97706;"><i class="ph-fill ph-star"></i></div>
+                    <div class="stat-info"><div>Avg Rating</div><span id="global-rating">4.8</span></div>
+                </div>
+            </div>
+            <div class="data-card">
+                <div class="card-header">Mitra Aktif</div>
+                <div class="table-responsive">
+                    <table id="recent-vendors-table"></table>
+                </div>
+            </div>
+        </div>
+
+        <!-- VENDORS PAGE -->
+        <div id="page-vendors" style="display:none;">
+            <div class="page-header">
+                <h1 class="page-title">Daftar Mitra</h1>
+                <p class="page-subtitle">Kelola status operasional mitra</p>
+            </div>
+            <div class="data-card">
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Warung</th><th>Status</th><th>Aksi</th></tr></thead>
+                        <tbody id="vendor-list-body"></tbody>
+                    </table>
+                </div>
+            </div>
+            <button class="btn-add-float" onclick="openAddModal()"><i class="ph-bold ph-plus"></i></button>
+        </div>
+
+        <!-- PRODUCTS PAGE -->
+        <div id="page-products" style="display:none;">
+            <div class="page-header">
+                <h1 class="page-title">Katalog Menu</h1>
+                <p class="page-subtitle">Kontrol stok menu per mitra</p>
+            </div>
+            <div id="menu-vendor-list-view">
+                <div class="data-card">
+                    <div class="table-responsive">
+                        <table>
+                            <thead><tr><th>Mitra</th><th>Menu</th><th>Aksi</th></tr></thead>
+                            <tbody id="menu-vendor-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div id="menu-detail-view" style="display:none;">
+                <button class="btn-status" style="margin-bottom:15px; background:#eee; color:#555;" onclick="showMenuVendorList()">
+                    <i class="ph ph-arrow-left"></i> Kembali
+                </button>
+                <h3 id="detail-vendor-name" style="margin-bottom:15px;"></h3>
+                <div class="data-card">
+                    <div class="table-responsive">
+                        <table>
+                            <thead><tr><th>Menu</th><th>Harga</th><th>Stok</th><th>Aksi</th></tr></thead>
+                            <tbody id="detail-product-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- REVIEWS PAGE (NEW) -->
+        <div id="page-reviews" style="display:none;">
+            <div class="page-header">
+                <h1 class="page-title">Ulasan Mitra</h1>
+                <p class="page-subtitle">Pantau feedback dari pelanggan</p>
+            </div>
+            
+            <div id="review-vendor-list">
+                <div class="data-card">
+                    <div class="table-responsive">
+                        <table>
+                            <thead><tr><th>Mitra</th><th>Rating</th><th>Aksi</th></tr></thead>
+                            <tbody id="review-vendor-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="review-detail-view" style="display:none;">
+                <button class="btn-status" style="margin-bottom:15px; background:#eee; color:#555;" onclick="showReviewList()">
+                    <i class="ph ph-arrow-left"></i> Kembali
+                </button>
+                <div class="stat-card" style="margin-bottom: 20px;">
+                    <div id="rev-detail-icon" class="stat-icon" style="background:#fffbeb; color:#d97706;"><i class="ph-fill ph-star"></i></div>
+                    <div class="stat-info">
+                        <div id="rev-detail-vendor-name" style="font-weight:700; color:var(--dark);">Nama Warung</div>
+                        <span id="rev-detail-avg-rating">0.0</span> <small style="color:var(--gray); font-weight:400;">/ 5.0</small>
+                    </div>
+                </div>
+                <div class="data-card">
+                    <div class="card-header">Komentar Terbaru</div>
+                    <div id="review-items-container">
+                        <!-- Ulasan per user akan muncul di sini -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BROADCAST PAGE -->
+        <div id="page-broadcast" style="display:none;">
+            <div class="page-header">
+                <h1 class="page-title">Siaran Siaga</h1>
+                <p class="page-subtitle">Kirim pesan massal ke pengguna</p>
+            </div>
+            <div class="data-card" style="padding:20px;">
+                <div class="form-group">
+                    <label class="form-label">Judul</label>
+                    <input type="text" id="broadcast-title" class="form-input" placeholder="Info penting...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Isi Pesan</label>
+                    <textarea id="broadcast-body" rows="4" class="form-input" placeholder="Tulis pengumuman..."></textarea>
+                </div>
+                <button class="btn-login" style="background:var(--primary);" onclick="kirimBroadcast()">Siarkan Sekarang</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="showPage('dashboard', this)">
+            <i class="ph ph-squares-four"></i>
+            <span>Dashboard</span>
+        </div>
+        <div class="nav-item" onclick="showPage('vendors', this)">
+            <i class="ph ph-storefront"></i>
+            <span>Mitra</span>
+        </div>
+        <div class="nav-item" onclick="showPage('products', this)">
+            <i class="ph ph-bowl-food"></i>
+            <span>Menu</span>
+        </div>
+        <div class="nav-item" onclick="showPage('reviews', this)">
+            <i class="ph ph-star"></i>
+            <span>Ulasan</span>
+        </div>
+        <div class="nav-item" onclick="showPage('broadcast', this)">
+            <i class="ph ph-megaphone"></i>
+            <span>Siaran</span>
+        </div>
+    </div>
+
+    <!-- MODAL TAMBAH MITRA -->
     <div id="add-modal" class="modal-overlay">
         <div class="modal-box">
-            <div class="modal-title">Tambah Mitra Baru</div>
+            <div class="modal-title">Daftar Mitra Baru</div>
             <div class="form-group">
-                <label class="form-label">ID Warung (Unik, tanpa spasi)</label>
-                <input type="text" id="new-vendor-id" class="form-input" placeholder="contoh: warung_budi01">
+                <label class="form-label">ID Unik</label>
+                <input type="text" id="new-vendor-id" class="form-input" placeholder="id_mitra">
             </div>
             <div class="form-group">
                 <label class="form-label">Nama Warung</label>
-                <input type="text" id="new-vendor-name" class="form-input" placeholder="Contoh: Nasi Goreng Budi">
+                <input type="text" id="new-vendor-name" class="form-input" placeholder="Contoh: Warung Berkah">
             </div>
             <div class="modal-actions">
-                <button class="btn-cancel" onclick="closeModal('add-modal')">Batal</button>
-                <button class="btn-save" onclick="saveWarung()">Simpan</button>
+                <button class="btn-modal" style="background:#f1f5f9;" onclick="closeModal('add-modal')">Batal</button>
+                <button class="btn-modal" style="background:var(--primary); color:white;" onclick="saveWarung()">Simpan</button>
             </div>
         </div>
     </div>
 
-    <!-- DELETE CONFIRMATION MODAL -->
+    <!-- MODAL KONFIRMASI HAPUS -->
     <div id="delete-modal" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-title" style="color:var(--danger);">Konfirmasi Hapus</div>
-            <p>Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan.</p>
+        <div class="modal-box" style="text-align:center;">
+            <div class="stat-icon" style="background:#fef2f2; color:var(--danger); margin: 0 auto 15px; width:70px; height:70px; font-size:32px; border-radius:50%;">
+                <i class="ph-bold ph-trash"></i>
+            </div>
+            <div class="modal-title">Hapus Data?</div>
+            <p style="color:var(--gray); font-size:14px; margin-bottom:20px;">Tindakan ini permanen.</p>
             <div class="modal-actions">
-                <button class="btn-cancel" onclick="closeModal('delete-modal')">Batal</button>
-                <button class="btn-danger" id="confirm-delete-btn">Ya, Hapus</button>
+                <button class="btn-modal" style="background:#f1f5f9;" onclick="closeModal('delete-modal')">Batal</button>
+                <button class="btn-modal" style="background:var(--danger); color:white;" id="confirm-delete-btn">Hapus</button>
             </div>
-        </div>
-    </div>
-
-    <div class="admin-container">
-        <!-- SIDEBAR -->
-        <div class="sidebar">
-            <div class="brand"><i class="ph-fill ph-rocket"></i> <span>Projekgo</span></div>
-            <div class="menu">
-                <div class="menu-item active" onclick="showPage('dashboard', this)"><i class="ph ph-squares-four"></i> <span>Dashboard</span></div>
-                <div class="menu-item" onclick="showPage('vendors', this)"><i class="ph ph-storefront"></i> <span>Data Warung</span></div>
-                <div class="menu-item" onclick="showPage('products', this)"><i class="ph ph-bowl-food"></i> <span>Manajemen Menu</span></div>
-                <div class="menu-item" onclick="showPage('broadcast', this)"><i class="ph ph-megaphone"></i> <span>Broadcast</span></div>
-            </div>
-            <div class="logout" onclick="logout()"><i class="ph ph-sign-out"></i> <span>Keluar</span></div>
-        </div>
-
-        <!-- MAIN CONTENT -->
-        <div class="main-content">
-            
-            <!-- DASHBOARD PAGE -->
-            <div id="page-dashboard">
-                <div class="top-bar">
-                    <div class="page-title">Dashboard Overview</div>
-                    <div style="font-size:14px; font-weight:600;">👋 Halo, Admin Pusat</div>
-                </div>
-
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="ph-fill ph-storefront"></i></div>
-                        <div class="stat-info"><div>Total Mitra Warung</div><span id="count-vendors">0</span></div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background:#E3F2FD; color:#1976D2;"><i class="ph-fill ph-bowl-food"></i></div>
-                        <div class="stat-info"><div>Total Menu Aktif</div><span id="count-products">0</span></div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background:#E8F5E9; color:#2E7D32;"><i class="ph-fill ph-users"></i></div>
-                        <div class="stat-info"><div>Total Pengguna</div><span>1.2K+</span></div>
-                    </div>
-                </div>
-
-                <div class="data-card">
-                    <div class="card-header">Mitra Terbaru</div>
-                    <div class="table-responsive">
-                        <table id="recent-vendors-table">
-                            <!-- Diisi JS -->
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- VENDORS PAGE -->
-            <div id="page-vendors" style="display:none;">
-                <div class="top-bar">
-                    <div class="page-title">Data Semua Warung</div>
-                    <!-- TOMBOL TAMBAH MITRA (FIXED) -->
-                    <button class="btn-add" onclick="openAddModal()"><i class="ph-bold ph-plus"></i> Tambah Mitra</button>
-                </div>
-                <div class="data-card">
-                    <div class="table-responsive">
-                        <table id="all-vendors-table">
-                            <thead><tr><th>ID</th><th>Nama Warung</th><th>Kontrol Status</th><th>Aksi</th></tr></thead>
-                            <tbody id="vendor-list-body"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- PRODUCTS PAGE (UPDATED STRUCTURE) -->
-            <div id="page-products" style="display:none;">
-                <div class="top-bar"><div class="page-title">Manajemen Menu per Warung</div></div>
-                
-                <!-- VIEW 1: DAFTAR WARUNG (GROUPED) -->
-                <div id="menu-vendor-list-view">
-                    <div class="data-card">
-                        <div class="table-responsive">
-                            <table id="menu-vendor-table">
-                                <thead><tr><th>Nama Warung</th><th>Jumlah Menu</th><th>Aksi</th></tr></thead>
-                                <tbody id="menu-vendor-body"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- VIEW 2: DETAIL MENU PER WARUNG (HIDDEN INITIALLY) -->
-                <div id="menu-detail-view" style="display:none;">
-                    <button class="btn-back" onclick="showMenuVendorList()"><i class="ph ph-arrow-left"></i> Kembali ke Daftar Warung</button>
-                    <h3 id="detail-vendor-name" style="margin-top:0; margin-bottom:20px;">Nama Warung</h3>
-                    <div class="data-card">
-                        <div class="table-responsive">
-                            <table id="detail-product-table">
-                                <thead><tr><th>Foto</th><th>Nama Menu</th><th>Harga</th><th>Stok (Admin)</th><th>Aksi</th></tr></thead>
-                                <tbody id="detail-product-body"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- BROADCAST PAGE -->
-            <div id="page-broadcast" style="display:none;">
-                <div class="top-bar"><div class="page-title">Kirim Broadcast Notifikasi</div></div>
-                <div class="data-card broadcast-box">
-                    <div class="form-group">
-                        <label class="form-label">Judul Pesan</label>
-                        <input type="text" id="broadcast-title" class="form-input" placeholder="Contoh: Promo Gajian!">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Isi Pesan</label>
-                        <textarea id="broadcast-body" rows="4" placeholder="Tulis pesan untuk semua pengguna..."></textarea>
-                    </div>
-                    <button class="btn-send" onclick="kirimBroadcast()">Kirim Notifikasi</button>
-                </div>
-            </div>
-
         </div>
     </div>
 
@@ -289,213 +376,193 @@
 
         let adminAllProducts = []; 
         let adminAllVendors = [];
+        let adminAllReviews = [];
         let currentVendorView = null; 
-        
-        // Delete Target Temp
         let deleteTarget = null; 
 
-        // --- AUTH SIMPEL ---
+        // --- AUTH ---
         window.checkLogin = () => {
             const pass = document.getElementById('admin-pass').value;
-            // GANTI PASSWORD DI BAWAH INI
             if(pass === 'admin123') { 
                 document.getElementById('login-overlay').style.display = 'none';
                 initData();
-            } else {
-                alert('Password salah!');
-            }
+            } else { alert('Password salah!'); }
         }
-        
         window.logout = () => { location.reload(); }
 
-        // --- NAVIGASI HALAMAN ---
+        // --- NAVIGASI ---
         window.showPage = (pageId, el) => {
             document.querySelectorAll('[id^="page-"]').forEach(p => p.style.display = 'none');
             document.getElementById(`page-${pageId}`).style.display = 'block';
-            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(m => m.classList.remove('active'));
             el.classList.add('active');
+            window.scrollTo(0,0);
+            
+            if (pageId === 'products') showMenuVendorList();
+            if (pageId === 'reviews') showReviewList();
+        }
 
-            if (pageId === 'products') {
-                showMenuVendorList();
+        // --- REVIEW PAGE LOGIC ---
+        window.showReviewList = () => {
+            document.getElementById('review-vendor-list').style.display = 'block';
+            document.getElementById('review-detail-view').style.display = 'none';
+            renderReviewVendors();
+        }
+
+        window.openReviewDetail = (vendorId, vendorName) => {
+            document.getElementById('review-vendor-list').style.display = 'none';
+            document.getElementById('review-detail-view').style.display = 'block';
+            document.getElementById('rev-detail-vendor-name').innerText = vendorName;
+            
+            const vendorReviews = adminAllReviews.filter(r => r.vendor_id === vendorId);
+            const container = document.getElementById('review-items-container');
+            const avgDisplay = document.getElementById('rev-detail-avg-rating');
+            
+            container.innerHTML = '';
+            
+            if (vendorReviews.length === 0) {
+                container.innerHTML = '<div style="padding:40px; text-align:center; color:#999;">Belum ada ulasan untuk mitra ini.</div>';
+                avgDisplay.innerText = "0.0";
+            } else {
+                let totalRating = 0;
+                vendorReviews.forEach(r => {
+                    totalRating += parseFloat(r.rating || 0);
+                    const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+                    const formattedDate = r.date ? new Date(r.date).toLocaleDateString('id-ID') : '-';
+                    
+                    container.innerHTML += `
+                        <div class="review-item">
+                            <div class="review-user">
+                                <span>${r.user_name || 'Anonim'}</span>
+                                <span class="review-date">${formattedDate}</span>
+                            </div>
+                            <div class="review-stars">${stars}</div>
+                            <div class="review-comment">${r.comment || 'Tidak ada komentar.'}</div>
+                        </div>
+                    `;
+                });
+                avgDisplay.innerText = (totalRating / vendorReviews.length).toFixed(1);
             }
         }
 
-        // --- MANAJEMEN MENU PER WARUNG ---
+        function renderReviewVendors() {
+            const body = document.getElementById('review-vendor-body');
+            body.innerHTML = '';
+            
+            adminAllVendors.forEach(v => {
+                const vendorReviews = adminAllReviews.filter(r => r.vendor_id === v.id);
+                let avg = 0;
+                if(vendorReviews.length > 0) {
+                    avg = vendorReviews.reduce((acc, curr) => acc + parseFloat(curr.rating), 0) / vendorReviews.length;
+                }
+                
+                body.innerHTML += `
+                    <tr>
+                        <td style="font-weight:700;">${v.nama_warung || '-'}</td>
+                        <td>
+                            <div class="rating-badge">
+                                <i class="ph-fill ph-star"></i> ${avg.toFixed(1)}
+                            </div>
+                        </td>
+                        <td>
+                            <button class="action-btn btn-view" onclick="openReviewDetail('${v.id}', '${v.nama_warung}')">
+                                <i class="ph-bold ph-caret-right"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // --- PRODUCT PAGE LOGIC ---
         window.showMenuVendorList = () => {
             currentVendorView = null;
             document.getElementById('menu-vendor-list-view').style.display = 'block';
             document.getElementById('menu-detail-view').style.display = 'none';
         }
-
         window.openVendorMenu = (vendorName) => {
             currentVendorView = vendorName;
             document.getElementById('menu-vendor-list-view').style.display = 'none';
             document.getElementById('menu-detail-view').style.display = 'block';
-            document.getElementById('detail-vendor-name').innerText = "Menu: " + vendorName;
-            
+            document.getElementById('detail-vendor-name').innerText = vendorName;
             renderDetailProducts(vendorName);
         }
-
         function renderDetailProducts(vendorName) {
             const detailBody = document.getElementById('detail-product-body');
             detailBody.innerHTML = '';
-
             const vendorProducts = adminAllProducts.filter(p => p.vendor_name === vendorName);
-            
             if (vendorProducts.length === 0) {
-                detailBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:#999;">Tidak ada menu.</td></tr>';
+                detailBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px; color:#999;">Kosong.</td></tr>';
             } else {
                 vendorProducts.forEach(p => {
-                    const img = p.foto_url && p.foto_url.length > 10 ? p.foto_url : 'https://placehold.co/100';
-                    
-                    // Stock Logic for Admin
-                    const isAvail = p.is_available !== false; // Default true
-                    const stockText = isAvail ? 'Tersedia' : 'Habis';
-                    const stockClass = isAvail ? 'ready' : 'empty';
-
+                    const isAvail = p.is_available !== false;
                     detailBody.innerHTML += `
                         <tr>
-                            <td><img src="${img}" class="img-thumb"></td>
                             <td style="font-weight:600;">${p.nama_menu}</td>
-                            <td>Rp ${parseInt(p.harga).toLocaleString()}</td>
-                            <td>
-                                <button class="btn-stock ${stockClass}" onclick="toggleProductStock('${p.id}', ${isAvail})">${stockText}</button>
-                            </td>
-                            <td>
-                                <button class="action-btn btn-delete" onclick="askDelete('products', '${p.id}')"><i class="ph-bold ph-trash"></i> Hapus</button>
-                            </td>
+                            <td>${parseInt(p.harga).toLocaleString()}</td>
+                            <td><button class="btn-status ${isAvail ? 'open' : 'closed'}" onclick="toggleProductStock('${p.id}', ${isAvail})">${isAvail ? 'Ada' : 'Habis'}</button></td>
+                            <td><button class="action-btn btn-delete" onclick="askDelete('products', '${p.id}')"><i class="ph-bold ph-trash"></i></button></td>
                         </tr>
                     `;
                 });
             }
         }
-
         function renderVendorMenuOverview() {
             const container = document.getElementById('menu-vendor-body');
             container.innerHTML = '';
-            
             const grouped = {};
-            adminAllProducts.forEach(p => {
-                const vName = p.vendor_name || 'Tanpa Nama';
-                if(!grouped[vName]) grouped[vName] = 0;
-                grouped[vName]++;
-            });
-
-            adminAllVendors.forEach(v => {
-                const vName = v.nama_warung || 'Tanpa Nama';
-                if (!grouped[vName]) grouped[vName] = 0;
-            });
-
-            for (const [vendorName, count] of Object.entries(grouped)) {
-                container.innerHTML += `
-                    <tr>
-                        <td style="font-weight:700;">${vendorName}</td>
-                        <td>${count} Menu</td>
-                        <td>
-                            <button class="action-btn btn-view" onclick="openVendorMenu('${vendorName}')">Lihat Menu</button>
-                        </td>
-                    </tr>
-                `;
+            adminAllVendors.forEach(v => grouped[v.nama_warung] = 0);
+            adminAllProducts.forEach(p => { if(grouped[p.vendor_name] !== undefined) grouped[p.vendor_name]++; });
+            for (const [vName, count] of Object.entries(grouped)) {
+                container.innerHTML += `<tr><td style="font-weight:700;">${vName}</td><td>${count} Menu</td><td><button class="action-btn btn-view" onclick="openVendorMenu('${vName}')"><i class="ph-bold ph-caret-right"></i></button></td></tr>`;
             }
         }
 
-        // --- TAMBAH WARUNG & STATUS ---
-        window.openAddModal = () => {
-            document.getElementById('new-vendor-id').value = '';
-            document.getElementById('new-vendor-name').value = '';
-            document.getElementById('add-modal').style.display = 'flex';
-        }
+        // --- CRUD OPS ---
+        window.openAddModal = () => { document.getElementById('add-modal').style.display = 'flex'; }
         window.closeModal = (id) => { document.getElementById(id).style.display = 'none'; }
-
         window.saveWarung = async () => {
             const id = document.getElementById('new-vendor-id').value.trim();
             const nama = document.getElementById('new-vendor-name').value.trim();
-            if(!id || !nama) { alert("Semua kolom harus diisi!"); return; }
-            if(/\s/.test(id)) { alert("ID tidak boleh mengandung spasi!"); return; }
-
-            try {
-                await setDoc(doc(db, "vendors", id), {
-                    id: id, nama_warung: nama, status: 'BUKA', shop_photo: null
-                });
-                alert(`Berhasil! ID: "${id}" dibuat.`);
-                closeModal('add-modal');
-            } catch(e) { console.error(e); alert("Gagal menambah warung: " + e.message); }
+            if(!id || !nama) return;
+            await setDoc(doc(db, "vendors", id), { id, nama_warung: nama, status: 'BUKA' });
+            closeModal('add-modal');
         }
-
         window.toggleStatus = async (id, currentStatus) => {
             const newStatus = (currentStatus === 'BUKA') ? 'TUTUP' : 'BUKA';
-            try {
-                await updateDoc(doc(db, "vendors", id), { status: newStatus });
-            } catch(e) { alert("Gagal ubah status: " + e.message); }
+            await updateDoc(doc(db, "vendors", id), { status: newStatus });
         }
-        
         window.toggleProductStock = async (id, currentStatus) => {
-            try {
-                await updateDoc(doc(db, "products", id), { is_available: !currentStatus });
-            } catch(e) { alert("Gagal ubah stok: " + e.message); }
+            await updateDoc(doc(db, "products", id), { is_available: !currentStatus });
         }
-
-        // --- ACTION HAPUS DENGAN MODAL ---
         window.askDelete = (coll, id) => {
             deleteTarget = { coll, id };
             document.getElementById('delete-modal').style.display = 'flex';
         }
-
         document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
             if(!deleteTarget) return;
-            try {
-                await deleteDoc(doc(db, deleteTarget.coll, deleteTarget.id));
-                closeModal('delete-modal');
-                // Data akan auto refresh karena onSnapshot
-            } catch(e) {
-                alert("Gagal menghapus: " + e.message);
-                closeModal('delete-modal');
-            }
+            await deleteDoc(doc(db, deleteTarget.coll, deleteTarget.id));
+            closeModal('delete-modal');
         });
 
-        window.kirimBroadcast = async () => {
-            const title = document.getElementById('broadcast-title').value.trim();
-            const body = document.getElementById('broadcast-body').value.trim();
-            if(!title || !body) { alert("Judul dan Isi Pesan harus diisi!"); return; }
-            try {
-                await addDoc(collection(db, "notifications"), { title: title, body: body, date: new Date().toISOString() });
-                alert("Notifikasi Broadcast Berhasil Dikirim!");
-                document.getElementById('broadcast-title').value = '';
-                document.getElementById('broadcast-body').value = '';
-            } catch(e) { console.error("Error broadcast:", e); alert("Gagal mengirim broadcast: " + e.message); }
-        }
-
-        // --- DATA LOGIC ---
+        // --- DATA SYNC ---
         function initData() {
             onSnapshot(collection(db, "vendors"), (snap) => {
                 const vendorBody = document.getElementById('vendor-list-body');
                 const recentBody = document.getElementById('recent-vendors-table');
-                let htmlMain = '', htmlRecent = '';
-                
-                document.getElementById('count-vendors').innerText = snap.size;
+                let hMain = '', hRecent = '';
                 adminAllVendors = [];
+                document.getElementById('count-vendors').innerText = snap.size;
                 snap.forEach(d => adminAllVendors.push({id: d.id, ...d.data()}));
-
                 adminAllVendors.forEach(v => {
-                    const statusClass = (v.status === 'BUKA') ? 'open' : 'closed';
-                    const statusText = v.status || 'TUTUP';
-                    
-                    htmlMain += `
-                        <tr>
-                            <td>${v.id}</td>
-                            <td style="font-weight:700;">${v.nama_warung || '-'}</td>
-                            <td><button class="btn-status ${statusClass}" onclick="toggleStatus('${v.id}', '${statusText}')">${statusText}</button></td>
-                            <td>
-                                <button class="action-btn btn-delete" onclick="askDelete('vendors', '${v.id}')"><i class="ph-bold ph-trash"></i> Hapus</button>
-                            </td>
-                        </tr>
-                    `;
-                    htmlRecent += `<tr><td>${v.nama_warung || '-'}</td><td style="text-align:right; font-weight:700;">${statusText}</td></tr>`;
+                    const isOpen = v.status === 'BUKA';
+                    hMain += `<tr><td style="font-weight:700;">${v.nama_warung}</td><td><button class="btn-status ${isOpen ? 'open' : 'closed'}" onclick="toggleStatus('${v.id}', '${v.status}')">${v.status}</button></td><td><button class="action-btn btn-delete" onclick="askDelete('vendors', '${v.id}')"><i class="ph-bold ph-trash"></i></button></td></tr>`;
+                    hRecent += `<tr><td>${v.nama_warung}</td><td style="text-align:right;"><span class="btn-status ${isOpen ? 'open' : 'closed'}">${v.status}</span></td></tr>`;
                 });
-                
-                vendorBody.innerHTML = htmlMain;
-                recentBody.innerHTML = htmlRecent;
+                vendorBody.innerHTML = hMain;
+                recentBody.innerHTML = hRecent;
                 renderVendorMenuOverview();
+                renderReviewVendors();
             });
 
             onSnapshot(collection(db, "products"), (snap) => {
@@ -504,6 +571,20 @@
                 snap.forEach(d => adminAllProducts.push({id: d.id, ...d.data()}));
                 renderVendorMenuOverview();
                 if(currentVendorView) renderDetailProducts(currentVendorView);
+            });
+
+            onSnapshot(collection(db, "reviews"), (snap) => {
+                adminAllReviews = [];
+                let totalRating = 0;
+                snap.forEach(d => {
+                    const data = d.data();
+                    adminAllReviews.push({id: d.id, ...data});
+                    totalRating += parseFloat(data.rating || 0);
+                });
+                if(snap.size > 0) {
+                    document.getElementById('global-rating').innerText = (totalRating / snap.size).toFixed(1);
+                }
+                renderReviewVendors();
             });
         }
     </script>
