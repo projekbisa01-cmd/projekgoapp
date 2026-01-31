@@ -109,9 +109,13 @@
         .btn-status { padding: 6px 12px; border-radius: 10px; font-weight: 700; font-size: 11px; border: none; cursor: pointer; }
         .btn-status.open { background: #ecfdf5; color: var(--success); }
         .btn-status.closed { background: #fef2f2; color: var(--danger); }
-        .action-btn { width: 36px; height: 36px; border-radius: 8px; border: none; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+        .action-btn { width: 36px; height: 36px; border-radius: 8px; border: none; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        .action-btn:active { transform: scale(0.9); }
         .btn-delete { background: #fef2f2; color: var(--danger); }
         .btn-view { background: #eff6ff; color: #2563eb; }
+        /* Style baru untuk tombol Exclusive */
+        .btn-exclusive { background: #f3f4f6; color: #9ca3af; }
+        .btn-exclusive.active { background: #ede9fe; color: #7c3aed; }
 
         /* REVIEW COMPONENTS */
         .rating-badge { display: inline-flex; align-items: center; gap: 4px; background: #fffbeb; color: #d97706; padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 13px; }
@@ -487,6 +491,7 @@
             document.getElementById('detail-vendor-name').innerText = vendorName;
             renderDetailProducts(vendorName);
         }
+        
         function renderDetailProducts(vendorName) {
             const detailBody = document.getElementById('detail-product-body');
             detailBody.innerHTML = '';
@@ -496,17 +501,29 @@
             } else {
                 vendorProducts.forEach(p => {
                     const isAvail = p.is_available !== false;
+                    const isExclusive = p.is_exclusive === true;
+                    
                     detailBody.innerHTML += `
                         <tr>
                             <td style="font-weight:600;">${p.nama_menu}</td>
                             <td>${parseInt(p.harga).toLocaleString()}</td>
                             <td><button class="btn-status ${isAvail ? 'open' : 'closed'}" onclick="toggleProductStock('${p.id}', ${isAvail})">${isAvail ? 'Ada' : 'Habis'}</button></td>
-                            <td><button class="action-btn btn-delete" onclick="askDelete('products', '${p.id}')"><i class="ph-bold ph-trash"></i></button></td>
+                            <td>
+                                <div style="display:flex; gap:5px;">
+                                    <button class="action-btn btn-exclusive ${isExclusive ? 'active' : ''}" title="${isExclusive ? 'Hapus dari Exclusive' : 'Jadikan Exclusive'}" onclick="toggleExclusive('${p.id}', ${isExclusive})">
+                                        <i class="ph-fill ph-diamond"></i>
+                                    </button>
+                                    <button class="action-btn btn-delete" onclick="askDelete('products', '${p.id}')">
+                                        <i class="ph-bold ph-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
                         </tr>
                     `;
                 });
             }
         }
+        
         function renderVendorMenuOverview() {
             const container = document.getElementById('menu-vendor-body');
             container.innerHTML = '';
@@ -534,6 +551,11 @@
         }
         window.toggleProductStock = async (id, currentStatus) => {
             await updateDoc(doc(db, "products", id), { is_available: !currentStatus });
+        }
+        window.toggleExclusive = async (id, currentVal) => {
+            try {
+                await updateDoc(doc(db, "products", id), { is_exclusive: !currentVal });
+            } catch(e) { console.error("Error toggling exclusive:", e); }
         }
         window.askDelete = (coll, id) => {
             deleteTarget = { coll, id };
