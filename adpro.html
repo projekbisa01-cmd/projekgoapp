@@ -16,6 +16,7 @@
             --danger: #ef4444;
             --success: #10b981;
             --warning: #f59e0b;
+            --info: #3b82f6;
             --nav-height: 75px;
         }
         
@@ -31,7 +32,7 @@
         /* LOGIN SCREEN */
         #login-overlay { position: fixed; inset: 0; background: var(--primary); z-index: 10001; display: flex; align-items: center; justify-content: center; }
         .login-box { background: white; padding: 40px; border-radius: 24px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
-        .login-input { width: 100%; padding: 15px; border: 1.5px solid #eee; border-radius: 12px; margin: 20px 0; font-size: 16px; outline: none; transition: 0.3s; }
+        .login-input { width: 100%; padding: 15px; border: 1.5px solid #eee; border-radius: 12px; margin: 20px 0; font-size: 16px; outline: none; transition: 0.3s; text-align: center; }
         .login-input:focus { border-color: var(--primary); }
         .btn-login { width: 100%; padding: 15px; background: var(--dark); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 16px; }
 
@@ -113,6 +114,8 @@
         .action-btn:active { transform: scale(0.9); }
         .btn-delete { background: #fef2f2; color: var(--danger); }
         .btn-view { background: #eff6ff; color: #2563eb; }
+        .btn-edit-pin { background: #e0f2fe; color: #0284c7; }
+        
         /* Style baru untuk tombol Exclusive */
         .btn-exclusive { background: #f3f4f6; color: #9ca3af; }
         .btn-exclusive.active { background: #ede9fe; color: #7c3aed; }
@@ -135,6 +138,22 @@
         .form-input, textarea { width: 100%; padding: 12px; border: 1.5px solid #eee; border-radius: 12px; font-family: inherit; font-size: 15px; outline: none; }
         .modal-actions { display: flex; gap: 12px; margin-top: 25px; }
         .btn-modal { flex: 1; padding: 14px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; }
+
+        /* BADGE */
+        .unique-badge {
+            background-color: #E3F2FD;
+            color: #1976D2;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            display: inline-block;
+        }
+
+        /* PAGE VISIBILITY */
+        .page-content { display: none; }
+        .page-content.active { display: block; }
 
         @media (min-width: 640px) {
             .stats-grid { grid-template-columns: repeat(3, 1fr); }
@@ -169,7 +188,7 @@
     <div class="main-content">
         
         <!-- DASHBOARD PAGE -->
-        <div id="page-dashboard">
+        <div id="page-dashboard" class="page-content active">
             <div class="page-header">
                 <h1 class="page-title">Ringkasan</h1>
                 <p class="page-subtitle">Performa ekosistem hari ini</p>
@@ -197,7 +216,7 @@
         </div>
 
         <!-- VENDORS PAGE -->
-        <div id="page-vendors" style="display:none;">
+        <div id="page-vendors" class="page-content">
             <div class="page-header">
                 <h1 class="page-title">Daftar Mitra</h1>
                 <p class="page-subtitle">Kelola status operasional mitra</p>
@@ -205,7 +224,7 @@
             <div class="data-card">
                 <div class="table-responsive">
                     <table>
-                        <thead><tr><th>Warung</th><th>Status</th><th>Aksi</th></tr></thead>
+                        <thead><tr><th>Warung & Akses</th><th>Status</th><th>Aksi</th></tr></thead>
                         <tbody id="vendor-list-body"></tbody>
                     </table>
                 </div>
@@ -214,11 +233,12 @@
         </div>
 
         <!-- PRODUCTS PAGE -->
-        <div id="page-products" style="display:none;">
+        <div id="page-products" class="page-content">
             <div class="page-header">
                 <h1 class="page-title">Katalog Menu</h1>
                 <p class="page-subtitle">Kontrol stok menu per mitra</p>
             </div>
+            
             <div id="menu-vendor-list-view">
                 <div class="data-card">
                     <div class="table-responsive">
@@ -229,6 +249,7 @@
                     </div>
                 </div>
             </div>
+
             <div id="menu-detail-view" style="display:none;">
                 <button class="btn-status" style="margin-bottom:15px; background:#eee; color:#555;" onclick="showMenuVendorList()">
                     <i class="ph ph-arrow-left"></i> Kembali
@@ -245,8 +266,8 @@
             </div>
         </div>
 
-        <!-- REVIEWS PAGE (NEW) -->
-        <div id="page-reviews" style="display:none;">
+        <!-- REVIEWS PAGE -->
+        <div id="page-reviews" class="page-content">
             <div class="page-header">
                 <h1 class="page-title">Ulasan Mitra</h1>
                 <p class="page-subtitle">Pantau feedback dari pelanggan</p>
@@ -284,7 +305,7 @@
         </div>
 
         <!-- BROADCAST PAGE -->
-        <div id="page-broadcast" style="display:none;">
+        <div id="page-broadcast" class="page-content">
             <div class="page-header">
                 <h1 class="page-title">Siaran Siaga</h1>
                 <p class="page-subtitle">Kirim pesan massal ke pengguna</p>
@@ -333,8 +354,16 @@
         <div class="modal-box">
             <div class="modal-title">Daftar Mitra Baru</div>
             <div class="form-group">
-                <label class="form-label">ID Unik</label>
-                <input type="text" id="new-vendor-id" class="form-input" placeholder="id_mitra">
+                <label class="form-label">ID Unik (Login)</label>
+                <input type="text" id="new-vendor-id" class="form-input" placeholder="contoh: warung_berkah">
+                <div style="font-size: 11px; color: var(--gray); margin-top: 4px;">*Tanpa spasi, digunakan untuk login</div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">PIN Keamanan</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="new-vendor-pin" class="form-input" placeholder="Min 6 digit">
+                    <button type="button" onclick="generateRandomPin()" class="btn-modal" style="background: var(--warning); color: white; width: auto; white-space: nowrap; padding: 0 15px; font-size: 12px;">Acak PIN</button>
+                </div>
             </div>
             <div class="form-group">
                 <label class="form-label">Nama Warung</label>
@@ -343,6 +372,26 @@
             <div class="modal-actions">
                 <button class="btn-modal" style="background:#f1f5f9;" onclick="closeModal('add-modal')">Batal</button>
                 <button class="btn-modal" style="background:var(--primary); color:white;" onclick="saveWarung()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GANTI PIN -->
+    <div id="edit-pin-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title">Ganti PIN Mitra</div>
+            <p style="color:var(--gray); font-size:13px; margin-bottom:15px;">Ubah PIN untuk warung <b id="ep-name">...</b></p>
+            <input type="hidden" id="ep-id">
+            <div class="form-group">
+                <label class="form-label">PIN Baru</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="ep-new-pin" class="form-input" placeholder="Min 6 digit">
+                    <button type="button" onclick="generateRandomPinEdit()" class="btn-modal" style="background: var(--warning); color: white; width: auto; white-space: nowrap; padding: 0 15px; font-size: 12px;">Acak</button>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal" style="background:#f1f5f9;" onclick="closeModal('edit-pin-modal')">Batal</button>
+                <button class="btn-modal" style="background:var(--primary); color:white;" onclick="confirmChangePin()">Simpan</button>
             </div>
         </div>
     </div>
@@ -364,7 +413,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, deleteDoc, doc, setDoc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, deleteDoc, doc, setDoc, updateDoc, addDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDq0UCWj43rCP3rqvAGbdyr2FFV7kyhZTA",
@@ -396,8 +445,9 @@
 
         // --- NAVIGASI ---
         window.showPage = (pageId, el) => {
-            document.querySelectorAll('[id^="page-"]').forEach(p => p.style.display = 'none');
-            document.getElementById(`page-${pageId}`).style.display = 'block';
+            document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+            document.getElementById(`page-${pageId}`).classList.add('active');
+            
             document.querySelectorAll('.nav-item').forEach(m => m.classList.remove('active'));
             el.classList.add('active');
             window.scrollTo(0,0);
@@ -536,15 +586,87 @@
         }
 
         // --- CRUD OPS ---
-        window.openAddModal = () => { document.getElementById('add-modal').style.display = 'flex'; }
-        window.closeModal = (id) => { document.getElementById(id).style.display = 'none'; }
-        window.saveWarung = async () => {
-            const id = document.getElementById('new-vendor-id').value.trim();
-            const nama = document.getElementById('new-vendor-name').value.trim();
-            if(!id || !nama) return;
-            await setDoc(doc(db, "vendors", id), { id, nama_warung: nama, status: 'BUKA' });
-            closeModal('add-modal');
+        window.openAddModal = () => { 
+            // Reset form saat dibuka
+            document.getElementById('new-vendor-id').value = "";
+            document.getElementById('new-vendor-pin').value = "";
+            document.getElementById('new-vendor-name').value = "";
+            document.getElementById('add-modal').style.display = 'flex'; 
         }
+        window.closeModal = (id) => { document.getElementById(id).style.display = 'none'; }
+        
+        // Generator PIN Acak
+        window.generateRandomPin = () => {
+            const pin = Math.floor(100000 + Math.random() * 900000); // 6 digit
+            document.getElementById('new-vendor-pin').value = pin;
+        }
+
+        window.saveWarung = async () => {
+            // Sanitasi ID: huruf kecil, ganti spasi dengan underscore
+            let rawId = document.getElementById('new-vendor-id').value.trim();
+            const id = rawId.toLowerCase().replace(/\s+/g, '_');
+            
+            const pin = document.getElementById('new-vendor-pin').value.trim();
+            const nama = document.getElementById('new-vendor-name').value.trim();
+            
+            if(!id || !pin || !nama) return alert("Mohon lengkapi semua form!");
+            if(pin.length < 4) return alert("PIN minimal 4 karakter untuk keamanan!");
+
+            // Cek apakah ID sudah ada di database
+            try {
+                const docRef = doc(db, "vendors", id);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    alert(`ID "${id}" sudah digunakan oleh mitra lain. Harap gunakan ID unik.`);
+                    return;
+                }
+
+                // Simpan jika unik
+                await setDoc(docRef, { 
+                    id, 
+                    nama_warung: nama, 
+                    pin: pin,
+                    status: 'BUKA', 
+                    role: 'vendor', 
+                    created_at: new Date().toISOString() 
+                });
+                
+                closeModal('add-modal');
+                alert(`Mitra Berhasil Didaftarkan!\n\nID Login: ${id}\nPIN Akses: ${pin}\n\nSilakan berikan kredensial ini kepada mitra.`);
+            } catch(e) { 
+                alert("Gagal menyimpan data: " + e.message); 
+                console.error(e);
+            }
+        }
+
+        // GANTI PIN FUNCTIONS
+        window.openChangePinModal = (id, name) => {
+            document.getElementById('ep-id').value = id;
+            document.getElementById('ep-name').innerText = name;
+            document.getElementById('ep-new-pin').value = "";
+            document.getElementById('edit-pin-modal').style.display = 'flex';
+        }
+
+        window.generateRandomPinEdit = () => {
+            const pin = Math.floor(100000 + Math.random() * 900000); // 6 digit
+            document.getElementById('ep-new-pin').value = pin;
+        }
+
+        window.confirmChangePin = async () => {
+            const id = document.getElementById('ep-id').value;
+            const newPin = document.getElementById('ep-new-pin').value.trim();
+            if(newPin.length < 4) return alert("PIN minimal 4 karakter");
+            
+            try {
+                await updateDoc(doc(db, "vendors", id), { pin: newPin });
+                closeModal('edit-pin-modal');
+                alert("PIN berhasil diubah!");
+            } catch(e) {
+                alert("Gagal update PIN: " + e.message);
+            }
+        }
+
         window.toggleStatus = async (id, currentStatus) => {
             const newStatus = (currentStatus === 'BUKA') ? 'TUTUP' : 'BUKA';
             await updateDoc(doc(db, "vendors", id), { status: newStatus });
@@ -578,7 +700,25 @@
                 snap.forEach(d => adminAllVendors.push({id: d.id, ...d.data()}));
                 adminAllVendors.forEach(v => {
                     const isOpen = v.status === 'BUKA';
-                    hMain += `<tr><td style="font-weight:700;">${v.nama_warung}</td><td><button class="btn-status ${isOpen ? 'open' : 'closed'}" onclick="toggleStatus('${v.id}', '${v.status}')">${v.status}</button></td><td><button class="action-btn btn-delete" onclick="askDelete('vendors', '${v.id}')"><i class="ph-bold ph-trash"></i></button></td></tr>`;
+                    hMain += `
+                        <tr>
+                            <td>
+                                <div style="font-weight:700;">${v.nama_warung}</div>
+                                <div class="unique-badge">ID: ${v.id}</div>
+                                <div style="font-size:11px; color:#666;">PIN: <b>${v.pin || '-'}</b></div>
+                            </td>
+                            <td><button class="btn-status ${isOpen ? 'open' : 'closed'}" onclick="toggleStatus('${v.id}', '${v.status}')">${v.status}</button></td>
+                            <td>
+                                <div style="display:flex; gap:5px;">
+                                    <button class="action-btn btn-edit-pin" title="Ganti PIN" onclick="openChangePinModal('${v.id}', '${v.nama_warung}')">
+                                        <i class="ph-bold ph-key"></i>
+                                    </button>
+                                    <button class="action-btn btn-delete" onclick="askDelete('vendors', '${v.id}')">
+                                        <i class="ph-bold ph-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>`;
                     hRecent += `<tr><td>${v.nama_warung}</td><td style="text-align:right;"><span class="btn-status ${isOpen ? 'open' : 'closed'}">${v.status}</span></td></tr>`;
                 });
                 vendorBody.innerHTML = hMain;
