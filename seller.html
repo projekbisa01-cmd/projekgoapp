@@ -25,9 +25,10 @@
         #login-page { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; }
         .login-logo { font-size: 40px; font-weight: 800; color: var(--primary); margin-bottom: 10px; }
         .login-desc { color: var(--gray); text-align: center; margin-bottom: 30px; font-size: 14px; }
-        .login-input { width: 100%; padding: 15px; border: 1px solid #ddd; border-radius: 12px; margin-bottom: 15px; font-size: 16px; outline: none; transition: 0.3s; }
+        .login-input { width: 100%; padding: 15px; border: 1px solid #ddd; border-radius: 12px; margin-bottom: 15px; font-size: 16px; outline: none; transition: 0.3s; text-align: center; }
         .login-input:focus { border-color: var(--primary); }
         .btn-login { width: 100%; background: var(--primary); color: white; padding: 15px; border: none; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer; }
+        .login-help { margin-top: 20px; font-size: 12px; color: var(--gray); text-align: center; line-height: 1.5; }
 
         /* DASHBOARD HEADER */
         .header { background: var(--primary); color: white; padding: 20px 20px 40px 20px; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; }
@@ -124,11 +125,18 @@
     <div id="login-page">
         <div class="login-logo">Projekgo</div>
         <div style="font-weight:700; margin-bottom:5px;">Aplikasi Mitra Penjual</div>
-        <p class="login-desc">Masukkan ID Warung untuk mengelola menu.</p>
+        <p class="login-desc">Masuk untuk mengelola warung Anda.</p>
         
         <input type="text" id="login-id" class="login-input" placeholder="ID Warung (Cth: warung_siti)">
-        <input type="text" id="login-name" class="login-input" placeholder="Nama Warung (Utk Tampilan)">
+        <!-- Diganti dari Nama Warung menjadi PIN -->
+        <input type="password" id="login-pin" class="login-input" placeholder="PIN Keamanan">
+        
         <button class="btn-login" onclick="login()">Masuk ke Dashboard</button>
+
+        <div class="login-help">
+            Belum punya akun?<br>
+            Silakan hubungi <b>Admin Pusat</b> untuk pendaftaran<br>dan mendapatkan ID serta PIN akses.
+        </div>
     </div>
 
     <!-- 2. DASHBOARD (Hidden by default) -->
@@ -137,7 +145,7 @@
         <div class="header">
             <div style="display:flex; justify-content:space-between;">
                 <div>
-                    <div class="shop-name" id="display-name">Nama Warung</div>
+                    <div class="shop-name" id="display-name">Memuat...</div>
                     <div class="shop-id" id="display-id">ID: ...</div>
                 </div>
                 <button onclick="logout()" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:5px 10px; border-radius:8px; height:fit-content; font-size:12px;">Keluar</button>
@@ -197,42 +205,18 @@
             <!-- Stats -->
             <div class="profile-stat-box">
                 <div class="stat-card">
-                    <div class="stat-num">4.8</div>
+                    <div class="stat-num" id="stat-rating">0.0</div>
                     <div class="stat-label">Rating Rata-rata</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-num">120</div>
-                    <div class="stat-label">Total Pesanan</div>
+                    <div class="stat-num" id="stat-orders">0</div>
+                    <div class="stat-label">Total Ulasan</div>
                 </div>
             </div>
 
             <h3 style="margin:20px 0 10px 0;">Ulasan Pelanggan</h3>
             <div id="reviews-container">
-                <!-- Dummy Reviews (Untuk Tampilan) -->
-                <div class="review-item">
-                    <div class="rev-header">
-                        <span class="rev-user">Budi Santoso</span>
-                        <span class="rev-date">Hari ini</span>
-                    </div>
-                    <div class="rev-stars">★★★★★</div>
-                    <div class="rev-text">Makanannya enak banget, porsi banyak!</div>
-                </div>
-                <div class="review-item">
-                    <div class="rev-header">
-                        <span class="rev-user">Siti Aminah</span>
-                        <span class="rev-date">Kemarin</span>
-                    </div>
-                    <div class="rev-stars">★★★★☆</div>
-                    <div class="rev-text">Pengiriman cepat, tapi sambalnya kurang pedas dikit.</div>
-                </div>
-                <div class="review-item">
-                    <div class="rev-header">
-                        <span class="rev-user">Ahmad Dani</span>
-                        <span class="rev-date">2 Hari lalu</span>
-                    </div>
-                    <div class="rev-stars">★★★★★</div>
-                    <div class="rev-text">Mantap jiwa! Recommended seller.</div>
-                </div>
+                <div style="text-align:center; padding:20px; color:#ccc;">Belum ada ulasan.</div>
             </div>
         </div>
 
@@ -310,7 +294,7 @@
     <!-- LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, where, onSnapshot, setDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, where, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDq0UCWj43rCP3rqvAGbdyr2FFV7kyhZTA",
@@ -326,28 +310,55 @@
 
         let currentUser = null;
         let base64Image = "";
-        let currentProducts = {}; // Store local data for edit
+        let currentProducts = {}; 
 
-        // --- 1. LOGIN SYSTEM ---
+        // --- 1. LOGIN SYSTEM BARU (Sesuai Admin) ---
         window.login = async () => {
-            const id = document.getElementById('login-id').value.trim();
-            const name = document.getElementById('login-name').value.trim();
+            const idInput = document.getElementById('login-id').value.trim().toLowerCase(); // Admin membuat ID lowercase
+            const pinInput = document.getElementById('login-pin').value.trim();
             
-            if(!id || !name) { alert("Isi ID dan Nama Warung!"); return; }
+            if(!idInput || !pinInput) { 
+                alert("Masukkan ID Warung dan PIN!"); 
+                return; 
+            }
 
-            currentUser = { id, name };
-            localStorage.setItem('vendor_user', JSON.stringify(currentUser));
-            
+            const btn = document.querySelector('.btn-login');
+            btn.innerHTML = "Memeriksa...";
+            btn.disabled = true;
+
             try {
-                const vendorRef = doc(db, "vendors", id);
-                await setDoc(vendorRef, {
-                    nama_warung: name,
-                    id: id,
-                }, { merge: true });
-                initDashboard();
+                // Cek ke Database (Dibuat oleh Admin)
+                const docRef = doc(db, "vendors", idInput);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    
+                    // Validasi PIN
+                    if(data.pin === pinInput) {
+                        // Login Sukses
+                        currentUser = { 
+                            id: data.id, 
+                            name: data.nama_warung 
+                        };
+                        localStorage.setItem('vendor_user', JSON.stringify(currentUser));
+                        initDashboard();
+                    } else {
+                        alert("PIN Salah! Silakan coba lagi.");
+                        btn.innerHTML = "Masuk ke Dashboard";
+                        btn.disabled = false;
+                    }
+                } else {
+                    alert("ID Warung tidak ditemukan. Pastikan Anda sudah terdaftar di Admin Pusat.");
+                    btn.innerHTML = "Masuk ke Dashboard";
+                    btn.disabled = false;
+                }
+
             } catch (e) {
                 console.error("Login Error:", e);
-                alert("Gagal koneksi database.");
+                alert("Gagal koneksi database: " + e.message);
+                btn.innerHTML = "Masuk ke Dashboard";
+                btn.disabled = false;
             }
         };
 
@@ -371,13 +382,21 @@
             document.getElementById('login-page').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
             
+            // Nama diambil dari objek user yang sudah tervalidasi dari DB
             document.getElementById('display-name').innerText = currentUser.name;
             document.getElementById('display-id').innerText = "ID: " + currentUser.id;
 
-            // Load Status & Foto Toko
+            // Load Status & Foto Toko (Realtime)
             onSnapshot(doc(db, "vendors", currentUser.id), (doc) => {
                 if(doc.exists()) {
                     const data = doc.data();
+                    // Update nama lokal jika admin mengubah nama di pusat
+                    if(data.nama_warung !== currentUser.name) {
+                        currentUser.name = data.nama_warung;
+                        document.getElementById('display-name').innerText = data.nama_warung;
+                        localStorage.setItem('vendor_user', JSON.stringify(currentUser));
+                    }
+
                     const isOpen = (data.status || 'BUKA') === 'BUKA';
                     document.getElementById('shop-toggle').checked = isOpen;
                     updateStatusUI(isOpen);
@@ -407,13 +426,19 @@
                     
                     const img = item.foto_url && item.foto_url.length > 10 ? item.foto_url : 'https://placehold.co/100?text=Menu';
                     const exclusiveBadge = item.is_exclusive ? '<span class="mi-exclusive">Eksklusif</span>' : '';
+                    
+                    // Cek ketersediaan
+                    const isAvailable = item.is_available !== false; // Default true if undefined
+                    const opacity = isAvailable ? '1' : '0.6';
+                    const statusText = isAvailable ? '' : '<span style="color:red; font-size:10px; font-weight:bold;">(HABIS)</span>';
 
                     const div = document.createElement('div');
                     div.className = 'menu-item';
+                    div.style.opacity = opacity;
                     div.innerHTML = `
                         <img src="${img}" class="mi-img">
                         <div class="mi-info">
-                            <div class="mi-name">${item.nama_menu}</div>
+                            <div class="mi-name">${item.nama_menu} ${statusText}</div>
                             <div class="mi-price">Rp ${parseInt(item.harga).toLocaleString()}</div>
                             <div style="margin-top:5px;">
                                 <span class="mi-cat">${item.kategori}</span>
@@ -427,6 +452,45 @@
                     `;
                     container.appendChild(div);
                 });
+            });
+
+            // Load Reviews (Realtime)
+            const reviewQ = query(collection(db, "reviews"), where("vendor_id", "==", currentUser.id));
+            onSnapshot(reviewQ, (snap) => {
+                const container = document.getElementById('reviews-container');
+                container.innerHTML = '';
+                let totalRating = 0;
+                let count = 0;
+
+                if(snap.empty) {
+                    container.innerHTML = '<div style="text-align:center; padding:20px; color:#ccc;">Belum ada ulasan.</div>';
+                    document.getElementById('stat-rating').innerText = "0.0";
+                    document.getElementById('stat-orders').innerText = "0";
+                    return;
+                }
+
+                snap.forEach(d => {
+                    const r = d.data();
+                    count++;
+                    totalRating += parseFloat(r.rating || 0);
+                    
+                    const stars = '★'.repeat(Math.floor(r.rating)) + '☆'.repeat(5 - Math.floor(r.rating));
+                    const dateStr = r.date ? new Date(r.date).toLocaleDateString() : '-';
+
+                    container.innerHTML += `
+                        <div class="review-item">
+                            <div class="rev-header">
+                                <span class="rev-user">${r.user_name || 'Pelanggan'}</span>
+                                <span class="rev-date">${dateStr}</span>
+                            </div>
+                            <div class="rev-stars">${stars}</div>
+                            <div class="rev-text">${r.comment || ''}</div>
+                        </div>
+                    `;
+                });
+
+                document.getElementById('stat-orders').innerText = count;
+                document.getElementById('stat-rating').innerText = (count > 0 ? (totalRating / count).toFixed(1) : "0.0");
             });
         }
 
@@ -590,6 +654,7 @@
             btn.innerText = "Menyimpan...";
             btn.disabled = true;
 
+            // Pastikan data konsisten dengan nama warung saat ini
             const menuData = {
                 nama_menu: nama,
                 harga: parseInt(harga),
@@ -597,7 +662,7 @@
                 deskripsi: desc,
                 is_exclusive: isExclusive,
                 vendor_id: currentUser.id,
-                vendor_name: currentUser.name,
+                vendor_name: currentUser.name, // Selalu gunakan nama terbaru
                 variant_title: varTitle,
                 variant_options: varOptsArray,
                 updated_at: new Date().toISOString()
@@ -612,6 +677,7 @@
                     await updateDoc(doc(db, "products", id), menuData);
                 } else {
                     menuData.created_at = new Date().toISOString();
+                    menuData.is_available = true; // Default available
                     if(!base64Image) menuData.foto_url = "";
                     await addDoc(collection(db, "products"), menuData);
                 }
