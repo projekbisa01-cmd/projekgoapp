@@ -738,15 +738,6 @@
         // Initialize after load
         window.addEventListener('DOMContentLoaded', initBannerAutoScroll);
 
-        // DUMMY REVIEWS WITH RATING
-        const dummyReviews = [
-            {user: "Budi Santoso", text: "Enak banget, porsi banyak!", rating: 5},
-            {user: "Siti Aminah", text: "Pengiriman cepat, makanan masih hangat.", rating: 4},
-            {user: "Rizky Billar", text: "Recommended seller!", rating: 5},
-            {user: "Ahmad Dani", text: "Rasanya otentik dan pedasnya pas.", rating: 5},
-            {user: "Luna Maya", text: "Suka banget sama pelayanannya.", rating: 4}
-        ];
-
         // --- NAVIGASI ---
         window.history.replaceState({page: 'home'}, '', '');
         window.openPage = (pageName) => {
@@ -968,27 +959,42 @@
                 });
             }
 
-            // RENDER REVIEWS with STARS
-            // Random avg rating between 4.5 - 5.0
-            const avgRating = (4.5 + Math.random() * 0.5).toFixed(1);
+            // RENDER REVIEWS (Real Data Logic)
+            const realReviews = []; // Saat ini kosong karena belum ada backend ulasan
+            
+            // Kalkulasi Rating Real
+            const avgRating = realReviews.length > 0 
+                ? (realReviews.reduce((acc, curr) => acc + curr.rating, 0) / realReviews.length).toFixed(1) 
+                : "New";
+            
             document.getElementById('vendor-avg-rating').innerText = avgRating;
 
-            dummyReviews.forEach(rev => {
-                let starsHtml = '';
-                for(let i=0; i<5; i++) {
-                    starsHtml += i < rev.rating ? '<i class="ph-fill ph-star"></i>' : '<i class="ph ph-star"></i>';
-                }
+            reviewsContainer.innerHTML = ''; // Reset konten
 
-                reviewsContainer.innerHTML += `
-                    <div class="review-card-scroll">
-                        <div class="rc-header">
-                            <div class="rc-user"><i class="ph-fill ph-user-circle"></i> ${rev.user}</div>
-                            <div class="rc-stars">${starsHtml}</div>
-                        </div>
-                        <div class="rc-text">"${rev.text}"</div>
+            if (realReviews.length === 0) {
+                reviewsContainer.innerHTML = `
+                    <div style="padding:15px; color:#888; font-size:13px; font-style:italic; width:100%; text-align:center;">
+                        Belum ada komentar.
                     </div>
                 `;
-            });
+            } else {
+                realReviews.forEach(rev => {
+                    let starsHtml = '';
+                    for(let i=0; i<5; i++) {
+                        starsHtml += i < rev.rating ? '<i class="ph-fill ph-star"></i>' : '<i class="ph ph-star"></i>';
+                    }
+
+                    reviewsContainer.innerHTML += `
+                        <div class="review-card-scroll">
+                            <div class="rc-header">
+                                <div class="rc-user"><i class="ph-fill ph-user-circle"></i> ${rev.user}</div>
+                                <div class="rc-stars">${starsHtml}</div>
+                            </div>
+                            <div class="rc-text">"${rev.text}"</div>
+                        </div>
+                    `;
+                });
+            }
 
             openPage('vendor');
         }
