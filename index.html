@@ -22,6 +22,7 @@
             --shadow-sm: 0 4px 12px rgba(0,0,0,0.06);
             --shadow-md: 0 8px 24px rgba(0,0,0,0.08);
             --max-width: 480px; 
+            --warning: #FFC107;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -55,11 +56,13 @@
         .search-box { background: #f0f2f5; border-radius: 12px; padding: 10px 15px; display: flex; align-items: center; gap: 10px; color: var(--gray); transition: 0.3s; }
         .search-input { border: none; background: transparent; width: 100%; outline: none; font-family: inherit; font-weight: 600; color: var(--dark); font-size: 13px; }
 
-        /* KATEGORI - Lebih Padat */
-        .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 15px; background: var(--white); margin-bottom: 8px; }
-        .cat-item { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; }
-        .cat-icon-box { width: 48px; height: 48px; background: #fff; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #f0f0f0; }
-        .cat-name { font-size: 10px; font-weight: 700; color: #555; text-align: center; line-height: 1.1; }
+        /* KATEGORI */
+        .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px 10px; padding: 25px 15px; background: var(--white); margin-bottom: 8px; }
+        .cat-item { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
+        .cat-icon-box { width: 75px; height: 75px; background: #fff; border-radius: 24px; display: flex; align-items: center; justify-content: center; font-size: 36px; color: var(--primary); box-shadow: 0 6px 15px rgba(0,0,0,0.08); border: 1px solid #f0f0f0; transition: transform 0.1s; }
+        .cat-icon-box img { width: 48px !important; height: 48px !important; object-fit: contain; }
+        .cat-item:active .cat-icon-box { transform: scale(0.9); }
+        .cat-name { font-size: 12px; font-weight: 700; color: #333; text-align: center; line-height: 1.2; }
 
         /* SECTION TITLE */
         .section-group { background: var(--white); margin-bottom: 8px; padding-bottom: 15px; }
@@ -75,14 +78,15 @@
         .btn-love.active { color: #E91E63; }
         
         .badge-priority { position: absolute; top: 8px; left: 8px; background: linear-gradient(135deg, #6200EA, #9D46FF); color: white; font-size: 8px; padding: 3px 6px; border-radius: 4px; font-weight: 700; z-index: 5; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 3px; }
-        /* Pindah posisi exclusive ke kanan bawah */
         .badge-exclusive { position: absolute; bottom: 8px; right: 8px; background: linear-gradient(45deg, #FF6600, #FF9900); color: white; font-size: 8px; padding: 3px 6px; border-radius: 4px; font-weight: 800; z-index: 2; box-shadow: 0 2px 5px rgba(0,0,0,0.2); max-width: 100px; line-height: 1.2; text-align: right; }
 
         .h-info { padding: 8px 10px 10px 10px; }
         .h-vendor { font-size: 9px; color: #888; margin-bottom: 2px; display: flex; align-items: center; gap: 3px; font-weight: 600; }
         .h-name { font-size: 13px; font-weight: 700; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #333; }
         .h-desc { font-size: 9px; color: #999; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        
+        .h-stats { font-size: 9px; color: #666; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; font-weight: 500; }
+        .h-stats i { color: var(--warning); font-size: 10px; }
+
         .price-row { display: flex; align-items: flex-end; justify-content: space-between; }
         .price-box { display: flex; flex-direction: column; }
         .p-label-normal { font-size: 8px; color: #aaa; font-weight: 600; line-height: 1; }
@@ -99,13 +103,16 @@
         .mgi-img { width: 100%; height: 120px; object-fit: cover; }
         .mgi-info { padding: 10px; }
         
-        .menu-list-item { display: flex; gap: 12px; background: white; padding: 8px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.03); position: relative; }
-        .mli-img { width: 75px; height: 75px; border-radius: 10px; object-fit: cover; background: #eee; flex-shrink: 0; }
-        .mli-info { flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; padding: 2px 0; }
-        .mli-title { font-weight: 700; font-size: 13px; color: var(--dark); line-height: 1.2; margin-bottom: 2px; }
-        .mli-desc { font-size: 10px; color: #888; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .mli-action { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 4px; }
-        .mli-btn { background: var(--primary-light); color: var(--primary); border: none; padding: 4px 10px; border-radius: 15px; font-weight: 700; font-size: 11px; }
+        .menu-list-item { display: flex; gap: 12px; background: white; padding: 10px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.03); position: relative; align-items: center; }
+        .mli-img { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; background: #eee; flex-shrink: 0; }
+        .mli-info { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; min-height: 80px; }
+        .mli-title { font-weight: 700; font-size: 13px; color: var(--dark); line-height: 1.2; margin-bottom: 4px; }
+        .mli-desc { font-size: 10px; color: #888; line-height: 1.3; margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .mli-action { display: flex; justify-content: space-between; align-items: center; }
+        .mli-price-box { display: flex; flex-direction: column; }
+        .mli-coret { font-size: 10px; text-decoration: line-through; color: #bbb; }
+        .mli-price { font-size: 14px; font-weight: 800; color: var(--primary); }
+        .mli-btn { background: var(--primary-light); color: var(--primary); border: none; padding: 6px 12px; border-radius: 15px; font-weight: 700; font-size: 11px; }
 
         /* LIST PRODUK GRID (PAGE LIST & FAVORITE) */
         .product-list-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 15px; }
@@ -114,9 +121,14 @@
         
         /* GROUPED LIST STYLE */
         .group-vendor-section { margin-bottom: 30px; border-bottom: 8px solid #f0f0f0; padding-bottom: 20px; }
-        .group-vendor-header { padding: 0 20px 10px 20px; display: flex; align-items: center; gap: 10px; }
-        .gvh-name { font-size: 16px; font-weight: 800; color: var(--dark); }
-        .gvh-link { font-size: 12px; color: var(--primary); font-weight: 600; margin-left: auto; text-decoration: none; }
+        .group-vendor-header { padding: 0 20px 10px 20px; display: flex; align-items: start; gap: 10px; transition: 0.2s; border-radius: 8px; }
+        .group-vendor-header:active { background: #f5f5f5; }
+        .gvh-icon { font-size: 20px; color: var(--primary); margin-top: 2px; }
+        .gvh-content { flex-grow: 1; }
+        .gvh-name { font-size: 16px; font-weight: 800; color: var(--dark); line-height: 1.2; margin-bottom: 3px; }
+        .gvh-desc { font-size: 11px; color: #666; font-weight: 500; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+        .gvh-desc i { color: var(--warning); }
+        .gvh-arrow { color: #ccc; font-size: 18px; }
 
         /* WARUNG CARD */
         .warung-list { padding: 0 15px; display: flex; flex-direction: column; gap: 15px; padding-bottom: 20px; }
@@ -125,8 +137,10 @@
         .w-img { width: 100%; height: 100%; object-fit: cover; }
         .w-status-badge { position: absolute; bottom: 10px; left: 10px; background: rgba(255,255,255,0.95); backdrop-filter: blur(4px); padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; display: flex; align-items: center; gap: 5px; color: var(--dark); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .w-info { padding: 12px 15px; }
-        .w-name { font-size: 15px; font-weight: 800; color: var(--dark); margin-bottom: 2px; }
-        .w-desc { font-size: 11px; color: var(--gray); font-weight: 500; display: flex; align-items: center; gap: 5px; }
+        .w-name { font-size: 15px; font-weight: 800; color: var(--dark); margin-bottom: 4px; }
+        .w-desc { font-size: 11px; color: var(--gray); font-weight: 500; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .w-rating { color: var(--dark); font-weight: 700; display: flex; align-items: center; gap: 3px; background: #FFF8E1; padding: 2px 6px; border-radius: 4px; }
+        .w-rating i { color: var(--warning); }
         .warung-card.closed { filter: grayscale(1); opacity: 0.8; pointer-events: none; background: #f5f5f5; }
         .warung-card.closed .w-status-badge { color: red; background: #ffebee; }
 
@@ -154,8 +168,38 @@
         .radio-input { display: none; }
         .radio-input:checked + .radio-label { background: var(--dark); color: white; border-color: var(--dark); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
-        .pd-action { position: fixed; bottom: 0; left: 0; right: 0; max-width: var(--max-width); margin: 0 auto; background: white; padding: 15px 20px; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); display: flex; gap: 15px; z-index: 100; }
-        .btn-main-add { flex-grow: 1; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 14px; font-weight: 700; font-size: 16px; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 102, 0, 0.3); }
+        /* ACTION BAR DI DETAIL PRODUK */
+        .pd-action { 
+            position: fixed; 
+            bottom: 80px; 
+            left: 0; 
+            right: 0; 
+            max-width: var(--max-width); 
+            margin: 0 auto; 
+            background: transparent; 
+            padding: 0 20px; 
+            display: flex; 
+            gap: 15px; 
+            z-index: 1001; 
+            pointer-events: none; 
+        }
+        .btn-main-add { 
+            pointer-events: auto; 
+            flex-grow: 1; 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            padding: 14px; 
+            border-radius: 14px; 
+            font-weight: 700; 
+            font-size: 16px; 
+            cursor: pointer; 
+            box-shadow: 0 4px 15px rgba(255, 102, 0, 0.4); 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
 
         /* VENDOR PAGE STYLES */
         .vendor-header { position: relative; height: 180px; }
@@ -166,21 +210,31 @@
         .vh-meta { font-size: 12px; display: flex; gap: 10px; opacity: 0.95; font-weight: 500; }
         
         .review-card { background: #FFF8E1; border: 1px dashed #FFC107; border-radius: 12px; padding: 15px; margin: 15px 0; }
-        .rc-user { font-weight: 700; font-size: 12px; margin-bottom: 5px; display: flex; align-items: center; gap: 5px; color: #F57F17; }
+        .rc-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .rc-user { font-weight: 700; font-size: 12px; display: flex; align-items: center; gap: 5px; color: #F57F17; }
+        .rc-stars { color: #FFC107; font-size: 10px; display: flex; gap: 1px; }
         .rc-text { font-size: 12px; font-style: italic; color: #555; line-height: 1.4; }
+        .review-summary { background: white; padding: 15px; margin: 15px 15px 5px 15px; border-radius: 12px; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 15px; border: 1px solid #eee; }
+        .rs-big { font-size: 32px; font-weight: 800; color: var(--dark); display: flex; align-items: center; gap: 5px; }
+        .rs-big i { color: #FFC107; }
+        .rs-info { font-size: 12px; color: #666; line-height: 1.3; }
 
         /* REVIEW SCROLL CONTAINER */
-        .review-scroll-container { display: flex; overflow-x: auto; gap: 12px; padding: 5px 0 15px 0; margin: 15px 0; scrollbar-width: none; }
+        .review-scroll-container { display: flex; overflow-x: auto; gap: 12px; padding: 5px 15px 15px 15px; margin-bottom: 10px; scrollbar-width: none; }
         .review-card-scroll { min-width: 260px; background: #FFF8E1; border: 1px dashed #FFC107; border-radius: 12px; padding: 15px; flex-shrink: 0; font-size: 12px; }
 
         /* CHECKOUT / CART PAGE */
         .cart-section { background: white; padding: 20px; margin-bottom: 10px; }
         .cart-vendor-group { margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
         .cv-title { font-weight: 700; font-size: 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; color: var(--dark); }
-        .cart-item { display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px; }
-        .ci-name { font-weight: 600; font-size: 13px; }
-        .ci-var { font-size: 11px; color: #888; margin-top: 2px; }
-        .ci-price { font-weight: 700; font-size: 13px; color: var(--primary); }
+        
+        /* Updated Cart Item Style (Lebih Rapat & Fokus) */
+        .cart-item { display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed #f0f0f0; }
+        .cart-item:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+        .ci-name { font-weight: 600; font-size: 13px; line-height: 1.3; color: var(--dark); }
+        .ci-qty-badge { color: var(--primary); font-weight: 800; margin-right: 4px; }
+        .ci-var { font-size: 11px; color: #888; margin-top: 2px; line-height: 1.2; }
+        .ci-price { font-weight: 700; font-size: 13px; color: var(--dark); white-space: nowrap; margin-left: 10px; }
         
         .cost-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; color: #555; }
         .cost-row.total { font-weight: 800; font-size: 16px; color: var(--dark); border-top: 1px dashed #ddd; padding-top: 10px; margin-top: 10px; }
@@ -232,6 +286,50 @@
         .star-rating { font-size: 32px; color: #eee; cursor: pointer; transition: 0.2s; }
         .star-rating.active { color: #FFC107; transform: scale(1.1); }
 
+        /* TOAST NOTIFICATION */
+        .toast-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: rgba(0,0,0,0.85);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 20px;
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center;
+            backdrop-filter: blur(6px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .toast-box.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        .toast-icon { font-size: 38px; color: #00E676; }
+        .toast-msg { font-size: 15px; font-weight: 600; line-height: 1.4; }
+
+        /* VARIANT MODAL (Bottom Sheet) */
+        #variant-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 2500; align-items: flex-end; justify-content: center; backdrop-filter: blur(2px); opacity: 0; transition: opacity 0.3s; }
+        #variant-modal.show { opacity: 1; }
+        .variant-sheet { background: white; width: 100%; max-width: 480px; border-top-left-radius: 25px; border-top-right-radius: 25px; padding: 25px; animation: slideUpSheet 0.3s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(100%); transition: transform 0.3s; }
+        #variant-modal.show .variant-sheet { transform: translateY(0); }
+        @keyframes slideUpSheet { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        
+        .vm-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .vm-title-text { font-size: 18px; font-weight: 800; color: var(--dark); }
+        .vm-close { font-size: 24px; color: #aaa; cursor: pointer; padding: 5px; }
+        .vm-options-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px; max-height: 40vh; overflow-y: auto; }
+        
+        .vm-radio-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 15px; border: 1px solid #eee; border-radius: 12px; cursor: pointer; transition: 0.2s; }
+        .vm-radio-item.selected { border-color: var(--primary); background: var(--primary-light); color: var(--primary); font-weight: 700; }
+        .vm-radio-circle { width: 20px; height: 20px; border: 2px solid #ccc; border-radius: 50%; position: relative; }
+        .vm-radio-item.selected .vm-radio-circle { border-color: var(--primary); }
+        .vm-radio-item.selected .vm-radio-circle::after { content:''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 10px; height: 10px; background: var(--primary); border-radius: 50%; }
+
     </style>
 </head>
 <body>
@@ -258,17 +356,17 @@
 
             <!-- Kategori -->
             <div class="cat-grid">
-                <div class="cat-item" onclick="openCategoryPage('Sarapan')"><div class="cat-icon-box"><i class="ph ph-sun"></i></div><div class="cat-name">Sarapan</div></div>
-                <div class="cat-item" onclick="openCategoryPage('Pernasian')"><div class="cat-icon-box"><i class="ph ph-bowl-food"></i></div><div class="cat-name">Pernasian</div></div>
-                <div class="cat-item" onclick="openCategoryPage('Minuman')"><div class="cat-icon-box"><i class="ph ph-coffee"></i></div><div class="cat-name">Minuman</div></div>
-                <div class="cat-item" onclick="openCategoryPage('Ayam')"><div class="cat-icon-box"><i class="ph ph-bird"></i></div><div class="cat-name">Ayam</div></div>
-                <div class="cat-item" onclick="openCategoryPage('Berkuah')"><div class="cat-icon-box"><i class="ph ph-cooking-pot"></i></div><div class="cat-name">Berkuah</div></div>
-                <div class="cat-item" onclick="openCategoryPage('Mie')"><div class="cat-icon-box"><i class="ph ph-grains"></i></div><div class="cat-name">Aneka Mie</div></div>
-                <div class="cat-item" onclick="openCategoryPage('Snack')"><div class="cat-icon-box"><i class="ph ph-cookie"></i></div><div class="cat-name">Snack</div></div>
+                <div class="cat-item" onclick="openCategoryPage('Sarapan')"><div class="cat-icon-box"><img src="https://i.ibb.co.com/XTM62zb/breakfast-10754741.png" style="width:35px; height:35px; object-fit:contain;"></div><div class="cat-name">Sarapan</div></div>
+                <div class="cat-item" onclick="openCategoryPage('Pernasian')"><div class="cat-icon-box"><img src="https://i.ibb.co.com/V0MYgnpP/fried-rice-7056143.png" style="width:35px; height:35px; object-fit:contain;"></div><div class="cat-name">Pernasian</div></div>
+                <div class="cat-item" onclick="openCategoryPage('Minuman')"><div class="cat-icon-box"><img src="https://i.ibb.co.com/27xysTWN/soft-drink-2202019.png" style="width:35px; height:35px; object-fit:contain;"></div><div class="cat-name">Minuman</div></div>
+                <div class="cat-item" onclick="openCategoryPage('Ayam')"><div class="cat-icon-box"><img src="https://i.ibb.co.com/qMfvrXTX/chicken-leg-737956.png" style="width:35px; height:35px; object-fit:contain;"></div><div class="cat-name">Ayam</div></div>
+                <div class="cat-item" onclick="openCategoryPage('Berkuah')"><div class="cat-icon-box"><img src="https://i.ibb.co.com/j9F4ybq0/curry-15102755.png" style="width:35px; height:35px; object-fit:contain;"></div><div class="cat-name">Berkuah</div></div>
+                <div class="cat-item" onclick="openCategoryPage('Mie')"><div class="cat-icon-box"><img src="https://i.ibb.co.com/QFTx53hB/noodles-18782648.png" style="width:35px; height:35px; object-fit:contain;"></div><div class="cat-name">Aneka Mie</div></div>
+                <div class="cat-item" onclick="openCategoryPage('Snack')"><div class="cat-icon-box"><img src="https://i.ibb.co.com/F4xtLpY9/kebab-6978201.png" style="width:35px; height:35px; object-fit:contain;"></div><div class="cat-name">Snack</div></div>
                 <div class="cat-item" onclick="openPage('services')"><div class="cat-icon-box" style="background:var(--primary-light);"><i class="ph ph-squares-four"></i></div><div class="cat-name">Lainnya</div></div>
             </div>
 
-            <!-- Exclusive (HANYA MUNCUL JIKA ADA) -->
+            <!-- Exclusive -->
             <div class="section-group" id="wrapper-exclusive">
                 <div class="section-title">
                     <span>💎 Exclusive di Projekgo</span><span class="see-all" onclick="openCategoryPage('Exclusive')">Lihat Semua</span>
@@ -331,13 +429,13 @@
             <!-- Bottom Action -->
             <div class="pd-action">
                 <button class="btn-main-add" onclick="addToCartFromDetail()">
-                    Tambah ke Keranjang - <span id="pd-btn-price">Rp 0</span>
+                    <i class="ph-bold ph-plus"></i> Tambah ke Keranjang - <span id="pd-btn-price">Rp 0</span>
                 </button>
             </div>
         </div>
 
 
-        <!-- ===== 3. HALAMAN KERANJANG (CHECKOUT) ===== -->
+        <!-- ===== 3. HALAMAN KERANJANG ===== -->
         <div id="page-cart" class="page">
             <div class="sub-header">
                 <div class="btn-back" onclick="goBack()"><i class="ph ph-arrow-left"></i></div>
@@ -382,6 +480,14 @@
             <!-- MIX GRID & LIST CONTAINER -->
             <div class="section-title" style="margin-top:10px;"><span>🌟 Menu Unggulan</span></div>
             <div id="vendor-menu-grid" class="vendor-menu-grid"></div>
+
+            <!-- REVIEW SECTION IMPROVED (Dipindah ke Atas Daftar Menu Lengkap) -->
+            <div class="review-summary">
+                <div class="rs-big"><span id="vendor-avg-rating">4.8</span> <i class="ph-fill ph-star"></i></div>
+                <div class="rs-info">Rata-rata rating dari pelanggan<br><span style="color:var(--primary); font-weight:700;">Kepuasan Terjamin</span></div>
+            </div>
+            <div class="section-title" style="padding-top:0;"><span>💬 Ulasan Pelanggan</span></div>
+            <div id="vendor-reviews" class="review-scroll-container"></div>
 
             <div class="section-title"><span>📋 Daftar Menu Lengkap</span></div>
             <div id="vendor-menu-list" class="vendor-menu-list" style="padding-bottom:40px;"></div>
@@ -477,6 +583,30 @@
         </div>
     </div>
 
+    <!-- MODAL POPUP VARIAN -->
+    <div id="variant-modal" onclick="if(event.target===this) closeVariantModal()">
+        <div class="variant-sheet">
+            <div class="vm-header">
+                <div class="vm-title-text" id="vm-item-name">Nama Menu</div>
+                <div class="vm-close" onclick="closeVariantModal()">&times;</div>
+            </div>
+            
+            <div style="margin-bottom:15px; font-size:13px; color:#666;">Pilih Varian:</div>
+            
+            <div id="vm-options-container" class="vm-options-container"></div>
+            
+            <button class="btn-main-add" onclick="confirmVariantAdd()">
+                Tambah - Rp <span id="vm-price-display">0</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast-notification" class="toast-box">
+        <i class="ph-fill ph-check-circle toast-icon"></i>
+        <div class="toast-msg">Berhasil ditambahkan!</div>
+    </div>
+
     <!-- NAVBAR BAWAH -->
     <div class="bottom-nav-container">
         <nav class="bottom-nav">
@@ -511,19 +641,22 @@
         let currentDetailProduct = null;
         let currentServiceType = "";
         const ADMIN_WA = "62882008667068";
+        
+        let pendingVariantItem = null;
+        let selectedVariantValue = null;
 
         // LOAD PROFILE
         const savedProfile = JSON.parse(localStorage.getItem('user_profile')) || {name: 'User Projekgo', phone: '0812-XXXX-XXXX'};
         document.getElementById('profile-name').innerText = savedProfile.name;
         document.getElementById('profile-phone').innerText = savedProfile.phone;
 
-        // DUMMY REVIEWS
+        // DUMMY REVIEWS WITH RATING
         const dummyReviews = [
-            {user: "Budi Santoso", text: "Enak banget, porsi banyak!"},
-            {user: "Siti Aminah", text: "Pengiriman cepat, makanan masih hangat."},
-            {user: "Rizky Billar", text: "Recommended seller!"},
-            {user: "Ahmad Dani", text: "Rasanya otentik dan pedasnya pas."},
-            {user: "Luna Maya", text: "Suka banget sama pelayanannya."}
+            {user: "Budi Santoso", text: "Enak banget, porsi banyak!", rating: 5},
+            {user: "Siti Aminah", text: "Pengiriman cepat, makanan masih hangat.", rating: 4},
+            {user: "Rizky Billar", text: "Recommended seller!", rating: 5},
+            {user: "Ahmad Dani", text: "Rasanya otentik dan pedasnya pas.", rating: 5},
+            {user: "Luna Maya", text: "Suka banget sama pelayanannya.", rating: 4}
         ];
 
         // --- NAVIGASI ---
@@ -557,7 +690,7 @@
             window.scrollTo(0,0);
         }
 
-        // --- LOGIC PROFIL ---
+        // ... existing profile and logic functions ...
         window.toggleEditProfile = () => {
             const box = document.getElementById('edit-profile-form');
             box.style.display = box.style.display === 'block' ? 'none' : 'block';
@@ -575,7 +708,7 @@
                 document.getElementById('profile-name').innerText = name;
                 document.getElementById('profile-phone').innerText = phone;
                 document.getElementById('edit-profile-form').style.display = 'none';
-                alert("Profil disimpan!");
+                showToast("Profil berhasil disimpan!");
             }
         }
 
@@ -585,7 +718,6 @@
             document.getElementById('review-modal').style.display = 'flex';
             document.getElementById('review-text').value = '';
         }
-
         window.setRating = (n) => {
             const stars = document.querySelectorAll('.star-rating');
             stars.forEach((s, i) => {
@@ -593,38 +725,34 @@
                 else s.classList.remove('active');
             });
         }
-
         window.submitReview = () => {
-            alert("Ulasan berhasil dikirim! Identitas Anda disamarkan untuk privasi.");
+            showToast("Ulasan terkirim!");
             document.getElementById('review-modal').style.display = 'none';
         }
-
-        // --- REORDER LOGIC ---
         window.reorder = (itemsJson) => {
             const itemsToReorder = JSON.parse(decodeURIComponent(itemsJson));
-            itemsToReorder.forEach(item => {
-                cart.push(item);
-            });
+            itemsToReorder.forEach(item => { cart.push(item); });
             updateCartBadge();
-            alert("Pesanan dimasukkan kembali ke keranjang!");
+            showToast("Pesanan masuk keranjang!");
             openPage('cart');
         }
+        window.showToast = (message) => {
+            const toast = document.getElementById('toast-notification');
+            toast.querySelector('.toast-msg').innerText = message;
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); }, 2000);
+        }
 
-        // --- RENDER RIWAYAT PESANAN ---
         function renderOrderHistory() {
             const container = document.getElementById('order-history-list');
             const history = JSON.parse(localStorage.getItem('order_history')) || [];
-            
             if(history.length === 0) {
                 container.innerHTML = '<div style="text-align:center; margin-top:50px; color:#999; font-size:12px;">Belum ada riwayat pesanan.</div>';
                 return;
             }
-
             container.innerHTML = '';
-            // Sort by latest (reverse)
             history.reverse().forEach(order => {
                 const reorderData = encodeURIComponent(JSON.stringify(order.rawItems));
-                
                 const html = `
                     <div class="order-card" style="background:white; padding:15px; border-radius:12px; box-shadow:var(--shadow-sm); margin-bottom:15px; border:1px solid rgba(0,0,0,0.03);">
                         <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:11px; color:#888;">
@@ -643,55 +771,272 @@
             });
         }
 
-        // --- LOGIC PRODUK & UI ---
-        
-        // 1. Render Card (Horizontal Scroll)
-        function renderHorizontalScroll(id, items) {
-            const c = document.getElementById(id); c.innerHTML='';
+        // --- 6. FULL VENDOR PAGE IMPLEMENTATION ---
+        window.openVendorPage = (vendorId) => {
+            // Find vendor object
+            let vendor = allVendors.find(v => v.id === vendorId);
             
-            items.forEach(item => {
-                const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : 'https://placehold.co/150x150?text=Menu';
-                const realPrice = parseInt(item.harga);
-                const fakePrice = Math.ceil(realPrice * 1.2); 
-                const vendorName = item.vendor_name || "Warung Projekgo";
-                const isFav = favorites.includes(item.id) ? 'active' : '';
-                const desc = item.deskripsi || "Menu lezat, halal, dan higienis.";
-                
-                const exclusiveBadge = item.is_exclusive ? '<div class="badge-exclusive">Exclusive</div>' : '';
-                
-                // NEW: Priority Badge
-                const priorityBadge = '<div class="badge-priority"><i class="ph-fill ph-lightning"></i> Prioritas</div>';
+            // Fallback logic if vendor object not found but ID passed (e.g. from product)
+            if (!vendor) {
+                // Try to find any product with this vendor_id to get name
+                const prod = allProducts.find(p => p.vendor_id === vendorId);
+                if (prod) {
+                    vendor = {id: vendorId, nama_warung: prod.vendor_name, shop_photo: null};
+                } else {
+                    // Last resort: maybe ID passed is the Name itself (from legacy code)
+                    const vByName = allVendors.find(v => v.nama_warung === vendorId);
+                    if (vByName) vendor = vByName;
+                    else vendor = {id: 'temp', nama_warung: 'Detail Warung', shop_photo: null};
+                }
+            }
 
-                const div = document.createElement('div');
-                div.className = 'h-card';
-                div.innerHTML = `
-                    <div style="position:relative;"> <!-- Wrapper for positioning -->
-                        ${priorityBadge}
-                        ${exclusiveBadge}
-                        <div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')"><i class="ph-fill ph-heart"></i></div>
-                        <img src="${img}" class="h-img" onclick="openProductDetail('${item.id}')">
-                    </div>
-                    <div class="h-info" onclick="openProductDetail('${item.id}')">
-                        <div class="h-vendor"><i class="ph-fill ph-storefront"></i> ${vendorName}</div>
-                        <div class="h-name">${item.nama_menu}</div>
-                        <div class="h-desc">${desc}</div>
-                        <div class="price-row">
-                            <div class="price-box">
-                                <div style="display:flex; align-items:center; gap:3px;">
-                                    <span class="p-label-normal">Normal</span>
-                                    <span class="p-coret">Rp ${fakePrice.toLocaleString()}</span>
-                                </div>
-                                <span class="p-real">Rp ${realPrice.toLocaleString()}</span>
-                            </div>
-                            <div class="btn-add-mini" onclick="quickAdd(event, '${item.id}')"><i class="ph-bold ph-plus" style="color:white;"></i></div>
+            // Header
+            const img = vendor.shop_photo || 'https://cdn-icons-png.flaticon.com/512/1046/1046857.png';
+            document.getElementById('vendor-header-content').innerHTML = `
+                <div class="vendor-header">
+                    <img src="${img}" class="vh-img">
+                    <div class="vh-overlay"></div>
+                    <div class="vh-info">
+                        <div class="vh-name">${vendor.nama_warung}</div>
+                        <div class="vh-meta">
+                            <span>⭐ 4.8 (200+)</span> • <span>Aneka Makanan</span> • <span>1.2km</span>
                         </div>
                     </div>
+                </div>
+            `;
+
+            // Menu List
+            const vendorMenu = allProducts.filter(p => p.vendor_name === vendor.nama_warung || p.vendor_id === vendor.id);
+            const normal = vendorMenu.filter(i => parseInt(i.harga) >= 9000);
+            const cheap = vendorMenu.filter(i => parseInt(i.harga) < 9000);
+            const sortedMenu = [...normal, ...cheap];
+
+            const gridContainer = document.getElementById('vendor-menu-grid');
+            const listContainer = document.getElementById('vendor-menu-list');
+            const reviewsContainer = document.getElementById('vendor-reviews');
+            
+            gridContainer.innerHTML = '';
+            listContainer.innerHTML = '';
+            reviewsContainer.innerHTML = '';
+            
+            if(sortedMenu.length === 0) {
+                listContainer.innerHTML = '<div style="text-align:center; padding:30px; color:#999;">Belum ada menu tersedia.</div>';
+            } else {
+                sortedMenu.forEach((item, index) => {
+                    const imgItem = item.foto_url && item.foto_url.length > 5 ? item.foto_url : 'https://placehold.co/100?text=Menu';
+                    const realPrice = parseInt(item.harga);
+                    const fakePrice = Math.ceil(realPrice * 1.2);
+                    const isFav = favorites.includes(item.id) ? 'active' : '';
+                    const desc = item.deskripsi || "Menu spesial warung ini, dijamin enak.";
+
+                    // GRID ITEM (Top 4)
+                    if (index < 4) {
+                        const div = document.createElement('div');
+                        div.className = 'menu-grid-item';
+                        div.innerHTML = `
+                            <div style="position:relative;">
+                                <div class="badge-priority" style="top:5px; left:5px;">⭐ Unggulan</div>
+                                <img src="${imgItem}" class="mgi-img" onclick="openProductDetail('${item.id}')">
+                                <div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')" style="top:5px; right:5px;"><i class="ph-fill ph-heart"></i></div>
+                            </div>
+                            <div class="mgi-info">
+                                <div style="font-weight:700; font-size:13px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" onclick="openProductDetail('${item.id}')">${item.nama_menu}</div>
+                                <div style="display:flex; align-items:center; justify-content:space-between;">
+                                    <div style="display:flex; flex-direction:column;">
+                                        <span class="p-coret" style="font-size:9px;">Rp ${fakePrice.toLocaleString()}</span>
+                                        <span style="font-weight:800; color:var(--primary); font-size:13px;">Rp ${realPrice.toLocaleString()}</span>
+                                    </div>
+                                    <div class="btn-add-mini" onclick="quickAdd(event, '${item.id}')">+</div>
+                                </div>
+                            </div>
+                        `;
+                        gridContainer.appendChild(div);
+                    } 
+                    // LIST ITEM (Rest) - IMPROVED LAYOUT
+                    else {
+                        const div = document.createElement('div');
+                        div.className = 'menu-list-item';
+                        div.innerHTML = `
+                            <div style="position:relative;">
+                                <img src="${imgItem}" class="mli-img" onclick="openProductDetail('${item.id}')">
+                                <div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')" style="width:24px; height:24px; font-size:12px; top:4px; right:4px;"><i class="ph-fill ph-heart"></i></div>
+                            </div>
+                            <div class="mli-info">
+                                <div onclick="openProductDetail('${item.id}')">
+                                    <div class="mli-title">${item.nama_menu}</div>
+                                    <div class="mli-desc">${desc}</div>
+                                </div>
+                                <div class="mli-action">
+                                    <div class="mli-price-box">
+                                        <span class="mli-coret">Rp ${fakePrice.toLocaleString()}</span>
+                                        <span class="mli-price">Rp ${realPrice.toLocaleString()}</span>
+                                    </div>
+                                    <button class="mli-btn" onclick="quickAdd(event, '${item.id}')">Tambah +</button>
+                                </div>
+                            </div>
+                        `;
+                        listContainer.appendChild(div);
+                    }
+                });
+            }
+
+            // RENDER REVIEWS with STARS
+            // Random avg rating between 4.5 - 5.0
+            const avgRating = (4.5 + Math.random() * 0.5).toFixed(1);
+            document.getElementById('vendor-avg-rating').innerText = avgRating;
+
+            dummyReviews.forEach(rev => {
+                let starsHtml = '';
+                for(let i=0; i<5; i++) {
+                    starsHtml += i < rev.rating ? '<i class="ph-fill ph-star"></i>' : '<i class="ph ph-star"></i>';
+                }
+
+                reviewsContainer.innerHTML += `
+                    <div class="review-card-scroll">
+                        <div class="rc-header">
+                            <div class="rc-user"><i class="ph-fill ph-user-circle"></i> ${rev.user}</div>
+                            <div class="rc-stars">${starsHtml}</div>
+                        </div>
+                        <div class="rc-text">"${rev.text}"</div>
+                    </div>
                 `;
-                c.appendChild(div);
             });
+
+            openPage('vendor');
         }
 
-        // 2. Open Detail Product
+        // --- 7. CATEGORY PAGE IMPLEMENTATION (EXCLUSIVE & PALING LARIS) ---
+        window.openCategoryPage = (cat) => {
+            const c = document.getElementById('list-content');
+            c.innerHTML = '';
+            c.classList.add('product-list-grid');
+
+            let filteredItems = [];
+            if (cat === 'Exclusive') {
+                filteredItems = allProducts.filter(p => p.is_exclusive === true);
+            } else if (cat === 'Paling Laris') {
+                filteredItems = allProducts.slice(0, 15);
+            } else {
+                filteredItems = allProducts.filter(p => (p.kategori || 'Umum') === cat);
+            }
+
+            if (filteredItems.length === 0) {
+                c.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:#999;">Produk tidak ditemukan.</div>';
+            } else {
+                if (cat === 'Exclusive' || cat === 'Paling Laris') {
+                    // GROUP BY VENDOR FOR SPECIAL PAGES
+                    c.classList.remove('product-list-grid'); 
+
+                    const grouped = {};
+                    filteredItems.forEach(item => {
+                        const vName = item.vendor_name || "Warung Projekgo";
+                        if(!grouped[vName]) grouped[vName] = [];
+                        grouped[vName].push(item);
+                    });
+
+                    // Render Groups
+                    for (const [vendorName, items] of Object.entries(grouped)) {
+                        const prices = items.map(i => i.harga);
+                        const minPrice = prices.length ? Math.min(...prices) : 0;
+                        const rating = (4.0 + Math.random()).toFixed(1);
+                        
+                        // Get Vendor ID from first item or find in allVendors
+                        let vId = items[0].vendor_id;
+                        if (!vId) {
+                            const vObj = allVendors.find(v => v.nama_warung === vendorName);
+                            vId = vObj ? vObj.id : vendorName; // Fallback to name if ID missing
+                        }
+
+                        const groupDiv = document.createElement('div');
+                        groupDiv.className = 'group-vendor-section';
+                        
+                        // Header CLICKABLE
+                        groupDiv.innerHTML = `
+                            <div class="group-vendor-header" onclick="openVendorPage('${vId}')" style="cursor:pointer;">
+                                <i class="ph-fill ph-storefront gvh-icon"></i>
+                                <div class="gvh-content">
+                                    <div class="gvh-name">${vendorName}</div>
+                                    <div class="gvh-desc">
+                                        <i class="ph-fill ph-star"></i> ${rating} • 
+                                        Mulai ${(minPrice/1000).toFixed(0)}rb • 1.2km
+                                    </div>
+                                </div>
+                                <i class="ph-bold ph-caret-right gvh-arrow"></i>
+                            </div>
+                        `;
+                        
+                        // Scroll Container
+                        const scrollDiv = document.createElement('div');
+                        scrollDiv.className = 'scroll-container';
+                        
+                        items.forEach(item => {
+                            renderHorizontalCard(scrollDiv, item);
+                        });
+                        
+                        groupDiv.appendChild(scrollDiv);
+                        c.appendChild(groupDiv);
+                    }
+                } else {
+                    // REGULAR GRID
+                    filteredItems.forEach(item => {
+                        renderPcard(c, item);
+                    });
+                }
+            }
+            document.getElementById('list-title').innerText = cat;
+            openPage('list');
+        }
+
+        // Helper render horizontal card (used in Home & Category)
+        function renderHorizontalScroll(id, items) {
+            const c = document.getElementById(id); c.innerHTML='';
+            items.forEach(item => renderHorizontalCard(c, item));
+        }
+
+        function renderHorizontalCard(container, item) {
+            const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : 'https://placehold.co/150x150?text=Menu';
+            const realPrice = parseInt(item.harga);
+            const fakePrice = Math.ceil(realPrice * 1.2); 
+            const vendorName = item.vendor_name || "Warung Projekgo";
+            const isFav = favorites.includes(item.id) ? 'active' : '';
+            const exclusiveBadge = item.is_exclusive ? '<div class="badge-exclusive">Exclusive</div>' : '';
+            const priorityBadge = '<div class="badge-priority"><i class="ph-fill ph-lightning"></i> Prioritas</div>';
+            const rating = (4.0 + Math.random()).toFixed(1);
+            const sold = Math.floor(Math.random() * 500) + 50;
+
+            const div = document.createElement('div');
+            div.className = 'h-card';
+            div.innerHTML = `
+                <div style="position:relative;">
+                    ${priorityBadge}
+                    ${exclusiveBadge}
+                    <div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')"><i class="ph-fill ph-heart"></i></div>
+                    <img src="${img}" class="h-img" onclick="openProductDetail('${item.id}')">
+                </div>
+                <div class="h-info" onclick="openProductDetail('${item.id}')">
+                    <div class="h-vendor"><i class="ph-fill ph-storefront"></i> ${vendorName}</div>
+                    <div class="h-name">${item.nama_menu}</div>
+                    <div class="h-stats">
+                         <i class="ph-fill ph-star"></i> ${rating} • Terjual ${sold}+
+                    </div>
+                    <div class="price-row">
+                        <div class="price-box">
+                            <div style="display:flex; align-items:center; gap:3px;">
+                                <span class="p-label-normal">Normal</span>
+                                <span class="p-coret">Rp ${fakePrice.toLocaleString()}</span>
+                            </div>
+                            <span class="p-real">Rp ${realPrice.toLocaleString()}</span>
+                        </div>
+                        <div class="btn-add-mini" onclick="quickAdd(event, '${item.id}')"><i class="ph-bold ph-plus" style="color:white;"></i></div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        // ... existing search, service, loadData ...
+
+        // 2. Open Detail Product (Same as before)
         window.openProductDetail = (id) => {
             const item = allProducts.find(p => p.id === id);
             if(!item) return;
@@ -711,7 +1056,6 @@
             document.getElementById('pd-btn-price').innerText = "Rp " + realPrice.toLocaleString();
             document.getElementById('pd-desc').innerText = desc;
             
-            // Logic Varian
             const varBox = document.getElementById('variant-section');
             const varOpts = document.getElementById('pd-var-options');
             varOpts.innerHTML = ''; 
@@ -734,7 +1078,74 @@
             openPage('product-detail');
         }
 
-        // 3. Add to Cart Logic
+        // 3. Add to Cart Logic (Same as before)
+        window.quickAdd = (e, id) => {
+            e.stopPropagation();
+            const item = allProducts.find(p => p.id === id);
+            if (item.variant_options && item.variant_options.length > 0) {
+                openVariantModal(item);
+            } else {
+                addToCartDirect(item, "-", "");
+            }
+        }
+        
+        window.openVariantModal = (item) => {
+            pendingVariantItem = item;
+            selectedVariantValue = item.variant_options[0];
+            const modal = document.getElementById('variant-modal');
+            const container = document.getElementById('vm-options-container');
+            document.getElementById('vm-item-name').innerText = item.nama_menu;
+            document.getElementById('vm-price-display').innerText = parseInt(item.harga).toLocaleString();
+
+            container.innerHTML = '';
+            item.variant_options.forEach((opt, idx) => {
+                const isSelected = idx === 0 ? 'selected' : '';
+                container.innerHTML += `
+                    <div class="vm-radio-item ${isSelected}" onclick="selectVariantOption(this, '${opt}')">
+                        <span>${opt}</span>
+                        <div class="vm-radio-circle"></div>
+                    </div>
+                `;
+            });
+            modal.style.display = 'flex';
+            modal.offsetHeight; 
+            modal.classList.add('show');
+        }
+
+        window.selectVariantOption = (el, val) => {
+            document.querySelectorAll('.vm-radio-item').forEach(x => x.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedVariantValue = val;
+        }
+
+        window.closeVariantModal = () => {
+            const modal = document.getElementById('variant-modal');
+            modal.classList.remove('show');
+            setTimeout(() => { modal.style.display = 'none'; }, 300);
+            pendingVariantItem = null;
+        }
+
+        window.confirmVariantAdd = () => {
+            if (pendingVariantItem && selectedVariantValue) {
+                addToCartDirect(pendingVariantItem, selectedVariantValue, "");
+                closeVariantModal();
+            }
+        }
+
+        function addToCartDirect(item, variant, note) {
+            cart.push({
+                id: item.id,
+                nama: item.nama_menu,
+                harga: parseInt(item.harga),
+                vendor: item.vendor_name || "Warung Projekgo",
+                variant: variant,
+                note: note
+            });
+            updateCartBadge();
+            if(navigator.vibrate) navigator.vibrate(50);
+            showToast("Berhasil ditambahkan!");
+        }
+
         window.addToCartFromDetail = () => {
             if(!currentDetailProduct) return;
             let variant = "-";
@@ -743,34 +1154,8 @@
                 if(selectedVar) variant = selectedVar.value;
             }
             const note = document.getElementById('pd-note').value;
-            
-            cart.push({
-                id: currentDetailProduct.id,
-                nama: currentDetailProduct.nama_menu,
-                harga: parseInt(currentDetailProduct.harga),
-                vendor: currentDetailProduct.vendor_name || "Warung Projekgo",
-                variant: variant,
-                note: note
-            });
-            updateCartBadge();
+            addToCartDirect(currentDetailProduct, variant, note);
             goBack();
-            if(navigator.vibrate) navigator.vibrate(50);
-            alert("Berhasil masuk keranjang!");
-        }
-
-        window.quickAdd = (e, id) => {
-            e.stopPropagation();
-            const item = allProducts.find(p => p.id === id);
-            cart.push({
-                id: item.id,
-                nama: item.nama_menu,
-                harga: parseInt(item.harga),
-                vendor: item.vendor_name || "Warung Projekgo",
-                variant: "-",
-                note: ""
-            });
-            updateCartBadge();
-            if(navigator.vibrate) navigator.vibrate(50);
         }
 
         function updateCartBadge() {
@@ -779,7 +1164,6 @@
             else { b.style.display='none'; }
         }
 
-        // 4. FAVORITES LOGIC
         window.toggleFavorite = (e, id) => {
             e.stopPropagation();
             if(favorites.includes(id)) {
@@ -788,6 +1172,7 @@
             } else {
                 favorites.push(id);
                 e.currentTarget.classList.add('active');
+                showToast("Disimpan ke Favorit ❤️");
             }
             localStorage.setItem('favs', JSON.stringify(favorites));
         }
@@ -796,26 +1181,24 @@
             const container = document.getElementById('fav-list-content');
             container.innerHTML = '';
             const favItems = allProducts.filter(p => favorites.includes(p.id));
-
             if(favItems.length === 0) {
                 container.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:#999;">Belum ada menu favorit.</div>';
                 return;
             }
-
             favItems.forEach(item => {
                 renderPcard(container, item);
             });
         }
 
-        // HELPER RENDER CARD LIST (p-card) with Full Detail
         function renderPcard(container, item) {
             const img = item.foto_url || 'https://placehold.co/150';
             const realPrice = parseInt(item.harga);
             const fakePrice = Math.ceil(realPrice * 1.2);
             const isFav = favorites.includes(item.id) ? 'active' : '';
             const exclusiveBadge = item.is_exclusive ? '<div class="badge-exclusive" style="font-size:8px;">Exclusive</div>' : '';
-            // Priority Badge also here
             const priorityBadge = '<div class="badge-priority"><i class="ph-fill ph-lightning"></i> Prioritas</div>';
+            const rating = (4.0 + Math.random()).toFixed(1);
+            const sold = Math.floor(Math.random() * 500) + 50;
 
             const div = document.createElement('div');
             div.className = 'p-card';
@@ -829,7 +1212,10 @@
                 <div class="p-info">
                     <div onclick="openProductDetail('${item.id}')">
                         <div style="font-size:10px; color:#888;">${item.vendor_name || 'Warung'}</div>
-                        <div style="font-weight:700; font-size:13px; margin-bottom:5px;">${item.nama_menu}</div>
+                        <div style="font-weight:700; font-size:13px; margin-bottom:2px;">${item.nama_menu}</div>
+                        <div class="h-stats" style="margin-bottom:8px;">
+                             <i class="ph-fill ph-star"></i> ${rating} • Terjual ${sold}+
+                        </div>
                         <div style="display:flex; flex-direction:column;">
                             <span class="p-coret" style="font-size:10px; text-decoration:line-through; color:#ccc;">Rp ${fakePrice.toLocaleString()}</span>
                             <span style="font-weight:800; color:var(--primary);">Rp ${realPrice.toLocaleString()}</span>
@@ -841,14 +1227,13 @@
             container.appendChild(div);
         }
 
-        // 5. CHECKOUT PAGE
+        // 5. CHECKOUT PAGE (Same as before)
         function renderCartPage() {
             const container = document.getElementById('cart-content');
             if(cart.length === 0) {
                 container.innerHTML = '<div style="text-align:center; padding:50px;">Keranjang Kosong</div>';
                 return;
             }
-
             const grouped = {};
             let subTotal = 0;
             cart.forEach(item => {
@@ -856,30 +1241,44 @@
                 grouped[item.vendor].push(item);
                 subTotal += item.harga;
             });
-
             const fakeOriginalTotal = Math.ceil(subTotal * 1.2);
             const savings = fakeOriginalTotal - subTotal;
 
             let html = '';
             for(const [vendor, items] of Object.entries(grouped)) {
+                
+                // Grouping Identical Items
+                const consolidatedItems = [];
+                items.forEach(item => {
+                    const key = item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase();
+                    const existing = consolidatedItems.find(i => i._key === key);
+                    if (existing) {
+                        existing.qty++;
+                        existing.totalItemPrice += item.harga;
+                    } else {
+                        consolidatedItems.push({ ...item, _key: key, qty: 1, totalItemPrice: item.harga });
+                    }
+                });
+
                 html += `
                     <div class="cart-section">
                         <div class="cart-vendor-group">
                             <div class="cv-title"><i class="ph-fill ph-storefront"></i> ${vendor}</div>
-                            ${items.map((item) => `
+                            ${consolidatedItems.map((item) => `
                                 <div class="cart-item">
-                                    <div>
-                                        <div class="ci-name">${item.nama}</div>
+                                    <div style="flex:1;">
+                                        <div class="ci-name">
+                                            <span class="ci-qty-badge">${item.qty}x</span> ${item.nama}
+                                        </div>
                                         <div class="ci-var">${item.variant} ${item.note ? `(${item.note})` : ''}</div>
                                     </div>
-                                    <div class="ci-price">Rp ${item.harga.toLocaleString()}</div>
+                                    <div class="ci-price">Rp ${item.totalItemPrice.toLocaleString()}</div>
                                 </div>
                             `).join('')}
                         </div>
                     </div>
                 `;
             }
-
             html += `
                 <div class="cart-section" style="border-top:10px solid #f0f0f0;">
                     <div class="cv-title">📍 Alamat Pengantaran</div>
@@ -908,32 +1307,39 @@
         window.processCheckout = () => {
             const addrEl = document.getElementById('checkout-addr');
             if(!addrEl) return;
-            
             const addr = addrEl.value.trim();
             const note = document.getElementById('checkout-note').value.trim();
-            
             if(!addr) { 
-                alert("⚠️ Alamat pengantaran wajib diisi sebelum memesan!");
+                showToast("⚠️ Alamat pengantaran wajib diisi!");
                 document.getElementById('addr-box-container').style.border = "2px solid red";
                 document.getElementById('addr-box-container').style.backgroundColor = "#ffebee";
                 addrEl.focus();
                 return; 
             }
-            
             localStorage.setItem('user_address', addr);
-            
-            // 1. SIMPAN KE RIWAYAT (LOCAL STORAGE)
             const history = JSON.parse(localStorage.getItem('order_history')) || [];
-            
             const grouped = {};
             let total = 0;
             let itemsSummary = [];
             
-            cart.forEach(item => { 
+            // Consolidated logic for WA message
+            const consolidatedCart = [];
+            cart.forEach(item => {
+                const key = item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase();
+                const existing = consolidatedCart.find(i => i._key === key);
+                if (existing) {
+                    existing.qty++;
+                    existing.totalItemPrice += item.harga;
+                } else {
+                    consolidatedCart.push({ ...item, _key: key, qty: 1, totalItemPrice: item.harga });
+                }
+            });
+
+            consolidatedCart.forEach(item => { 
                 if(!grouped[item.vendor]) grouped[item.vendor] = []; 
                 grouped[item.vendor].push(item); 
-                total += item.harga;
-                itemsSummary.push(`${item.nama} (${item.variant})`);
+                total += item.totalItemPrice;
+                itemsSummary.push(`${item.qty}x ${item.nama} (${item.variant})`);
             });
 
             const newOrder = {
@@ -945,239 +1351,25 @@
                 total: total,
                 rawItems: cart 
             };
-            
             history.push(newOrder);
             localStorage.setItem('order_history', JSON.stringify(history));
-
-            // 2. KIRIM WA
             let message = `Halo Admin Projekgo, saya mau pesan makanan:%0A%0A`;
             for(const [vendor, items] of Object.entries(grouped)) {
                 message += `🏪 *${vendor}*%0A`;
-                items.forEach(item => { message += `▪️ ${item.nama} (${item.variant}) - Rp ${item.harga/1000}k%0A`; if(item.note) message += `   _Catatan: ${item.note}_%0A`; });
+                items.forEach(item => { 
+                    message += `▪️ *${item.qty}x* ${item.nama} (${item.variant}) - Rp ${item.totalItemPrice/1000}k%0A`; 
+                    if(item.note) message += `   _Catatan: ${item.note}_%0A`; 
+                });
                 message += `%0A`;
             }
             message += `📍 *Alamat:* ${addr}%0A`;
             if(note) message += `📝 *Catatan Umum:* ${note}%0A`;
             message += `%0A💰 *Total Makanan:* Rp ${total.toLocaleString()}%0A`;
             message += `🛵 _Mohon info ongkirnya kak._`;
-            
             cart = [];
             updateCartBadge();
-            
             window.open(`https://wa.me/${ADMIN_WA}?text=${message}`, '_blank');
             openPage('orders');
-        }
-
-        // --- 6. FULL VENDOR PAGE IMPLEMENTATION ---
-        window.openVendorPage = (vendorId) => {
-            const vendor = allVendors.find(v => v.id === vendorId);
-            if(!vendor) return;
-
-            // Header
-            // USE FOOD ANIMATION AS FALLBACK
-            const img = vendor.shop_photo || 'https://cdn-icons-png.flaticon.com/512/1046/1046857.png';
-            
-            document.getElementById('vendor-header-content').innerHTML = `
-                <div class="vendor-header">
-                    <img src="${img}" class="vh-img">
-                    <div class="vh-overlay"></div>
-                    <div class="vh-info">
-                        <div class="vh-name">${vendor.nama_warung}</div>
-                        <div class="vh-meta">
-                            <span>⭐ 4.8 (200+)</span> • <span>Aneka Makanan</span> • <span>1.2km</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // Menu List
-            const vendorMenu = allProducts.filter(p => p.vendor_name === vendor.nama_warung || p.vendor_id === vendorId);
-            
-            // Sorting: < 9000 at bottom
-            const normal = vendorMenu.filter(i => parseInt(i.harga) >= 9000);
-            const cheap = vendorMenu.filter(i => parseInt(i.harga) < 9000);
-            const sortedMenu = [...normal, ...cheap];
-
-            // --- MIX LAYOUT LOGIC: TOP 4 GRID, REST LIST ---
-            const gridContainer = document.getElementById('vendor-menu-grid');
-            const listContainer = document.getElementById('vendor-menu-list');
-            gridContainer.innerHTML = '';
-            listContainer.innerHTML = '';
-            
-            if(sortedMenu.length === 0) {
-                listContainer.innerHTML = '<div style="text-align:center; padding:30px; color:#999;">Belum ada menu tersedia.</div>';
-            } else {
-                sortedMenu.forEach((item, index) => {
-                    const imgItem = item.foto_url && item.foto_url.length > 5 ? item.foto_url : 'https://placehold.co/100?text=Menu';
-                    const realPrice = parseInt(item.harga);
-                    const fakePrice = Math.ceil(realPrice * 1.2);
-                    const isFav = favorites.includes(item.id) ? 'active' : '';
-
-                    // First 4 items -> GRID
-                    if (index < 4) {
-                        const div = document.createElement('div');
-                        div.className = 'menu-grid-item';
-                        div.innerHTML = `
-                            <div style="position:relative;">
-                                <div class="badge-priority" style="top:5px; left:5px;">⭐ Unggulan</div>
-                                <img src="${imgItem}" class="mgi-img" onclick="openProductDetail('${item.id}')">
-                                <div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')" style="top:5px; right:5px;"><i class="ph-fill ph-heart"></i></div>
-                            </div>
-                            <div class="mgi-info">
-                                <div style="font-weight:700; font-size:13px; margin-bottom:2px;" onclick="openProductDetail('${item.id}')">${item.nama_menu}</div>
-                                <div style="display:flex; align-items:center; justify-content:space-between;">
-                                    <div style="display:flex; flex-direction:column;">
-                                        <span class="p-coret" style="font-size:9px;">Rp ${fakePrice.toLocaleString()}</span>
-                                        <span style="font-weight:800; color:var(--primary); font-size:13px;">Rp ${realPrice.toLocaleString()}</span>
-                                    </div>
-                                    <div class="btn-add-mini" onclick="quickAdd(event, '${item.id}')">+</div>
-                                </div>
-                            </div>
-                        `;
-                        gridContainer.appendChild(div);
-                    } 
-                    // The rest -> LIST
-                    else {
-                        const div = document.createElement('div');
-                        div.className = 'menu-list-item';
-                        div.innerHTML = `
-                            <div style="position:relative; width:75px; height:75px;">
-                                <img src="${imgItem}" class="mli-img" onclick="openProductDetail('${item.id}')" style="width:100%; height:100%;">
-                                <div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')" style="width:20px; height:20px; font-size:12px; top:2px; right:2px;"><i class="ph-fill ph-heart"></i></div>
-                            </div>
-                            <div class="mli-info">
-                                <div onclick="openProductDetail('${item.id}')">
-                                    <div class="mli-title">${item.nama_menu}</div>
-                                    <div class="mli-desc">Menu spesial warung ini.</div>
-                                </div>
-                                <div class="mli-action">
-                                    <div class="mli-price-box">
-                                        <span class="mli-coret">Rp ${fakePrice.toLocaleString()}</span>
-                                        <span class="mli-price">Rp ${realPrice.toLocaleString()}</span>
-                                    </div>
-                                    <button class="mli-btn" onclick="quickAdd(event, '${item.id}')">Tambah +</button>
-                                </div>
-                            </div>
-                        `;
-                        listContainer.appendChild(div);
-                    }
-
-                    // Insert Review Scroll after 3rd item (index 2)
-                    if (index === 2) {
-                        const revContainer = document.createElement('div');
-                        revContainer.className = 'review-scroll-container';
-                        dummyReviews.forEach(rev => {
-                            revContainer.innerHTML += `
-                                <div class="review-card-scroll">
-                                    <div class="rc-user"><i class="ph-fill ph-user-circle"></i> ${rev.user}</div>
-                                    <div class="rc-text">"${rev.text}"</div>
-                                </div>
-                            `;
-                        });
-                        // Append to list container to maintain flow
-                        listContainer.appendChild(revContainer);
-                    }
-                });
-            }
-            openPage('vendor');
-        }
-
-        // --- 7. CATEGORY PAGE IMPLEMENTATION (EXCLUSIVE & PALING LARIS) ---
-        window.openCategoryPage = (cat) => {
-            const c = document.getElementById('list-content');
-            c.innerHTML = '';
-            c.classList.add('product-list-grid'); // Ensure grid for standard categories
-
-            let filteredItems = [];
-            if (cat === 'Exclusive') {
-                filteredItems = allProducts.filter(p => p.is_exclusive === true);
-            } else if (cat === 'Paling Laris') {
-                // Tampilkan 15 produk teratas (simulasi, di real case bisa sort by sales count)
-                filteredItems = allProducts.slice(0, 15);
-            } else {
-                // Regular Categories
-                filteredItems = allProducts.filter(p => (p.kategori || 'Umum') === cat);
-            }
-
-            if (filteredItems.length === 0) {
-                c.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:#999;">Produk tidak ditemukan.</div>';
-            } else {
-                if (cat === 'Exclusive' || cat === 'Paling Laris') {
-                    // GROUP BY VENDOR FOR SPECIAL PAGES (BLOCK DISPLAY)
-                    c.classList.remove('product-list-grid'); 
-
-                    const grouped = {};
-                    filteredItems.forEach(item => {
-                        const vName = item.vendor_name || "Warung Projekgo";
-                        if(!grouped[vName]) grouped[vName] = [];
-                        grouped[vName].push(item);
-                    });
-
-                    // Render Groups
-                    for (const [vendorName, items] of Object.entries(grouped)) {
-                        const groupDiv = document.createElement('div');
-                        groupDiv.className = 'group-vendor-section';
-                        
-                        // Header
-                        groupDiv.innerHTML = `
-                            <div class="group-vendor-header">
-                                <i class="ph-fill ph-storefront" style="color:var(--primary); font-size:20px;"></i>
-                                <div class="gvh-name">${vendorName}</div>
-                            </div>
-                        `;
-                        
-                        // Scroll Container
-                        const scrollDiv = document.createElement('div');
-                        scrollDiv.className = 'scroll-container';
-                        
-                        items.forEach(item => {
-                            const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : 'https://placehold.co/150x150?text=Menu';
-                            const realPrice = parseInt(item.harga);
-                            const fakePrice = Math.ceil(realPrice * 1.2);
-                            const isFav = favorites.includes(item.id) ? 'active' : '';
-                            const exclusiveBadge = item.is_exclusive ? '<div class="badge-exclusive">Exclusive</div>' : '';
-                            // Priority Badge also here
-                            const priorityBadge = '<div class="badge-priority"><i class="ph-fill ph-lightning"></i> Prioritas</div>';
-
-                            const cardHtml = `
-                                <div class="h-card">
-                                    <div style="position:relative;"> <!-- Wrapper for positioning -->
-                                        ${priorityBadge}
-                                        ${exclusiveBadge}
-                                        <div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')"><i class="ph-fill ph-heart"></i></div>
-                                        <img src="${img}" class="h-img" onclick="openProductDetail('${item.id}')">
-                                    </div>
-                                    <div class="h-info" onclick="openProductDetail('${item.id}')">
-                                        <div class="h-name">${item.nama_menu}</div>
-                                        <div class="h-desc">${item.deskripsi || 'Menu lezat..'}</div>
-                                        <div class="price-row">
-                                            <div class="price-box">
-                                                <div style="display:flex; align-items:center; gap:3px;">
-                                                    <span class="p-label-normal">Normal</span>
-                                                    <span class="p-coret">Rp ${fakePrice.toLocaleString()}</span>
-                                                </div>
-                                                <span class="p-real">Rp ${realPrice.toLocaleString()}</span>
-                                            </div>
-                                            <div class="btn-add-mini" onclick="quickAdd(event, '${item.id}')"><i class="ph-bold ph-plus" style="color:white;"></i></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                            scrollDiv.innerHTML += cardHtml;
-                        });
-                        
-                        groupDiv.appendChild(scrollDiv);
-                        c.appendChild(groupDiv);
-                    }
-                } else {
-                    // REGULAR GRID FOR STANDARD CATEGORIES
-                    filteredItems.forEach(item => {
-                        renderPcard(c, item);
-                    });
-                }
-            }
-            document.getElementById('list-title').innerText = cat;
-            openPage('list');
         }
 
         // --- 8. SEARCH & SERVICES ---
@@ -1187,14 +1379,12 @@
                 const filtered = allProducts.filter(p => p.nama_menu.toLowerCase().includes(keyword));
                 const c = document.getElementById('list-content');
                 c.innerHTML = '';
-                c.classList.add('product-list-grid'); // Ensure grid for search
+                c.classList.add('product-list-grid'); 
 
                 if (filtered.length === 0) {
                     c.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:#999;">Tidak ada hasil.</div>';
                 } else {
-                    filtered.forEach(item => {
-                        renderPcard(c, item);
-                    });
+                    filtered.forEach(item => { renderPcard(c, item); });
                 }
                 document.getElementById('list-title').innerText = `Hasil: "${keyword}"`;
                 openPage('list');
@@ -1206,7 +1396,6 @@
             document.getElementById('form-service-title').innerText = svc;
             const container = document.getElementById('dynamic-form-fields');
             let html = '';
-
             if (svc === 'Ngojek' || svc === 'Mobil') {
                 html += `<div class="form-group"><label class="form-label">Lokasi Jemput</label><input type="text" id="svc-jemput" class="form-input"></div>`;
                 html += `<div class="form-group"><label class="form-label">Tujuan</label><input type="text" id="svc-tujuan" class="form-input"></div>`;
@@ -1234,59 +1423,57 @@
                 if(val === '') filled = false;
                 message += `▪️ ${label}: ${val}%0A`;
             });
-            if(!filled) { alert("Mohon lengkapi data."); return; }
+            if(!filled) { showToast("Mohon lengkapi data."); return; }
             window.open(`https://wa.me/${ADMIN_WA}?text=${message}`, '_blank');
         }
 
-        window.detectLocation = () => { alert("Mendeteksi Lokasi GPS..."); }
+        window.detectLocation = () => { showToast("Mendeteksi Lokasi GPS..."); }
 
         // INITIAL LOAD & REALTIME DATA
         function loadData() {
-            // 1. LISTEN TO PRODUCTS (Realtime)
             onSnapshot(collection(db, "products"), (snapshot) => {
                 allProducts = []; 
                 snapshot.forEach(d => allProducts.push({id:d.id, ...d.data()}));
-                
-                // Update Exclusive Section
                 const exclusiveItems = allProducts.filter(p => p.is_exclusive === true);
                 renderHorizontalScroll('container-exclusive', exclusiveItems);
-                
-                // Update Best Seller Section (Logic: just slice for now)
                 renderHorizontalScroll('container-best', allProducts.slice(0, 7));
             });
 
-            // 2. LISTEN TO VENDORS (Realtime)
             onSnapshot(collection(db, "vendors"), (snapshot) => {
                 allVendors = [];
-                snapshot.forEach(doc => {
-                    allVendors.push({id: doc.id, ...doc.data()});
-                });
-                
-                // Fallback logic
+                snapshot.forEach(doc => { allVendors.push({id: doc.id, ...doc.data()}); });
                 if (allVendors.length === 0) {
                      const u = [...new Set(allProducts.map(i=>i.vendor_name||'Warung Projekgo'))];
                      allVendors = u.map((n,i)=>({id:'v'+i, nama_warung:n, status:'BUKA', shop_photo:null}));
                 }
-                
                 renderWarungList(allVendors);
             });
         }
         
-        // Render Warung List with Fallback Image (Animation)
         function renderWarungList(vends) {
             const c = document.getElementById('container-warung'); c.innerHTML='';
             vends.forEach(v => {
                 const s = (v.status||'BUKA').toUpperCase()==='BUKA';
                 const cl = s ? '' : 'closed';
                 const st = s ? '<span style="color:#00AA13">● BUKA</span>' : '<span style="color:#D32F2F">● TUTUP</span>';
-                
-                // FALLBACK IMAGE LOGIC: If no shop_photo, use animation placeholder (Food Icon)
                 const img = v.shop_photo || 'https://cdn-icons-png.flaticon.com/512/1046/1046857.png'; 
                 
+                const vendorProds = allProducts.filter(p => p.vendor_name === v.nama_warung || p.vendor_id === v.id);
+                const prices = vendorProds.map(p => parseInt(p.harga));
+                const minPrice = prices.length ? Math.min(...prices) : 10000;
+                const formattedPrice = (minPrice/1000).toFixed(0) + 'rb';
+                const rating = (4.5 + Math.random() * 0.5).toFixed(1);
+
                 c.innerHTML += `
                     <div class="warung-card ${cl}" onclick="openVendorPage('${v.id}')">
                         <div class="w-img-wrap"><img src="${img}" class="w-img"><div class="w-status-badge">${st}</div></div>
-                        <div class="w-info"><div class="w-name">${v.nama_warung||'Warung'}</div><div class="w-desc">Aneka Makanan • 1.2km</div></div>
+                        <div class="w-info">
+                            <div class="w-name">${v.nama_warung||'Warung'}</div>
+                            <div class="w-desc">
+                                <div class="w-rating"><i class="ph-fill ph-star"></i> ${rating}</div>
+                                <span>• Mulai ${formattedPrice} • 1.2km</span>
+                            </div>
+                        </div>
                     </div>`;
             });
         }
