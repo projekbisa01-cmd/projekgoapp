@@ -56,6 +56,13 @@
         .search-box { background: #f0f2f5; border-radius: 12px; padding: 10px 15px; display: flex; align-items: center; gap: 10px; color: var(--gray); transition: 0.3s; }
         .search-input { border: none; background: transparent; width: 100%; outline: none; font-family: inherit; font-weight: 600; color: var(--dark); font-size: 13px; }
 
+        /* BANNER SCROLL OTOMATIS */
+        .banner-container { padding: 15px 15px 5px 15px; background: var(--white); }
+        .banner-scroll { display: flex; gap: 0; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; border-radius: 16px; box-shadow: var(--shadow-sm); }
+        .banner-scroll::-webkit-scrollbar { display: none; }
+        .banner-item { min-width: 100%; height: 160px; scroll-snap-align: center; position: relative; overflow: hidden; }
+        .banner-item img { width: 100%; height: 100%; object-fit: cover; }
+
         /* KATEGORI */
         .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px 10px; padding: 25px 15px; background: var(--white); margin-bottom: 8px; }
         .cat-item { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
@@ -360,6 +367,15 @@
                         <i class="ph ph-magnifying-glass" style="color: var(--primary);"></i>
                         <input type="text" class="search-input" placeholder="Lapar? Cari makan di sini..." onkeypress="handleSearch(event)">
                     </div>
+                </div>
+            </div>
+
+            <!-- Banner Scroll Otomatis -->
+            <div class="banner-container">
+                <div class="banner-scroll" id="banner-scroll">
+                    <div class="banner-item"><img src="https://i.ibb.co.com/MdZrs0F/Aplikasi-di-buat-hanya-untuk-mempermudah-cara-memesan-mkanan-kami-menyediakan-katalog-UMKM-lokal-dan.png" alt="Banner 1"></div>
+                    <div class="banner-item"><img src="https://i.ibb.co.com/Zztxmw8v/Aplikasi-di-buat-hanya-untuk-mempermudah-cara-memesan-mkanan-kami-menyediakan-katalog-UMKM-lokal-dan.jpg" alt="Banner 2"></div>
+                    <div class="banner-item"><img src="https://i.ibb.co.com/h5KKtrJ/Aplikasi-di-buat-hanya-untuk-mempermudah-cara-memesan-mkanan-kami-menyediakan-katalog-UMKM-lokal-dan.jpg" alt="Banner 3"></div>
                 </div>
             </div>
 
@@ -704,6 +720,23 @@
         window.closeClosedModal = () => {
             document.getElementById('closed-modal').style.display = 'none';
         }
+
+        // AUTO SCROLL BANNER
+        window.initBannerAutoScroll = () => {
+            const banner = document.getElementById('banner-scroll');
+            if (!banner) return;
+            
+            setInterval(() => {
+                const maxScroll = banner.scrollWidth - banner.clientWidth;
+                if (banner.scrollLeft >= maxScroll - 5) {
+                    banner.scrollTo({ left: 0, behavior: 'smooth' });
+                } else {
+                    banner.scrollBy({ left: banner.clientWidth, behavior: 'smooth' });
+                }
+            }, 4000); // 4 seconds
+        }
+        // Initialize after load
+        window.addEventListener('DOMContentLoaded', initBannerAutoScroll);
 
         // DUMMY REVIEWS WITH RATING
         const dummyReviews = [
