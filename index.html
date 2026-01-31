@@ -286,6 +286,15 @@
         .star-rating { font-size: 32px; color: #eee; cursor: pointer; transition: 0.2s; }
         .star-rating.active { color: #FFC107; transform: scale(1.1); }
 
+        /* CLOSED MODAL (NEW) */
+        #closed-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
+        .closed-content { background: white; padding: 30px 20px; border-radius: 20px; text-align: center; max-width: 350px; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .closed-icon { font-size: 50px; color: #D32F2F; margin-bottom: 10px; }
+        .closed-title { font-size: 18px; font-weight: 800; color: var(--dark); margin-bottom: 10px; }
+        .closed-text { font-size: 13px; color: #555; line-height: 1.5; margin-bottom: 20px; }
+        .btn-wa-admin { background: #25D366; color: white; padding: 12px 20px; border-radius: 12px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3); }
+
         /* TOAST NOTIFICATION */
         .toast-box {
             position: fixed;
@@ -583,6 +592,22 @@
         </div>
     </div>
 
+    <!-- CLOSED MODAL (NEW) -->
+    <div id="closed-modal" onclick="if(event.target===this) closeClosedModal()">
+        <div class="closed-content">
+            <i class="ph-fill ph-moon-stars closed-icon"></i>
+            <div class="closed-title">Maaf, Kami Sudah Tutup</div>
+            <div class="closed-text">
+                Operasional Projekgo saat ini:<br>
+                <b>06:30 - 21:00 WIB</b><br><br>
+                Kami akan berusaha memperpanjang jam operasional kedepannya. Terima kasih pengertiannya!
+            </div>
+            <a href="https://wa.me/6281292802623" target="_blank" class="btn-wa-admin">
+                <i class="ph-fill ph-whatsapp-logo"></i> Hubungi Admin 1
+            </a>
+        </div>
+    </div>
+
     <!-- MODAL POPUP VARIAN -->
     <div id="variant-modal" onclick="if(event.target===this) closeVariantModal()">
         <div class="variant-sheet">
@@ -649,6 +674,36 @@
         const savedProfile = JSON.parse(localStorage.getItem('user_profile')) || {name: 'User Projekgo', phone: '0812-XXXX-XXXX'};
         document.getElementById('profile-name').innerText = savedProfile.name;
         document.getElementById('profile-phone').innerText = savedProfile.phone;
+
+        // OPERATIONAL HOURS LOGIC
+        window.checkOperationalStatus = () => {
+            // Force Timezone to WIB (UTC+7)
+            const now = new Date();
+            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+            const wibDate = new Date(utc + (3600000 * 7));
+            
+            const hours = wibDate.getHours();
+            const minutes = wibDate.getMinutes();
+            const totalMinutes = (hours * 60) + minutes;
+
+            const startMinutes = (6 * 60) + 30; // 06:30
+            const endMinutes = (21 * 60) + 0;   // 21:00
+
+            if (totalMinutes >= startMinutes && totalMinutes <= endMinutes) {
+                return true;
+            } else {
+                showClosedModal();
+                return false;
+            }
+        }
+
+        window.showClosedModal = () => {
+            document.getElementById('closed-modal').style.display = 'flex';
+        }
+
+        window.closeClosedModal = () => {
+            document.getElementById('closed-modal').style.display = 'none';
+        }
 
         // DUMMY REVIEWS WITH RATING
         const dummyReviews = [
@@ -1081,6 +1136,8 @@
         // 3. Add to Cart Logic (Same as before)
         window.quickAdd = (e, id) => {
             e.stopPropagation();
+            if(!checkOperationalStatus()) return; // GUARD
+
             const item = allProducts.find(p => p.id === id);
             if (item.variant_options && item.variant_options.length > 0) {
                 openVariantModal(item);
@@ -1126,6 +1183,8 @@
         }
 
         window.confirmVariantAdd = () => {
+            if(!checkOperationalStatus()) return; // GUARD
+
             if (pendingVariantItem && selectedVariantValue) {
                 addToCartDirect(pendingVariantItem, selectedVariantValue, "");
                 closeVariantModal();
@@ -1147,6 +1206,8 @@
         }
 
         window.addToCartFromDetail = () => {
+            if(!checkOperationalStatus()) return; // GUARD
+
             if(!currentDetailProduct) return;
             let variant = "-";
             if(document.getElementById('variant-section').style.display !== 'none') {
@@ -1305,6 +1366,8 @@
         }
 
         window.processCheckout = () => {
+            if(!checkOperationalStatus()) return; // GUARD
+
             const addrEl = document.getElementById('checkout-addr');
             if(!addrEl) return;
             const addr = addrEl.value.trim();
@@ -1414,6 +1477,8 @@
         }
 
         window.submitServiceForm = () => {
+            if(!checkOperationalStatus()) return; // GUARD
+
             let inputs = document.querySelectorAll('[id^="svc-"]');
             let message = `Halo Admin Projekgo, pesan jasa *${currentServiceType}*:%0A%0A`;
             let filled = true;
