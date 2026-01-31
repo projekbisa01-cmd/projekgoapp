@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mitra Projekgo - Admin Upgrade</title>
+    <title>Mitra Projekgo - Kelola Warung</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
@@ -16,7 +16,6 @@
             --gray: #9ca3af;
             --success: #2e7d32;
             --danger: #d32f2f;
-            --warning: #ed6c02;
         }
 
         body { font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; background: var(--bg); color: var(--dark); padding-bottom: 80px; }
@@ -24,150 +23,294 @@
 
         /* LOGIN SCREEN */
         #login-page { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; }
-        .login-logo { font-size: 40px; font-weight: 800; color: var(--primary); margin-bottom: 5px; }
-        .login-input { width: 100%; padding: 15px; border: 1px solid #ddd; border-radius: 12px; margin-bottom: 12px; font-size: 16px; outline: none; }
+        .login-logo { font-size: 40px; font-weight: 800; color: var(--primary); margin-bottom: 10px; }
+        .login-desc { color: var(--gray); text-align: center; margin-bottom: 30px; font-size: 14px; }
+        .login-input { width: 100%; padding: 15px; border: 1px solid #ddd; border-radius: 12px; margin-bottom: 15px; font-size: 16px; outline: none; transition: 0.3s; }
+        .login-input:focus { border-color: var(--primary); }
         .btn-login { width: 100%; background: var(--primary); color: white; padding: 15px; border: none; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer; }
 
-        /* HEADER */
-        .header { background: var(--primary); color: white; padding: 25px 20px 45px 20px; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; }
+        /* DASHBOARD HEADER */
+        .header { background: var(--primary); color: white; padding: 20px 20px 40px 20px; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; }
+        .shop-name { font-size: 20px; font-weight: 800; }
+        .shop-id { font-size: 12px; opacity: 0.8; margin-bottom: 15px; }
         
-        /* NAVIGATION */
-        .tabs { display: flex; background: white; padding: 8px; border-radius: 16px; margin: -25px 20px 20px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; z-index: 10; gap: 5px; }
-        .tab-item { flex: 1; padding: 12px; font-weight: 700; color: var(--gray); cursor: pointer; border-radius: 10px; text-align: center; font-size: 13px; transition: 0.3s; }
+        /* TABS */
+        .tabs { display: flex; justify-content: space-around; background: white; padding: 10px; border-radius: 16px; margin: -30px 20px 20px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; z-index: 10; }
+        .tab-item { padding: 10px 20px; font-weight: 600; color: var(--gray); cursor: pointer; border-radius: 10px; transition: 0.3s; flex: 1; text-align: center; font-size: 14px; }
         .tab-item.active { background: var(--primary); color: white; }
 
-        /* CONTENT */
-        .content-section { display: none; padding: 0 20px; animation: fadeIn 0.3s; }
-        .content-section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        /* PROFILE PHOTO UPLOAD */
+        .shop-photo-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; margin-top: 10px; }
+        .shop-photo-wrapper { width: 100px; height: 100px; border-radius: 50%; overflow: hidden; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; cursor: pointer; background: #eee; }
+        .shop-photo-img { width: 100%; height: 100%; object-fit: cover; }
+        .shop-photo-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.5); color: white; font-size: 10px; text-align: center; padding: 4px; pointer-events: none; }
 
-        /* CARDS */
-        .card { background: white; border-radius: 16px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.05); }
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .stat-card { background: white; padding: 12px; border-radius: 12px; text-align: center; border: 1px solid #eee; }
-        .stat-val { font-size: 18px; font-weight: 800; color: var(--primary); display: block; }
-        .stat-label { font-size: 10px; color: var(--gray); text-transform: uppercase; }
-
-        /* ADMIN LIST ITEMS */
-        .admin-mitra-item { padding: 12px; border-bottom: 1px solid #f0f0f0; }
-        .admin-mitra-item:last-child { border-bottom: none; }
-        .btn-action { padding: 6px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; gap: 4px; }
-        .btn-danger { background: #fee2e2; color: var(--danger); }
-        .btn-warning { background: #fff7ed; color: var(--warning); }
-
-        /* MODAL */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 2000; align-items: flex-end; }
-        .modal-content { background: white; width: 100%; border-top-left-radius: 25px; border-top-right-radius: 25px; padding: 25px; max-height: 90vh; overflow-y: auto; }
-
-        .btn-submit { width: 100%; background: var(--primary); color: white; padding: 15px; border: none; border-radius: 12px; font-weight: 700; margin-top: 10px; cursor: pointer; }
-        .admin-badge { background: #000; color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 20px; margin-left: 5px; vertical-align: middle; }
+        /* STATUS SWITCH */
+        .status-card { background: white; padding: 15px; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .status-label { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--gray); }
+        .status-dot.open { background: var(--success); }
+        .status-dot.closed { background: var(--danger); }
         
-        .search-box { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; font-family: inherit; font-size: 14px; }
+        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--success); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        /* MENU LIST */
+        .content-section { display: none; padding: 0 20px; }
+        .content-section.active { display: block; }
+
+        .menu-item { background: white; border-radius: 16px; padding: 12px; margin-bottom: 15px; display: flex; gap: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); position: relative; border: 1px solid rgba(0,0,0,0.03); }
+        .mi-img { width: 70px; height: 70px; border-radius: 12px; object-fit: cover; background: #eee; }
+        .mi-info { flex-grow: 1; }
+        .mi-name { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+        .mi-price { font-weight: 600; color: var(--primary); font-size: 13px; }
+        .mi-cat { font-size: 10px; color: var(--gray); background: #f0f0f0; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 5px; }
+        .mi-exclusive { background: linear-gradient(45deg, #FF6600, #FF9900); color: white; font-size: 9px; padding: 2px 6px; border-radius: 4px; display: inline-block; font-weight: 700; margin-left: 5px; }
+        .mi-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 8px; }
+        .btn-icon { background: #f5f5f5; border: none; font-size: 16px; color: var(--gray); cursor: pointer; padding: 6px; border-radius: 8px; }
+        .btn-icon.edit { color: #2196F3; }
+        .btn-icon.delete { color: var(--danger); }
+
+        /* PROFILE & REVIEWS */
+        .profile-stat-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        .stat-card { flex: 1; background: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+        .stat-num { font-size: 24px; font-weight: 800; color: var(--primary); }
+        .stat-label { font-size: 12px; color: var(--gray); }
+
+        .review-item { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-bottom: 1px solid #eee; }
+        .rev-header { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; }
+        .rev-user { font-weight: 700; }
+        .rev-date { color: var(--gray); }
+        .rev-stars { color: #FFC107; font-size: 12px; margin-bottom: 5px; }
+        .rev-text { font-size: 13px; color: #555; line-height: 1.4; }
+
+        /* FAB ADD BUTTON */
+        .fab-add { position: fixed; bottom: 20px; right: 20px; width: 56px; height: 56px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 15px rgba(255, 102, 0, 0.4); cursor: pointer; transition: 0.2s; z-index: 100; }
+        .fab-add:active { transform: scale(0.9); }
+
+        /* MODAL FORM */
+        #modal-form { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: flex-end; }
+        .modal-content { background: white; width: 100%; border-top-left-radius: 25px; border-top-right-radius: 25px; padding: 25px; animation: slideUp 0.3s; max-height: 90vh; overflow-y: auto; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px; color: #555; }
+        .form-input, .form-select, .form-textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; font-family: inherit; }
+        .form-textarea { resize: none; height: 80px; }
+        
+        /* IMAGE PREVIEW */
+        .img-preview-box { width: 100%; height: 150px; background: #f5f5f5; border-radius: 10px; border: 2px dashed #ddd; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; cursor: pointer; margin-bottom: 10px; }
+        .img-preview-box img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .upload-placeholder { text-align: center; color: #999; font-size: 12px; }
+        
+        .btn-submit { width: 100%; background: var(--primary); color: white; padding: 15px; border: none; border-radius: 12px; font-weight: 700; margin-top: 10px; }
+        .btn-cancel { width: 100%; background: transparent; color: #666; padding: 15px; border: none; margin-top: 5px; font-weight: 600; cursor: pointer; }
+
+        /* VARIANT & EXCLUSIVE BOX */
+        .variant-custom-box { background: #f9f9f9; padding: 15px; border-radius: 12px; border: 1px solid #eee; margin-top: 10px; }
+        .checkbox-wrapper { display: flex; align-items: center; gap: 10px; margin-top: 10px; padding: 10px; background: #FFF3E0; border-radius: 10px; border: 1px solid #FFE0B2; }
+        .checkbox-wrapper input { width: 18px; height: 18px; accent-color: var(--primary); }
+        .checkbox-label { font-size: 13px; font-weight: 700; color: #E65100; }
+
     </style>
 </head>
 <body>
 
-    <!-- LOGIN PAGE -->
+    <!-- 1. LOGIN PAGE -->
     <div id="login-page">
         <div class="login-logo">Projekgo</div>
-        <div style="font-weight:700; margin-bottom:20px; color: #666;">Portal Keamanan Mitra</div>
-        <input type="text" id="login-id" class="login-input" placeholder="ID Warung / Admin">
-        <input type="password" id="login-pin" class="login-input" placeholder="PIN Keamanan (6 Digit)">
-        <button class="btn-login" onclick="handleLogin()">Buka Dashboard</button>
-        <p style="font-size: 11px; color: #999; margin-top: 15px; text-align: center;">
-            Hanya mitra terdaftar yang dapat mengakses data.<br>Hubungi Admin untuk pendaftaran baru.
-        </p>
+        <div style="font-weight:700; margin-bottom:5px;">Aplikasi Mitra Penjual</div>
+        <p class="login-desc">Masukkan ID Warung untuk mengelola menu.</p>
+        
+        <input type="text" id="login-id" class="login-input" placeholder="ID Warung (Cth: warung_siti)">
+        <input type="text" id="login-name" class="login-input" placeholder="Nama Warung (Utk Tampilan)">
+        <button class="btn-login" onclick="login()">Masuk ke Dashboard</button>
     </div>
 
-    <!-- MAIN APP -->
+    <!-- 2. DASHBOARD (Hidden by default) -->
     <div id="dashboard" style="display:none;">
+        
         <div class="header">
-            <div style="display:flex; justify-content:space-between; align-items: center;">
+            <div style="display:flex; justify-content:space-between;">
                 <div>
-                    <div style="display: flex; align-items: center;">
-                        <span id="display-name" style="font-weight: 800; font-size: 22px;">...</span>
-                        <span id="admin-indicator" class="admin-badge" style="display:none;">ADMIN</span>
-                    </div>
-                    <div id="display-id" style="font-size: 12px; opacity: 0.8;">ID: ...</div>
+                    <div class="shop-name" id="display-name">Nama Warung</div>
+                    <div class="shop-id" id="display-id">ID: ...</div>
                 </div>
-                <button onclick="handleLogout()" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:8px 15px; border-radius:10px; font-size:12px; font-weight:700;">Keluar</button>
+                <button onclick="logout()" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:5px 10px; border-radius:8px; height:fit-content; font-size:12px;">Keluar</button>
             </div>
         </div>
 
+        <!-- TABS NAV -->
         <div class="tabs">
-            <div class="tab-item active" onclick="switchTab('menu')" id="tab-menu">Kelola Menu</div>
-            <div class="tab-item" onclick="switchTab('profile')" id="tab-profile">Profil Toko</div>
-            <div class="tab-item" onclick="switchTab('admin')" id="tab-admin" style="display:none;">Panel Admin</div>
+            <div class="tab-item active" onclick="switchTab('menu')" id="tab-menu">Daftar Menu</div>
+            <div class="tab-item" onclick="switchTab('profile')" id="tab-profile">Profil & Ulasan</div>
         </div>
 
-        <!-- CONTENT: MENU -->
+        <!-- TAB CONTENT: MENU -->
         <div id="content-menu" class="content-section active">
-            <h3 style="margin-bottom: 15px;">Daftar Produk</h3>
-            <div id="menu-container"></div>
-            <div onclick="alert('Form tambah menu dalam pengembangan')" style="position:fixed; bottom:20px; right:20px; width:56px; height:56px; background:var(--primary); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; box-shadow: 0 4px 15px rgba(255,102,0,0.4);"><i class="ph-bold ph-plus"></i></div>
-        </div>
-
-        <!-- CONTENT: PROFILE -->
-        <div id="content-profile" class="content-section">
-            <div class="card">
-                <div class="profile-item" style="display: flex; align-items: center; gap: 15px; padding: 12px; border-radius: 12px; background: #f9f9f9; margin-bottom: 10px; cursor: pointer;" onclick="showTermsModal()">
-                    <i class="ph-fill ph-file-text" style="color:var(--primary); font-size:24px;"></i>
-                    <div style="flex-grow:1; font-weight:700;">Perjanjian Mitra</div>
-                    <i class="ph ph-lock-simple" style="color:#ccc;"></i>
-                </div>
-            </div>
-        </div>
-
-        <!-- CONTENT: ADMIN (UPGRADED) -->
-        <div id="content-admin" class="content-section">
-            <!-- Stats -->
-            <div class="stat-grid">
-                <div class="stat-card">
-                    <span class="stat-val" id="stat-total-mitra">0</span>
-                    <span class="stat-label">Total Mitra</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-val" id="stat-total-produk">0</span>
-                    <span class="stat-label">Total Produk</span>
-                </div>
+            <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="margin:0;">Menu Anda</h3>
+                <span style="font-size:12px; color:var(--gray);" id="menu-count">0 Menu</span>
             </div>
 
-            <div class="card">
-                <h4 style="margin-top:0;">Daftarkan Mitra Baru</h4>
-                <input type="text" id="adm-new-id" class="login-input" placeholder="ID Warung (Tanpa spasi)" style="font-size:14px;">
-                <input type="text" id="adm-new-name" class="login-input" placeholder="Nama Warung" style="font-size:14px;">
-                <input type="text" id="adm-new-pin" class="login-input" placeholder="Set PIN (Min 4 Digit)" style="font-size:14px;">
-                <button class="btn-submit" onclick="registerNewPartner()">Daftarkan Mitra</button>
+            <div class="menu-list" id="menu-container">
+                <div style="text-align:center; padding:40px; color:#999;">Memuat data...</div>
             </div>
-
-            <h4 style="margin: 20px 0 10px 0;">Manajemen Mitra Aktif</h4>
-            <input type="text" id="admin-search" class="search-box" placeholder="Cari nama atau ID mitra..." onkeyup="filterMitraList()">
             
-            <div class="card" style="padding:0; overflow:hidden;">
-                <div id="admin-mitra-list"></div>
+            <!-- FAB Add -->
+            <div class="fab-add" onclick="openModal()"><i class="ph-bold ph-plus"></i></div>
+        </div>
+
+        <!-- TAB CONTENT: PROFILE & REVIEWS -->
+        <div id="content-profile" class="content-section">
+            
+            <!-- Shop Photo Upload -->
+            <div class="shop-photo-container">
+                <div class="shop-photo-wrapper" onclick="document.getElementById('shop-photo-input').click()">
+                    <!-- Gambar Default Makanan -->
+                    <img id="shop-photo-display" src="https://cdn-icons-png.flaticon.com/512/1046/1046857.png" class="shop-photo-img">
+                    <div class="shop-photo-overlay">Ganti Foto</div>
+                </div>
+                <div style="font-size:12px; color:#666; margin-top:5px;">Foto Profil Warung</div>
+                <input type="file" id="shop-photo-input" hidden accept="image/*" onchange="handleShopPhoto(event)">
             </div>
+
+            <!-- Status Toko Control -->
+            <div class="status-card">
+                <div class="status-label">
+                    <div id="status-dot" class="status-dot"></div>
+                    <span id="status-text">Status Toko</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="shop-toggle" onchange="toggleShopStatus()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div style="font-size:11px; color:#666; margin-top:-15px; margin-bottom:20px; padding-left:5px;">
+                *Jika dimatikan, toko Anda akan terlihat tutup (abu-abu) di aplikasi pelanggan.
+            </div>
+
+            <!-- Stats -->
+            <div class="profile-stat-box">
+                <div class="stat-card">
+                    <div class="stat-num">4.8</div>
+                    <div class="stat-label">Rating Rata-rata</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num">120</div>
+                    <div class="stat-label">Total Pesanan</div>
+                </div>
+            </div>
+
+            <h3 style="margin:20px 0 10px 0;">Ulasan Pelanggan</h3>
+            <div id="reviews-container">
+                <!-- Dummy Reviews (Untuk Tampilan) -->
+                <div class="review-item">
+                    <div class="rev-header">
+                        <span class="rev-user">Budi Santoso</span>
+                        <span class="rev-date">Hari ini</span>
+                    </div>
+                    <div class="rev-stars">★★★★★</div>
+                    <div class="rev-text">Makanannya enak banget, porsi banyak!</div>
+                </div>
+                <div class="review-item">
+                    <div class="rev-header">
+                        <span class="rev-user">Siti Aminah</span>
+                        <span class="rev-date">Kemarin</span>
+                    </div>
+                    <div class="rev-stars">★★★★☆</div>
+                    <div class="rev-text">Pengiriman cepat, tapi sambalnya kurang pedas dikit.</div>
+                </div>
+                <div class="review-item">
+                    <div class="rev-header">
+                        <span class="rev-user">Ahmad Dani</span>
+                        <span class="rev-date">2 Hari lalu</span>
+                    </div>
+                    <div class="rev-stars">★★★★★</div>
+                    <div class="rev-text">Mantap jiwa! Recommended seller.</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 3. MODAL FORM ADD/EDIT -->
+    <div id="modal-form">
+        <div class="modal-content">
+            <h3 style="margin-top:0;" id="modal-title">Tambah Menu</h3>
+            
+            <input type="hidden" id="menu-id"> <!-- Hidden ID for edit -->
+
+            <!-- Foto -->
+            <label class="form-label">Foto Menu</label>
+            <div class="img-preview-box" onclick="document.getElementById('file-input').click()">
+                <div class="upload-placeholder"><i class="ph ph-camera" style="font-size:24px;"></i><br>Klik untuk Upload</div>
+                <img id="preview-img">
+            </div>
+            <input type="file" id="file-input" hidden accept="image/*" onchange="handleFileSelect(event)">
+
+            <div class="form-group">
+                <label class="form-label">Nama Menu</label>
+                <input type="text" id="inp-nama" class="form-input" placeholder="Cth: Nasi Goreng Spesial">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Harga (Rp)</label>
+                <input type="number" id="inp-harga" class="form-input" placeholder="15000">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Kategori</label>
+                <select id="inp-kategori" class="form-select">
+                    <option value="Pernasian">Pernasian</option>
+                    <option value="Ayam">Ayam</option>
+                    <option value="Minuman">Minuman</option>
+                    <option value="Berkuah">Berkuah (Bakso/Soto)</option>
+                    <option value="Mie">Aneka Mie</option>
+                    <option value="Snack">Snack / Jajanan</option>
+                    <option value="Sarapan">Sarapan</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Deskripsi Singkat</label>
+                <textarea id="inp-desc" class="form-textarea" placeholder="Jelaskan rasanya..."></textarea>
+            </div>
+
+            <!-- EXCLUSIVE CHECKBOX -->
+            <div class="checkbox-wrapper">
+                <input type="checkbox" id="inp-exclusive">
+                <label for="inp-exclusive" class="checkbox-label">Jadikan Menu Eksklusif?</label>
+            </div>
+            <div style="font-size:10px; color:#666; margin-bottom:15px; margin-left:5px;">
+                Menu ini spesial dan hanya dijual di Projekgo.
+            </div>
+
+            <!-- VARIAN CUSTOM -->
+            <div class="variant-custom-box">
+                <label class="form-label" style="color:var(--primary);">✨ Kustomisasi Varian (Opsional)</label>
+                <div class="form-group">
+                    <input type="text" id="inp-var-title" class="form-input" placeholder="Judul Varian (Cth: Level Pedas, Topping)">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="inp-var-options" class="form-input" placeholder="Pilihan (Pisahkan dengan koma: Pedas, Sedang)">
+                </div>
+                <div style="font-size:10px; color:#666;">Biarkan kosong jika menu ini tidak memiliki varian.</div>
+            </div>
+
+            <button class="btn-submit" onclick="saveMenu()">Simpan Menu</button>
+            <button class="btn-cancel" onclick="closeModal()">Batal</button>
         </div>
     </div>
 
-    <!-- MODAL: KETENTUAN -->
-    <div id="modal-terms" class="modal-overlay" style="align-items: center; padding: 20px;">
-        <div class="modal-content" style="border-radius: 20px;">
-            <div style="text-align:center; margin-bottom:20px;">
-                <h2 style="margin:0;">Ketentuan Layanan</h2>
-                <p style="font-size:12px; color:var(--gray);">Dokumen Perjanjian Penjual</p>
-            </div>
-            <div style="font-size:13px; line-height:1.6; max-height:300px; overflow-y:auto;">
-                <p><b>1. Larangan Alkohol:</b> Mitra dilarang keras menjual minuman beralkohol atau zat adiktif.</p>
-                <p><b>2. Ketentuan Halal:</b> Semua makanan wajib memiliki keterangan bahan yang jelas dan tidak mengandung babi.</p>
-                <p><b>3. Produk Hukum:</b> Dilarang menjual barang curian atau melanggar hukum negara.</p>
-            </div>
-            <button class="btn-submit" onclick="document.getElementById('modal-terms').style.display='none'">Tutup</button>
-        </div>
-    </div>
-
+    <!-- LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, deleteDoc, doc, query, where, onSnapshot, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, where, onSnapshot, setDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDq0UCWj43rCP3rqvAGbdyr2FFV7kyhZTA",
@@ -182,165 +325,313 @@
         const db = getFirestore(app);
 
         let currentUser = null;
-        let allMitraData = [];
+        let base64Image = "";
+        let currentProducts = {}; // Store local data for edit
 
-        // --- LOGIN LOGIC ---
-        window.handleLogin = async () => {
-            const id = document.getElementById('login-id').value.trim().toLowerCase();
-            const pin = document.getElementById('login-pin').value.trim();
-            if(!id || !pin) return alert("Lengkapi data login!");
+        // --- 1. LOGIN SYSTEM ---
+        window.login = async () => {
+            const id = document.getElementById('login-id').value.trim();
+            const name = document.getElementById('login-name').value.trim();
+            
+            if(!id || !name) { alert("Isi ID dan Nama Warung!"); return; }
 
-            const vendorSnap = await getDoc(doc(db, "vendors", id));
-            if(vendorSnap.exists()) {
-                const data = vendorSnap.data();
-                if(data.pin === pin) {
-                    currentUser = { id, name: data.nama_warung, role: data.role || 'vendor' };
-                    localStorage.setItem('projekgo_session', JSON.stringify(currentUser));
-                    initDashboard();
-                } else { alert("PIN Salah!"); }
-            } else { alert("ID Mitra tidak terdaftar."); }
+            currentUser = { id, name };
+            localStorage.setItem('vendor_user', JSON.stringify(currentUser));
+            
+            try {
+                const vendorRef = doc(db, "vendors", id);
+                await setDoc(vendorRef, {
+                    nama_warung: name,
+                    id: id,
+                }, { merge: true });
+                initDashboard();
+            } catch (e) {
+                console.error("Login Error:", e);
+                alert("Gagal koneksi database.");
+            }
         };
 
-        window.handleLogout = () => {
-            localStorage.removeItem('projekgo_session');
-            location.reload();
+        window.logout = () => {
+            if(confirm("Keluar dari aplikasi?")) {
+                localStorage.removeItem('vendor_user');
+                location.reload();
+            }
         };
 
-        // --- DASHBOARD INIT ---
+        function checkSession() {
+            const saved = localStorage.getItem('vendor_user');
+            if(saved) {
+                currentUser = JSON.parse(saved);
+                initDashboard();
+            }
+        }
+
+        // --- 2. DASHBOARD LOGIC ---
         function initDashboard() {
             document.getElementById('login-page').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
+            
             document.getElementById('display-name').innerText = currentUser.name;
             document.getElementById('display-id').innerText = "ID: " + currentUser.id;
 
-            if(currentUser.role === 'admin') {
-                document.getElementById('tab-admin').style.display = 'block';
-                document.getElementById('admin-indicator').style.display = 'inline-block';
-                loadAdminData();
-            }
+            // Load Status & Foto Toko
+            onSnapshot(doc(db, "vendors", currentUser.id), (doc) => {
+                if(doc.exists()) {
+                    const data = doc.data();
+                    const isOpen = (data.status || 'BUKA') === 'BUKA';
+                    document.getElementById('shop-toggle').checked = isOpen;
+                    updateStatusUI(isOpen);
+                    
+                    if(data.shop_photo) {
+                        document.getElementById('shop-photo-display').src = data.shop_photo;
+                    }
+                }
+            });
 
-            // Sync User's Products
+            // Load Menu
             const q = query(collection(db, "products"), where("vendor_id", "==", currentUser.id));
             onSnapshot(q, (snapshot) => {
                 const container = document.getElementById('menu-container');
                 container.innerHTML = '';
-                snapshot.forEach(d => {
-                    const item = d.data();
-                    const el = document.createElement('div');
-                    el.className = 'card'; el.style.display = 'flex'; el.style.gap = '15px';
-                    el.innerHTML = `
-                        <div style="width:60px; height:60px; background:#eee; border-radius:10px; display:flex; align-items:center; justify-content:center; color:#ccc;"><i class="ph ph-image" style="font-size:24px;"></i></div>
-                        <div>
-                            <div style="font-weight:700;">${item.nama_menu}</div>
-                            <div style="color:var(--primary); font-size:14px; font-weight:600;">Rp ${item.harga.toLocaleString()}</div>
+                document.getElementById('menu-count').innerText = snapshot.size + " Menu";
+                currentProducts = {}; 
+
+                if(snapshot.empty) {
+                    container.innerHTML = '<div style="text-align:center; padding:40px; color:#999;">Belum ada menu.<br>Klik tombol + untuk menambah.</div>';
+                    return;
+                }
+
+                snapshot.forEach(docSnap => {
+                    const item = docSnap.data();
+                    currentProducts[docSnap.id] = item; 
+                    
+                    const img = item.foto_url && item.foto_url.length > 10 ? item.foto_url : 'https://placehold.co/100?text=Menu';
+                    const exclusiveBadge = item.is_exclusive ? '<span class="mi-exclusive">Eksklusif</span>' : '';
+
+                    const div = document.createElement('div');
+                    div.className = 'menu-item';
+                    div.innerHTML = `
+                        <img src="${img}" class="mi-img">
+                        <div class="mi-info">
+                            <div class="mi-name">${item.nama_menu}</div>
+                            <div class="mi-price">Rp ${parseInt(item.harga).toLocaleString()}</div>
+                            <div style="margin-top:5px;">
+                                <span class="mi-cat">${item.kategori}</span>
+                                ${exclusiveBadge}
+                            </div>
+                        </div>
+                        <div class="mi-actions">
+                            <button class="btn-icon edit" onclick="editMenu('${docSnap.id}')"><i class="ph-bold ph-pencil-simple"></i></button>
+                            <button class="btn-icon delete" onclick="deleteMenu('${docSnap.id}', '${item.nama_menu}')"><i class="ph-bold ph-trash"></i></button>
                         </div>
                     `;
-                    container.appendChild(el);
+                    container.appendChild(div);
                 });
             });
         }
 
-        // --- ADMIN UPGRADE FUNCTIONS ---
-        async function loadAdminData() {
-            // Get stats
-            onSnapshot(collection(db, "vendors"), (snap) => {
-                document.getElementById('stat-total-mitra').innerText = snap.size - 1; // Exclude admin
-                allMitraData = [];
-                snap.forEach(d => {
-                    if(d.id !== 'admin') allMitraData.push(d.data());
-                });
-                renderMitraList(allMitraData);
-            });
-
-            const productsSnap = await getDocs(collection(db, "products"));
-            document.getElementById('stat-total-produk').innerText = productsSnap.size;
+        // --- 3. TABS SWITCHER ---
+        window.switchTab = (tabName) => {
+            document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            document.getElementById(`content-${tabName}`).classList.add('active');
         }
 
-        function renderMitraList(data) {
-            const list = document.getElementById('admin-mitra-list');
-            list.innerHTML = '';
-            data.forEach(m => {
-                const el = document.createElement('div');
-                el.className = 'admin-mitra-item';
-                el.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                        <div>
-                            <div style="font-weight:800; font-size:14px;">${m.nama_warung}</div>
-                            <div style="font-size:11px; color:var(--gray)">ID: ${m.id} • PIN: ${m.pin}</div>
-                        </div>
-                    </div>
-                    <div style="display:flex; gap:8px;">
-                        <button class="btn-action btn-warning" onclick="resetPin('${m.id}')">
-                            <i class="ph-bold ph-key"></i> Reset PIN
-                        </button>
-                        <button class="btn-action btn-danger" onclick="deletePartner('${m.id}', '${m.nama_warung}')">
-                            <i class="ph-bold ph-trash"></i> Hapus
-                        </button>
-                    </div>
-                `;
-                list.appendChild(el);
-            });
+        // --- 4. SHOP STATUS & PHOTO ---
+        function updateStatusUI(isOpen) {
+            const text = document.getElementById('status-text');
+            const dot = document.getElementById('status-dot');
+            if(isOpen) {
+                text.innerText = "Toko BUKA";
+                text.style.color = "var(--success)";
+                dot.className = "status-dot open";
+            } else {
+                text.innerText = "Toko TUTUP";
+                text.style.color = "var(--danger)";
+                dot.className = "status-dot closed";
+            }
         }
 
-        window.filterMitraList = () => {
-            const val = document.getElementById('admin-search').value.toLowerCase();
-            const filtered = allMitraData.filter(m => 
-                m.nama_warung.toLowerCase().includes(val) || 
-                m.id.toLowerCase().includes(val)
-            );
-            renderMitraList(filtered);
+        window.toggleShopStatus = async () => {
+            const isOpen = document.getElementById('shop-toggle').checked;
+            const status = isOpen ? "BUKA" : "TUTUP";
+            await updateDoc(doc(db, "vendors", currentUser.id), { status: status });
         };
 
-        window.deletePartner = async (id, name) => {
-            if(confirm(`Hapus mitra "${name}" secara permanen? Tindakan ini tidak bisa dibatalkan.`)) {
-                await deleteDoc(doc(db, "vendors", id));
-                alert("Mitra berhasil dihapus.");
+        window.handleShopPhoto = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = async function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const MAX_WIDTH = 300; 
+                    const scaleSize = MAX_WIDTH / img.width;
+                    canvas.width = MAX_WIDTH;
+                    canvas.height = img.height * scaleSize;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    const photoBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                    
+                    document.getElementById('shop-photo-display').src = photoBase64;
+                    
+                    try {
+                        await updateDoc(doc(db, "vendors", currentUser.id), { shop_photo: photoBase64 });
+                        alert("Foto warung berhasil diperbarui!");
+                    } catch(err) {
+                        console.error(err);
+                        alert("Gagal upload foto.");
+                    }
+                }
+            }
+            reader.readAsDataURL(file);
+        };
+
+        // --- 5. CRUD MENU ---
+        window.openModal = () => {
+            document.getElementById('modal-title').innerText = "Tambah Menu";
+            document.getElementById('menu-id').value = "";
+            document.getElementById('inp-nama').value = "";
+            document.getElementById('inp-harga').value = "";
+            document.getElementById('inp-desc').value = "";
+            document.getElementById('inp-exclusive').checked = false;
+            document.getElementById('inp-var-title').value = "";
+            document.getElementById('inp-var-options').value = "";
+            
+            document.getElementById('preview-img').src = "";
+            document.getElementById('preview-img').style.display = "none";
+            document.querySelector('.upload-placeholder').style.display = "block";
+            base64Image = "";
+            
+            document.getElementById('modal-form').style.display = 'flex';
+        };
+
+        window.editMenu = (id) => {
+            const item = currentProducts[id];
+            if(!item) return;
+
+            document.getElementById('modal-title').innerText = "Edit Menu";
+            document.getElementById('menu-id').value = id;
+            document.getElementById('inp-nama').value = item.nama_menu;
+            document.getElementById('inp-harga').value = item.harga;
+            document.getElementById('inp-kategori').value = item.kategori;
+            document.getElementById('inp-desc').value = item.deskripsi || "";
+            document.getElementById('inp-exclusive').checked = item.is_exclusive || false;
+            
+            document.getElementById('inp-var-title').value = item.variant_title || "";
+            document.getElementById('inp-var-options').value = item.variant_options ? item.variant_options.join(", ") : "";
+
+            if(item.foto_url && item.foto_url.length > 20) {
+                base64Image = item.foto_url;
+                document.getElementById('preview-img').src = base64Image;
+                document.getElementById('preview-img').style.display = "block";
+                document.querySelector('.upload-placeholder').style.display = "none";
+            } else {
+                base64Image = "";
+                document.getElementById('preview-img').style.display = "none";
+                document.querySelector('.upload-placeholder').style.display = "block";
+            }
+
+            document.getElementById('modal-form').style.display = 'flex';
+        }
+
+        window.closeModal = () => {
+            document.getElementById('modal-form').style.display = 'none';
+        };
+
+        window.handleFileSelect = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const MAX_WIDTH = 500; 
+                    const scaleSize = MAX_WIDTH / img.width;
+                    canvas.width = MAX_WIDTH;
+                    canvas.height = img.height * scaleSize;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    base64Image = canvas.toDataURL('image/jpeg', 0.6);
+                    const preview = document.getElementById('preview-img');
+                    preview.src = base64Image;
+                    preview.style.display = 'block';
+                    document.querySelector('.upload-placeholder').style.display = "none";
+                }
+            }
+            reader.readAsDataURL(file);
+        };
+
+        window.saveMenu = async () => {
+            const id = document.getElementById('menu-id').value;
+            const nama = document.getElementById('inp-nama').value;
+            const harga = document.getElementById('inp-harga').value;
+            const kategori = document.getElementById('inp-kategori').value;
+            const desc = document.getElementById('inp-desc').value;
+            const isExclusive = document.getElementById('inp-exclusive').checked;
+            
+            const varTitle = document.getElementById('inp-var-title').value.trim();
+            const varOptsStr = document.getElementById('inp-var-options').value.trim();
+            let varOptsArray = [];
+            if(varOptsStr) {
+                varOptsArray = varOptsStr.split(',').map(s => s.trim()).filter(s => s !== "");
+            }
+
+            if(!nama || !harga) { alert("Nama dan Harga wajib diisi!"); return; }
+
+            const btn = document.querySelector('.btn-submit');
+            btn.innerText = "Menyimpan...";
+            btn.disabled = true;
+
+            const menuData = {
+                nama_menu: nama,
+                harga: parseInt(harga),
+                kategori: kategori,
+                deskripsi: desc,
+                is_exclusive: isExclusive,
+                vendor_id: currentUser.id,
+                vendor_name: currentUser.name,
+                variant_title: varTitle,
+                variant_options: varOptsArray,
+                updated_at: new Date().toISOString()
+            };
+
+            if(base64Image) {
+                menuData.foto_url = base64Image;
+            }
+
+            try {
+                if(id) {
+                    await updateDoc(doc(db, "products", id), menuData);
+                } else {
+                    menuData.created_at = new Date().toISOString();
+                    if(!base64Image) menuData.foto_url = "";
+                    await addDoc(collection(db, "products"), menuData);
+                }
+                closeModal();
+            } catch(e) {
+                console.error(e);
+                alert("Gagal menyimpan: " + e.message);
+            } finally {
+                btn.innerText = "Simpan Menu";
+                btn.disabled = false;
             }
         };
 
-        window.resetPin = async (id) => {
-            if(confirm(`Reset PIN mitra ini ke default "123456"?`)) {
-                await updateDoc(doc(db, "vendors", id), { pin: "123456" });
-                alert("PIN berhasil direset ke 123456");
+        window.deleteMenu = async (id, nama) => {
+            if(confirm(`Hapus menu "${nama}"?`)) {
+                await deleteDoc(doc(db, "products", id));
             }
         };
 
-        window.registerNewPartner = async () => {
-            const id = document.getElementById('adm-new-id').value.trim().toLowerCase();
-            const name = document.getElementById('adm-new-name').value.trim();
-            const pin = document.getElementById('adm-new-pin').value.trim();
-
-            if(!id || !name || pin.length < 4) return alert("Mohon lengkapi data (PIN minimal 4 angka)");
-
-            const check = await getDoc(doc(db, "vendors", id));
-            if(check.exists()) return alert("ID Mitra sudah digunakan!");
-
-            await setDoc(doc(db, "vendors", id), {
-                id, nama_warung: name, pin, role: 'vendor', created_at: new Date().toISOString()
-            });
-
-            alert("Pendaftaran Berhasil!");
-            document.getElementById('adm-new-id').value = "";
-            document.getElementById('adm-new-name').value = "";
-            document.getElementById('adm-new-pin').value = "";
-        };
-
-        // UI HELPERS
-        window.switchTab = (tab) => {
-            document.querySelectorAll('.tab-item').forEach(e => e.classList.remove('active'));
-            document.querySelectorAll('.content-section').forEach(e => e.classList.remove('active'));
-            document.getElementById('tab-'+tab).classList.add('active');
-            document.getElementById('content-'+tab).classList.add('active');
-        };
-
-        window.showTermsModal = () => document.getElementById('modal-terms').style.display='flex';
-
-        // Check Session
-        const session = localStorage.getItem('projekgo_session');
-        if(session) {
-            currentUser = JSON.parse(session);
-            initDashboard();
-        }
+        checkSession();
 
     </script>
 </body>
