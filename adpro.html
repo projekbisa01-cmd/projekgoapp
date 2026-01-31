@@ -310,7 +310,9 @@
                 <h1 class="page-title">Siaran Siaga</h1>
                 <p class="page-subtitle">Kirim pesan massal ke pengguna</p>
             </div>
-            <div class="data-card" style="padding:20px;">
+            
+            <!-- Formulir Kirim -->
+            <div class="data-card" style="padding:20px; margin-bottom: 25px;">
                 <div class="form-group">
                     <label class="form-label">Judul</label>
                     <input type="text" id="broadcast-title" class="form-input" placeholder="Info penting...">
@@ -319,7 +321,16 @@
                     <label class="form-label">Isi Pesan</label>
                     <textarea id="broadcast-body" rows="4" class="form-input" placeholder="Tulis pengumuman..."></textarea>
                 </div>
-                <button class="btn-login" style="background:var(--primary);" onclick="kirimBroadcast()">Siarkan Sekarang</button>
+                <button id="btn-broadcast-submit" class="btn-login" style="background:var(--primary);" onclick="kirimBroadcast()">Siarkan Sekarang</button>
+            </div>
+
+            <!-- Riwayat Siaran (NEW) -->
+            <div class="page-header">
+                <h2 class="page-title" style="font-size: 18px;">Riwayat Siaran</h2>
+            </div>
+            <div id="broadcast-history-list">
+                <!-- List Item Akan Dirender Di Sini -->
+                <div style="text-align:center; padding:30px; color:#999;">Memuat riwayat...</div>
             </div>
         </div>
 
@@ -415,8 +426,9 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, onSnapshot, deleteDoc, doc, setDoc, updateDoc, addDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // --- PENTING: GANTI DENGAN API KEY BARU KAMU ---
         const firebaseConfig = {
-            apiKey: "AIzaSyDq0UCWj43rCP3rqvAGbdyr2FFV7kyhZTA",
+            apiKey: "MASUKKAN_KEY_BARU_DISINI", 
             authDomain: "projekgo-app.firebaseapp.com",
             projectId: "projekgo-app",
             storageBucket: "projekgo-app.firebasestorage.app",
@@ -456,7 +468,7 @@
             if (pageId === 'reviews') showReviewList();
         }
 
-        // --- REVIEW PAGE LOGIC ---
+        // --- REVIEW PAGE LOGIC (UPDATED) ---
         window.showReviewList = () => {
             document.getElementById('review-vendor-list').style.display = 'block';
             document.getElementById('review-detail-view').style.display = 'none';
@@ -468,7 +480,11 @@
             document.getElementById('review-detail-view').style.display = 'block';
             document.getElementById('rev-detail-vendor-name').innerText = vendorName;
             
-            const vendorReviews = adminAllReviews.filter(r => r.vendor_id === vendorId);
+            const vendorReviews = adminAllReviews.filter(r => 
+                r.vendor_id === vendorId || 
+                (r.vendor_name && r.vendor_name === vendorName)
+            );
+
             const container = document.getElementById('review-items-container');
             const avgDisplay = document.getElementById('rev-detail-avg-rating');
             
@@ -480,18 +496,25 @@
             } else {
                 let totalRating = 0;
                 vendorReviews.forEach(r => {
-                    totalRating += parseFloat(r.rating || 0);
-                    const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
-                    const formattedDate = r.date ? new Date(r.date).toLocaleDateString('id-ID') : '-';
+                    const ratingVal = parseFloat(r.rating || 0);
+                    totalRating += ratingVal;
+                    const stars = '★'.repeat(Math.floor(ratingVal)) + '☆'.repeat(5 - Math.floor(ratingVal));
                     
+                    let formattedDate = '-';
+                    if (r.timestamp) formattedDate = new Date(r.timestamp).toLocaleDateString('id-ID');
+                    else if (r.date) formattedDate = r.date;
+                    
+                    const userName = r.user || r.user_name || 'Anonim';
+                    const comment = r.text || r.comment || 'Tidak ada komentar.';
+
                     container.innerHTML += `
                         <div class="review-item">
                             <div class="review-user">
-                                <span>${r.user_name || 'Anonim'}</span>
+                                <span>${userName}</span>
                                 <span class="review-date">${formattedDate}</span>
                             </div>
                             <div class="review-stars">${stars}</div>
-                            <div class="review-comment">${r.comment || 'Tidak ada komentar.'}</div>
+                            <div class="review-comment">${comment}</div>
                         </div>
                     `;
                 });
@@ -504,10 +527,14 @@
             body.innerHTML = '';
             
             adminAllVendors.forEach(v => {
-                const vendorReviews = adminAllReviews.filter(r => r.vendor_id === v.id);
+                const vendorReviews = adminAllReviews.filter(r => 
+                    r.vendor_id === v.id || 
+                    (r.vendor_name && r.vendor_name === v.nama_warung)
+                );
+
                 let avg = 0;
                 if(vendorReviews.length > 0) {
-                    avg = vendorReviews.reduce((acc, curr) => acc + parseFloat(curr.rating), 0) / vendorReviews.length;
+                    avg = vendorReviews.reduce((acc, curr) => acc + parseFloat(curr.rating || 0), 0) / vendorReviews.length;
                 }
                 
                 body.innerHTML += `
@@ -585,9 +612,42 @@
             }
         }
 
+        // --- BROADCAST LOGIC (IMPROVED) ---
+        window.kirimBroadcast = async () => {
+            console.log("Tombol Broadcast Diklik");
+            const btn = document.getElementById('btn-broadcast-submit');
+            const title = document.getElementById('broadcast-title').value.trim();
+            const body = document.getElementById('broadcast-body').value.trim();
+
+            if(!title || !body) return alert("Mohon isi judul dan pesan!");
+
+            if(confirm("Kirim siaran ini ke semua pengguna?")) {
+                btn.innerText = "Mengirim...";
+                btn.disabled = true;
+                
+                try {
+                    await addDoc(collection(db, "broadcasts"), {
+                        title: title,
+                        message: body,
+                        created_at: Date.now(),
+                        is_active: true
+                    });
+                    
+                    alert("Siaran berhasil dikirim!");
+                    document.getElementById('broadcast-title').value = "";
+                    document.getElementById('broadcast-body').value = "";
+                } catch(e) {
+                    alert("Gagal mengirim: " + e.message + "\n\nCek apakah API Key valid dan Rules database mengizinkan write.");
+                    console.error(e);
+                } finally {
+                    btn.innerText = "Siarkan Sekarang";
+                    btn.disabled = false;
+                }
+            }
+        }
+
         // --- CRUD OPS ---
         window.openAddModal = () => { 
-            // Reset form saat dibuka
             document.getElementById('new-vendor-id').value = "";
             document.getElementById('new-vendor-pin').value = "";
             document.getElementById('new-vendor-name').value = "";
@@ -602,27 +662,23 @@
         }
 
         window.saveWarung = async () => {
-            // Sanitasi ID: huruf kecil, ganti spasi dengan underscore
             let rawId = document.getElementById('new-vendor-id').value.trim();
             const id = rawId.toLowerCase().replace(/\s+/g, '_');
-            
             const pin = document.getElementById('new-vendor-pin').value.trim();
             const nama = document.getElementById('new-vendor-name').value.trim();
             
             if(!id || !pin || !nama) return alert("Mohon lengkapi semua form!");
             if(pin.length < 4) return alert("PIN minimal 4 karakter untuk keamanan!");
 
-            // Cek apakah ID sudah ada di database
             try {
                 const docRef = doc(db, "vendors", id);
                 const docSnap = await getDoc(docRef);
 
                 if (docSnap.exists()) {
-                    alert(`ID "${id}" sudah digunakan oleh mitra lain. Harap gunakan ID unik.`);
+                    alert(`ID "${id}" sudah digunakan oleh mitra lain.`);
                     return;
                 }
 
-                // Simpan jika unik
                 await setDoc(docRef, { 
                     id, 
                     nama_warung: nama, 
@@ -633,9 +689,9 @@
                 });
                 
                 closeModal('add-modal');
-                alert(`Mitra Berhasil Didaftarkan!\n\nID Login: ${id}\nPIN Akses: ${pin}\n\nSilakan berikan kredensial ini kepada mitra.`);
+                alert(`Mitra Berhasil Didaftarkan!\n\nID Login: ${id}\nPIN Akses: ${pin}`);
             } catch(e) { 
-                alert("Gagal menyimpan data: " + e.message); 
+                alert("Gagal menyimpan: " + e.message); 
                 console.error(e);
             }
         }
@@ -747,6 +803,38 @@
                     document.getElementById('global-rating').innerText = (totalRating / snap.size).toFixed(1);
                 }
                 renderReviewVendors();
+            });
+
+            onSnapshot(collection(db, "broadcasts"), (snap) => {
+                const container = document.getElementById('broadcast-history-list');
+                if(!container) return;
+                
+                container.innerHTML = '';
+                if(snap.empty) {
+                    container.innerHTML = '<div style="text-align:center; color:#999; padding:20px;">Belum ada riwayat siaran.</div>';
+                    return;
+                }
+
+                const broadcasts = [];
+                snap.forEach(doc => broadcasts.push({id: doc.id, ...doc.data()}));
+                
+                broadcasts.sort((a,b) => b.created_at - a.created_at);
+
+                broadcasts.forEach(b => {
+                    const date = new Date(b.created_at).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'});
+                    container.innerHTML += `
+                        <div class="data-card" style="padding: 15px; display:flex; justify-content:space-between; align-items:start; margin-bottom:10px;">
+                            <div>
+                                <div style="font-weight:700; margin-bottom:4px;">${b.title}</div>
+                                <div style="font-size:13px; color:#555; margin-bottom:8px;">${b.message}</div>
+                                <div style="font-size:11px; color:#999;"><i class="ph ph-clock"></i> ${date}</div>
+                            </div>
+                            <button class="action-btn btn-delete" onclick="askDelete('broadcasts', '${b.id}')">
+                                <i class="ph-bold ph-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                });
             });
         }
     </script>
