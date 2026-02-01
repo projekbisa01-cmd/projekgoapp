@@ -44,18 +44,96 @@
             overflow-x: hidden;
         }
 
-        /* HEADER */
-        /* UPDATE: Z-index lebih tinggi dan shadow agar terlihat "melayang" saat sticky */
-        .sticky-top-area { position: sticky; top: 0; z-index: 1000; background: var(--bg); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        header { background: var(--white); padding: 12px 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.03); }
-        .brand-logo { width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 18px; }
-        .user-loc b { display: block; font-size: 13px; color: var(--dark); font-weight: 700; }
-        .header-icon { font-size: 24px; color: var(--dark); padding: 6px; background: #f5f5f5; border-radius: 50%; cursor: pointer; }
+        /* --- UPDATE HEADER & SEARCH (Separated) --- */
+        
+        /* 1. Header Utama (Ikut Scroll / Tidak Sticky) */
+        .main-header { 
+            /* Gradient Orange, tanpa rounded bawah karena nyambung ke search */
+            background: linear-gradient(135deg, #FF6600 0%, #FF8A50 100%);
+            padding: 15px 20px 5px 20px; /* Padding bawah kecil agar rapat */
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            border: none;
+            color: white;
+            position: relative;
+            z-index: 900;
+        }
 
-        /* SEARCH */
-        .search-container { background: var(--white); padding: 0 15px 10px 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .search-box { background: #f0f2f5; border-radius: 12px; padding: 10px 15px; display: flex; align-items: center; gap: 10px; color: var(--gray); transition: 0.3s; }
-        .search-input { border: none; background: transparent; width: 100%; outline: none; font-family: inherit; font-weight: 600; color: var(--dark); font-size: 13px; }
+        /* 2. Container Search (Sticky) */
+        .sticky-search-container { 
+            position: sticky; 
+            top: 0; 
+            z-index: 1000; 
+            /* Background sama dengan header agar terlihat menyatu saat di atas */
+            background: linear-gradient(135deg, #FF6600 0%, #FF8A50 100%);
+            padding: 5px 20px 25px 20px; /* Padding atas kecil, bawah besar untuk rounded */
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+            box-shadow: 0 10px 25px rgba(255, 102, 0, 0.2); 
+            margin-bottom: 20px; 
+            margin-top: -1px; /* Mencegah garis putih tipis di sambungan */
+        }
+        
+        .brand-logo { 
+            width: 38px; height: 38px; 
+            background: white; 
+            border-radius: 12px; 
+            display: flex; align-items: center; justify-content: center; 
+            color: var(--primary); 
+            font-weight: 800; font-size: 20px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        .user-loc { 
+            font-size: 11px; 
+            color: rgba(255,255,255,0.9); 
+            cursor: pointer;
+        }
+        .user-loc b { 
+            display: block; 
+            font-size: 14px; 
+            color: white; 
+            font-weight: 700; 
+            margin-top: 2px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1); 
+        }
+        
+        .header-icon { 
+            font-size: 24px; 
+            color: white; 
+            padding: 8px; 
+            background: rgba(255,255,255,0.2); 
+            border-radius: 50%; 
+            backdrop-filter: blur(4px);
+            cursor: pointer; 
+            transition: 0.2s;
+        }
+        .header-icon:active { transform: scale(0.95); background: rgba(255,255,255,0.3); }
+
+        .search-box { 
+            background: white; 
+            border-radius: 18px; 
+            padding: 14px 18px; 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            color: var(--gray); 
+            transition: 0.3s; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08); 
+        }
+        
+        .search-input { 
+            border: none; 
+            background: transparent; 
+            width: 100%; 
+            outline: none; 
+            font-family: inherit; 
+            font-weight: 600; 
+            color: var(--dark); 
+            font-size: 14px; 
+        }
+        .search-input::placeholder { color: #bbb; }
 
         /* BANNER SCROLL OTOMATIS */
         .banner-container { padding: 15px 15px 5px 15px; background: var(--white); }
@@ -347,27 +425,198 @@
             border-bottom: 1px solid rgba(0,0,0,0.03);
         }
 
+        /* --- NEW: GLASSMORPHISM VENDOR CARD STYLES --- */
+        .glass-vendor-card {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 24px;
+            margin: 0 15px 25px 15px; /* Margin kiri kanan agar kartu "mengambang" */
+            box-shadow: 0 15px 35px -5px rgba(0,0,0,0.08), 0 5px 15px rgba(0,0,0,0.04);
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.2s;
+        }
+        
+        /* Dekorasi Glow Futuristik di background */
+        .glass-vendor-card::before {
+            content: '';
+            position: absolute;
+            top: -50px; right: -50px;
+            width: 150px; height: 150px;
+            background: radial-gradient(circle, rgba(255, 102, 0, 0.15) 0%, transparent 70%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .glass-vendor-header {
+            position: relative;
+            z-index: 1;
+            padding: 18px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            /* Header yang menonjol dengan background gradient putih transparan */
+            background: linear-gradient(90deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 100%);
+            border-bottom: 1px solid rgba(255,255,255,0.6);
+        }
+
+        .gvh-img-frame {
+            position: relative;
+            width: 60px; height: 60px;
+            border-radius: 18px;
+            padding: 3px;
+            /* Frame gradasi agar terlihat mahal/elegan */
+            background: linear-gradient(135deg, #ffffff, #FFE0B2); 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        
+        .gvh-img-frame img {
+            width: 100%; height: 100%;
+            border-radius: 15px;
+            object-fit: cover;
+            background: #fff;
+        }
+
+        .gvh-content { flex-grow: 1; }
+        
+        .gvh-name-modern {
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--dark);
+            letter-spacing: -0.5px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .gvh-badges {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .gvh-pill {
+            font-size: 10px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 700;
+            background: rgba(255,255,255,0.7);
+            border: 1px solid rgba(255,255,255,0.5);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .gvh-arrow-modern {
+            width: 32px; height: 32px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            font-size: 18px;
+        }
+
+        /* --- SPLASH SCREEN STYLES --- */
+        #splash-screen {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ffffff;
+            z-index: 99999; /* Paling atas */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.6s ease-out, visibility 0.6s;
+        }
+        
+        #splash-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .splash-content {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: splashEntry 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        @keyframes splashEntry {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .splash-logo {
+            width: 120px;
+            height: 120px;
+            border-radius: 24px;
+            object-fit: cover;
+            margin-bottom: 20px;
+            box-shadow: 0 15px 35px rgba(255, 102, 0, 0.2);
+        }
+
+        .splash-text {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: 2px;
+            margin: 0;
+        }
+        
+        .splash-loader {
+            margin-top: 20px;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #FFF0E5;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
     </style>
 </head>
 <body>
+
+    <!-- SPLASH SCREEN -->
+    <div id="splash-screen">
+        <div class="splash-content">
+            <img src="https://i.ibb.co.com/84PC0Y1X/Whats-App-Image-2026-01-29-at-10-12-08.jpg" alt="Projekgo Logo" class="splash-logo">
+            <h1 class="splash-text">PROJEKGO</h1>
+            <div class="splash-loader"></div>
+        </div>
+    </div>
 
     <div class="app-container">
 
         <!-- ===== 1. BERANDA ===== -->
         <div id="page-home">
-            <div class="sticky-top-area">
-                <header>
-                    <div style="display:flex; align-items:center; gap:12px;">
-                        <div class="brand-logo">P</div>
-                        <div onclick="detectLocation()">Lokasi Kamu<b id="loc-text">Gombong, Kebumen ▾</b></div>
-                    </div>
-                    <i class="ph ph-bell header-icon" onclick="openPage('notifications')"></i>
-                </header>
-                <div class="search-container">
-                    <div class="search-box">
-                        <i class="ph ph-magnifying-glass" style="color: var(--primary);"></i>
-                        <input type="text" class="search-input" placeholder="Lapar? Cari makan di sini..." onkeypress="handleSearch(event)">
-                    </div>
+            
+            <!-- HEADER UTAMA (Scrollable/Non-Sticky) -->
+            <header class="main-header">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div class="brand-logo">P</div>
+                    <div class="user-loc" onclick="detectLocation()">Lokasi Kamu<b id="loc-text">Gombong, Kebumen ▾</b></div>
+                </div>
+                <i class="ph ph-bell header-icon" onclick="openPage('notifications')"></i>
+            </header>
+
+            <!-- SEARCH CONTAINER (Sticky) -->
+            <div class="sticky-search-container">
+                <div class="search-box">
+                    <i class="ph ph-magnifying-glass" style="color: var(--primary); font-size: 18px;"></i>
+                    <input type="text" class="search-input" placeholder="Mau makan apa hari ini?" onkeypress="handleSearch(event)">
                 </div>
             </div>
 
@@ -410,9 +659,10 @@
             </div>
             
             <!-- Warung -->
-            <div class="section-group">
+            <!-- Container Warung tidak lagi pakai section-group standar, tapi styling baru di JS -->
+            <div style="margin-bottom: 8px; padding-bottom: 15px;">
                 <div class="section-title"><span>🏪 Warung Sekitar Gombong</span></div>
-                <div id="container-warung" class="warung-list"></div>
+                <div id="container-warung" class="warung-list" style="padding: 0; gap: 0;"></div>
             </div>
         </div> 
 
@@ -724,6 +974,19 @@
             document.getElementById('closed-modal').style.display = 'none';
         }
 
+        // --- SPLASH SCREEN LOGIC ---
+        window.initSplashScreen = () => {
+            // Tampilkan splash screen minimal 2.5 detik agar logo terbaca
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                if(splash) {
+                    splash.classList.add('hidden');
+                }
+            }, 2500);
+        }
+        // Jalankan saat halaman dimuat
+        window.addEventListener('load', initSplashScreen);
+
         // AUTO SCROLL BANNER
         window.initBannerAutoScroll = () => {
             const banner = document.getElementById('banner-scroll');
@@ -740,16 +1003,37 @@
         }
         window.addEventListener('DOMContentLoaded', initBannerAutoScroll);
 
-        // --- NAVIGASI ---
-        window.history.replaceState({page: 'home'}, '', '');
-        window.openPage = (pageName) => {
-            window.history.pushState({page: pageName}, '', '');
-            renderPage(pageName);
-        }
-        window.goBack = () => { window.history.back(); }
-        window.onpopstate = (e) => { renderPage(e.state ? e.state.page : 'home'); };
+        // --- NAVIGASI & SCROLL MEMORY ---
+        let currentPage = 'home'; // Melacak halaman aktif saat ini
+        const pageScrolls = {};   // Objek untuk menyimpan posisi scroll per halaman
 
-        function renderPage(name) {
+        window.history.replaceState({page: 'home'}, '', '');
+        
+        window.openPage = (pageName) => {
+            // 1. Simpan posisi scroll halaman SAAT INI sebelum pindah
+            pageScrolls[currentPage] = window.scrollY;
+            
+            // 2. Update halaman aktif
+            currentPage = pageName;
+
+            window.history.pushState({page: pageName}, '', '');
+            
+            // 3. Render halaman baru (False = Jangan restore scroll, mulai dari atas)
+            renderPage(pageName, false);
+        }
+        
+        window.goBack = () => { window.history.back(); }
+        
+        window.onpopstate = (e) => { 
+            const dest = e.state ? e.state.page : 'home';
+            
+            // 4. Saat tombol Back ditekan, Render dengan True (= Restore posisi scroll lama)
+            renderPage(dest, true); 
+            
+            currentPage = dest;
+        };
+
+        function renderPage(name, restoreScroll = false) {
             document.querySelectorAll('.page, #page-home').forEach(el => el.style.display = 'none');
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             
@@ -768,7 +1052,14 @@
             }
             if(name==='favorites') renderFavoritesPage();
             
-            window.scrollTo(0,0);
+            // --- LOGIKA SCROLL ---
+            if (restoreScroll && pageScrolls[name] !== undefined) {
+                // Gunakan timeout kecil agar browser sempat merender DOM sebelum scroll
+                setTimeout(() => window.scrollTo(0, pageScrolls[name]), 10);
+            } else {
+                // Jika membuka halaman baru, scroll ke paling atas
+                window.scrollTo(0,0);
+            }
         }
 
         // ... existing profile and logic functions ...
@@ -1205,7 +1496,9 @@
                 varBox.style.display = 'block';
                 document.getElementById('pd-var-title').innerText = "Pilih " + (item.variant_title || "Varian");
                 item.variant_options.forEach((opt, idx) => {
-                    const checked = idx === 0 ? 'checked' : '';
+                    // UPDATE: Hapus 'checked' otomatis pada index 0 agar user wajib memilih
+                    // const checked = idx === 0 ? 'checked' : ''; 
+                    const checked = ''; 
                     varOpts.innerHTML += `
                         <input type="radio" name="variant" id="var-${idx}" class="radio-input" value="${opt}" ${checked}>
                         <label for="var-${idx}" class="radio-label">${opt}</label>
@@ -1234,7 +1527,10 @@
         
         window.openVariantModal = (item) => {
             pendingVariantItem = item;
-            selectedVariantValue = item.variant_options[0];
+            // UPDATE: Default null agar tidak terpilih otomatis
+            // selectedVariantValue = item.variant_options[0]; 
+            selectedVariantValue = null;
+
             const modal = document.getElementById('variant-modal');
             const container = document.getElementById('vm-options-container');
             document.getElementById('vm-item-name').innerText = item.nama_menu;
@@ -1242,7 +1538,10 @@
 
             container.innerHTML = '';
             item.variant_options.forEach((opt, idx) => {
-                const isSelected = idx === 0 ? 'selected' : '';
+                // UPDATE: Hapus class 'selected' otomatis
+                // const isSelected = idx === 0 ? 'selected' : '';
+                const isSelected = '';
+
                 container.innerHTML += `
                     <div class="vm-radio-item ${isSelected}" onclick="selectVariantOption(this, '${opt}')">
                         <span>${opt}</span>
@@ -1274,6 +1573,9 @@
             if (pendingVariantItem && selectedVariantValue) {
                 addToCartDirect(pendingVariantItem, selectedVariantValue, "");
                 closeVariantModal();
+            } else {
+                // UPDATE: Validasi jika belum pilih varian di Quick Add
+                showToast("⚠️ Pilih varian dulu ya!");
             }
         }
 
@@ -1296,10 +1598,27 @@
 
             if(!currentDetailProduct) return;
             let variant = "-";
+            
+            // UPDATE: Validasi Wajib Pilih Varian di Halaman Detail
             if(document.getElementById('variant-section').style.display !== 'none') {
                 const selectedVar = document.querySelector('input[name="variant"]:checked');
-                if(selectedVar) variant = selectedVar.value;
+                
+                if(!selectedVar) {
+                    showToast("⚠️ Harap pilih varian dulu!");
+                    // Scroll otomatis ke bagian varian agar user sadar
+                    document.getElementById('variant-section').scrollIntoView({behavior: 'smooth', block: 'center'});
+                    
+                    // Beri efek visual getar/highlight (opsional, via CSS class kalau mau)
+                    const title = document.getElementById('pd-var-title');
+                    title.style.color = 'red';
+                    setTimeout(() => title.style.color = '#333', 1000);
+                    
+                    return; // Stop proses tambah keranjang
+                }
+                
+                variant = selectedVar.value;
             }
+
             const note = document.getElementById('pd-note').value;
             addToCartDirect(currentDetailProduct, variant, note);
             goBack();
@@ -1411,17 +1730,31 @@
                     <div class="cart-section">
                         <div class="cart-vendor-group">
                             <div class="cv-title"><i class="ph-fill ph-storefront"></i> ${vendor}</div>
-                            ${consolidatedItems.map((item) => `
+                            ${consolidatedItems.map((item) => {
+                                // LOGIKA BARU: Hilangkan "-" dan baris kosong
+                                let metaText = "";
+                                // Hanya tampilkan varian jika bukan "-"
+                                if(item.variant && item.variant !== '-') {
+                                    metaText += item.variant;
+                                }
+                                // Tampilkan note jika ada
+                                if(item.note) {
+                                    // Jika sudah ada varian, tambahkan spasi/kurung, jika belum langsung text note
+                                    metaText += (metaText ? ` (${item.note})` : `Catatan: ${item.note}`);
+                                }
+
+                                return `
                                 <div class="cart-item">
                                     <div style="flex:1;">
                                         <div class="ci-name">
                                             <span class="ci-qty-badge">${item.qty}x</span> ${item.nama}
                                         </div>
-                                        <div class="ci-var">${item.variant} ${item.note ? `(${item.note})` : ''}</div>
+                                        ${metaText ? `<div class="ci-var">${metaText}</div>` : ''} 
                                     </div>
                                     <div class="ci-price">Rp ${item.totalItemPrice.toLocaleString()}</div>
                                 </div>
-                            `).join('')}
+                                `;
+                            }).join('')}
                         </div>
                     </div>
                 `;
@@ -1487,7 +1820,10 @@
                 if(!grouped[item.vendor]) grouped[item.vendor] = []; 
                 grouped[item.vendor].push(item); 
                 total += item.totalItemPrice;
-                itemsSummary.push(`${item.qty}x ${item.nama} (${item.variant})`);
+                
+                // UPDATE SUMMARY: Hilangkan (-) di summary history
+                const varText = (item.variant && item.variant !== '-') ? `(${item.variant})` : '';
+                itemsSummary.push(`${item.qty}x ${item.nama} ${varText}`);
             });
 
             const newOrder = {
@@ -1501,11 +1837,14 @@
             };
             history.push(newOrder);
             localStorage.setItem('order_history', JSON.stringify(history));
+            
             let message = `Halo Admin Projekgo, saya mau pesan makanan:%0A%0A`;
             for(const [vendor, items] of Object.entries(grouped)) {
                 message += `🏪 *${vendor}*%0A`;
                 items.forEach(item => { 
-                    message += `▪️ *${item.qty}x* ${item.nama} (${item.variant}) - Rp ${item.totalItemPrice/1000}k%0A`; 
+                    // UPDATE WA: Hilangkan (-) di pesan WA
+                    const varDisplay = (item.variant && item.variant !== '-') ? `(${item.variant})` : '';
+                    message += `▪️ *${item.qty}x* ${item.nama} ${varDisplay} - Rp ${item.totalItemPrice/1000}k%0A`; 
                     if(item.note) message += `   _Catatan: ${item.note}_%0A`; 
                 });
                 message += `%0A`;
@@ -1638,16 +1977,14 @@
         function renderWarungList(vends) {
             const c = document.getElementById('container-warung'); c.innerHTML='';
             
-            // Urutkan vendor (bisa berdasarkan status buka/tutup atau rating)
-            // Di sini kita tampilkan apa adanya dulu
-            
             vends.forEach(v => {
                 // Ambil produk khusus warung ini
                 const vendorProds = allProducts.filter(p => p.vendor_id === v.id);
                 
                 // Hitung statistik sederhana
                 const s = (v.status||'BUKA').toUpperCase()==='BUKA';
-                const statusColor = s ? '#00AA13' : '#D32F2F';
+                // Warna status futuristik (Hijau Neon / Merah)
+                const statusColor = s ? '#00E676' : '#FF5252'; 
                 const statusText = s ? 'BUKA' : 'TUTUP';
                 const img = v.shop_photo || 'https://cdn-icons-png.flaticon.com/512/1046/1046857.png'; 
                 
@@ -1656,46 +1993,57 @@
                 const formattedPrice = (minPrice/1000).toFixed(0) + 'rb';
                 const rating = (4.5 + Math.random() * 0.5).toFixed(1);
 
-                // Buat Wrapper Group (Mirip Halaman Kategori/Exclusive)
+                // --- 1. Container Glassmorphism ---
                 const groupDiv = document.createElement('div');
-                groupDiv.className = 'group-vendor-section';
-                groupDiv.style.marginBottom = "15px"; // Jarak antar warung
-                groupDiv.style.borderBottom = "1px solid #f0f0f0"; // Divider halus
-                groupDiv.style.background = "white";
-                groupDiv.style.paddingTop = "15px";
+                groupDiv.className = 'glass-vendor-card';
                 
-                // Jika tutup, beri efek transparan sedikit
-                if(!s) groupDiv.style.opacity = "0.7";
+                // Jika tutup, beri efek grayscale sedikit dan opacity
+                if(!s) {
+                    groupDiv.style.opacity = "0.8";
+                    groupDiv.style.filter = "grayscale(80%)";
+                }
 
-                // 1. Header Vendor (Bisa Diklik)
+                // --- 2. Header Modern & Menonjol ---
                 const headerHtml = `
-                    <div class="group-vendor-header" onclick="openVendorPage('${v.id}')" style="cursor:pointer; align-items:center; padding: 0 15px 10px 15px;">
-                        <img src="${img}" style="width:45px; height:45px; border-radius:12px; object-fit:cover; border:1px solid #eee;">
-                        <div class="gvh-content" style="margin-left:5px;">
-                            <div class="gvh-name" style="font-size:15px; margin-bottom:2px;">${v.nama_warung||'Warung'}</div>
-                            <div class="gvh-desc">
-                                <i class="ph-fill ph-star"></i> ${rating} • 
-                                <span style="color:${statusColor}; font-weight:700;">${statusText}</span> • 
-                                Mulai ${formattedPrice}
+                    <div class="glass-vendor-header" onclick="openVendorPage('${v.id}')">
+                        <div class="gvh-img-frame">
+                            <img src="${img}">
+                        </div>
+                        <div class="gvh-content">
+                            <div class="gvh-name-modern">
+                                ${v.nama_warung||'Warung'}
+                                ${s ? '<i class="ph-fill ph-seal-check" style="color:#2979FF; font-size:14px;"></i>' : ''}
+                            </div>
+                            <div class="gvh-badges">
+                                <span class="gvh-pill" style="color:#F57F17;">
+                                    <i class="ph-fill ph-star"></i> ${rating}
+                                </span>
+                                <span class="gvh-pill" style="color:${s ? '#00C853' : '#D32F2F'}; border-color:${s ? '#B9F6CA' : '#FFCDD2'}; background:${s ? '#E8F5E9' : '#FFEBEE'};">
+                                    ${statusText}
+                                </span>
+                                <span class="gvh-pill" style="color:#555;">
+                                    Mulai ${formattedPrice}
+                                </span>
                             </div>
                         </div>
-                        <i class="ph-bold ph-caret-right gvh-arrow"></i>
+                        <div class="gvh-arrow-modern">
+                            <i class="ph-bold ph-caret-right"></i>
+                        </div>
                     </div>
                 `;
                 groupDiv.innerHTML = headerHtml;
 
-                // 2. Menu Horizontal Scroll (Di Bawahnya)
+                // --- 3. Scroll Container Produk ---
                 const scrollDiv = document.createElement('div');
                 scrollDiv.className = 'scroll-container';
-                scrollDiv.style.paddingBottom = "15px";
+                scrollDiv.style.padding = "15px 15px 20px 15px"; // Padding lebih lega
 
                 if (vendorProds.length > 0) {
-                    // Tampilkan maksimal 6 menu unggulan agar home tidak terlalu berat
                     vendorProds.slice(0, 6).forEach(item => {
                         renderHorizontalCard(scrollDiv, item);
                     });
                 } else {
-                    scrollDiv.innerHTML = `<div style="padding:0 15px; font-size:11px; color:#ccc; font-style:italic;">Belum ada menu yang ditampilkan.</div>`;
+                    scrollDiv.innerHTML = `<div style="padding:0 5px; font-size:11px; color:#888; font-style:italic;">Belum ada menu yang ditampilkan.</div>`;
                 }
 
                 groupDiv.appendChild(scrollDiv);
