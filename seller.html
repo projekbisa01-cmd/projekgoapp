@@ -30,6 +30,34 @@
         .btn-login { width: 100%; background: var(--primary); color: white; padding: 15px; border: none; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer; }
         .login-help { margin-top: 20px; font-size: 12px; color: var(--gray); text-align: center; line-height: 1.5; }
 
+        /* AGREEMENT / T&C OVERLAY */
+        #agreement-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; z-index: 5000; flex-direction: column; padding: 0; }
+        .ag-header { padding: 20px; border-bottom: 1px solid #eee; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.05); z-index: 2; }
+        .ag-title { font-size: 18px; font-weight: 800; color: var(--primary); }
+        .ag-subtitle { font-size: 12px; color: #666; margin-top: 5px; }
+        
+        .ag-content { flex: 1; overflow-y: auto; padding: 20px; font-size: 13px; line-height: 1.6; color: #333; background: #fcfcfc; }
+        .ag-content h4 { margin-top: 20px; margin-bottom: 10px; color: var(--dark); font-size: 14px; }
+        .ag-content ol { padding-left: 20px; margin: 0; }
+        .ag-content li { margin-bottom: 8px; }
+        .ag-warning { background: #fff3e0; border-left: 4px solid #ff9800; padding: 10px; font-size: 12px; margin-bottom: 15px; border-radius: 4px; }
+
+        .ag-footer { padding: 20px; border-top: 1px solid #eee; background: white; z-index: 2; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
+        .ag-checkbox-wrapper { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 15px; }
+        .ag-checkbox-wrapper input { margin-top: 3px; accent-color: var(--primary); width: 18px; height: 18px; }
+        .ag-label { font-size: 12px; color: #555; font-weight: 500; }
+        
+        .signature-box { border: 1px solid #ddd; padding: 15px; border-radius: 12px; margin-bottom: 15px; background: #fafafa; }
+        .sig-label { font-size: 11px; font-weight: 700; color: #666; margin-bottom: 8px; display: block; }
+        .sig-input { width: 100%; border: none; background: transparent; border-bottom: 2px solid #ccc; padding: 5px 0; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 16px; font-weight: 600; color: var(--dark); outline: none; }
+        .sig-input:focus { border-bottom-color: var(--primary); }
+        .sig-input::placeholder { color: #ccc; font-weight: 400; }
+
+        .btn-agree { width: 100%; background: var(--success); color: white; padding: 15px; border: none; border-radius: 12px; font-weight: 700; font-size: 15px; opacity: 0.5; pointer-events: none; transition: 0.3s; }
+        .btn-agree.active { opacity: 1; pointer-events: all; box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3); }
+        .btn-close-readonly { width: 100%; background: #eee; color: #333; padding: 15px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; }
+
+
         /* DASHBOARD HEADER */
         .header { background: var(--primary); color: white; padding: 20px 20px 40px 20px; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; }
         .shop-name { font-size: 20px; font-weight: 800; }
@@ -82,12 +110,16 @@
         .stat-num { font-size: 24px; font-weight: 800; color: var(--primary); }
         .stat-label { font-size: 12px; color: var(--gray); }
 
+        .btn-menu-profile { display: flex; align-items: center; justify-content: space-between; width: 100%; background: white; border: none; padding: 15px; margin-bottom: 10px; border-radius: 12px; text-align: left; font-size: 14px; font-weight: 600; color: #333; box-shadow: 0 2px 5px rgba(0,0,0,0.03); cursor: pointer; }
+        .btn-menu-profile i { font-size: 18px; color: var(--primary); margin-right: 10px; }
+
         .review-item { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-bottom: 1px solid #eee; }
         .rev-header { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; }
         .rev-user { font-weight: 700; }
         .rev-date { color: var(--gray); }
         .rev-stars { color: #FFC107; font-size: 12px; margin-bottom: 5px; }
-        .rev-text { font-size: 13px; color: #555; line-height: 1.4; }
+        /* Ulasan teks lengkap & wrapping */
+        .rev-text { font-size: 13px; color: #555; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; }
 
         /* FAB ADD BUTTON */
         .fab-add { position: fixed; bottom: 20px; right: 20px; width: 56px; height: 56px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 15px rgba(255, 102, 0, 0.4); cursor: pointer; transition: 0.2s; z-index: 100; }
@@ -128,7 +160,6 @@
         <p class="login-desc">Masuk untuk mengelola warung Anda.</p>
         
         <input type="text" id="login-id" class="login-input" placeholder="ID Warung (Cth: warung_siti)">
-        <!-- Diganti dari Nama Warung menjadi PIN -->
         <input type="password" id="login-pin" class="login-input" placeholder="PIN Keamanan">
         
         <button class="btn-login" onclick="login()">Masuk ke Dashboard</button>
@@ -138,6 +169,95 @@
             Silakan hubungi <b>Admin Pusat</b> untuk pendaftaran<br>dan mendapatkan ID serta PIN akses.
         </div>
     </div>
+
+    <!-- AGREEMENT / TERMS OVERLAY -->
+    <div id="agreement-overlay">
+        <div class="ag-header">
+            <div class="ag-title">Perjanjian Kemitraan</div>
+            <div class="ag-subtitle">Tanda Tangan Digital Projekgo</div>
+        </div>
+        
+        <div class="ag-content">
+            <div class="ag-warning">
+                <i class="ph-bold ph-warning"></i> <b>PENTING:</b> Harap membaca syarat dan ketentuan ini dengan saksama sebelum mendaftar atau menggunakan layanan PROJEKGO.
+            </div>
+
+            <h3 style="text-align:center; margin-bottom:20px;">SYARAT DAN KETENTUAN KEMITRAAN PROJEKGO</h3>
+
+            <h4>1. Persetujuan Elektronik dan Pengikatan</h4>
+            <p>Dengan mengklik tombol "Setuju", "Daftar", atau metode penerimaan elektronik lainnya saat proses registrasi di aplikasi PROJEKGO, maka Anda (selanjutnya disebut "Mitra"):</p>
+            <ol>
+                <li>Dianggap telah membaca, mengerti, dan menyetujui seluruh isi perjanjian ini tanpa terkecuali.</li>
+                <li>Persetujuan ini sah dan mengikat secara hukum, setara dengan perjanjian tertulis yang ditandatangani di atas kertas.</li>
+            </ol>
+
+            <h4>2. Pernyataan dan Tanggung Jawab Mitra</h4>
+            <p>Mitra menjamin dan bertanggung jawab penuh atas hal-hal berikut:</p>
+            <ol>
+                <li><b>Keaslian Data:</b> Seluruh data, dokumen, dan informasi yang diserahkan kepada PROJEKGO adalah benar, akurat, dan sah.</li>
+                <li><b>Kualitas Produk:</b> Mitra menjamin bahwa produk yang dijual melalui aplikasi (makanan, barang, atau jasa) layak konsumsi/pakai, higienis, dan tidak kedaluwarsa.</li>
+                <li><b>Kepatuhan Hukum:</b> Mitra bertanggung jawab penuh untuk memiliki izin usaha yang diperlukan dan mematuhi seluruh peraturan perundang-undangan yang berlaku di Indonesia.</li>
+                <li><b>Pelepasan Tanggung Jawab:</b> PROJEKGO dibebaskan dari segala tuntutan hukum yang timbul akibat kelalaian Mitra terkait kualitas produk atau pelanggaran hukum yang dilakukan Mitra.</li>
+            </ol>
+
+            <h4>3. Konten, Menu, dan Kewenangan PROJEKGO</h4>
+            <p>PROJEKGO berhak melakukan kurasi terhadap konten yang ditampilkan di aplikasi:</p>
+            <ol>
+                <li><b>Standar Konten:</b> Mitra wajib memberikan foto dan deskripsi produk yang jelas, tidak menyesatkan, dan sesuai dengan kondisi asli.</li>
+                <li><b>Hak Menolak:</b> PROJEKGO memiliki hak mutlak untuk menolak atau menghapus konten yang dinilai buram, tidak pantas, atau melanggar hak cipta.</li>
+                <li><b>Akurasi Informasi:</b> Mitra wajib memastikan harga dan ketersediaan stok di aplikasi selalu update.</li>
+            </ol>
+
+            <h4>4. Kewajiban Operasional dan Perlindungan Data</h4>
+            <ol>
+                <li><b>Kualitas Layanan:</b> Menyediakan produk sesuai pesanan dengan kemasan yang aman dan rapi.</li>
+                <li><b>Perlindungan Data Pelanggan:</b> Mitra dilarang keras menyalahgunakan data pribadi pelanggan untuk kepentingan di luar penyelesaian pesanan.</li>
+                <li><b>Integritas Transaksi:</b> Mitra dilarang melakukan transaksi fiktif (fake order) atau manipulasi sistem.</li>
+            </ol>
+
+            <h4>5. Kode Etik dan Perilaku (Anti-Kekerasan)</h4>
+            <p>PROJEKGO menerapkan kebijakan nol toleransi (zero tolerance) terhadap perilaku kasar. Mitra dilarang keras:</p>
+            <ol>
+                <li>Melakukan tindakan pelecehan (seksual maupun verbal), penghinaan, rasisme, atau intimidasi.</li>
+                <li>Melakukan ancaman (baik fisik maupun non-fisik/psikis).</li>
+                <li>Melakukan kekerasan fisik.</li>
+            </ol>
+            <p>Larangan ini berlaku terhadap seluruh ekosistem PROJEKGO (Pelanggan, Driver, Staf). Pelanggaran akan berakibat pada <b>pemutusan kemitraan secara permanen</b>.</p>
+
+            <h4>6. Larangan Penyalahgunaan Platform</h4>
+            <ol>
+                <li>Menyebarkan informasi palsu (hoaks) atau konten SARA/pornografi.</li>
+                <li>Melakukan tindakan yang merusak reputasi atau merek dagang PROJEKGO.</li>
+                <li>Menggunakan aplikasi untuk pencucian uang atau penipuan.</li>
+            </ol>
+
+            <h4>7. Perubahan Syarat dan Ketentuan</h4>
+            <p>PROJEKGO berhak untuk mengubah S&K sewaktu-waktu tanpa pemberitahuan tertulis sebelumnya. Dengan terus menggunakan aplikasi, Mitra dianggap menyetujui perubahan tersebut.</p>
+
+            <h4>8. Sanksi dan Pemutusan Hubungan</h4>
+            <p>Apabila Mitra melanggar, PROJEKGO berhak memberikan peringatan, penangguhan (suspend), atau pemutusan hubungan kemitraan permanen (banned).</p>
+        </div>
+
+        <div class="ag-footer" id="ag-action-area">
+            <div class="ag-checkbox-wrapper">
+                <input type="checkbox" id="check-agree" onchange="checkAgreementStatus()">
+                <label for="check-agree" class="ag-label">Saya telah membaca dan menyetujui seluruh Syarat dan Ketentuan Kemitraan Projekgo di atas.</label>
+            </div>
+
+            <div class="signature-box">
+                <label class="sig-label">Tanda Tangan Digital (Ketik Nama Lengkap)</label>
+                <input type="text" id="input-signature" class="sig-input" placeholder="Cth: Siti Aminah" oninput="checkAgreementStatus()">
+            </div>
+
+            <button class="btn-agree" id="btn-agree-final" onclick="signAgreement()">SETUJU & TANDA TANGANI</button>
+        </div>
+        
+        <!-- Footer for Read Only Mode -->
+        <div class="ag-footer" id="ag-readonly-area" style="display:none;">
+            <button class="btn-close-readonly" onclick="closeAgreementModal()">Tutup Halaman</button>
+        </div>
+    </div>
+
 
     <!-- 2. DASHBOARD (Hidden by default) -->
     <div id="dashboard" style="display:none;">
@@ -187,6 +307,12 @@
                 <input type="file" id="shop-photo-input" hidden accept="image/*" onchange="handleShopPhoto(event)">
             </div>
 
+            <!-- Agreement Shortcut -->
+            <button class="btn-menu-profile" onclick="viewAgreementReadOnly()">
+                <div><i class="ph-bold ph-file-text"></i> Syarat & Ketentuan Kemitraan</div>
+                <i class="ph-bold ph-caret-right" style="color:#ccc; font-size:14px; margin:0;"></i>
+            </button>
+
             <!-- Status Toko Control -->
             <div class="status-card">
                 <div class="status-label">
@@ -198,10 +324,7 @@
                     <span class="slider"></span>
                 </label>
             </div>
-            <div style="font-size:11px; color:#666; margin-top:-15px; margin-bottom:20px; padding-left:5px;">
-                *Jika dimatikan, toko Anda akan terlihat tutup (abu-abu) di aplikasi pelanggan.
-            </div>
-
+            
             <!-- Stats -->
             <div class="profile-stat-box">
                 <div class="stat-card">
@@ -294,7 +417,7 @@
     <!-- LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, where, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, where, onSnapshot, getDoc, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDq0UCWj43rCP3rqvAGbdyr2FFV7kyhZTA",
@@ -312,9 +435,9 @@
         let base64Image = "";
         let currentProducts = {}; 
 
-        // --- 1. LOGIN SYSTEM BARU (Sesuai Admin) ---
+        // --- 1. LOGIN SYSTEM ---
         window.login = async () => {
-            const idInput = document.getElementById('login-id').value.trim().toLowerCase(); // Admin membuat ID lowercase
+            const idInput = document.getElementById('login-id').value.trim().toLowerCase(); 
             const pinInput = document.getElementById('login-pin').value.trim();
             
             if(!idInput || !pinInput) { 
@@ -327,20 +450,13 @@
             btn.disabled = true;
 
             try {
-                // Cek ke Database (Dibuat oleh Admin)
                 const docRef = doc(db, "vendors", idInput);
                 const docSnap = await getDoc(docRef);
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    
-                    // Validasi PIN
                     if(data.pin === pinInput) {
-                        // Login Sukses
-                        currentUser = { 
-                            id: data.id, 
-                            name: data.nama_warung 
-                        };
+                        currentUser = { id: docSnap.id, name: data.nama_warung };
                         localStorage.setItem('vendor_user', JSON.stringify(currentUser));
                         initDashboard();
                     } else {
@@ -349,7 +465,7 @@
                         btn.disabled = false;
                     }
                 } else {
-                    alert("ID Warung tidak ditemukan. Pastikan Anda sudah terdaftar di Admin Pusat.");
+                    alert("ID Warung tidak ditemukan.");
                     btn.innerHTML = "Masuk ke Dashboard";
                     btn.disabled = false;
                 }
@@ -373,24 +489,34 @@
             const saved = localStorage.getItem('vendor_user');
             if(saved) {
                 currentUser = JSON.parse(saved);
+                if(!currentUser.id) {
+                    console.warn("Sesi rusak (ID hilang), logout otomatis.");
+                    localStorage.removeItem('vendor_user');
+                    location.reload();
+                    return;
+                }
                 initDashboard();
             }
         }
 
-        // --- 2. DASHBOARD LOGIC ---
+        // --- 2. DASHBOARD LOGIC & AGREEMENT CHECK ---
         function initDashboard() {
             document.getElementById('login-page').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
-            
-            // Nama diambil dari objek user yang sudah tervalidasi dari DB
             document.getElementById('display-name').innerText = currentUser.name;
             document.getElementById('display-id').innerText = "ID: " + currentUser.id;
 
-            // Load Status & Foto Toko (Realtime)
-            onSnapshot(doc(db, "vendors", currentUser.id), (doc) => {
-                if(doc.exists()) {
-                    const data = doc.data();
-                    // Update nama lokal jika admin mengubah nama di pusat
+            onSnapshot(doc(db, "vendors", currentUser.id), (docSnap) => {
+                if(docSnap.exists()) {
+                    const data = docSnap.data();
+                    
+                    if (data.terms_agreed === true) {
+                        document.getElementById('agreement-overlay').style.display = 'none';
+                        document.getElementById('dashboard').style.display = 'block';
+                    } else {
+                        document.getElementById('dashboard').style.display = 'none';
+                        showAgreementForSigning();
+                    }
+
                     if(data.nama_warung !== currentUser.name) {
                         currentUser.name = data.nama_warung;
                         document.getElementById('display-name').innerText = data.nama_warung;
@@ -407,7 +533,73 @@
                 }
             });
 
-            // Load Menu
+            loadMenu();
+            loadReviews();
+        }
+
+        // --- 3. AGREEMENT LOGIC ---
+        function showAgreementForSigning() {
+            document.getElementById('ag-action-area').style.display = 'flex';
+            document.getElementById('ag-readonly-area').style.display = 'none';
+            document.getElementById('agreement-overlay').style.display = 'flex';
+            
+            document.getElementById('check-agree').checked = false;
+            document.getElementById('input-signature').value = "";
+            checkAgreementStatus();
+        }
+
+        window.viewAgreementReadOnly = () => {
+            document.getElementById('ag-action-area').style.display = 'none';
+            document.getElementById('ag-readonly-area').style.display = 'flex';
+            document.getElementById('agreement-overlay').style.display = 'flex';
+        }
+
+        window.closeAgreementModal = () => {
+            document.getElementById('agreement-overlay').style.display = 'none';
+        }
+
+        window.checkAgreementStatus = () => {
+            const isChecked = document.getElementById('check-agree').checked;
+            const signature = document.getElementById('input-signature').value.trim();
+            const btn = document.getElementById('btn-agree-final');
+            
+            if(isChecked && signature.length >= 3) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        }
+
+        window.signAgreement = async () => {
+            const signatureName = document.getElementById('input-signature').value.trim();
+            if(!signatureName) return;
+
+            const btn = document.getElementById('btn-agree-final');
+            btn.innerHTML = "Memproses...";
+            
+            try {
+                await updateDoc(doc(db, "vendors", currentUser.id), {
+                    terms_agreed: true,
+                    terms_agreed_at: new Date().toISOString(),
+                    terms_signature_name: signatureName,
+                    terms_version: "v1.0"
+                });
+                
+                document.getElementById('agreement-overlay').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                
+                alert("Terima kasih. Anda resmi menjadi Mitra Projekgo.");
+
+            } catch (e) {
+                console.error("Agreement Error:", e);
+                alert("Gagal menyimpan persetujuan: " + e.message);
+                btn.innerHTML = "SETUJU & TANDA TANGANI";
+            }
+        }
+
+
+        // --- 4. DATA LOADING FUNCTIONS ---
+        function loadMenu() {
             const q = query(collection(db, "products"), where("vendor_id", "==", currentUser.id));
             onSnapshot(q, (snapshot) => {
                 const container = document.getElementById('menu-container');
@@ -426,9 +618,7 @@
                     
                     const img = item.foto_url && item.foto_url.length > 10 ? item.foto_url : 'https://placehold.co/100?text=Menu';
                     const exclusiveBadge = item.is_exclusive ? '<span class="mi-exclusive">Eksklusif</span>' : '';
-                    
-                    // Cek ketersediaan
-                    const isAvailable = item.is_available !== false; // Default true if undefined
+                    const isAvailable = item.is_available !== false;
                     const opacity = isAvailable ? '1' : '0.6';
                     const statusText = isAvailable ? '' : '<span style="color:red; font-size:10px; font-weight:bold;">(HABIS)</span>';
 
@@ -453,19 +643,60 @@
                     container.appendChild(div);
                 });
             });
+        }
 
-            // Load Reviews (Realtime)
-            const reviewQ = query(collection(db, "reviews"), where("vendor_id", "==", currentUser.id));
-            onSnapshot(reviewQ, (snap) => {
+        // FUNGSI PRIVASI NAMA
+        function maskName(name) {
+            if (!name) return 'Pelanggan';
+            const parts = name.split(' ');
+            if (parts.length === 1) {
+                // Satu kata: "Budi" -> "B***"
+                return parts[0].substring(0, 1) + '***';
+            } else {
+                // Dua kata atau lebih: "Siti Aminah" -> "Siti A***"
+                return parts[0] + ' ' + parts[1].substring(0, 1) + '***';
+            }
+        }
+
+        function loadReviews() {
+            // Menggunakan logika pencarian berdasarkan vendor_name
+            const reviewQ = query(collection(db, "reviews"), where("vendor_name", "==", currentUser.name));
+
+            onSnapshot(reviewQ, async (snap) => {
                 const container = document.getElementById('reviews-container');
                 container.innerHTML = '';
                 let totalRating = 0;
                 let count = 0;
 
                 if(snap.empty) {
-                    container.innerHTML = '<div style="text-align:center; padding:20px; color:#ccc;">Belum ada ulasan.</div>';
-                    document.getElementById('stat-rating').innerText = "0.0";
+                    // Diagnosa jika kosong (seperti sebelumnya)
+                    let debugMsg = "";
+                    try {
+                        const allReviewQ = query(collection(db, "reviews"), limit(1));
+                        const allSnap = await getDocs(allReviewQ);
+                        if(allSnap.empty) {
+                            debugMsg = "<br><span style='color:red'>Database 'reviews' kosong total.</span>";
+                        } else {
+                            const sample = allSnap.docs[0].data();
+                            const keys = Object.keys(sample).join(", ");
+                            debugMsg = `<br><span style='color:#E65100; font-size:10px; display:block; margin-top:10px; background:#fff3e0; padding:10px; border-radius:8px;'>
+                                <b>Mode Debug:</b><br>
+                                Mencari ulasan dengan:<br>
+                                Field: <b>vendor_name</b><br>
+                                Nilai: <b>"${currentUser.name}"</b><br><br>
+                                <b>Sampel Data Database:</b><br>
+                                Field yang tersedia: <i>${keys}</i>
+                            </span>`;
+                        }
+                    } catch(e) { debugMsg = ""; }
+
+                    container.innerHTML = `<div style="text-align:center; padding:20px; color:#ccc; font-size:12px;">
+                        Belum ada ulasan ditemukan.
+                        ${debugMsg}
+                    </div>`;
+                    
                     document.getElementById('stat-orders').innerText = "0";
+                    document.getElementById('stat-rating').innerText = "0.0";
                     return;
                 }
 
@@ -475,16 +706,27 @@
                     totalRating += parseFloat(r.rating || 0);
                     
                     const stars = '★'.repeat(Math.floor(r.rating)) + '☆'.repeat(5 - Math.floor(r.rating));
-                    const dateStr = r.date ? new Date(r.date).toLocaleDateString() : '-';
+                    
+                    let dateStr = '-';
+                    if(r.date) {
+                        try {
+                            if(r.date.toDate) dateStr = r.date.toDate().toLocaleDateString();
+                            else dateStr = new Date(r.date).toLocaleDateString();
+                        } catch(e) { dateStr = 'Tgl Error'; }
+                    }
 
+                    // Terapkan privasi nama
+                    const displayName = maskName(r.user_name);
+
+                    // UPDATE: Mengambil isi ulasan dari field 'text'
                     container.innerHTML += `
                         <div class="review-item">
                             <div class="rev-header">
-                                <span class="rev-user">${r.user_name || 'Pelanggan'}</span>
+                                <span class="rev-user">${displayName}</span>
                                 <span class="rev-date">${dateStr}</span>
                             </div>
                             <div class="rev-stars">${stars}</div>
-                            <div class="rev-text">${r.comment || ''}</div>
+                            <div class="rev-text">${r.text || '<i>Tidak ada teks ulasan.</i>'}</div>
                         </div>
                     `;
                 });
@@ -494,16 +736,14 @@
             });
         }
 
-        // --- 3. TABS SWITCHER ---
+        // --- 5. TABS & UI HELPERS ---
         window.switchTab = (tabName) => {
             document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
-            
             document.getElementById(`tab-${tabName}`).classList.add('active');
             document.getElementById(`content-${tabName}`).classList.add('active');
         }
 
-        // --- 4. SHOP STATUS & PHOTO ---
         function updateStatusUI(isOpen) {
             const text = document.getElementById('status-text');
             const dot = document.getElementById('status-dot');
@@ -527,7 +767,6 @@
         window.handleShopPhoto = (event) => {
             const file = event.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = function(e) {
                 const img = new Image();
@@ -541,14 +780,10 @@
                     canvas.height = img.height * scaleSize;
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     const photoBase64 = canvas.toDataURL('image/jpeg', 0.6);
-                    
                     document.getElementById('shop-photo-display').src = photoBase64;
-                    
                     try {
                         await updateDoc(doc(db, "vendors", currentUser.id), { shop_photo: photoBase64 });
-                        alert("Foto warung berhasil diperbarui!");
                     } catch(err) {
-                        console.error(err);
                         alert("Gagal upload foto.");
                     }
                 }
@@ -556,7 +791,7 @@
             reader.readAsDataURL(file);
         };
 
-        // --- 5. CRUD MENU ---
+        // --- 6. MENU CRUD ---
         window.openModal = () => {
             document.getElementById('modal-title').innerText = "Tambah Menu";
             document.getElementById('menu-id').value = "";
@@ -578,7 +813,6 @@
         window.editMenu = (id) => {
             const item = currentProducts[id];
             if(!item) return;
-
             document.getElementById('modal-title').innerText = "Edit Menu";
             document.getElementById('menu-id').value = id;
             document.getElementById('inp-nama').value = item.nama_menu;
@@ -586,7 +820,6 @@
             document.getElementById('inp-kategori').value = item.kategori;
             document.getElementById('inp-desc').value = item.deskripsi || "";
             document.getElementById('inp-exclusive').checked = item.is_exclusive || false;
-            
             document.getElementById('inp-var-title').value = item.variant_title || "";
             document.getElementById('inp-var-options').value = item.variant_options ? item.variant_options.join(", ") : "";
 
@@ -600,7 +833,6 @@
                 document.getElementById('preview-img').style.display = "none";
                 document.querySelector('.upload-placeholder').style.display = "block";
             }
-
             document.getElementById('modal-form').style.display = 'flex';
         }
 
@@ -640,13 +872,10 @@
             const kategori = document.getElementById('inp-kategori').value;
             const desc = document.getElementById('inp-desc').value;
             const isExclusive = document.getElementById('inp-exclusive').checked;
-            
             const varTitle = document.getElementById('inp-var-title').value.trim();
             const varOptsStr = document.getElementById('inp-var-options').value.trim();
             let varOptsArray = [];
-            if(varOptsStr) {
-                varOptsArray = varOptsStr.split(',').map(s => s.trim()).filter(s => s !== "");
-            }
+            if(varOptsStr) varOptsArray = varOptsStr.split(',').map(s => s.trim()).filter(s => s !== "");
 
             if(!nama || !harga) { alert("Nama dan Harga wajib diisi!"); return; }
 
@@ -654,7 +883,6 @@
             btn.innerText = "Menyimpan...";
             btn.disabled = true;
 
-            // Pastikan data konsisten dengan nama warung saat ini
             const menuData = {
                 nama_menu: nama,
                 harga: parseInt(harga),
@@ -662,28 +890,24 @@
                 deskripsi: desc,
                 is_exclusive: isExclusive,
                 vendor_id: currentUser.id,
-                vendor_name: currentUser.name, // Selalu gunakan nama terbaru
+                vendor_name: currentUser.name,
                 variant_title: varTitle,
                 variant_options: varOptsArray,
                 updated_at: new Date().toISOString()
             };
-
-            if(base64Image) {
-                menuData.foto_url = base64Image;
-            }
+            if(base64Image) menuData.foto_url = base64Image;
 
             try {
                 if(id) {
                     await updateDoc(doc(db, "products", id), menuData);
                 } else {
                     menuData.created_at = new Date().toISOString();
-                    menuData.is_available = true; // Default available
+                    menuData.is_available = true; 
                     if(!base64Image) menuData.foto_url = "";
                     await addDoc(collection(db, "products"), menuData);
                 }
                 closeModal();
             } catch(e) {
-                console.error(e);
                 alert("Gagal menyimpan: " + e.message);
             } finally {
                 btn.innerText = "Simpan Menu";
