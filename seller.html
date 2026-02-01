@@ -99,7 +99,7 @@
         .mi-price { font-weight: 600; color: var(--primary); font-size: 13px; }
         .mi-cat { font-size: 10px; color: var(--gray); background: #f0f0f0; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 5px; }
         .mi-exclusive { background: linear-gradient(45deg, #FF6600, #FF9900); color: white; font-size: 9px; padding: 2px 6px; border-radius: 4px; display: inline-block; font-weight: 700; margin-left: 5px; }
-        .mi-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 8px; }
+        .mi-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 8px; align-items: center; }
         .btn-icon { background: #f5f5f5; border: none; font-size: 16px; color: var(--gray); cursor: pointer; padding: 6px; border-radius: 8px; }
         .btn-icon.edit { color: #2196F3; }
         .btn-icon.delete { color: var(--danger); }
@@ -618,9 +618,12 @@
                     
                     const img = item.foto_url && item.foto_url.length > 10 ? item.foto_url : 'https://placehold.co/100?text=Menu';
                     const exclusiveBadge = item.is_exclusive ? '<span class="mi-exclusive">Eksklusif</span>' : '';
-                    const isAvailable = item.is_available !== false;
-                    const opacity = isAvailable ? '1' : '0.6';
+                    
+                    // Logic status
+                    const isAvailable = item.is_available !== false; // Default true if undefined
                     const statusText = isAvailable ? '' : '<span style="color:red; font-size:10px; font-weight:bold;">(HABIS)</span>';
+                    const opacity = isAvailable ? '1' : '0.6';
+                    const checkedState = isAvailable ? 'checked' : '';
 
                     const div = document.createElement('div');
                     div.className = 'menu-item';
@@ -636,6 +639,12 @@
                             </div>
                         </div>
                         <div class="mi-actions">
+                            <!-- TOGGLE SWITCH PER MENU -->
+                            <label class="switch" style="transform:scale(0.7); margin-right:5px;" title="Ubah Status Stok">
+                                <input type="checkbox" onchange="toggleProductStatus('${docSnap.id}', this.checked)" ${checkedState}>
+                                <span class="slider"></span>
+                            </label>
+                            
                             <button class="btn-icon edit" onclick="editMenu('${docSnap.id}')"><i class="ph-bold ph-pencil-simple"></i></button>
                             <button class="btn-icon delete" onclick="deleteMenu('${docSnap.id}', '${item.nama_menu}')"><i class="ph-bold ph-trash"></i></button>
                         </div>
@@ -644,6 +653,19 @@
                 });
             });
         }
+        
+        // FUNGSI UBAH STATUS STOK MENU
+        window.toggleProductStatus = async (id, isAvailable) => {
+            try {
+                await updateDoc(doc(db, "products", id), {
+                    is_available: isAvailable,
+                    updated_at: new Date().toISOString()
+                });
+            } catch(e) {
+                console.error("Gagal update stok:", e);
+                alert("Gagal ubah status: " + e.message);
+            }
+        };
 
         // FUNGSI PRIVASI NAMA
         function maskName(name) {
