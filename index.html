@@ -166,6 +166,10 @@
         .badge-priority { position: absolute; top: 8px; left: 8px; background: linear-gradient(135deg, #6200EA, #9D46FF); color: white; font-size: 8px; padding: 3px 6px; border-radius: 4px; font-weight: 700; z-index: 5; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 3px; }
         .badge-exclusive { position: absolute; bottom: 8px; right: 8px; background: linear-gradient(45deg, #FF6600, #FF9900); color: white; font-size: 8px; padding: 3px 6px; border-radius: 4px; font-weight: 800; z-index: 2; box-shadow: 0 2px 5px rgba(0,0,0,0.2); max-width: 100px; line-height: 1.2; text-align: right; }
 
+        /* OUT OF STOCK BADGE */
+        .badge-habis-overlay { position:absolute; inset:0; background:rgba(255,255,255,0.7); display:flex; align-items:center; justify-content:center; z-index:4; border-radius:12px; }
+        .badge-habis-text { background:rgba(0,0,0,0.8); color:white; font-weight:800; font-size:12px; padding:5px 10px; border-radius:8px; }
+
         .h-info { padding: 8px 10px 10px 10px; }
         .h-vendor { font-size: 9px; color: #888; margin-bottom: 2px; display: flex; align-items: center; gap: 3px; font-weight: 600; }
         .h-name { font-size: 13px; font-weight: 700; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #333; }
@@ -705,8 +709,8 @@
 
             <!-- Bottom Action -->
             <div class="pd-action">
-                <button class="btn-main-add" onclick="addToCartFromDetail()">
-                    <i class="ph-bold ph-plus"></i> Tambah ke Keranjang - <span id="pd-btn-price">Rp 0</span>
+                <button class="btn-main-add" id="pd-add-btn" onclick="addToCartFromDetail()">
+                    <i class="ph-bold ph-plus"></i> <span id="pd-add-text">Tambah ke Keranjang</span> - <span id="pd-btn-price">Rp 0</span>
                 </button>
             </div>
         </div>
@@ -1244,6 +1248,7 @@
                 </div>
             `;
 
+            // DI HALAMAN PENJUAL: TAMPILKAN SEMUA (TERMASUK YANG HABIS) SESUAI REQUEST
             const vendorMenu = allProducts.filter(p => p.vendor_name === vendor.nama_warung || p.vendor_id === vendor.id);
             const normal = vendorMenu.filter(i => parseInt(i.harga) >= 9000);
             const cheap = vendorMenu.filter(i => parseInt(i.harga) < 9000);
@@ -1267,23 +1272,34 @@
                     const isFav = favorites.includes(item.id) ? 'active' : '';
                     const desc = item.deskripsi || "Menu spesial warung ini, dijamin enak.";
 
+                    // --- CHECK AVAILABILITY ---
+                    const isAvailable = item.is_available !== false; // Default true if undefined
+                    const grayscaleClass = isAvailable ? '' : 'filter:grayscale(100%);';
+                    const opacityClass = isAvailable ? '' : 'opacity:0.6;';
+                    const habisBadge = isAvailable ? '' : '<div class="badge-habis-overlay"><span class="badge-habis-text">HABIS</span></div>';
+                    // Action: Jika habis, tampilkan toast "Habis"
+                    const addBtnAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, stok habis 🙏')`;
+                    const addBtnStyle = isAvailable ? '' : 'background:#ccc; cursor:not-allowed;';
+                    // ---------------------------
+
                     if (index < 4) {
                         const div = document.createElement('div');
                         div.className = 'menu-grid-item';
                         div.innerHTML = `
                             <div style="position:relative;">
+                                ${habisBadge}
                                 <div class="badge-priority" style="top:5px; left:5px;">⭐ Unggulan</div>
-                                <img src="${imgItem}" class="mgi-img" onclick="openProductDetail('${item.id}')">
+                                <img src="${imgItem}" class="mgi-img" style="${grayscaleClass}" onclick="openProductDetail('${item.id}')">
                                 <div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')" style="top:5px; right:5px;"><i class="ph-fill ph-heart"></i></div>
                             </div>
-                            <div class="mgi-info">
+                            <div class="mgi-info" style="${opacityClass}">
                                 <div style="font-weight:700; font-size:13px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" onclick="openProductDetail('${item.id}')">${item.nama_menu}</div>
                                 <div style="display:flex; align-items:center; justify-content:space-between;">
                                     <div style="display:flex; flex-direction:column;">
                                         <span class="p-coret" style="font-size:9px;">Rp ${fakePrice.toLocaleString()}</span>
                                         <span style="font-weight:800; color:var(--primary); font-size:13px;">Rp ${realPrice.toLocaleString()}</span>
                                     </div>
-                                    <div class="btn-add-mini" onclick="quickAdd(event, '${item.id}')">+</div>
+                                    <div class="btn-add-mini" style="${addBtnStyle}" onclick="${addBtnAction}">+</div>
                                 </div>
                             </div>
                         `;
@@ -1293,10 +1309,11 @@
                         div.className = 'menu-list-item';
                         div.innerHTML = `
                             <div style="position:relative;">
-                                <img src="${imgItem}" class="mli-img" onclick="openProductDetail('${item.id}')">
+                                ${habisBadge}
+                                <img src="${imgItem}" class="mli-img" style="${grayscaleClass}" onclick="openProductDetail('${item.id}')">
                                 <div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')" style="width:24px; height:24px; font-size:12px; top:4px; right:4px;"><i class="ph-fill ph-heart"></i></div>
                             </div>
-                            <div class="mli-info">
+                            <div class="mli-info" style="${opacityClass}">
                                 <div onclick="openProductDetail('${item.id}')">
                                     <div class="mli-title">${item.nama_menu}</div>
                                     <div class="mli-desc">${desc}</div>
@@ -1306,7 +1323,7 @@
                                         <span class="mli-coret">Rp ${fakePrice.toLocaleString()}</span>
                                         <span class="mli-price">Rp ${realPrice.toLocaleString()}</span>
                                     </div>
-                                    <button class="mli-btn" onclick="quickAdd(event, '${item.id}')">Tambah +</button>
+                                    <button class="mli-btn" style="${addBtnStyle}" onclick="${addBtnAction}">Tambah +</button>
                                 </div>
                             </div>
                         `;
@@ -1438,14 +1455,23 @@
             const rating = (4.0 + Math.random()).toFixed(1);
             const sold = Math.floor(Math.random() * 500) + 50;
 
+            // --- CHECK AVAILABILITY ---
+            const isAvailable = item.is_available !== false; 
+            const habisBadge = isAvailable ? '' : '<div class="badge-habis-overlay" style="border-radius:12px;"><span class="badge-habis-text" style="font-size:10px;">HABIS</span></div>';
+            const imgStyle = isAvailable ? '' : 'filter:grayscale(100%); opacity:0.7;';
+            const addAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, stok habis 🙏')`;
+            const addStyle = isAvailable ? '' : 'background:#ccc; cursor:not-allowed;';
+            // ---------------------------
+
             const div = document.createElement('div');
             div.className = 'h-card';
             div.innerHTML = `
                 <div style="position:relative;">
+                    ${habisBadge}
                     ${priorityBadge}
                     ${exclusiveBadge}
                     <div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')"><i class="ph-fill ph-heart"></i></div>
-                    <img src="${img}" class="h-img" onclick="openProductDetail('${item.id}')">
+                    <img src="${img}" class="h-img" style="${imgStyle}" onclick="openProductDetail('${item.id}')">
                 </div>
                 <div class="h-info" onclick="openProductDetail('${item.id}')">
                     <div class="h-vendor"><i class="ph-fill ph-storefront"></i> ${vendorName}</div>
@@ -1461,7 +1487,7 @@
                             </div>
                             <span class="p-real">Rp ${realPrice.toLocaleString()}</span>
                         </div>
-                        <div class="btn-add-mini" onclick="quickAdd(event, '${item.id}')"><i class="ph-bold ph-plus" style="color:white;"></i></div>
+                        <div class="btn-add-mini" style="${addStyle}" onclick="${addAction}"><i class="ph-bold ph-plus" style="color:white;"></i></div>
                     </div>
                 </div>
             `;
@@ -1488,6 +1514,22 @@
             document.getElementById('pd-btn-price').innerText = "Rp " + realPrice.toLocaleString();
             document.getElementById('pd-desc').innerText = desc;
             
+            // --- UPDATE TOMBOL ADD ---
+            const btn = document.getElementById('pd-add-btn');
+            const btnText = document.getElementById('pd-add-text');
+            if(item.is_available === false) {
+                btn.style.background = "#ccc";
+                btn.style.cursor = "not-allowed";
+                btn.onclick = () => showToast('Maaf, stok habis 🙏');
+                btnText.innerText = "Stok Habis";
+            } else {
+                btn.style.background = "var(--primary)";
+                btn.style.cursor = "pointer";
+                btn.onclick = () => addToCartFromDetail();
+                btnText.innerText = "Tambah ke Keranjang";
+            }
+            // -------------------------
+
             const varBox = document.getElementById('variant-section');
             const varOpts = document.getElementById('pd-var-options');
             varOpts.innerHTML = ''; 
@@ -1518,6 +1560,14 @@
             if(!checkOperationalStatus()) return; 
 
             const item = allProducts.find(p => p.id === id);
+            
+            // --- CHECK STOK SEBELUM PROSES ---
+            if(item.is_available === false) {
+                showToast("Maaf, stok habis 🙏");
+                return;
+            }
+            // ---------------------------------
+
             if (item.variant_options && item.variant_options.length > 0) {
                 openVariantModal(item);
             } else {
@@ -1597,6 +1647,13 @@
             if(!checkOperationalStatus()) return; 
 
             if(!currentDetailProduct) return;
+            
+            // Guard double check stok
+            if(currentDetailProduct.is_available === false) {
+                showToast("Maaf, stok habis 🙏");
+                return;
+            }
+
             let variant = "-";
             
             // UPDATE: Validasi Wajib Pilih Varian di Halaman Detail
@@ -1666,13 +1723,22 @@
             const rating = (4.0 + Math.random()).toFixed(1);
             const sold = Math.floor(Math.random() * 500) + 50;
 
+            // --- CHECK AVAILABILITY ---
+            const isAvailable = item.is_available !== false; 
+            const habisBadge = isAvailable ? '' : '<div class="badge-habis-overlay" style="border-radius:12px;"><span class="badge-habis-text">HABIS</span></div>';
+            const imgStyle = isAvailable ? '' : 'filter:grayscale(100%); opacity:0.7;';
+            const addAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, stok habis 🙏')`;
+            const addStyle = isAvailable ? '' : 'background:#ccc; cursor:not-allowed;';
+            // ---------------------------
+
             const div = document.createElement('div');
             div.className = 'p-card';
             div.innerHTML = `
                 <div style="position:relative;">
+                    ${habisBadge}
                     ${priorityBadge}
                     ${exclusiveBadge}
-                    <img src="${img}" style="width:100%; height:120px; object-fit:cover;" onclick="openProductDetail('${item.id}')">
+                    <img src="${img}" style="width:100%; height:120px; object-fit:cover; ${imgStyle}" onclick="openProductDetail('${item.id}')">
                     <div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}'); if(document.getElementById('page-favorites').style.display==='block') renderFavoritesPage();" style="top:5px; right:5px;"><i class="ph-fill ph-heart"></i></div>
                 </div>
                 <div class="p-info">
@@ -1687,7 +1753,7 @@
                             <span style="font-weight:800; color:var(--primary);">Rp ${realPrice.toLocaleString()}</span>
                         </div>
                     </div>
-                    <button onclick="quickAdd(event, '${item.id}')" style="align-self:flex-end; background:var(--primary-light); color:var(--primary); border:none; width:24px; height:24px; border-radius:8px; font-weight:700;">+</button>
+                    <button onclick="${addAction}" style="align-self:flex-end; background:var(--primary-light); color:var(--primary); border:none; width:24px; height:24px; border-radius:8px; font-weight:700; ${addStyle}">+</button>
                 </div>
             `;
             container.appendChild(div);
@@ -1950,18 +2016,22 @@
             // Ambil daftar ID warung yang valid
             const validVendorIds = allVendors.map(v => v.id);
             
-            // Filter produk: Hanya simpan produk yang punya vendor_id VALID di daftar vendor
+            // Filter global: Hanya simpan produk yang punya vendor_id VALID di daftar vendor
             allProducts = rawProducts.filter(p => {
                 return p.vendor_id && validVendorIds.includes(p.vendor_id);
             });
 
-            // Update Tampilan (Best Seller & Exclusive)
-            const exclusiveItems = allProducts.filter(p => p.is_exclusive === true);
+            // DATA UNTUK BERANDA (HANYA YANG READY/AVAILABLE)
+            // Ini untuk Exclusive, Best Seller, dan Preview Warung
+            const availableProducts = allProducts.filter(p => p.is_available !== false);
+
+            // Update Tampilan (Best Seller & Exclusive) - Menggunakan availableProducts
+            const exclusiveItems = availableProducts.filter(p => p.is_exclusive === true);
             renderHorizontalScroll('container-exclusive', exclusiveItems);
-            renderHorizontalScroll('container-best', allProducts.slice(0, 7));
+            renderHorizontalScroll('container-best', availableProducts.slice(0, 7));
             
             // UPDATE: Render ulang daftar warung setiap kali data produk berubah
-            // Ini yang memperbaiki masalah "Belum ada menu"
+            // Menggunakan semua vendor, tapi filter produk di dalamnya
             renderWarungList(allVendors);
 
             // Jika user sedang di halaman kategori, refresh halamannya juga (opsional)
@@ -1978,8 +2048,9 @@
             const c = document.getElementById('container-warung'); c.innerHTML='';
             
             vends.forEach(v => {
-                // Ambil produk khusus warung ini
-                const vendorProds = allProducts.filter(p => p.vendor_id === v.id);
+                // HANYA TAMPILKAN PRODUK AVAILABLE DI PREVIEW BERANDA
+                // (Ini memenuhi permintaan "agar beranda menampilkan menu yang ready semua")
+                const vendorProds = allProducts.filter(p => p.vendor_id === v.id && p.is_available !== false);
                 
                 // Hitung statistik sederhana
                 const s = (v.status||'BUKA').toUpperCase()==='BUKA';
@@ -1988,6 +2059,8 @@
                 const statusText = s ? 'BUKA' : 'TUTUP';
                 const img = v.shop_photo || 'https://cdn-icons-png.flaticon.com/512/1046/1046857.png'; 
                 
+                // Hitung harga dari SEMUA produk (termasuk yang habis) untuk label "Mulai..." agar akurat secara umum?
+                // Atau hanya yang available? Lebih baik yang available agar konsisten.
                 const prices = vendorProds.map(p => parseInt(p.harga));
                 const minPrice = prices.length ? Math.min(...prices) : 10000;
                 const formattedPrice = (minPrice/1000).toFixed(0) + 'rb';
