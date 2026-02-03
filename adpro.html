@@ -99,11 +99,53 @@
         .data-card { background: white; border-radius: 20px; border: 1px solid #f0f0f0; overflow: hidden; margin-bottom: 20px; }
         .card-header { padding: 18px 20px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 16px; }
         
-        /* TABLES */
-        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        /* TABLES (Responsive & No-Scroll Mobile) */
+        .table-responsive { width: 100%; }
+        table { width: 100%; border-collapse: collapse; }
         th { background: #f8fafc; padding: 12px 20px; text-align: left; font-size: 11px; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; }
         td { padding: 16px 20px; border-bottom: 1px solid #f8fafc; font-size: 14px; }
+
+        /* MOBILE OPTIMIZED TABLE (Tampilan Kartu di HP) */
+        @media screen and (max-width: 768px) {
+            .table-responsive { overflow-x: visible; }
+            table, thead, tbody, th, td, tr { display: block; }
+            thead { display: none; } /* Sembunyikan header tabel di HP */
+            
+            tr { 
+                border-bottom: 8px solid #F8F9FB; /* Jarak antar item */
+                padding: 15px;
+            }
+            
+            td { 
+                padding: 8px 0; 
+                border: none; 
+                display: flex; 
+                justify-content: space-between; 
+                align-items: center;
+                text-align: right;
+            }
+
+            td::before { 
+                content: attr(data-label); 
+                float: left; 
+                font-weight: 700; 
+                color: var(--gray); 
+                font-size: 12px; 
+                text-transform: uppercase;
+                margin-right: 15px;
+            }
+
+            /* Kolom pertama (Nama) dibuat menonjol */
+            td:first-child { 
+                display: block; 
+                text-align: left; 
+                padding-top: 0;
+                margin-bottom: 10px;
+                border-bottom: 1px dashed #eee;
+                padding-bottom: 10px;
+            }
+            td:first-child::before { display: none; }
+        }
 
         /* BUTTONS */
         .btn-add-float { position: fixed; bottom: 90px; right: 20px; width: 56px; height: 56px; border-radius: 18px; background: var(--primary); color: white; border: none; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 10px 25px rgba(255, 102, 0, 0.3); z-index: 800; }
@@ -115,6 +157,10 @@
         .btn-delete { background: #fef2f2; color: var(--danger); }
         .btn-view { background: #eff6ff; color: #2563eb; }
         .btn-edit-pin { background: #e0f2fe; color: #0284c7; }
+        
+        /* FEATURED BUTTON STYLE */
+        .btn-feature { background: #f8fafc; color: #cbd5e1; }
+        .btn-feature.active { background: #fff7ed; color: #f59e0b; border: 1px solid #ffedd5; }
         
         /* Style baru untuk tombol Exclusive */
         .btn-exclusive { background: #f3f4f6; color: #9ca3af; }
@@ -219,12 +265,19 @@
         <div id="page-vendors" class="page-content">
             <div class="page-header">
                 <h1 class="page-title">Daftar Mitra</h1>
-                <p class="page-subtitle">Kelola status operasional mitra</p>
+                <p class="page-subtitle">Kelola status & Mitra Andalan</p>
             </div>
             <div class="data-card">
                 <div class="table-responsive">
                     <table>
-                        <thead><tr><th>Warung & Akses</th><th>Status</th><th>Aksi</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>Warung & Akses</th>
+                                <th>Andalan</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
                         <tbody id="vendor-list-body"></tbody>
                     </table>
                 </div>
@@ -539,13 +592,13 @@
                 
                 body.innerHTML += `
                     <tr>
-                        <td style="font-weight:700;">${v.nama_warung || '-'}</td>
-                        <td>
+                        <td data-label="Mitra" style="font-weight:700;">${v.nama_warung || '-'}</td>
+                        <td data-label="Rating">
                             <div class="rating-badge">
                                 <i class="ph-fill ph-star"></i> ${avg.toFixed(1)}
                             </div>
                         </td>
-                        <td>
+                        <td data-label="Aksi">
                             <button class="action-btn btn-view" onclick="openReviewDetail('${v.id}', '${v.nama_warung}')">
                                 <i class="ph-bold ph-caret-right"></i>
                             </button>
@@ -582,11 +635,11 @@
                     
                     detailBody.innerHTML += `
                         <tr>
-                            <td style="font-weight:600;">${p.nama_menu}</td>
-                            <td>${parseInt(p.harga).toLocaleString()}</td>
-                            <td><button class="btn-status ${isAvail ? 'open' : 'closed'}" onclick="toggleProductStock('${p.id}', ${isAvail})">${isAvail ? 'Ada' : 'Habis'}</button></td>
-                            <td>
-                                <div style="display:flex; gap:5px;">
+                            <td data-label="Menu" style="font-weight:600;">${p.nama_menu}</td>
+                            <td data-label="Harga">${parseInt(p.harga).toLocaleString()}</td>
+                            <td data-label="Stok"><button class="btn-status ${isAvail ? 'open' : 'closed'}" onclick="toggleProductStock('${p.id}', ${isAvail})">${isAvail ? 'Ada' : 'Habis'}</button></td>
+                            <td data-label="Aksi">
+                                <div style="display:flex; gap:5px; justify-content: flex-end;">
                                     <button class="action-btn btn-exclusive ${isExclusive ? 'active' : ''}" title="${isExclusive ? 'Hapus dari Exclusive' : 'Jadikan Exclusive'}" onclick="toggleExclusive('${p.id}', ${isExclusive})">
                                         <i class="ph-fill ph-diamond"></i>
                                     </button>
@@ -608,7 +661,7 @@
             adminAllVendors.forEach(v => grouped[v.nama_warung] = 0);
             adminAllProducts.forEach(p => { if(grouped[p.vendor_name] !== undefined) grouped[p.vendor_name]++; });
             for (const [vName, count] of Object.entries(grouped)) {
-                container.innerHTML += `<tr><td style="font-weight:700;">${vName}</td><td>${count} Menu</td><td><button class="action-btn btn-view" onclick="openVendorMenu('${vName}')"><i class="ph-bold ph-caret-right"></i></button></td></tr>`;
+                container.innerHTML += `<tr><td data-label="Mitra" style="font-weight:700;">${vName}</td><td data-label="Menu">${count} Menu</td><td data-label="Aksi"><button class="action-btn btn-view" onclick="openVendorMenu('${vName}')"><i class="ph-bold ph-caret-right"></i></button></td></tr>`;
             }
         }
 
@@ -684,6 +737,7 @@
                     nama_warung: nama, 
                     pin: pin,
                     status: 'BUKA', 
+                    is_featured: false, // Default tidak andalan
                     role: 'vendor', 
                     created_at: new Date().toISOString() 
                 });
@@ -727,6 +781,17 @@
             const newStatus = (currentStatus === 'BUKA') ? 'TUTUP' : 'BUKA';
             await updateDoc(doc(db, "vendors", id), { status: newStatus });
         }
+        
+        // --- NEW: TOGGLE FEATURED SELLER (ANDALAN) ---
+        window.toggleFeatured = async (id, currentVal) => {
+            try {
+                await updateDoc(doc(db, "vendors", id), { is_featured: !currentVal });
+            } catch(e) { 
+                console.error("Error updating featured status:", e); 
+                alert("Gagal memperbarui status andalan.");
+            }
+        }
+
         window.toggleProductStock = async (id, currentStatus) => {
             await updateDoc(doc(db, "products", id), { is_available: !currentStatus });
         }
@@ -754,18 +819,29 @@
                 adminAllVendors = [];
                 document.getElementById('count-vendors').innerText = snap.size;
                 snap.forEach(d => adminAllVendors.push({id: d.id, ...d.data()}));
+                
+                // Urutkan: Featured (Andalan) di atas
+                adminAllVendors.sort((a, b) => (b.is_featured === true) - (a.is_featured === true));
+
                 adminAllVendors.forEach(v => {
                     const isOpen = v.status === 'BUKA';
+                    const isFeatured = v.is_featured === true;
+                    
                     hMain += `
                         <tr>
-                            <td>
-                                <div style="font-weight:700;">${v.nama_warung}</div>
+                            <td data-label="Warung & Akses">
+                                <div style="font-weight:700; font-size:16px; color:var(--primary);">${v.nama_warung}</div>
                                 <div class="unique-badge">ID: ${v.id}</div>
                                 <div style="font-size:11px; color:#666;">PIN: <b>${v.pin || '-'}</b></div>
                             </td>
-                            <td><button class="btn-status ${isOpen ? 'open' : 'closed'}" onclick="toggleStatus('${v.id}', '${v.status}')">${v.status}</button></td>
-                            <td>
-                                <div style="display:flex; gap:5px;">
+                            <td data-label="Andalan">
+                                <button class="action-btn btn-feature ${isFeatured ? 'active' : ''}" title="Jadikan Andalan" onclick="toggleFeatured('${v.id}', ${isFeatured})">
+                                    <i class="${isFeatured ? 'ph-fill' : 'ph-bold'} ph-star"></i>
+                                </button>
+                            </td>
+                            <td data-label="Status"><button class="btn-status ${isOpen ? 'open' : 'closed'}" onclick="toggleStatus('${v.id}', '${v.status}')">${v.status}</button></td>
+                            <td data-label="Aksi">
+                                <div style="display:flex; gap:5px; justify-content: flex-end;">
                                     <button class="action-btn btn-edit-pin" title="Ganti PIN" onclick="openChangePinModal('${v.id}', '${v.nama_warung}')">
                                         <i class="ph-bold ph-key"></i>
                                     </button>
@@ -775,7 +851,7 @@
                                 </div>
                             </td>
                         </tr>`;
-                    hRecent += `<tr><td>${v.nama_warung}</td><td style="text-align:right;"><span class="btn-status ${isOpen ? 'open' : 'closed'}">${v.status}</span></td></tr>`;
+                    hRecent += `<tr><td data-label="Warung" style="text-align:left;">${v.nama_warung}</td><td data-label="Status" style="text-align:right;"><span class="btn-status ${isOpen ? 'open' : 'closed'}">${v.status}</span></td></tr>`;
                 });
                 vendorBody.innerHTML = hMain;
                 recentBody.innerHTML = hRecent;
