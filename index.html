@@ -172,9 +172,13 @@
             align-items: center;
             padding: 15px 0 15px 20px;
             margin-bottom: 8px;
-            overflow: hidden;
+            overflow-x: auto; /* Allow parent to scroll */
             position: relative;
+            gap: 12px;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
         }
+        .promo-section-layout::-webkit-scrollbar { display: none; }
 
         /* Background Khusus Per Section */
         #wrapper-exclusive {
@@ -191,13 +195,13 @@
         .promo-info-side {
             min-width: 130px;
             width: 130px;
-            padding-right: 15px;
+            padding-right: 0;
             flex-shrink: 0;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: flex-start;
-            z-index: 2;
+            z-index: auto;
         }
 
         .promo-icon-circle {
@@ -262,14 +266,13 @@
         .promo-scroll-side {
             display: flex;
             gap: 12px;
-            overflow-x: auto;
-            padding: 5px 20px 10px 0; /* Padding kanan agar card terakhir tidak terpotong */
-            flex-grow: 1;
-            scrollbar-width: none;
-            scroll-behavior: smooth;
+            overflow: visible; /* Scroll handled by parent */
+            padding: 0;
+            flex-grow: 0;
+            flex-shrink: 0;
             align-items: flex-start;
         }
-        .promo-scroll-side::-webkit-scrollbar { display: none; }
+        /* .promo-scroll-side::-webkit-scrollbar { display: none; } */
 
         /* Card didalam promo section agar background putih */
         .promo-scroll-side .h-card {
@@ -350,7 +353,7 @@
             gap: 4px;
             cursor: pointer;
         }
-        .gvh-s-name { font-size: 16px; font-weight: 800; color: var(--dark); line-height: 1.2; }
+        .gvh-s-name { font-size: 18px; font-weight: 800; color: var(--dark); line-height: 1.2; } /* Font size 18px, Bold */
         .gvh-s-meta { font-size: 12px; color: #666; display: flex; align-items: center; gap: 5px; font-weight: 500; }
         .gvh-s-deliv { font-size: 11px; color: #888; font-weight: 400; margin-top: 2px; }
 
@@ -1055,38 +1058,44 @@
                     const reviewCount = Math.floor(Math.random() * 200) + 50;
                     
                     let vId = groupData.id;
+                    let vendorObj = null;
+                    let vendorImg = 'https://cdn-icons-png.flaticon.com/512/1046/1046857.png'; // Default Image
+
                     if (!vId) { 
-                        const vObj = allVendors.find(v => v.nama_warung === vendorName); 
-                        vId = vObj ? vObj.id : 'temp'; 
+                        vendorObj = allVendors.find(v => v.nama_warung === vendorName); 
+                        vId = vendorObj ? vendorObj.id : 'temp'; 
+                    } else {
+                        vendorObj = allVendors.find(v => v.id === vId);
+                    }
+                    
+                    if (vendorObj && vendorObj.shop_photo) {
+                        vendorImg = vendorObj.shop_photo;
                     }
 
                     const groupDiv = document.createElement('div'); 
                     groupDiv.className = 'group-vendor-section'; 
                     
-                    // HEADER WARUNG (Seperti di Referensi Gambar)
+                    // HEADER WARUNG (Updated with Image)
                     const headerHTML = `
-                        <div class="group-vendor-header-styled" onclick="openVendorPage('${vId}')">
-                            <div class="gvh-s-name">${vendorName}</div>
-                            <div class="gvh-s-meta"><i class="ph-fill ph-star" style="color:#FFC107;"></i> ${rating} (${reviewCount}+ ratings) • $$$$ • Aneka nasi, Ayam</div>
-                            <div class="gvh-s-deliv">Harga menu makanan mulai dari <span style="color:var(--primary); font-weight:700;">Rp${formattedPrice}</span></div>
+                        <div class="group-vendor-header-styled" onclick="openVendorPage('${vId}')" style="flex-direction:row; align-items:center; gap:12px; padding-bottom:10px;">
+                            <img src="${vendorImg}" style="width:50px; height:50px; border-radius:8px; object-fit:cover; border:1px solid #eee;">
+                            <div style="flex:1;">
+                                <div class="gvh-s-name" style="font-size:18px; font-weight:800; margin-bottom:2px;">${vendorName}</div>
+                                <div class="gvh-s-meta"><i class="ph-fill ph-star" style="color:#FFC107;"></i> ${rating} • Aneka Makanan</div>
+                                <div class="gvh-s-deliv" style="font-size:11px; color:#666;">Mulai <span style="color:var(--primary); font-weight:700;">Rp${formattedPrice}</span></div>
+                            </div>
+                            <i class="ph-bold ph-caret-right gvh-arrow"></i>
                         </div>
                     `;
 
-                    // BADGE PROMO (Scrollable - Menggunakan 3 badge gambar yang diminta)
-                    const badgesHTML = `
-                        <div class="gvh-badges-scroll">
-                            <img src="https://i.ibb.co.com/Rk6TL6S7/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT.png" class="gvh-badge-img">
-                            <img src="https://i.ibb.co.com/nqW2c7Jx/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT-1.png" class="gvh-badge-img">
-                            <img src="https://i.ibb.co.com/9kmr57kn/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT-2.png" class="gvh-badge-img">
-                        </div>
-                    `;
+                    // BADGE PROMO REMOVED AS REQUESTED
 
                     // Scrollable Products
                     const scrollDiv = document.createElement('div'); 
                     scrollDiv.className = 'scroll-container'; 
                     items.forEach(item => { renderHorizontalCard(scrollDiv, item); }); 
 
-                    groupDiv.innerHTML = headerHTML + badgesHTML;
+                    groupDiv.innerHTML = headerHTML;
                     groupDiv.appendChild(scrollDiv); 
                     c.appendChild(groupDiv);
                 }
