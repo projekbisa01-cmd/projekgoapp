@@ -21,6 +21,12 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; background: var(--bg); color: var(--dark); padding-bottom: 80px; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
+        /* LOADING SCREEN (BARU) */
+        #loading-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        .loader-spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loading-text { font-size: 14px; color: var(--gray); font-weight: 600; }
+
         /* LOGIN SCREEN */
         #login-page { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; }
         .login-logo { font-size: 40px; font-weight: 800; color: var(--primary); margin-bottom: 10px; }
@@ -152,6 +158,12 @@
     </style>
 </head>
 <body>
+
+    <!-- 0. LOADING SCREEN -->
+    <div id="loading-screen">
+        <div class="loader-spinner"></div>
+        <div class="loading-text">Memuat Data...</div>
+    </div>
 
     <!-- 1. LOGIN PAGE -->
     <div id="login-page">
@@ -496,16 +508,26 @@
                     return;
                 }
                 initDashboard();
+            } else {
+                // Tidak ada sesi, tampilkan login
+                document.getElementById('login-page').style.display = 'flex';
+                document.getElementById('loading-screen').style.display = 'none';
             }
         }
 
         // --- 2. DASHBOARD LOGIC & AGREEMENT CHECK ---
         function initDashboard() {
+            // TAMPILKAN LOADING SCREEN DULU
+            document.getElementById('loading-screen').style.display = 'flex';
             document.getElementById('login-page').style.display = 'none';
             document.getElementById('display-name').innerText = currentUser.name;
             document.getElementById('display-id').innerText = "ID: " + currentUser.id;
 
+            // Mulai mendengarkan data Firestore
             onSnapshot(doc(db, "vendors", currentUser.id), (docSnap) => {
+                // SEMBUNYIKAN LOADING SCREEN SETELAH DATA PERTAMA MASUK
+                document.getElementById('loading-screen').style.display = 'none';
+
                 if(docSnap.exists()) {
                     const data = docSnap.data();
                     
@@ -530,7 +552,17 @@
                     if(data.shop_photo) {
                         document.getElementById('shop-photo-display').src = data.shop_photo;
                     }
+                } else {
+                    // Jaga-jaga jika dokumen vendor terhapus
+                    alert("Data warung tidak ditemukan di database.");
+                    localStorage.removeItem('vendor_user');
+                    location.reload();
                 }
+            }, (error) => {
+                // Handle Error Koneksi Snapshot
+                console.error("Snapshot error:", error);
+                document.getElementById('loading-screen').style.display = 'none';
+                alert("Gagal memuat data: " + error.message);
             });
 
             loadMenu();
