@@ -161,6 +161,9 @@
         /* FEATURED BUTTON STYLE */
         .btn-feature { background: #f8fafc; color: #cbd5e1; }
         .btn-feature.active { background: #fff7ed; color: #f59e0b; border: 1px solid #ffedd5; }
+
+        /* Tombol Edit Info Baru */
+        .btn-edit-info { background: #f3e8ff; color: #9333ea; }
         
         /* Style baru untuk tombol Exclusive */
         .btn-exclusive { background: #f3f4f6; color: #9ca3af; }
@@ -311,7 +314,7 @@
                 <div class="data-card">
                     <div class="table-responsive">
                         <table>
-                            <thead><tr><th>Menu</th><th>Harga</th><th>Stok</th><th>Aksi</th></tr></thead>
+                            <thead><tr><th>Menu & Kategori</th><th>Harga</th><th>Stok</th><th>Aksi</th></tr></thead>
                             <tbody id="detail-product-body"></tbody>
                         </table>
                     </div>
@@ -456,6 +459,50 @@
             <div class="modal-actions">
                 <button class="btn-modal" style="background:#f1f5f9;" onclick="closeModal('edit-pin-modal')">Batal</button>
                 <button class="btn-modal" style="background:var(--primary); color:white;" onclick="confirmChangePin()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDIT INFO MITRA (BARU) -->
+    <div id="edit-vendor-info-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title">Edit Info Mitra</div>
+            <input type="hidden" id="evi-id">
+            <div class="form-group">
+                <label class="form-label">ID Mitra (Tidak dapat diubah)</label>
+                <input type="text" id="evi-id-display" class="form-input" disabled style="background:#f1f5f9; color:#999;">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Nama Warung</label>
+                <input type="text" id="evi-name" class="form-input">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal" style="background:#f1f5f9;" onclick="closeModal('edit-vendor-info-modal')">Batal</button>
+                <button class="btn-modal" style="background:var(--primary); color:white;" onclick="saveVendorInfoUpdate()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDIT PRODUK (BARU) -->
+    <div id="edit-product-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title">Edit Menu</div>
+            <input type="hidden" id="eprod-id">
+            <div class="form-group">
+                <label class="form-label">Nama Menu</label>
+                <input type="text" id="eprod-name" class="form-input">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Kategori</label>
+                <input type="text" id="eprod-category" class="form-input" placeholder="Contoh: Makanan, Minuman">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Harga</label>
+                <input type="number" id="eprod-price" class="form-input">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal" style="background:#f1f5f9;" onclick="closeModal('edit-product-modal')">Batal</button>
+                <button class="btn-modal" style="background:var(--primary); color:white;" onclick="saveProductUpdate()">Simpan</button>
             </div>
         </div>
     </div>
@@ -632,14 +679,25 @@
                 vendorProducts.forEach(p => {
                     const isAvail = p.is_available !== false;
                     const isExclusive = p.is_exclusive === true;
+                    // Escape string untuk passing parameter function
+                    const safeName = p.nama_menu.replace(/'/g, "\\'");
+                    const safeCat = (p.category || '').replace(/'/g, "\\'");
                     
                     detailBody.innerHTML += `
                         <tr>
-                            <td data-label="Menu" style="font-weight:600;">${p.nama_menu}</td>
+                            <td data-label="Menu & Kategori">
+                                <div style="font-weight:600;">${p.nama_menu}</div>
+                                <div style="font-size:11px; color:var(--gray); background:#f1f5f9; display:inline-block; padding:2px 6px; border-radius:4px; margin-top:2px;">
+                                    ${p.category || 'Uncategorized'}
+                                </div>
+                            </td>
                             <td data-label="Harga">${parseInt(p.harga).toLocaleString()}</td>
                             <td data-label="Stok"><button class="btn-status ${isAvail ? 'open' : 'closed'}" onclick="toggleProductStock('${p.id}', ${isAvail})">${isAvail ? 'Ada' : 'Habis'}</button></td>
                             <td data-label="Aksi">
                                 <div style="display:flex; gap:5px; justify-content: flex-end;">
+                                    <button class="action-btn btn-view" title="Edit Menu" onclick="openEditProduct('${p.id}', '${safeName}', '${p.harga}', '${safeCat}')">
+                                        <i class="ph-bold ph-pencil-simple"></i>
+                                    </button>
                                     <button class="action-btn btn-exclusive ${isExclusive ? 'active' : ''}" title="${isExclusive ? 'Hapus dari Exclusive' : 'Jadikan Exclusive'}" onclick="toggleExclusive('${p.id}', ${isExclusive})">
                                         <i class="ph-fill ph-diamond"></i>
                                     </button>
@@ -750,6 +808,63 @@
             }
         }
 
+        // EDIT VENDOR INFO (NAMA)
+        window.openEditVendorInfo = (id, currentName) => {
+            document.getElementById('evi-id').value = id;
+            document.getElementById('evi-id-display').value = id;
+            document.getElementById('evi-name').value = currentName;
+            document.getElementById('edit-vendor-info-modal').style.display = 'flex';
+        }
+
+        window.saveVendorInfoUpdate = async () => {
+            const id = document.getElementById('evi-id').value;
+            const newName = document.getElementById('evi-name').value.trim();
+            
+            if(!newName) return alert("Nama warung tidak boleh kosong");
+
+            try {
+                await updateDoc(doc(db, "vendors", id), { nama_warung: newName });
+                
+                // Opsional: Update nama vendor di semua produk terkait (batch update disarankan untuk produksi)
+                // Di sini kita hanya update vendor data agar simpel
+                
+                closeModal('edit-vendor-info-modal');
+                alert("Info Mitra Berhasil Diupdate!");
+            } catch(e) {
+                alert("Gagal update: " + e.message);
+            }
+        }
+
+        // EDIT PRODUCT (KATEGORI, HARGA, NAMA)
+        window.openEditProduct = (id, name, price, category) => {
+            document.getElementById('eprod-id').value = id;
+            document.getElementById('eprod-name').value = name;
+            document.getElementById('eprod-price').value = price;
+            document.getElementById('eprod-category').value = category === 'Uncategorized' ? '' : category;
+            document.getElementById('edit-product-modal').style.display = 'flex';
+        }
+
+        window.saveProductUpdate = async () => {
+            const id = document.getElementById('eprod-id').value;
+            const name = document.getElementById('eprod-name').value.trim();
+            const price = parseInt(document.getElementById('eprod-price').value);
+            const category = document.getElementById('eprod-category').value.trim();
+
+            if(!name || !price) return alert("Nama dan Harga wajib diisi!");
+
+            try {
+                await updateDoc(doc(db, "products", id), {
+                    nama_menu: name,
+                    harga: price,
+                    category: category
+                });
+                closeModal('edit-product-modal');
+                alert("Menu berhasil direvisi!");
+            } catch(e) {
+                alert("Gagal update menu: " + e.message);
+            }
+        }
+
         // GANTI PIN FUNCTIONS
         window.openChangePinModal = (id, name) => {
             document.getElementById('ep-id').value = id;
@@ -842,6 +957,9 @@
                             <td data-label="Status"><button class="btn-status ${isOpen ? 'open' : 'closed'}" onclick="toggleStatus('${v.id}', '${v.status}')">${v.status}</button></td>
                             <td data-label="Aksi">
                                 <div style="display:flex; gap:5px; justify-content: flex-end;">
+                                    <button class="action-btn btn-edit-info" title="Edit Info Warung" onclick="openEditVendorInfo('${v.id}', '${v.nama_warung}')">
+                                        <i class="ph-bold ph-pencil-simple"></i>
+                                    </button>
                                     <button class="action-btn btn-edit-pin" title="Ganti PIN" onclick="openChangePinModal('${v.id}', '${v.nama_warung}')">
                                         <i class="ph-bold ph-key"></i>
                                     </button>
