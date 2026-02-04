@@ -134,16 +134,18 @@
         }
 
         .search-box { 
-            background: white; 
+            /* UPDATED: Warna Orange Transparansi 90% (Opacity 10%) agar lebih terlihat */
+            background: rgba(255, 102, 0, 0.1); 
             border-radius: 18px; 
             padding: 12px 18px; 
             display: flex; 
             align-items: center; 
             gap: 12px; 
-            color: var(--gray); 
+            color: var(--dark); 
             transition: 0.3s; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
-            border: 1px solid rgba(0,0,0,0.03);
+            /* Shadow dan Border Orange Tipis */
+            box-shadow: 0 4px 15px rgba(255, 102, 0, 0.1); 
+            border: 1px solid rgba(255, 102, 0, 0.2);
         }
         
         .search-input { 
@@ -156,11 +158,34 @@
             color: var(--dark); 
             font-size: 14px; 
         }
-        .search-input::placeholder { color: #bbb; }
+        /* Placeholder warna orange gelap agar terbaca jelas di background orange muda */
+        .search-input::placeholder { color: #d97736; }
 
-        /* KATEGORI */
-        .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px 10px; padding: 10px 15px 25px 15px; background: var(--white); margin-bottom: 8px; border-radius: 20px; margin: 0 10px 10px 10px; }
-        .cat-item { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
+        /* KATEGORI - UPDATED MENJADI SATU BARIS & INFINITE SCROLL */
+        .cat-grid { 
+            display: flex; /* Ganti dari Grid ke Flex agar satu baris */
+            gap: 20px; 
+            padding: 10px 15px 25px 15px; 
+            background: var(--white); 
+            margin-bottom: 8px; 
+            border-radius: 20px; 
+            margin: 0 10px 10px 10px; 
+            overflow-x: auto; /* Bisa discroll horizontal */
+            scrollbar-width: none; /* Sembunyikan scrollbar di Firefox */
+            -webkit-overflow-scrolling: touch; /* Smooth scroll di iOS */
+        }
+        .cat-grid::-webkit-scrollbar { display: none; } /* Sembunyikan scrollbar di Chrome/Safari */
+        
+        .cat-item { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 8px; 
+            cursor: pointer; 
+            min-width: 75px; /* Agar item tidak mengecil/gepeng */
+            flex-shrink: 0;  /* Mencegah item menyusut */
+        }
+        
         .cat-icon-box { width: 75px; height: 75px; background: #fff; border-radius: 24px; display: flex; align-items: center; justify-content: center; font-size: 36px; color: var(--primary); box-shadow: 0 6px 15px rgba(0,0,0,0.08); border: 1px solid #f0f0f0; transition: transform 0.1s; }
         .cat-icon-box img { width: 48px !important; height: 48px !important; object-fit: contain; }
         .cat-item:active .cat-icon-box { transform: scale(0.9); }
@@ -254,12 +279,19 @@
             border-color: #004D40;
         }
         
-        /* Khusus Exclusive */
+        /* Khusus Exclusive - UPDATED: Background Orange Transparansi 90% */
+        #wrapper-exclusive {
+            /* Orange dengan Opacity 10% (Transparansi 90%) */
+            background: rgba(255, 102, 0, 0.1);
+        }
+        
+        /* Update aksen tombol di dalam exclusive agar senada dengan background baru */
         #wrapper-exclusive .promo-btn {
-            background: #4A148C;
+            background: #E65100; /* Dark Orange */
         }
         #wrapper-exclusive .promo-icon-circle {
-            color: #4A148C;
+            color: #E65100;
+            border-color: #E65100;
         }
 
         /* Bagian Kanan (Scroll) */
@@ -1024,7 +1056,22 @@
             const vendorReviews = allReviews.filter(r => r.vendor_name === vendor.nama_warung);
             const avgRating = vendorReviews.length > 0 ? (vendorReviews.reduce((acc, curr) => acc + curr.rating, 0) / vendorReviews.length).toFixed(1) : "New";
             document.getElementById('vendor-avg-rating').innerText = avgRating;
-            if (vendorReviews.length === 0) { reviewsContainer.innerHTML = `<div style="padding:15px; color:#888; font-size:13px; font-style:italic; width:100%; text-align:center;">Belum ada komentar.</div>`; } else { vendorReviews.forEach(rev => { let starsHtml = ''; for(let i=0; i<5; i++) { starsHtml += i < rev.rating ? '<i class="ph-fill ph-star"></i>' : '<i class="ph ph-star"></i>'; } reviewsContainer.innerHTML += `<div class="review-card-scroll"><div class="rc-header"><div class="rc-user"><i class="ph-fill ph-user-circle"></i> ${rev.user}</div><div class="rc-stars">${starsHtml}</div></div><div class="rc-text">"${rev.text}"</div></div>`; }); }
+            if (vendorReviews.length === 0) { 
+                reviewsContainer.innerHTML = `<div style="padding:15px; color:#888; font-size:13px; font-style:italic; width:100%; text-align:center;">Belum ada komentar.</div>`; 
+            } else { 
+                vendorReviews.forEach(rev => { 
+                    let starsHtml = ''; 
+                    for(let i=0; i<5; i++) { starsHtml += i < rev.rating ? '<i class="ph-fill ph-star"></i>' : '<i class="ph ph-star"></i>'; } 
+                    
+                    // --- PRIVASI NAMA: Ambil 2 huruf pertama, sisanya bintang ---
+                    let displayName = rev.user;
+                    if (displayName.length > 2) {
+                        displayName = displayName.substring(0, 2) + "***";
+                    }
+                    
+                    reviewsContainer.innerHTML += `<div class="review-card-scroll"><div class="rc-header"><div class="rc-user"><i class="ph-fill ph-user-circle"></i> ${displayName}</div><div class="rc-stars">${starsHtml}</div></div><div class="rc-text">"${rev.text}"</div></div>`; 
+                }); 
+            }
             openPage('vendor');
         }
 
@@ -1321,6 +1368,33 @@
             }
         }
         loadData();
+
+        // LOGIKA INFINITE SCROLL UNTUK KATEGORI (RODA PUTAR)
+        // Kita menduplikasi item kategori agar saat discroll mentok, 
+        // posisinya bisa di-reset ke awal tanpa terlihat oleh user (seamless loop).
+        setTimeout(() => {
+            const cGrid = document.querySelector('.cat-grid');
+            if(cGrid && cGrid.children.length > 0) {
+                // 1. Clone semua item anak
+                const items = Array.from(cGrid.children);
+                items.forEach(item => {
+                    const clone = item.cloneNode(true);
+                    cGrid.appendChild(clone);
+                });
+
+                // 2. Tambahkan Event Listener Scroll
+                cGrid.addEventListener('scroll', () => {
+                    const maxScrollLeft = cGrid.scrollWidth / 2; // Batas setengah (karena kita duplikasi)
+                    
+                    // Jika scroll sudah melewati batas setengah (masuk ke area clone)
+                    // Kita lempar balik ke posisi awal (set pertama)
+                    // Dikurangi 5px sebagai toleransi agar tidak macet
+                    if (cGrid.scrollLeft >= maxScrollLeft - 5) {
+                        cGrid.scrollLeft -= maxScrollLeft;
+                    }
+                });
+            }
+        }, 1000); // Delay sedikit memastikan elemen sudah render
     </script>
 </body>
 </html>
