@@ -64,7 +64,8 @@
         }
 
         .nav-left { display: flex; align-items: center; gap: 12px; }
-        .brand-logo-img { width: 40px; height: 40px; border-radius: 12px; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .brand-logo-img { width: 40px; height: 40px; border-radius: 12px; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; }
+        .brand-logo-img:active { transform: scale(0.9); }
         .user-loc { font-size: 11px; color: #666; cursor: pointer; line-height: 1.2; }
         .user-loc b { display: block; font-size: 14px; color: var(--dark); font-weight: 800; }
         .header-icon { font-size: 24px; color: var(--dark); padding: 8px; background: #f0f0f0; border-radius: 50%; cursor: pointer; transition: 0.2s; }
@@ -233,13 +234,27 @@
         .section-group { background: var(--white); margin-bottom: 8px; padding-bottom: 15px; }
         .section-title { padding: 15px 15px 10px 15px; font-size: 16px; font-weight: 800; color: var(--dark); display: flex; justify-content: space-between; align-items: center; }
         
+        /* --- NEW: STICKY WARUNG HEADER --- */
+        #warung-sticky-header {
+            position: -webkit-sticky;
+            position: sticky;
+            /* Top kira-kira Nav (70) + Search Container (75) = 145px */
+            top: 135px; 
+            z-index: 990;
+            background: var(--bg);
+            margin-top: 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            transition: top 0.3s;
+        }
+
         /* CARD STYLE */
         .scroll-container { display: flex; overflow-x: auto; gap: 10px; padding: 0 15px; scrollbar-width: none; }
         .h-card { min-width: 145px; width: 145px; background: white; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm); position: relative; cursor: pointer; border: 1px solid rgba(0,0,0,0.05); flex-shrink: 0; }
         .h-img { width: 100%; height: 110px; object-fit: cover; background: #eee; }
         .btn-love { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.9); backdrop-filter: blur(4px); width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #bbb; box-shadow: 0 2px 6px rgba(0,0,0,0.15); z-index: 5; transition: 0.2s; }
         .btn-love.active { color: #E91E63; }
-        .badge-priority { position: absolute; top: 8px; left: 8px; background: linear-gradient(135deg, #6200EA, #9D46FF); color: white; font-size: 8px; padding: 3px 6px; border-radius: 4px; font-weight: 700; z-index: 5; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 3px; }
+        .badge-priority { position: absolute; top: 8px; left: 8px; background: rgba(255, 193, 7, 0.5); backdrop-filter: blur(2px); color: #000; font-size: 8px; padding: 3px 6px; border-radius: 4px; font-weight: 700; z-index: 5; display: flex; align-items: center; gap: 3px; }
         .badge-exclusive { position: absolute; bottom: 8px; right: 8px; background: linear-gradient(45deg, #FF6600, #FF9900); color: white; font-size: 8px; padding: 3px 6px; border-radius: 4px; font-weight: 800; z-index: 2; box-shadow: 0 2px 5px rgba(0,0,0,0.2); max-width: 100px; line-height: 1.2; text-align: right; }
         .badge-habis-overlay { position:absolute; inset:0; background:rgba(255,255,255,0.7); display:flex; align-items:center; justify-content:center; z-index:4; border-radius:12px; }
         .badge-habis-text { background:rgba(0,0,0,0.8); color:white; font-weight:800; font-size:12px; padding:5px 10px; border-radius:8px; }
@@ -301,7 +316,30 @@
 
         .pd-img { width: 100%; height: 250px; object-fit: cover; }
         .pd-content { background: white; padding: 25px 20px; border-top-left-radius: 30px; border-top-right-radius: 30px; margin-top: -30px; position: relative; min-height: 60vh; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); }
-        .pd-vendor { font-size: 12px; color: var(--gray); font-weight: 600; margin-bottom: 5px; display: flex; align-items: center; gap: 5px; }
+        
+        /* Updated PD-VENDOR styles */
+        .pd-vendor { 
+            font-size: 12px; 
+            color: var(--dark); 
+            font-weight: 700; 
+            margin-bottom: 12px; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            cursor: pointer; 
+            transition: 0.2s;
+            padding: 5px 0;
+        }
+        .pd-vendor:active { opacity: 0.7; }
+        .pd-vendor-img {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #eee;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
         .pd-title { font-size: 22px; font-weight: 800; margin-bottom: 10px; line-height: 1.3; }
         .pd-price-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
         .pd-real { font-size: 22px; font-weight: 800; color: var(--primary); }
@@ -440,7 +478,8 @@
             <!-- 1. STICKY TOP NAV -->
             <nav class="top-nav-sticky">
                 <div class="nav-left">
-                    <img src="https://i.ibb.co.com/HLrVwN8d/Whats-App-Image-2026-01-29-at-10-12-08.jpg" alt="Logo Projekgo" class="brand-logo-img">
+                    <!-- LOGO KLIK KE WEB -->
+                    <img src="https://i.ibb.co.com/HLrVwN8d/Whats-App-Image-2026-01-29-at-10-12-08.jpg" alt="Logo Projekgo" class="brand-logo-img" onclick="window.location.href='https://projekgo.id'">
                     <div class="user-loc" onclick="detectLocation()">
                         Lokasi Kamu
                         <b id="loc-text">Gombong, Kebumen ▾</b>
@@ -527,9 +566,9 @@
                 <div class="promo-scroll-side" id="container-exclusive"></div>
             </div>
             
-            <!-- Warung -->
+            <!-- Warung (TITLE STICKY) -->
             <div style="margin-bottom: 8px; padding-bottom: 15px;">
-                <div class="section-title"><span>🏪 Warung Sekitar Gombong</span></div>
+                <div class="section-title" id="warung-sticky-header"><span>🏪 Warung Sekitar Gombong</span></div>
                 <div id="container-warung" class="warung-list" style="padding: 0; gap: 0;"></div>
             </div>
         </div> 
@@ -544,7 +583,11 @@
             
             <img id="pd-img" class="pd-img" src="">
             <div class="pd-content">
-                <div id="pd-vendor" class="pd-vendor"><i class="ph-fill ph-storefront"></i> Nama Warung</div>
+                <!-- UPDATED VENDOR PROFILE IN DETAIL -->
+                <div id="pd-vendor" class="pd-vendor">
+                    <!-- Content injected via JS -->
+                </div>
+                
                 <div id="pd-title" class="pd-title">Nama Menu</div>
                 
                 <div class="pd-price-row">
@@ -929,8 +972,36 @@
 
         window.openProductDetail = (id) => {
             const item = allProducts.find(p => p.id === id); if(!item) return;
-            currentDetailProduct = item; const img = item.foto_url || 'https://placehold.co/400?text=Menu'; const realPrice = parseInt(item.harga); const fakePrice = Math.ceil(realPrice * 1.2); const vendorName = item.vendor_name || "Warung Projekgo"; const desc = item.deskripsi || "Menu spesial dari Projekgo. Terbuat dari bahan pilihan, dimasak dengan bumbu rahasia yang menggugah selera. Porsi pas dan bikin kenyang.";
-            document.getElementById('pd-img').src = img; document.getElementById('pd-vendor').innerText = vendorName; document.getElementById('pd-title').innerText = item.nama_menu; document.getElementById('pd-price').innerText = "Rp " + realPrice.toLocaleString(); document.getElementById('pd-coret').innerText = "Rp " + fakePrice.toLocaleString(); document.getElementById('pd-btn-price').innerText = "Rp " + realPrice.toLocaleString(); document.getElementById('pd-desc').innerText = desc;
+            currentDetailProduct = item; 
+            const img = item.foto_url || 'https://placehold.co/400?text=Menu'; 
+            const realPrice = parseInt(item.harga); 
+            const fakePrice = Math.ceil(realPrice * 1.2); 
+            const desc = item.deskripsi || "Menu spesial dari Projekgo. Terbuat dari bahan pilihan, dimasak dengan bumbu rahasia yang menggugah selera. Porsi pas dan bikin kenyang.";
+            
+            // --- UPDATED VENDOR LOGIC ---
+            const vendorName = item.vendor_name || "Warung Projekgo";
+            let vendorImg = 'https://cdn-icons-png.flaticon.com/512/1046/1046857.png';
+            
+            // Cari data vendor di allVendors berdasarkan ID
+            const vendorObj = allVendors.find(v => v.id === item.vendor_id);
+            if (vendorObj && vendorObj.shop_photo) {
+                vendorImg = vendorObj.shop_photo;
+            }
+
+            // Update DOM Elements
+            document.getElementById('pd-img').src = img; 
+            
+            // Update bagian Vendor Profile dengan Gambar & Nama, serta Click Event
+            const vendorEl = document.getElementById('pd-vendor');
+            vendorEl.innerHTML = `<img src="${vendorImg}" class="pd-vendor-img"> <span>${vendorName}</span> <i class="ph-bold ph-caret-right" style="font-size:12px; color:#ccc; margin-left:auto;"></i>`;
+            vendorEl.onclick = () => openVendorPage(item.vendor_id); // Klik menuju profil warung
+
+            document.getElementById('pd-title').innerText = item.nama_menu; 
+            document.getElementById('pd-price').innerText = "Rp " + realPrice.toLocaleString(); 
+            document.getElementById('pd-coret').innerText = "Rp " + fakePrice.toLocaleString(); 
+            document.getElementById('pd-btn-price').innerText = "Rp " + realPrice.toLocaleString(); 
+            document.getElementById('pd-desc').innerText = desc;
+            
             const btn = document.getElementById('pd-add-btn'); const btnText = document.getElementById('pd-add-text');
             if(item.is_available === false) { btn.style.background = "#ccc"; btn.style.cursor = "not-allowed"; btn.onclick = () => showToast('Maaf, stok habis 🙏'); btnText.innerText = "Stok Habis"; } else { btn.style.background = "var(--primary)"; btn.style.cursor = "pointer"; btn.onclick = () => addToCartFromDetail(); btnText.innerText = "Tambah ke Keranjang"; }
             const varBox = document.getElementById('variant-section'); const varOpts = document.getElementById('pd-var-options'); varOpts.innerHTML = ''; 
@@ -1012,21 +1083,49 @@
 
             const availableProducts = allProducts.filter(p => p.is_available !== false);
             const bestSellerItems = availableProducts.slice(0, 15);
+            
+            // Flag untuk menandai apakah elemen sudah dirender
             let bestSellerInserted = false;
+            let bannerInserted = false;
+            
+            // FUNGSI 1: Render Menu Paling Laris
+            const renderBestSeller = () => {
+                if (bestSellerInserted) return;
+                if (bestSellerItems.length > 0) {
+                    const promoDiv = document.createElement('div');
+                    promoDiv.className = 'promo-section-layout';
+                    promoDiv.id = 'wrapper-best-seller';
+                    promoDiv.style.marginBottom = "15px"; 
+                    promoDiv.style.marginTop = "5px";
+                    promoDiv.innerHTML = `<div class="promo-info-side"><div class="promo-icon-circle"><i class="ph-fill ph-fire"></i></div><h3 class="promo-title">Menu Paling Laris</h3><p class="promo-subtitle">Wajib Coba!</p><button class="promo-btn" onclick="openCategoryPage('Paling Laris')">Order Now!</button></div><div class="promo-scroll-side" id="container-best-in-list"></div>`;
+                    c.appendChild(promoDiv);
+                    renderHorizontalScroll('container-best-in-list', bestSellerItems);
+                }
+                bestSellerInserted = true;
+            };
+
+            // FUNGSI 2: Render Banner Gambar
+            const renderBanner = () => {
+                if (bannerInserted) return;
+                const bannerDiv = document.createElement('div');
+                bannerDiv.style.padding = "0 15px 15px 15px";
+                bannerDiv.innerHTML = `<img src="https://i.ibb.co.com/mr2Ltjzq/Whats-App-Image-2026-02-04-at-20-48-22.jpg" style="width:100%; height:auto; border-radius:15px; box-shadow:var(--shadow-sm); display:block;">`;
+                c.appendChild(bannerDiv);
+                bannerInserted = true;
+            };
             
             vends.forEach((v, index) => {
-                if (index === 5 && bestSellerItems.length > 0) {
-                     const promoDiv = document.createElement('div');
-                     promoDiv.className = 'promo-section-layout';
-                     promoDiv.id = 'wrapper-best-seller';
-                     promoDiv.style.marginBottom = "15px"; 
-                     promoDiv.style.marginTop = "5px";
-                     promoDiv.innerHTML = `<div class="promo-info-side"><div class="promo-icon-circle"><i class="ph-fill ph-fire"></i></div><h3 class="promo-title">Menu Paling Laris</h3><p class="promo-subtitle">Wajib Coba!</p><button class="promo-btn" onclick="openCategoryPage('Paling Laris')">Order Now!</button></div><div class="promo-scroll-side" id="container-best-in-list"></div>`;
-                     c.appendChild(promoDiv);
-                     renderHorizontalScroll('container-best-in-list', bestSellerItems);
-                     bestSellerInserted = true;
+                // LOGIKA 1: Muncul DIBAWAH warung ke-5 (artinya SEBELUM warung ke-6/index 5 dirender)
+                if (index === 5) {
+                    renderBestSeller();
                 }
 
+                // LOGIKA 2: Muncul DIBAWAH warung ke-9 (artinya SEBELUM warung ke-10/index 9 dirender)
+                if (index === 9) {
+                    renderBanner();
+                }
+
+                // Render Card Warung
                 const vendorProds = allProducts.filter(p => p.vendor_id === v.id && p.is_available !== false);
                 const s = (v.status||'BUKA').toUpperCase()==='BUKA'; 
                 const img = v.shop_photo || 'https://cdn-icons-png.flaticon.com/512/1046/1046857.png'; 
@@ -1052,17 +1151,13 @@
                 div.innerHTML = `<div style="position:relative;"><img src="${img}" class="wli-img">${!s ? '<div class="badge-habis-overlay" style="border-radius:12px;"><span class="badge-habis-text">TUTUP</span></div>' : ''}</div><div class="wli-content"><div class="wli-title">${v.nama_warung || 'Warung Projekgo'}</div><div class="wli-meta"><i class="ph-fill ph-star" style="color:#FFC107;"></i> <b>${rating}</b> <span style="color:#999;">(${reviewCount})</span> • $$$ • Aneka Makanan</div><div class="wli-price-row"><i class="ph-bold ph-tag" style="color:var(--primary);"></i><span style="color:var(--primary); font-weight:700;">Rp${formattedPrice}rb</span><span style="text-decoration:line-through; color:#bbb;">Rp${fakeCoret}rb</span><span style="color:#888;">• ${dist} km</span></div><div style="font-size:10px; color:${statusColor}; margin-bottom:0px; font-weight:700; line-height:1.2;">${statusText}</div><div class="wli-badges"><img src="https://i.ibb.co.com/Rk6TL6S7/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT.png" class="wli-badge-img"><img src="https://i.ibb.co.com/nqW2c7Jx/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT-1.png" class="wli-badge-img"><img src="https://i.ibb.co.com/9kmr57kn/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT-2.png" class="wli-badge-img"></div></div>`;
                 c.appendChild(div);
             });
-
-            if (!bestSellerInserted && bestSellerItems.length > 0 && vends.length > 0) {
-                 const promoDiv = document.createElement('div');
-                 promoDiv.className = 'promo-section-layout';
-                 promoDiv.id = 'wrapper-best-seller';
-                 promoDiv.style.marginBottom = "20px";
-                 promoDiv.style.marginTop = "8px";
-                 promoDiv.innerHTML = `<div class="promo-info-side"><div class="promo-icon-circle"><i class="ph-fill ph-fire"></i></div><h3 class="promo-title">Menu Paling Laris</h3><p class="promo-subtitle">Wajib Coba!</p><button class="promo-btn" onclick="openCategoryPage('Paling Laris')">Order Now!</button></div><div class="promo-scroll-side" id="container-best-in-list-end"></div>`;
-                 c.appendChild(promoDiv);
-                 renderHorizontalScroll('container-best-in-list-end', bestSellerItems);
-            }
+            
+            // LOGIKA FALLBACK:
+            // Jika jumlah warung kurang dari 5, "Paling Laris" muncul paling bawah.
+            if (!bestSellerInserted) renderBestSeller();
+            
+            // Jika jumlah warung kurang dari 9, "Banner" muncul paling bawah (setelah Paling Laris).
+            if (!bannerInserted) renderBanner();
         }
         loadData();
 
