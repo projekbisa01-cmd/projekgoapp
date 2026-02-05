@@ -691,7 +691,7 @@
             <div class="promo-section-layout" id="wrapper-exclusive">
                 <div class="promo-info-side">
                     <!-- Removed .promo-icon-circle wrapper -->
-                    <img src="https://i.ibb.co.com/WpxhwSzm/exclusive-offer-golden-medal-icon-seal-sign-isolated-on-white-background-illustration-free-vector-re.png" style="width:80px; height:80px; object-fit:contain; margin-bottom:10px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.1));">
+                    <img src="https://i.ibb.co.com/WpxhwSzm/exclusive-offer-golden-medal-icon-seal-sign-isolated-on-white-background-illustration-free-vector-re.png" style="width:110px; height:110px; object-fit:contain; margin-bottom:10px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.1));">
                     <h3 class="promo-title">Exclusive di Projekgo</h3>
                     <p class="promo-subtitle">Hanya ada di Projekgo</p>
                     <button class="promo-btn" onclick="openCategoryPage('Exclusive')">Lihat Semua</button>
@@ -1589,6 +1589,7 @@
             
             let bestSellerInserted = false;
             let bannerInserted = false;
+            let secondBannerInserted = false; // Flag untuk banner kedua
             
             const renderBestSeller = () => {
                 if (bestSellerInserted) return;
@@ -1598,7 +1599,7 @@
                     promoDiv.id = 'wrapper-best-seller';
                     promoDiv.style.marginBottom = "15px"; 
                     promoDiv.style.marginTop = "5px";
-                    promoDiv.innerHTML = `<div class="promo-info-side"><img src="https://i.ibb.co.com/Q2mwSMT/best-sell-removebg-preview.png" style="width:80px; height:80px; object-fit:contain; margin-bottom:10px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.1));"><h3 class="promo-title">Menu Paling Laris</h3><p class="promo-subtitle">Wajib Coba!</p><button class="promo-btn" onclick="openCategoryPage('Paling Laris')">Order Now!</button></div><div class="promo-scroll-side" id="container-best-in-list"></div>`;
+                    promoDiv.innerHTML = `<div class="promo-info-side"><img src="https://i.ibb.co.com/Q2mwSMT/best-sell-removebg-preview.png" style="width:110px; height:110px; object-fit:contain; margin-bottom:10px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.1));"><h3 class="promo-title">Menu Paling Laris</h3><p class="promo-subtitle">Wajib Coba!</p><button class="promo-btn" onclick="openCategoryPage('Paling Laris')">Order Now!</button></div><div class="promo-scroll-side" id="container-best-in-list"></div>`;
                     c.appendChild(promoDiv);
                     renderHorizontalScroll('container-best-in-list', bestSellerItems);
                 }
@@ -1613,10 +1614,21 @@
                 c.appendChild(bannerDiv);
                 bannerInserted = true;
             };
+
+            // Fungsi untuk render banner kedua (setelah warung ke-15)
+            const renderSecondBanner = () => {
+                if (secondBannerInserted) return;
+                const bannerDiv = document.createElement('div');
+                bannerDiv.style.padding = "0 15px 15px 15px";
+                bannerDiv.innerHTML = `<div style="position:relative;"><img src="https://i.ibb.co.com/HfPJ54g7/Desain-tanpa-judul-6.png" style="width:100%; height:auto; border-radius:15px; box-shadow:var(--shadow-sm); display:block;"></div>`;
+                c.appendChild(bannerDiv);
+                secondBannerInserted = true;
+            };
             
             vends.forEach((v, index) => {
                 if (index === 5) { renderBestSeller(); }
                 if (index === 9) { renderBanner(); }
+                if (index === 15) { renderSecondBanner(); } // Panggil fungsi di index ke-15
 
                 const vendorProds = allProducts.filter(p => p.vendor_id === v.id && p.is_available !== false);
                 const s = (v.status||'BUKA').toUpperCase()==='BUKA'; 
