@@ -188,7 +188,6 @@
         }
         .cat-grid::-webkit-scrollbar { display: none; }
         
-        /* Updated: Menambahkan transisi pada container item kategori */
         .cat-item { 
             display: flex; 
             flex-direction: column; 
@@ -199,19 +198,14 @@
             flex-shrink: 0; 
             transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
         }
-        
-        /* Updated: Efek tekan (bergerak) pada item kategori */
-        .cat-item:active { 
-            transform: scale(0.9); 
-        }
+        .cat-item:active { transform: scale(0.9); }
 
         .cat-icon-box { width: 75px; height: 75px; background: transparent; border-radius: 24px; display: flex; align-items: center; justify-content: center; font-size: 36px; color: var(--primary); box-shadow: none; border: none; }
         .cat-icon-box img { width: 52px !important; height: 52px !important; object-fit: contain; }
         
-        /* Removed old specific icon active state to use the parent's scale instead */
         .cat-name { font-size: 12px; font-weight: 700; color: #333; text-align: center; line-height: 1.2; }
 
-        /* --- SECTION LAIN (Layout Lama) --- */
+        /* --- SECTION LAIN --- */
         .promo-section-layout { display: flex; align-items: center; padding: 15px 0 15px 20px; margin-bottom: 8px; overflow-x: auto; position: relative; gap: 12px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
         .promo-section-layout::-webkit-scrollbar { display: none; }
         #wrapper-exclusive { background: rgba(255, 102, 0, 0.1); }
@@ -234,11 +228,10 @@
         .section-group { background: var(--white); margin-bottom: 8px; padding-bottom: 15px; }
         .section-title { padding: 15px 15px 10px 15px; font-size: 16px; font-weight: 800; color: var(--dark); display: flex; justify-content: space-between; align-items: center; }
         
-        /* --- NEW: STICKY WARUNG HEADER --- */
+        /* --- STICKY WARUNG HEADER --- */
         #warung-sticky-header {
             position: -webkit-sticky;
             position: sticky;
-            /* Top kira-kira Nav (70) + Search Container (75) = 145px */
             top: 135px; 
             z-index: 990;
             background: var(--bg);
@@ -317,7 +310,6 @@
         .pd-img { width: 100%; height: 250px; object-fit: cover; }
         .pd-content { background: white; padding: 25px 20px; border-top-left-radius: 30px; border-top-right-radius: 30px; margin-top: -30px; position: relative; min-height: 60vh; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); }
         
-        /* Updated PD-VENDOR styles */
         .pd-vendor { 
             font-size: 12px; 
             color: var(--dark); 
@@ -361,17 +353,91 @@
         .vh-name { font-size: 24px; font-weight: 800; margin-bottom: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
         .vh-meta { font-size: 12px; display: flex; gap: 10px; opacity: 0.95; font-weight: 500; }
         
-        .review-card { background: #FFF8E1; border: 1px dashed #FFC107; border-radius: 12px; padding: 15px; margin: 15px 0; }
-        .rc-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
-        .rc-user { font-weight: 700; font-size: 12px; display: flex; align-items: center; gap: 5px; color: #F57F17; }
-        .rc-stars { color: #FFC107; font-size: 10px; display: flex; gap: 1px; }
-        .rc-text { font-size: 12px; font-style: italic; color: #555; line-height: 1.4; }
+        /* UPDATED: REVIEW CARD STYLING */
+        .review-card-scroll { 
+            min-width: 280px; 
+            /* Kontainer warna abu */
+            background: #F5F5F5; 
+            border: 1px solid #e0e0e0;
+            border-radius: 16px; 
+            padding: 15px; 
+            flex-shrink: 0; 
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        /* UPDATED: Kotak Teks Putih */
+        .rc-text-box { 
+            background: white; 
+            padding: 12px; 
+            border-radius: 10px; 
+            border: 1px solid rgba(0,0,0,0.05);
+            font-size: 12px; 
+            color: #444; 
+            line-height: 1.5; 
+            font-style: normal;
+            /* Tambahkan relative positioning untuk arrow kecil jika mau, tapi simple kotak putih sudah oke */
+        }
+
+        /* NEW: Footer Ulasan (Nama & Bintang di bawah) */
+        .rc-footer {
+            display: flex;
+            align-items: center;
+            gap: 8px; /* Jarak antara nama dan bintang */
+            padding-left: 4px; /* Sedikit geser ke kanan agar sejajar visual */
+        }
+        
+        .rc-user-small {
+            font-size: 10px; /* Lebih kecil dari font ulasan (12px) */
+            font-style: italic;
+            font-weight: 600;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .rc-stars-small { 
+            color: #FFC107; 
+            font-size: 10px; /* Ukuran bintang kecil */
+            display: flex; 
+            gap: 1px; 
+        }
+        
         .review-summary { background: white; padding: 15px; margin: 15px 15px 5px 15px; border-radius: 12px; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 15px; border: 1px solid #eee; }
         .rs-big { font-size: 32px; font-weight: 800; color: var(--dark); display: flex; align-items: center; gap: 5px; }
         .rs-big i { color: #FFC107; }
         .rs-info { font-size: 12px; color: #666; line-height: 1.3; }
-        .review-scroll-container { display: flex; overflow-x: auto; gap: 12px; padding: 5px 15px 15px 15px; margin-bottom: 10px; scrollbar-width: none; }
-        .review-card-scroll { min-width: 260px; background: #FFF8E1; border: 1px dashed #FFC107; border-radius: 12px; padding: 15px; flex-shrink: 0; font-size: 12px; }
+        .review-scroll-container { display: flex; overflow-x: auto; gap: 12px; padding: 5px 15px 15px 15px; margin-bottom: 0px; scrollbar-width: none; }
+        
+        /* TOMBOL SELENGKAPNYA */
+        .btn-see-more-reviews {
+            display: block;
+            margin: 0 15px 20px 15px;
+            padding: 12px;
+            background: #fff;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            text-align: center;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .btn-see-more-reviews:active { background: var(--primary-light); }
+
+        /* Full Review List Item */
+        .review-list-item {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid #eee;
+        }
 
         .cart-section { background: white; padding: 20px; margin-bottom: 10px; }
         .cart-vendor-group { margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
@@ -494,10 +560,8 @@
             </div>
 
             <!-- 3. NEW: FLOATING 3D MENU (LAYANAN) -->
-            <!-- Layout mengambang diatas header dengan margin minus -->
             <div class="floating-menu-3d">
                 <div class="menu-3d-item" onclick="openServiceForm('Ngojek')">
-                    <!-- Icon Ngojek Baru (Transparent) -->
                     <img src="https://i.ibb.co.com/Fb71zHny/1023346-removebg-preview.png" class="icon-3d">
                     <div class="label-3d">Ngojek</div>
                 </div>
@@ -506,7 +570,6 @@
                     <div class="label-3d">Mobil</div>
                 </div>
                 <div class="menu-3d-item" onclick="openServiceForm('Kirim Paket')">
-                    <!-- Icon Kirim Baru (Transparent) -->
                     <img src="https://i.ibb.co.com/7NkBqtRf/desain-vektor-gaya-ikon-kotak-pengiriman-1250006-14080-removebg-preview-1.png" class="icon-3d">
                     <div class="label-3d">Kirim</div>
                 </div>
@@ -514,7 +577,6 @@
                     <img src="https://cdn-icons-png.flaticon.com/512/3081/3081840.png" class="icon-3d">
                     <div class="label-3d">Belanja</div>
                 </div>
-                <!-- Baris Kedua (Opsional jika ingin 4 kolom, icon berikutnya akan turun otomatis) -->
                  <div class="menu-3d-item" onclick="openServiceForm('Beli Obat')">
                     <img src="https://cdn-icons-png.flaticon.com/512/2966/2966327.png" class="icon-3d">
                     <div class="label-3d">Sehat</div>
@@ -533,18 +595,15 @@
                 </div>
             </div>
 
-            <!-- Added: Judul Kategori Pilihan -->
             <div class="section-title" style="margin-bottom: 0px; padding-bottom: 5px;">
                 <span>🍽️ Kategori Pilihan</span>
             </div>
 
-            <!-- TEXT HINT: GESER KE SAMPING -->
             <div class="swipe-hint-box">
                 <span class="swipe-hint-text">Geser ke samping</span>
                 <i class="ph-bold ph-caret-double-right swipe-hint-icon"></i>
             </div>
 
-            <!-- Kategori -->
             <div class="cat-grid">
                 <div class="cat-item" onclick="openCategoryPage('Sarapan')"><div class="cat-icon-box"><img src="https://i.ibb.co.com/XTM62zb/breakfast-10754741.png"></div><div class="cat-name">Sarapan</div></div>
                 <div class="cat-item" onclick="openCategoryPage('Pernasian')"><div class="cat-icon-box"><img src="https://i.ibb.co.com/V0MYgnpP/fried-rice-7056143.png"></div><div class="cat-name">Pernasian</div></div>
@@ -555,7 +614,6 @@
                 <div class="cat-item" onclick="openCategoryPage('Snack')"><div class="cat-icon-box"><img src="https://i.ibb.co.com/F4xtLpY9/kebab-6978201.png"></div><div class="cat-name">Snack</div></div>
             </div>
 
-            <!-- Exclusive Section -->
             <div class="promo-section-layout" id="wrapper-exclusive">
                 <div class="promo-info-side">
                     <div class="promo-icon-circle"><i class="ph-fill ph-diamond"></i></div>
@@ -566,7 +624,6 @@
                 <div class="promo-scroll-side" id="container-exclusive"></div>
             </div>
             
-            <!-- Warung (TITLE STICKY) -->
             <div style="margin-bottom: 8px; padding-bottom: 15px;">
                 <div class="section-title" id="warung-sticky-header"><span>🏪 Warung Sekitar Gombong</span></div>
                 <div id="container-warung" class="warung-list" style="padding: 0; gap: 0;"></div>
@@ -583,7 +640,6 @@
             
             <img id="pd-img" class="pd-img" src="">
             <div class="pd-content">
-                <!-- UPDATED VENDOR PROFILE IN DETAIL -->
                 <div id="pd-vendor" class="pd-vendor">
                     <!-- Content injected via JS -->
                 </div>
@@ -616,7 +672,6 @@
                 </button>
             </div>
         </div>
-
 
         <!-- ===== 3. HALAMAN KERANJANG ===== -->
         <div id="page-cart" class="page">
@@ -661,9 +716,22 @@
                 <div class="rs-info">Rata-rata rating dari pelanggan<br><span style="color:var(--primary); font-weight:700;">Kepuasan Terjamin</span></div>
             </div>
             <div class="section-title" style="padding-top:0;"><span>💬 Ulasan Pelanggan</span></div>
+            <!-- Updated: Container scroll untuk 2 review saja -->
             <div id="vendor-reviews" class="review-scroll-container"></div>
+            <!-- Container untuk tombol Lihat Semua -->
+            <div id="vendor-reviews-action"></div>
+
             <div class="section-title"><span>📋 Daftar Menu Lengkap</span></div>
             <div id="vendor-menu-list" class="vendor-menu-list" style="padding-bottom:40px;"></div>
+        </div>
+
+        <!-- ===== 7. NEW: HALAMAN SEMUA REVIEW ===== -->
+        <div id="page-all-reviews" class="page">
+            <div class="sub-header">
+                <div class="btn-back" onclick="goBack()"><i class="ph ph-arrow-left"></i></div>
+                <div class="page-title">Semua Ulasan</div>
+            </div>
+            <div id="all-reviews-list" style="padding: 20px 15px;"></div>
         </div>
 
         <!-- ===== HALAMAN LAIN ===== -->
@@ -776,6 +844,7 @@
 
         let rawProducts = [], allProducts = [], allVendors = [], allReviews = [], cart = [], favorites = JSON.parse(localStorage.getItem('favs')) || [];
         let currentDetailProduct = null, currentServiceType = "", pendingVariantItem = null, selectedVariantValue = null, currentReviewOrderId = null;
+        let currentVendorIdForReviews = null; // Menyimpan ID vendor untuk halaman ulasan penuh
         const ADMIN_WA = "62882008667068";
 
         const savedProfile = JSON.parse(localStorage.getItem('user_profile')) || {name: 'User Projekgo', phone: '0812-XXXX-XXXX'};
@@ -861,6 +930,10 @@
         window.openVendorPage = (vendorId) => {
             let vendor = allVendors.find(v => v.id === vendorId);
             if (!vendor) { const prod = allProducts.find(p => p.vendor_id === vendorId); if (prod) vendor = {id: vendorId, nama_warung: prod.vendor_name, shop_photo: null}; else { const vByName = allVendors.find(v => v.nama_warung === vendorId); if (vByName) vendor = vByName; else vendor = {id: 'temp', nama_warung: 'Detail Warung', shop_photo: null}; } }
+            
+            // Simpan ID untuk halaman review penuh
+            currentVendorIdForReviews = vendor.id;
+            
             const img = vendor.shop_photo || 'https://cdn-icons-png.flaticon.com/512/1046/1046857.png';
             document.getElementById('vendor-header-content').innerHTML = `<div class="vendor-header"><img src="${img}" class="vh-img"><div class="vh-overlay"></div><div class="vh-info"><div class="vh-name">${vendor.nama_warung}</div><div class="vh-meta"><span>⭐ 4.8 (200+)</span> • <span>Aneka Makanan</span> • <span>1.2km</span></div></div></div>`;
             const vendorMenu = allProducts.filter(p => p.vendor_name === vendor.nama_warung || p.vendor_id === vendor.id);
@@ -874,21 +947,90 @@
                     if (index < 4) { const div = document.createElement('div'); div.className = 'menu-grid-item'; div.innerHTML = `<div style="position:relative;">${habisBadge}<div class="badge-priority" style="top:5px; left:5px;">⭐ Unggulan</div><img src="${imgItem}" class="mgi-img" style="${grayscaleClass}" onclick="openProductDetail('${item.id}')"><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')" style="top:5px; right:5px;"><i class="ph-fill ph-heart"></i></div></div><div class="mgi-info" style="${opacityClass}"><div style="font-weight:700; font-size:13px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" onclick="openProductDetail('${item.id}')">${item.nama_menu}</div><div style="display:flex; align-items:center; justify-content:space-between;"><div style="display:flex; flex-direction:column;"><span class="p-coret" style="font-size:9px;">Rp ${fakePrice.toLocaleString()}</span><span style="font-weight:800; color:var(--primary); font-size:13px;">Rp ${realPrice.toLocaleString()}</span></div><div class="btn-add-mini" style="${addBtnStyle}" onclick="${addBtnAction}">+</div></div></div>`; gridContainer.appendChild(div); } else { const div = document.createElement('div'); div.className = 'menu-list-item'; div.innerHTML = `<div style="position:relative;">${habisBadge}<img src="${imgItem}" class="mli-img" style="${grayscaleClass}" onclick="openProductDetail('${item.id}')"><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')" style="width:24px; height:24px; font-size:12px; top:4px; right:4px;"><i class="ph-fill ph-heart"></i></div></div><div class="mli-info" style="${opacityClass}"><div onclick="openProductDetail('${item.id}')"><div class="mli-title">${item.nama_menu}</div><div class="mli-desc">${desc}</div></div><div class="mli-action"><div class="mli-price-box"><span class="mli-coret">Rp ${fakePrice.toLocaleString()}</span><span class="mli-price">Rp ${realPrice.toLocaleString()}</span></div><button class="mli-btn" style="${addBtnStyle}" onclick="${addBtnAction}">Tambah +</button></div></div>`; listContainer.appendChild(div); }
                 });
             }
+            
+            // --- UPDATED REVIEW LOGIC ---
             const vendorReviews = allReviews.filter(r => r.vendor_name === vendor.nama_warung);
             const avgRating = vendorReviews.length > 0 ? (vendorReviews.reduce((acc, curr) => acc + curr.rating, 0) / vendorReviews.length).toFixed(1) : "New";
             document.getElementById('vendor-avg-rating').innerText = avgRating;
-            if (vendorReviews.length === 0) { 
+            
+            // 1. Render hanya 2 komentar terbaru untuk preview
+            // (Asumsi data sudah terurut, jika tidak, bisa di-sort by timestamp dulu)
+            const sortedReviews = vendorReviews.sort((a,b) => b.timestamp - a.timestamp);
+            const previewReviews = sortedReviews.slice(0, 2); 
+
+            if (previewReviews.length === 0) { 
                 reviewsContainer.innerHTML = `<div style="padding:15px; color:#888; font-size:13px; font-style:italic; width:100%; text-align:center;">Belum ada komentar.</div>`; 
+                document.getElementById('vendor-reviews-action').innerHTML = '';
             } else { 
-                vendorReviews.forEach(rev => { 
+                previewReviews.forEach(rev => { 
                     let starsHtml = ''; 
-                    for(let i=0; i<5; i++) { starsHtml += i < rev.rating ? '<i class="ph-fill ph-star"></i>' : '<i class="ph ph-star"></i>'; } 
+                    for(let i=0; i<5; i++) { starsHtml += i < rev.rating ? '<i class="ph-fill ph-star"></i>' : '<i class="ph ph-star" style="color:#ddd;"></i>'; } 
                     let displayName = rev.user;
                     if (displayName.length > 2) { displayName = displayName.substring(0, 2) + "***"; }
-                    reviewsContainer.innerHTML += `<div class="review-card-scroll"><div class="rc-header"><div class="rc-user"><i class="ph-fill ph-user-circle"></i> ${displayName}</div><div class="rc-stars">${starsHtml}</div></div><div class="rc-text">"${rev.text}"</div></div>`; 
-                }); 
+                    
+                    // Render dengan format baru: Teks dulu, baru Info di bawah (italic & kecil)
+                    reviewsContainer.innerHTML += `
+                        <div class="review-card-scroll">
+                            <div class="rc-text-box">
+                                "${rev.text}"
+                            </div>
+                            <div class="rc-footer">
+                                <div class="rc-user-small"><i class="ph-fill ph-user"></i> ${displayName}</div>
+                                <div class="rc-stars-small">${starsHtml}</div>
+                            </div>
+                        </div>`; 
+                });
+                
+                // 2. Tampilkan tombol "Lihat Semua" jika ada review
+                const actionContainer = document.getElementById('vendor-reviews-action');
+                actionContainer.innerHTML = `<div class="btn-see-more-reviews" onclick="openAllReviewsPage()">Lihat Semua Ulasan (${vendorReviews.length})</div>`;
             }
             openPage('vendor');
+        }
+
+        // --- NEW: FUNGSI MEMBUKA HALAMAN SEMUA REVIEW ---
+        window.openAllReviewsPage = () => {
+            const container = document.getElementById('all-reviews-list');
+            container.innerHTML = '';
+            
+            let vendor = allVendors.find(v => v.id === currentVendorIdForReviews);
+            if(!vendor) { // Fallback search by name if ID fails
+                 const currentVendorName = document.querySelector('#vendor-header-content .vh-name')?.innerText;
+                 if(currentVendorName) {
+                      const reviews = allReviews.filter(r => r.vendor_name === currentVendorName);
+                      renderReviewList(reviews, container);
+                 }
+                 openPage('all-reviews');
+                 return;
+            }
+
+            const vendorReviews = allReviews.filter(r => r.vendor_name === vendor.nama_warung);
+            renderReviewList(vendorReviews, container);
+            openPage('all-reviews');
+        }
+
+        function renderReviewList(reviews, container) {
+            if (reviews.length === 0) {
+                container.innerHTML = '<div style="text-align:center; margin-top:50px; color:#999;">Belum ada ulasan.</div>';
+                return;
+            }
+            // Sort terbaru
+            reviews.sort((a,b) => b.timestamp - a.timestamp).forEach(rev => {
+                let starsHtml = '';
+                for(let i=0; i<5; i++) { starsHtml += i < rev.rating ? '<i class="ph-fill ph-star" style="color:#FFC107;"></i>' : '<i class="ph ph-star" style="color:#ddd;"></i>'; }
+                const date = rev.timestamp ? new Date(rev.timestamp).toLocaleDateString() : '';
+                
+                container.innerHTML += `
+                    <div class="review-list-item">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                            <div style="font-weight:700; font-size:14px; color:var(--dark);"><i class="ph-fill ph-user-circle"></i> ${rev.user}</div>
+                            <div style="font-size:10px; color:#888;">${date}</div>
+                        </div>
+                        <div style="margin-bottom:8px; display:flex;">${starsHtml}</div>
+                        <div style="font-size:13px; color:#555; line-height:1.5;">"${rev.text}"</div>
+                    </div>
+                `;
+            });
         }
 
         window.openCategoryPage = (cat) => {
@@ -978,23 +1120,19 @@
             const fakePrice = Math.ceil(realPrice * 1.2); 
             const desc = item.deskripsi || "Menu spesial dari Projekgo. Terbuat dari bahan pilihan, dimasak dengan bumbu rahasia yang menggugah selera. Porsi pas dan bikin kenyang.";
             
-            // --- UPDATED VENDOR LOGIC ---
             const vendorName = item.vendor_name || "Warung Projekgo";
             let vendorImg = 'https://cdn-icons-png.flaticon.com/512/1046/1046857.png';
             
-            // Cari data vendor di allVendors berdasarkan ID
             const vendorObj = allVendors.find(v => v.id === item.vendor_id);
             if (vendorObj && vendorObj.shop_photo) {
                 vendorImg = vendorObj.shop_photo;
             }
 
-            // Update DOM Elements
             document.getElementById('pd-img').src = img; 
             
-            // Update bagian Vendor Profile dengan Gambar & Nama, serta Click Event
             const vendorEl = document.getElementById('pd-vendor');
             vendorEl.innerHTML = `<img src="${vendorImg}" class="pd-vendor-img"> <span>${vendorName}</span> <i class="ph-bold ph-caret-right" style="font-size:12px; color:#ccc; margin-left:auto;"></i>`;
-            vendorEl.onclick = () => openVendorPage(item.vendor_id); // Klik menuju profil warung
+            vendorEl.onclick = () => openVendorPage(item.vendor_id);
 
             document.getElementById('pd-title').innerText = item.nama_menu; 
             document.getElementById('pd-price').innerText = "Rp " + realPrice.toLocaleString(); 
@@ -1078,17 +1216,23 @@
         }
         
         function renderWarungList(vends) {
+            vends.sort((a, b) => {
+                const isOpenA = (a.status || 'BUKA').toUpperCase() === 'BUKA';
+                const isOpenB = (b.status || 'BUKA').toUpperCase() === 'BUKA';
+                if (isOpenA && !isOpenB) return -1;
+                if (!isOpenA && isOpenB) return 1;
+                return 0;
+            });
+
             const c = document.getElementById('container-warung'); 
             c.innerHTML='';
 
             const availableProducts = allProducts.filter(p => p.is_available !== false);
             const bestSellerItems = availableProducts.slice(0, 15);
             
-            // Flag untuk menandai apakah elemen sudah dirender
             let bestSellerInserted = false;
             let bannerInserted = false;
             
-            // FUNGSI 1: Render Menu Paling Laris
             const renderBestSeller = () => {
                 if (bestSellerInserted) return;
                 if (bestSellerItems.length > 0) {
@@ -1104,7 +1248,6 @@
                 bestSellerInserted = true;
             };
 
-            // FUNGSI 2: Render Banner Gambar
             const renderBanner = () => {
                 if (bannerInserted) return;
                 const bannerDiv = document.createElement('div');
@@ -1115,17 +1258,9 @@
             };
             
             vends.forEach((v, index) => {
-                // LOGIKA 1: Muncul DIBAWAH warung ke-5 (artinya SEBELUM warung ke-6/index 5 dirender)
-                if (index === 5) {
-                    renderBestSeller();
-                }
+                if (index === 5) { renderBestSeller(); }
+                if (index === 9) { renderBanner(); }
 
-                // LOGIKA 2: Muncul DIBAWAH warung ke-9 (artinya SEBELUM warung ke-10/index 9 dirender)
-                if (index === 9) {
-                    renderBanner();
-                }
-
-                // Render Card Warung
                 const vendorProds = allProducts.filter(p => p.vendor_id === v.id && p.is_available !== false);
                 const s = (v.status||'BUKA').toUpperCase()==='BUKA'; 
                 const img = v.shop_photo || 'https://cdn-icons-png.flaticon.com/512/1046/1046857.png'; 
@@ -1152,11 +1287,7 @@
                 c.appendChild(div);
             });
             
-            // LOGIKA FALLBACK:
-            // Jika jumlah warung kurang dari 5, "Paling Laris" muncul paling bawah.
             if (!bestSellerInserted) renderBestSeller();
-            
-            // Jika jumlah warung kurang dari 9, "Banner" muncul paling bawah (setelah Paling Laris).
             if (!bannerInserted) renderBanner();
         }
         loadData();
