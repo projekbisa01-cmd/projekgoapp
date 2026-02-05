@@ -212,16 +212,19 @@
         #wrapper-best-seller { background: linear-gradient(120deg, #FFF9C4 0%, #FFF176 100%); }
 
         .promo-info-side { min-width: 130px; width: 130px; padding-right: 0; flex-shrink: 0; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; z-index: auto; }
+        
+        /* UPDATED: Removed border and background from icon circle for transparent big icons */
         .promo-icon-circle { width: 50px; height: 50px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 2px solid white; }
+        
         .promo-title { font-size: 16px; font-weight: 800; color: var(--dark); margin: 0 0 5px 0; line-height: 1.2; }
         .promo-subtitle { font-size: 11px; color: #555; margin: 0 0 12px 0; font-weight: 600; line-height: 1.4; }
         .promo-btn { background: var(--dark); color: white; border: none; padding: 8px 16px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: transform 0.1s; }
         .promo-btn:active { transform: scale(0.95); }
 
         #wrapper-best-seller .promo-btn { background: #004D40; }
-        #wrapper-best-seller .promo-icon-circle { color: #004D40; border-color: #004D40; }
+        /* #wrapper-best-seller .promo-icon-circle { color: #004D40; border-color: #004D40; } */
         #wrapper-exclusive .promo-btn { background: #E65100; }
-        #wrapper-exclusive .promo-icon-circle { color: #E65100; border-color: #E65100; }
+        /* #wrapper-exclusive .promo-icon-circle { color: #E65100; border-color: #E65100; } */
         .promo-scroll-side { display: flex; gap: 12px; overflow: visible; padding: 0; flex-grow: 0; flex-shrink: 0; align-items: flex-start; }
         .promo-scroll-side .h-card { background: white; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
 
@@ -264,6 +267,10 @@
 
         .vendor-menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 15px; margin-bottom: 15px; }
         .vendor-menu-list { padding: 0 15px; display: flex; flex-direction: column; gap: 10px; }
+        
+        /* NEW: HEADER KATEGORI CUSTOM */
+        .menu-category-header { font-size: 16px; font-weight: 800; color: var(--dark); margin: 25px 5px 10px 5px; padding-bottom: 8px; border-bottom: 2px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; text-transform: capitalize; }
+        
         .menu-grid-item { background: white; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm); position: relative; border: 1px solid rgba(0,0,0,0.05); }
         .mgi-img { width: 100%; height: 120px; object-fit: cover; }
         .mgi-info { padding: 10px; }
@@ -680,9 +687,11 @@
                 <div class="cat-item" onclick="openCategoryPage('Snack')"><div class="cat-icon-box"><img src="https://i.ibb.co.com/F4xtLpY9/kebab-6978201.png"></div><div class="cat-name">Snack</div></div>
             </div>
 
+            <!-- EXCLUSIVE SECTION (Updated Image) -->
             <div class="promo-section-layout" id="wrapper-exclusive">
                 <div class="promo-info-side">
-                    <div class="promo-icon-circle"><i class="ph-fill ph-diamond"></i></div>
+                    <!-- Removed .promo-icon-circle wrapper -->
+                    <img src="https://i.ibb.co.com/WpxhwSzm/exclusive-offer-golden-medal-icon-seal-sign-isolated-on-white-background-illustration-free-vector-re.png" style="width:80px; height:80px; object-fit:contain; margin-bottom:10px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.1));">
                     <h3 class="promo-title">Exclusive di Projekgo</h3>
                     <p class="promo-subtitle">Hanya ada di Projekgo</p>
                     <button class="promo-btn" onclick="openCategoryPage('Exclusive')">Lihat Semua</button>
@@ -775,7 +784,7 @@
             </div>
             
             <div id="vendor-header-content" style="padding-top:60px;"></div>
-            <div class="section-title" style="margin-top:10px;"><span>🌟 Menu Unggulan</span></div>
+            <div class="section-title" style="margin-top:10px;"><span>🌟 Menu Andalan</span></div>
             <div id="vendor-menu-grid" class="vendor-menu-grid"></div>
             <div class="review-summary">
                 <div class="rs-big"><span id="vendor-avg-rating">4.8</span> <i class="ph-fill ph-star"></i></div>
@@ -788,6 +797,7 @@
             <div id="vendor-reviews-action"></div>
 
             <div class="section-title"><span>📋 Daftar Menu Lengkap</span></div>
+            <!-- INI CONTAINER UNTUK MENU BERKELOMPOK -->
             <div id="vendor-menu-list" class="vendor-menu-list" style="padding-bottom:40px;"></div>
         </div>
 
@@ -1028,15 +1038,102 @@
             
             const img = vendor.shop_photo || 'https://cdn-icons-png.flaticon.com/512/1046/1046857.png';
             document.getElementById('vendor-header-content').innerHTML = `<div class="vendor-header"><img src="${img}" class="vh-img"><div class="vh-overlay"></div><div class="vh-info"><div class="vh-name">${vendor.nama_warung}</div><div class="vh-meta"><span>⭐ 4.8 (200+)</span> • <span>Aneka Makanan</span> • <span>1.2km</span></div></div></div>`;
+            
+            // --- FILTER PRODUK ---
             const vendorMenu = allProducts.filter(p => p.vendor_name === vendor.nama_warung || p.vendor_id === vendor.id);
-            const normal = vendorMenu.filter(i => parseInt(i.harga) >= 9000); const cheap = vendorMenu.filter(i => parseInt(i.harga) < 9000); const sortedMenu = [...normal, ...cheap];
-            const gridContainer = document.getElementById('vendor-menu-grid'); const listContainer = document.getElementById('vendor-menu-list'); const reviewsContainer = document.getElementById('vendor-reviews');
-            gridContainer.innerHTML = ''; listContainer.innerHTML = ''; reviewsContainer.innerHTML = '';
-            if(sortedMenu.length === 0) { listContainer.innerHTML = '<div style="text-align:center; padding:30px; color:#999;">Belum ada menu tersedia.</div>'; } else {
-                sortedMenu.forEach((item, index) => {
-                    const imgItem = item.foto_url && item.foto_url.length > 5 ? item.foto_url : 'https://placehold.co/100?text=Menu'; const realPrice = parseInt(item.harga); const fakePrice = Math.ceil(realPrice * 1.2); const isFav = favorites.includes(item.id) ? 'active' : ''; const desc = item.deskripsi || "Menu spesial warung ini, dijamin enak.";
-                    const isAvailable = item.is_available !== false; const grayscaleClass = isAvailable ? '' : 'filter:grayscale(100%);'; const opacityClass = isAvailable ? '' : 'opacity:0.6;'; const habisBadge = isAvailable ? '' : '<div class="badge-habis-overlay"><span class="badge-habis-text">HABIS</span></div>'; const addBtnAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, stok habis 🙏')`; const addBtnStyle = isAvailable ? '' : 'background:#ccc; cursor:not-allowed;';
-                    if (index < 4) { const div = document.createElement('div'); div.className = 'menu-grid-item'; div.innerHTML = `<div style="position:relative;">${habisBadge}<div class="badge-priority" style="top:5px; left:5px;">⭐ Unggulan</div><img src="${imgItem}" class="mgi-img" style="${grayscaleClass}" onclick="openProductDetail('${item.id}')"><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')" style="top:5px; right:5px;"><i class="ph-fill ph-heart"></i></div></div><div class="mgi-info" style="${opacityClass}"><div style="font-weight:700; font-size:13px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" onclick="openProductDetail('${item.id}')">${item.nama_menu}</div><div style="display:flex; align-items:center; justify-content:space-between;"><div style="display:flex; flex-direction:column;"><span class="p-coret" style="font-size:9px;">Rp ${fakePrice.toLocaleString()}</span><span style="font-weight:800; color:var(--primary); font-size:13px;">Rp ${realPrice.toLocaleString()}</span></div><div class="btn-add-mini" style="${addBtnStyle}" onclick="${addBtnAction}">+</div></div></div>`; gridContainer.appendChild(div); } else { const div = document.createElement('div'); div.className = 'menu-list-item'; div.innerHTML = `<div style="position:relative;">${habisBadge}<img src="${imgItem}" class="mli-img" style="${grayscaleClass}" onclick="openProductDetail('${item.id}')"><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')" style="width:24px; height:24px; font-size:12px; top:4px; right:4px;"><i class="ph-fill ph-heart"></i></div></div><div class="mli-info" style="${opacityClass}"><div onclick="openProductDetail('${item.id}')"><div class="mli-title">${item.nama_menu}</div><div class="mli-desc">${desc}</div></div><div class="mli-action"><div class="mli-price-box"><span class="mli-coret">Rp ${fakePrice.toLocaleString()}</span><span class="mli-price">Rp ${realPrice.toLocaleString()}</span></div><button class="mli-btn" style="${addBtnStyle}" onclick="${addBtnAction}">Tambah +</button></div></div>`; listContainer.appendChild(div); }
+            const availableMenu = vendorMenu; // Menampilkan semua, nanti di-handle status habis di UI
+
+            // 1. MENU ANDALAN (Grid Atas) - Filter is_priority = true
+            const priorityItems = availableMenu.filter(p => p.is_priority === true);
+            const gridContainer = document.getElementById('vendor-menu-grid');
+            gridContainer.innerHTML = '';
+
+            // Jika ada menu andalan, tampilkan. Jika tidak, ambil 4 menu termahal/random sebagai fallback "Pilihan"
+            let topItems = priorityItems;
+            let sectionTitle = "🌟 Menu Andalan";
+            
+            if (priorityItems.length === 0) {
+                // Fallback: Ambil 4 menu termahal (asumsi best seller/premium)
+                topItems = availableMenu.filter(i => parseInt(i.harga) >= 10000).slice(0, 4);
+                sectionTitle = "🌟 Menu Pilihan";
+            } else {
+                // Limit max 4 for grid aesthetics
+                topItems = priorityItems.slice(0, 4); 
+            }
+
+            // Update Judul Section Grid
+            const gridTitleEl = document.querySelector('.section-title span');
+            if(gridTitleEl) gridTitleEl.innerText = sectionTitle;
+
+            topItems.forEach(item => {
+                const imgItem = item.foto_url && item.foto_url.length > 5 ? item.foto_url : 'https://placehold.co/100?text=Menu'; 
+                const realPrice = parseInt(item.harga); 
+                const fakePrice = Math.ceil(realPrice * 1.2); 
+                const isFav = favorites.includes(item.id) ? 'active' : '';
+                
+                const isAvailable = item.is_available !== false; 
+                const grayscaleClass = isAvailable ? '' : 'filter:grayscale(100%);'; 
+                const opacityClass = isAvailable ? '' : 'opacity:0.6;'; 
+                const habisBadge = isAvailable ? '' : '<div class="badge-habis-overlay"><span class="badge-habis-text">HABIS</span></div>'; 
+                const addBtnAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, stok habis 🙏')`; 
+                const addBtnStyle = isAvailable ? '' : 'background:#ccc; cursor:not-allowed;';
+
+                const div = document.createElement('div'); 
+                div.className = 'menu-grid-item'; 
+                div.innerHTML = `<div style="position:relative;">${habisBadge}<div class="badge-priority" style="top:5px; left:5px;">⭐ Unggulan</div><img src="${imgItem}" class="mgi-img" style="${grayscaleClass}" onclick="openProductDetail('${item.id}')"><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')" style="top:5px; right:5px;"><i class="ph-fill ph-heart"></i></div></div><div class="mgi-info" style="${opacityClass}"><div style="font-weight:700; font-size:13px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" onclick="openProductDetail('${item.id}')">${item.nama_menu}</div><div style="display:flex; align-items:center; justify-content:space-between;"><div style="display:flex; flex-direction:column;"><span class="p-coret" style="font-size:9px;">Rp ${fakePrice.toLocaleString()}</span><span style="font-weight:800; color:var(--primary); font-size:13px;">Rp ${realPrice.toLocaleString()}</span></div><div class="btn-add-mini" style="${addBtnStyle}" onclick="${addBtnAction}">+</div></div></div>`; 
+                gridContainer.appendChild(div);
+            });
+
+            // 2. DAFTAR MENU LENGKAP (Berkelompok)
+            const listContainer = document.getElementById('vendor-menu-list'); 
+            listContainer.innerHTML = ''; 
+            const reviewsContainer = document.getElementById('vendor-reviews');
+            reviewsContainer.innerHTML = '';
+
+            // Grouping logic
+            const groups = {};
+            availableMenu.forEach(item => {
+                // Gunakan 'tipe' (custom input) jika ada, fallback ke 'kategori' (dropdown), fallback ke 'Lainnya'
+                const groupKey = item.tipe || item.kategori || 'Lainnya';
+                if(!groups[groupKey]) groups[groupKey] = [];
+                groups[groupKey].push(item);
+            });
+
+            const sortedKeys = Object.keys(groups).sort(); // Sort abjad kategori
+
+            if(sortedKeys.length === 0) { 
+                listContainer.innerHTML = '<div style="text-align:center; padding:30px; color:#999;">Belum ada menu tersedia.</div>'; 
+            } else {
+                sortedKeys.forEach(key => {
+                    const items = groups[key];
+                    
+                    // Render Header Kategori
+                    listContainer.innerHTML += `
+                        <div class="menu-category-header">
+                            <span>${key}</span>
+                        </div>
+                    `;
+
+                    // Render Items
+                    items.forEach(item => {
+                        const imgItem = item.foto_url && item.foto_url.length > 5 ? item.foto_url : 'https://placehold.co/100?text=Menu'; 
+                        const realPrice = parseInt(item.harga); 
+                        const fakePrice = Math.ceil(realPrice * 1.2); 
+                        const isFav = favorites.includes(item.id) ? 'active' : ''; 
+                        const desc = item.deskripsi || "Menu spesial warung ini, dijamin enak.";
+                        
+                        const isAvailable = item.is_available !== false; 
+                        const grayscaleClass = isAvailable ? '' : 'filter:grayscale(100%);'; 
+                        const opacityClass = isAvailable ? '' : 'opacity:0.6;'; 
+                        const habisBadge = isAvailable ? '' : '<div class="badge-habis-overlay"><span class="badge-habis-text">HABIS</span></div>'; 
+                        const addBtnAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, stok habis 🙏')`; 
+                        const addBtnStyle = isAvailable ? '' : 'background:#ccc; cursor:not-allowed;';
+
+                        const div = document.createElement('div'); 
+                        div.className = 'menu-list-item'; 
+                        div.innerHTML = `<div style="position:relative;">${habisBadge}<img src="${imgItem}" class="mli-img" style="${grayscaleClass}" onclick="openProductDetail('${item.id}')"><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')" style="width:24px; height:24px; font-size:12px; top:4px; right:4px;"><i class="ph-fill ph-heart"></i></div></div><div class="mli-info" style="${opacityClass}"><div onclick="openProductDetail('${item.id}')"><div class="mli-title">${item.nama_menu}</div><div class="mli-desc">${desc}</div></div><div class="mli-action"><div class="mli-price-box"><span class="mli-coret">Rp ${fakePrice.toLocaleString()}</span><span class="mli-price">Rp ${realPrice.toLocaleString()}</span></div><button class="mli-btn" style="${addBtnStyle}" onclick="${addBtnAction}">Tambah +</button></div></div>`; 
+                        listContainer.appendChild(div);
+                    });
                 });
             }
             
@@ -1125,13 +1222,6 @@
                 let starsHtml = '';
                 for(let i=0; i<5; i++) { starsHtml += i < rev.rating ? '<i class="ph-fill ph-star" style="color:#FFC107;"></i>' : '<i class="ph ph-star" style="color:#ddd;"></i>'; }
                 const date = rev.timestamp ? new Date(rev.timestamp).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'}) : '';
-                
-                // --- MOCKUP REPLY DATA (Simulasi) ---
-                // Jika data asli di database nanti punya field 'reply', kode ini akan otomatis menampilkannya.
-                // Untuk demo, kita kasih contoh reply di ulasan pertama.
-                if (index === 0 && !rev.reply) {
-                    rev.reply = "Terima kasih banyak kak atas ulasannya! Ditunggu pesanan berikutnya ya, nanti kami kasih bonus sambal 😊";
-                }
                 
                 let replyHtml = '';
                 if (rev.reply) {
@@ -1237,7 +1327,7 @@
 
         function renderHorizontalCard(container, item) {
             const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : 'https://placehold.co/150x150?text=Menu'; const realPrice = parseInt(item.harga); const fakePrice = Math.ceil(realPrice * 1.2); const vendorName = item.vendor_name || "Warung Projekgo"; const isFav = favorites.includes(item.id) ? 'active' : ''; const exclusiveBadge = item.is_exclusive ? '<div class="badge-exclusive">Exclusive</div>' : ''; const priorityBadge = '<div class="badge-priority"><i class="ph-fill ph-lightning"></i> Prioritas</div>'; const rating = (4.0 + Math.random()).toFixed(1); const sold = Math.floor(Math.random() * 500) + 50;
-            const isAvailable = item.is_available !== false; const habisBadge = isAvailable ? '' : '<div class="badge-habis-overlay" style="border-radius:12px;"><span class="badge-habis-text" style="font-size:10px;">HABIS</span></div>'; const imgStyle = isAvailable ? '' : 'filter:grayscale(100%); opacity:0.7;'; const addAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, stok habis 🙏')`; const addStyle = isAvailable ? '' : 'background:#ccc; cursor:not-allowed;';
+            const isAvailable = item.is_available !== false; const habisBadge = isAvailable ? '' : '<div class="badge-habis-overlay" style="border-radius:12px;"><span class="badge-habis-text">HABIS</span></div>'; const imgStyle = isAvailable ? '' : 'filter:grayscale(100%); opacity:0.7;'; const addAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, stok habis 🙏')`; const addStyle = isAvailable ? '' : 'background:#ccc; cursor:not-allowed;';
             const div = document.createElement('div'); div.className = 'h-card';
             div.innerHTML = `<div style="position:relative;">${habisBadge}${priorityBadge}${exclusiveBadge}<div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')"><i class="ph-fill ph-heart"></i></div><img src="${img}" class="h-img" style="${imgStyle}" onclick="openProductDetail('${item.id}')"></div><div class="h-info" onclick="openProductDetail('${item.id}')"><div class="h-vendor"><i class="ph-fill ph-storefront"></i> ${vendorName}</div><div class="h-name">${item.nama_menu}</div><div class="h-stats"><i class="ph-fill ph-star"></i> ${rating} • Terjual ${sold}+</div><div class="price-row"><div class="price-box"><div style="display:flex; align-items:center; gap:3px;"><span class="p-label-normal">Normal</span><span class="p-coret">Rp ${fakePrice.toLocaleString()}</span></div><span class="p-real">Rp ${realPrice.toLocaleString()}</span></div><div class="btn-add-mini" style="${addStyle}" onclick="${addAction}"><i class="ph-bold ph-plus" style="color:white;"></i></div></div></div>`;
             container.appendChild(div);
@@ -1508,7 +1598,7 @@
                     promoDiv.id = 'wrapper-best-seller';
                     promoDiv.style.marginBottom = "15px"; 
                     promoDiv.style.marginTop = "5px";
-                    promoDiv.innerHTML = `<div class="promo-info-side"><div class="promo-icon-circle"><i class="ph-fill ph-fire"></i></div><h3 class="promo-title">Menu Paling Laris</h3><p class="promo-subtitle">Wajib Coba!</p><button class="promo-btn" onclick="openCategoryPage('Paling Laris')">Order Now!</button></div><div class="promo-scroll-side" id="container-best-in-list"></div>`;
+                    promoDiv.innerHTML = `<div class="promo-info-side"><img src="https://i.ibb.co.com/Q2mwSMT/best-sell-removebg-preview.png" style="width:80px; height:80px; object-fit:contain; margin-bottom:10px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.1));"><h3 class="promo-title">Menu Paling Laris</h3><p class="promo-subtitle">Wajib Coba!</p><button class="promo-btn" onclick="openCategoryPage('Paling Laris')">Order Now!</button></div><div class="promo-scroll-side" id="container-best-in-list"></div>`;
                     c.appendChild(promoDiv);
                     renderHorizontalScroll('container-best-in-list', bestSellerItems);
                 }
