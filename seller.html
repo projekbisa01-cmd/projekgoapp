@@ -21,6 +21,11 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; background: var(--bg); color: var(--dark); padding-bottom: 80px; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
+        /* TOAST NOTIFICATION */
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #333; color: white; padding: 12px 24px; border-radius: 30px; font-size: 14px; font-weight: 600; z-index: 11000; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 8px; }
+        #toast.show { transform: translateX(-50%) translateY(0); }
+        #toast.success { background: var(--success); }
+
         /* LOADING SCREEN */
         #loading-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; }
         .loader-spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
@@ -98,7 +103,6 @@
         .content-section { display: none; padding: 0 20px; }
         .content-section.active { display: block; }
 
-        /* NEW: Category Header */
         .menu-category-header { font-size: 16px; font-weight: 800; color: var(--dark); margin: 25px 0 10px 0; padding-bottom: 8px; border-bottom: 2px solid #eee; display: flex; justify-content: space-between; align-items: center; text-transform: capitalize; }
         .menu-category-count { font-size: 12px; color: #888; font-weight: 600; background: #eee; padding: 2px 8px; border-radius: 10px; }
 
@@ -113,8 +117,6 @@
         .btn-icon { background: #f5f5f5; border: none; font-size: 16px; color: var(--gray); cursor: pointer; padding: 6px; border-radius: 8px; }
         .btn-icon.edit { color: #2196F3; }
         .btn-icon.delete { color: var(--danger); }
-        
-        /* NEW: Priority Star Button */
         .btn-icon.priority { color: #ccc; }
         .btn-icon.priority.active { color: #FFC107; background: #FFF8E1; border: 1px solid #FFECB3; }
 
@@ -134,7 +136,6 @@
         .rev-stars { color: #FFC107; font-size: 12px; margin-bottom: 5px; }
         .rev-text { font-size: 13px; color: #555; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; }
         
-        /* Reply Styles */
         .btn-reply { background: transparent; border: 1px solid var(--primary); color: var(--primary); padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; margin-top: 10px; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s; }
         .btn-reply:active { background: var(--primary); color: white; }
         .rev-reply { margin-top: 12px; background: #f8f9fa; padding: 10px; border-radius: 8px; font-size: 12px; color: #444; border-left: 3px solid var(--primary); }
@@ -167,13 +168,22 @@
         .checkbox-wrapper input { width: 18px; height: 18px; accent-color: var(--primary); }
         .checkbox-label { font-size: 13px; font-weight: 700; color: #E65100; }
 
-        /* Yellow bg for Priority checkbox */
         .priority-wrapper { background: #FFF8E1; border: 1px solid #FFECB3; margin-top: 8px; }
         .priority-wrapper .checkbox-label { color: #FF8F00; }
+
+        /* LOCATION STYLES (NEW) */
+        #shop-location-input:disabled { background: #f0f0f0; color: #888; border-style: dashed; }
+        .btn-saved { background: #eee !important; color: #888 !important; border: 1px solid #ddd !important; cursor: default; }
 
     </style>
 </head>
 <body>
+
+    <!-- TOAST ELEMENT -->
+    <div id="toast">
+        <i class="ph-fill ph-check-circle"></i>
+        <span id="toast-text">Pesan berhasil dikirim</span>
+    </div>
 
     <!-- 0. LOADING SCREEN -->
     <div id="loading-screen">
@@ -206,50 +216,16 @@
         </div>
         <div class="ag-content">
             <div class="ag-warning"><i class="ph-bold ph-warning"></i> <b>PENTING:</b> Harap membaca poin-poin ini dengan saksama sebelum menyetujui.</div>
-            
             <h3 style="text-align:center; margin-bottom:20px; border-bottom:2px solid #eee; padding-bottom:15px;">SYARAT DAN KETENTUAN KATALOG MITRA USAHA</h3>
-            
-            <p>Dokumen ini dibuat antara <b>PT. Projekgo Solusi Utama</b> ("Pihak Pertama") dan <b>Pemilik Usaha</b> ("Mitra" atau "Pihak Kedua"). Dengan mendaftar dan menggunakan aplikasi ini, Mitra dianggap telah membaca, memahami, dan menyetujui seluruh isi poin berikut.</p>
-
+            <p>Dokumen ini dibuat antara <b>PT. Projekgo Solusi Utama</b> ("Pihak Pertama") dan <b>Pemilik Usaha</b> ("Mitra" atau "Pihak Kedua").</p>
             <h4>PASAL 1: DEFINISI</h4>
             <ol>
-                <li><b>Aplikasi</b> merujuk pada platform perangkat lunak Projekgo yang digunakan untuk pemesanan makanan.</li>
-                <li><b>Mitra</b> adalah penyedia makanan/minuman yang telah terdaftar dan diverifikasi oleh Projekgo.</li>
-                <li><b>Pesanan</b> adalah permintaan pembelian produk Mitra oleh Pengguna melalui Aplikasi.</li>
+                <li><b>Aplikasi</b> merujuk pada platform Projekgo.</li>
+                <li><b>Mitra</b> adalah penyedia makanan yang terdaftar.</li>
             </ol>
-
-            <h4>PASAL 2: RUANG LINGKUP KERJASAMA</h4>
-            <ol>
-                <li>Pihak Pertama menyediakan platform untuk Mitra menjual produk kepada Pengguna.</li>
-                <li>Mitra bertanggung jawab penuh atas ketersediaan, kualitas, dan keamanan produk yang dijual.</li>
-                <li>Pihak Pertama berhak menampilkan nama, foto, harga, dan lokasi usaha Mitra di Aplikasi.</li>
-            </ol>
-
             <h4>PASAL 3: KEWAJIBAN MITRA</h4>
-            <ol>
-                <li><b>Kewajiban Mitra:</b>
-                    <ul>
-                        <li>Menyajikan makanan yang higienis, halal (jika diklaim halal), dan layak konsumsi.</li>
-                        <li>Memastikan harga di Aplikasi sama atau wajar dibandingkan harga jual offline.</li>
-                        <li>Selalu mengupdate status toko (Buka/Tutup) dan stok menu secara real-time.</li>
-                        <li>Menerima pesanan yang masuk kecuali dalam keadaan darurat.</li>
-                    </ul>
-                </li>
-            </ol>
-
-            <h4>PASAL 4: SANKSI DAN PELANGGARAN</h4>
-            <ol>
-                <li>Mitra dilarang melakukan transaksi fiktif (order palsu) untuk memanipulasi rating atau bonus.</li>
-                <li>Jika ditemukan kecurangan, Pihak Pertama berhak membekukan akun Mitra secara sepihak.</li>
-                <li>Penolakan pesanan secara berulang-ulang tanpa alasan jelas dapat mengakibatkan penurunan visibilitas toko di aplikasi.</li>
-            </ol>
-
-            <h4>PASAL 5: PENGAKHIRAN KERJASAMA</h4>
-            <p>Kerjasama ini dapat diakhiri oleh salah satu pihak dengan pemberitahuan tertulis minimal 14 hari kerja sebelumnya, atau dapat diakhiri seketika oleh Projekgo jika Mitra melanggar ketentuan fatal (penipuan, kriminal, menjual barang ilegal).</p>
-
-            <br>
-            <p style="text-align:center; font-size:11px; color:#888;">-- Akhir dari Dokumen --</p>
-            <br>
+            <ol><li>Menyajikan makanan higienis dan mengupdate status toko.</li></ol>
+            <br><p style="text-align:center; font-size:11px; color:#888;">-- Akhir dari Dokumen --</p><br>
         </div>
         <div class="ag-footer" id="ag-action-area">
             <div class="ag-checkbox-wrapper">
@@ -268,9 +244,8 @@
     </div>
 
 
-    <!-- 2. DASHBOARD (Hidden by default) -->
+    <!-- 2. DASHBOARD -->
     <div id="dashboard" style="display:none;">
-        
         <div class="header">
             <div style="display:flex; justify-content:space-between;">
                 <div>
@@ -281,7 +256,6 @@
             </div>
         </div>
 
-        <!-- TABS NAV -->
         <div class="tabs">
             <div class="tab-item active" onclick="switchTab('menu')" id="tab-menu">Daftar Menu</div>
             <div class="tab-item" onclick="switchTab('profile')" id="tab-profile">Profil & Ulasan</div>
@@ -293,16 +267,8 @@
                 <h3 style="margin:0;">Daftar Menu</h3>
                 <span style="font-size:12px; color:var(--gray);" id="menu-count">0 Menu</span>
             </div>
-
-            <!-- MENU CONTAINER (Sekarang akan dirender berkelompok) -->
-            <div id="menu-container">
-                <div style="text-align:center; padding:40px; color:#999;">Memuat data...</div>
-            </div>
-            
-            <!-- Spacer for FAB -->
+            <div id="menu-container"><div style="text-align:center; padding:40px; color:#999;">Memuat data...</div></div>
             <div style="height: 80px;"></div>
-
-            <!-- FAB Add -->
             <div class="fab-add" onclick="openModal()"><i class="ph-bold ph-plus"></i></div>
         </div>
 
@@ -333,14 +299,18 @@
                 </label>
             </div>
 
-            <!-- NEW: LOCATION INPUT -->
+            <!-- LOCATION INPUT SECTION (UPDATED) -->
             <div class="variant-custom-box" style="margin-bottom: 20px; background: white; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
                 <label class="form-label" style="font-size:14px; color:var(--dark); display:flex; align-items:center; gap:5px;">
                     <i class="ph-fill ph-map-pin" style="color:var(--primary);"></i> Lokasi Warung
                 </label>
                 <div style="font-size:11px; color:#888; margin-bottom:10px;">Mohon hanya masukkan nama <b>Kelurahan</b> saja.</div>
-                <textarea id="shop-location-input" class="form-textarea" placeholder="Cth: Wonokrio" style="height:60px; margin-bottom:10px; font-size:13px;"></textarea>
-                <button id="btn-save-loc" class="btn-reply" onclick="saveShopLocation()" style="width:100%; justify-content:center; margin-top:0;">Simpan Lokasi</button>
+                <textarea id="shop-location-input" class="form-textarea" placeholder="Cth: Wonokrio" style="height:60px; margin-bottom:10px; font-size:13px;" disabled></textarea>
+                
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-save-loc" class="btn-reply" onclick="saveShopLocation()" style="width:100%; justify-content:center; margin-top:0; display:none;">Simpan Lokasi</button>
+                    <button id="btn-edit-loc" class="btn-reply" onclick="enableLocationEdit()" style="width:100%; justify-content:center; margin-top:0; background:white;">Edit Lokasi</button>
+                </div>
             </div>
             
             <div class="profile-stat-box">
@@ -355,105 +325,43 @@
             </div>
 
             <h3 style="margin:20px 0 10px 0;">Ulasan Pelanggan</h3>
-            <div id="reviews-container">
-                <div style="text-align:center; padding:20px; color:#ccc;">Belum ada ulasan.</div>
-            </div>
+            <div id="reviews-container"><div style="text-align:center; padding:20px; color:#ccc;">Belum ada ulasan.</div></div>
         </div>
-
     </div>
 
-    <!-- 3. MODAL FORM ADD/EDIT MENU -->
+    <!-- MODAL FORM -->
     <div id="modal-form">
         <div class="modal-content">
             <h3 style="margin-top:0;" id="modal-title">Tambah Menu</h3>
-            
             <input type="hidden" id="menu-id"> 
-
             <label class="form-label">Foto Menu</label>
             <div class="img-preview-box" onclick="document.getElementById('file-input').click()">
                 <div class="upload-placeholder"><i class="ph ph-camera" style="font-size:24px;"></i><br>Klik untuk Upload</div>
                 <img id="preview-img">
             </div>
             <input type="file" id="file-input" hidden accept="image/*" onchange="handleFileSelect(event)">
-
+            <div class="form-group"><label class="form-label">Nama Menu</label><input type="text" id="inp-nama" class="form-input"></div>
+            <div class="form-group"><label class="form-label">Harga (Rp)</label><input type="number" id="inp-harga" class="form-input"></div>
             <div class="form-group">
-                <label class="form-label">Nama Menu</label>
-                <input type="text" id="inp-nama" class="form-input" placeholder="Cth: Nasi Goreng Spesial">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Harga (Rp)</label>
-                <input type="number" id="inp-harga" class="form-input" placeholder="15000">
-            </div>
-
-            <!-- UPDATED: Main Category (System/Icon) -->
-            <div class="form-group">
-                <label class="form-label">Kategori Utama (Untuk Icon)</label>
+                <label class="form-label">Kategori Utama</label>
                 <select id="inp-kategori" class="form-select">
-                    <option value="Pernasian">Pernasian</option>
-                    <option value="Ayam">Ayam</option>
-                    <option value="Minuman">Minuman</option>
-                    <option value="Berkuah">Berkuah (Bakso/Soto)</option>
-                    <option value="Mie">Aneka Mie</option>
-                    <option value="Snack">Snack / Jajanan</option>
-                    <option value="Sarapan">Sarapan</option>
+                    <option value="Pernasian">Pernasian</option><option value="Ayam">Ayam</option><option value="Minuman">Minuman</option>
+                    <option value="Berkuah">Berkuah</option><option value="Mie">Aneka Mie</option><option value="Snack">Snack</option>
                 </select>
             </div>
-
-            <!-- NEW: Custom Menu Group (Tipe) -->
-            <div class="form-group">
-                <label class="form-label">Kelompok Menu (Custom)</label>
-                <input type="text" id="inp-tipe" class="form-input" list="cat-suggestions" placeholder="Cth: Ayam, Lele, Paket Hemat">
-                <datalist id="cat-suggestions">
-                    <option value="Ayam">
-                    <option value="Lele">
-                    <option value="Bebek">
-                    <option value="Paket Hemat">
-                    <option value="Minuman Dingin">
-                    <option value="Minuman Panas">
-                </datalist>
-                <div style="font-size:10px; color:#999; margin-top:3px;">Menu akan dikelompokkan berdasarkan nama ini di daftar menu.</div>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Deskripsi Singkat</label>
-                <textarea id="inp-desc" class="form-textarea" placeholder="Jelaskan rasanya..."></textarea>
-            </div>
-
-            <!-- CHECKBOXES -->
-            <div class="checkbox-wrapper">
-                <input type="checkbox" id="inp-exclusive">
-                <label for="inp-exclusive" class="checkbox-label">Jadikan Menu Eksklusif?</label>
-            </div>
-
-            <!-- NEW: PRIORITY CHECKBOX -->
-            <div class="checkbox-wrapper priority-wrapper">
-                <input type="checkbox" id="inp-priority">
-                <label for="inp-priority" class="checkbox-label"><i class="ph-fill ph-star"></i> Jadikan Menu Andalan?</label>
-            </div>
-            <div style="font-size:10px; color:#FF8F00; margin-left:5px; margin-bottom:10px;">Menu Andalan akan muncul di bagian teratas profil warung Anda.</div>
-
-            <!-- VARIAN -->
-            <div class="variant-custom-box">
-                <label class="form-label" style="color:var(--primary);">✨ Kustomisasi Varian (Opsional)</label>
-                <div class="form-group">
-                    <input type="text" id="inp-var-title" class="form-input" placeholder="Judul Varian (Cth: Level Pedas)">
-                </div>
-                <div class="form-group">
-                    <input type="text" id="inp-var-options" class="form-input" placeholder="Pilihan (Cth: Pedas, Sedang)">
-                </div>
-            </div>
-
+            <div class="form-group"><label class="form-label">Kelompok Menu (Custom)</label><input type="text" id="inp-tipe" class="form-input" list="cat-suggestions"></div>
+            <div class="form-group"><label class="form-label">Deskripsi Singkat</label><textarea id="inp-desc" class="form-textarea"></textarea></div>
+            <div class="checkbox-wrapper"><input type="checkbox" id="inp-exclusive"><label for="inp-exclusive" class="checkbox-label">Jadikan Menu Eksklusif?</label></div>
+            <div class="checkbox-wrapper priority-wrapper"><input type="checkbox" id="inp-priority"><label for="inp-priority" class="checkbox-label"><i class="ph-fill ph-star"></i> Jadikan Menu Andalan?</label></div>
             <button class="btn-submit" onclick="saveMenu()">Simpan Menu</button>
             <button class="btn-cancel" onclick="closeModal()">Batal</button>
         </div>
     </div>
 
-    <!-- 4. MODAL REPLY -->
+    <!-- MODAL REPLY -->
     <div id="modal-reply" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:2100; align-items:center; justify-content:center; padding:20px;">
-        <div style="background:white; width:100%; max-width:350px; padding:20px; border-radius:16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
-            <h4 style="margin:0 0 5px 0;">Balas Ulasan</h4>
-            <p style="font-size:12px; color:#666; margin:0 0 15px 0;">Balasan Anda akan dilihat oleh semua pelanggan.</p>
+        <div style="background:white; width:100%; max-width:350px; padding:20px; border-radius:16px;">
+            <h4 style="margin:0 0 15px 0;">Balas Ulasan</h4>
             <input type="hidden" id="reply-id">
             <textarea id="reply-text" class="form-textarea" placeholder="Tulis balasan..." style="height:100px; margin-bottom:15px;"></textarea>
             <button class="btn-submit" onclick="sendReply()">Kirim Balasan</button>
@@ -464,7 +372,7 @@
     <!-- LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, where, onSnapshot, getDoc, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, where, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDq0UCWj43rCP3rqvAGbdyr2FFV7kyhZTA",
@@ -482,11 +390,20 @@
         let base64Image = "";
         let currentProducts = {}; 
 
+        // --- TOAST HELPER ---
+        window.showToast = (msg, isSuccess = true) => {
+            const toast = document.getElementById('toast');
+            const text = document.getElementById('toast-text');
+            text.innerText = msg;
+            toast.className = isSuccess ? 'success show' : 'show';
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        };
+
         // --- LOGIN & SESSION ---
         window.login = async () => {
             const idInput = document.getElementById('login-id').value.trim().toLowerCase(); 
             const pinInput = document.getElementById('login-pin').value.trim();
-            if(!idInput || !pinInput) { alert("Masukkan ID dan PIN!"); return; }
+            if(!idInput || !pinInput) { showToast("Masukkan ID dan PIN!", false); return; }
             const btn = document.querySelector('.btn-login');
             btn.innerHTML = "Memeriksa..."; btn.disabled = true;
             try {
@@ -497,9 +414,9 @@
                     localStorage.setItem('vendor_user', JSON.stringify(currentUser));
                     initDashboard();
                 } else {
-                    alert("ID atau PIN Salah."); btn.innerHTML = "Masuk"; btn.disabled = false;
+                    showToast("ID atau PIN Salah.", false); btn.innerHTML = "Masuk"; btn.disabled = false;
                 }
-            } catch (e) { alert("Error: " + e.message); btn.innerHTML = "Masuk"; btn.disabled = false; }
+            } catch (e) { showToast("Error: " + e.message, false); btn.innerHTML = "Masuk"; btn.disabled = false; }
         };
 
         window.logout = () => { if(confirm("Keluar?")) { localStorage.removeItem('vendor_user'); location.reload(); } };
@@ -510,18 +427,13 @@
             else { document.getElementById('login-page').style.display = 'flex'; document.getElementById('loading-screen').style.display = 'none'; }
         }
 
-        // --- UI HELPERS ---
         function updateStatusUI(isOpen) {
             const text = document.getElementById('status-text');
             const dot = document.getElementById('status-dot');
             if(isOpen) {
-                text.innerText = "Toko BUKA";
-                text.style.color = "var(--success)";
-                dot.className = "status-dot open";
+                text.innerText = "Toko BUKA"; text.style.color = "var(--success)"; dot.className = "status-dot open";
             } else {
-                text.innerText = "Toko TUTUP";
-                text.style.color = "var(--danger)";
-                dot.className = "status-dot closed";
+                text.innerText = "Toko TUTUP"; text.style.color = "var(--danger)"; dot.className = "status-dot closed";
             }
         }
 
@@ -550,21 +462,20 @@
                         document.getElementById('dashboard').style.display = 'none';
                         showAgreementForSigning();
                     }
-                    if(data.nama_warung !== currentUser.name) {
-                        currentUser.name = data.nama_warung;
-                        document.getElementById('display-name').innerText = data.nama_warung;
-                        localStorage.setItem('vendor_user', JSON.stringify(currentUser));
-                    }
                     const isOpen = (data.status || 'BUKA') === 'BUKA';
                     document.getElementById('shop-toggle').checked = isOpen;
                     updateStatusUI(isOpen);
                     if(data.shop_photo) document.getElementById('shop-photo-display').src = data.shop_photo;
                     
-                    // LOAD LOCATION
-                    if(data.alamat_warung) document.getElementById('shop-location-input').value = data.alamat_warung;
+                    if(data.alamat_warung) {
+                        document.getElementById('shop-location-input').value = data.alamat_warung;
+                        setLocationSavedState();
+                    } else {
+                        enableLocationEdit();
+                    }
 
                 } else {
-                    alert("Data tidak ditemukan."); localStorage.removeItem('vendor_user'); location.reload();
+                    localStorage.removeItem('vendor_user'); location.reload();
                 }
             });
 
@@ -572,30 +483,57 @@
             loadReviews();
         }
 
+        // --- LOCATION LOGIC (UPDATED) ---
+        window.enableLocationEdit = () => {
+            const input = document.getElementById('shop-location-input');
+            const btnSave = document.getElementById('btn-save-loc');
+            const btnEdit = document.getElementById('btn-edit-loc');
+            
+            input.disabled = false;
+            input.focus();
+            btnSave.style.display = 'flex';
+            btnSave.classList.remove('btn-saved');
+            btnSave.innerText = "Simpan Lokasi";
+            btnEdit.style.display = 'none';
+        };
+
+        function setLocationSavedState() {
+            const input = document.getElementById('shop-location-input');
+            const btnSave = document.getElementById('btn-save-loc');
+            const btnEdit = document.getElementById('btn-edit-loc');
+            
+            input.disabled = true;
+            btnSave.style.display = 'flex';
+            btnSave.classList.add('btn-saved');
+            btnSave.innerText = "Lokasi Tersimpan";
+            btnEdit.style.display = 'flex';
+        }
+
         window.saveShopLocation = async () => {
             const loc = document.getElementById('shop-location-input').value.trim();
-            if(!loc) { alert("Lokasi tidak boleh kosong."); return; }
+            if(!loc) { showToast("Lokasi tidak boleh kosong.", false); return; }
             
             const btn = document.getElementById('btn-save-loc');
+            if(btn.classList.contains('btn-saved')) return; // Avoid double saving
+
             const originalText = btn.innerText;
-            btn.innerText = "Menyimpan...";
-            btn.disabled = true;
+            btn.innerText = "Menyimpan..."; btn.disabled = true;
 
             try {
                 await updateDoc(doc(db, "vendors", currentUser.id), { 
                     alamat_warung: loc,
                     updated_at: new Date().toISOString()
                 });
-                alert("Lokasi berhasil disimpan!");
+                showToast("Lokasi berhasil disimpan!");
+                setLocationSavedState();
             } catch(e) {
-                alert("Gagal menyimpan lokasi: " + e.message);
+                showToast("Gagal menyimpan: " + e.message, false);
             } finally {
-                btn.innerText = originalText;
                 btn.disabled = false;
             }
         };
 
-        // --- MENU LOGIC (UPDATED WITH GROUPING & PRIORITY) ---
+        // --- MENU LOGIC ---
         function loadMenu() {
             const q = query(collection(db, "products"), where("vendor_id", "==", currentUser.id));
             onSnapshot(q, (snapshot) => {
@@ -605,78 +543,46 @@
                 currentProducts = {}; 
 
                 if(snapshot.empty) {
-                    container.innerHTML = '<div style="text-align:center; padding:40px; color:#999;">Belum ada menu.<br>Klik tombol + untuk menambah.</div>';
+                    container.innerHTML = '<div style="text-align:center; padding:40px; color:#999;">Belum ada menu.</div>';
                     return;
                 }
 
-                // 1. Group items by custom type (tipe) OR fallback to kategori
                 const groups = {};
                 snapshot.forEach(docSnap => {
                     const item = docSnap.data();
                     currentProducts[docSnap.id] = item;
-                    // Use 'tipe' if available, otherwise 'kategori', otherwise 'Lainnya'
                     const groupKey = item.tipe || item.kategori || 'Lainnya';
-                    
                     if(!groups[groupKey]) groups[groupKey] = [];
                     groups[groupKey].push({ id: docSnap.id, ...item });
                 });
 
-                // 2. Render groups
-                const sortedKeys = Object.keys(groups).sort();
-
-                sortedKeys.forEach(cat => {
+                Object.keys(groups).sort().forEach(cat => {
                     const items = groups[cat];
-                    // Render Header
-                    container.innerHTML += `
-                        <div class="menu-category-header">
-                            <span>${cat}</span>
-                            <span class="menu-category-count">${items.length}</span>
-                        </div>
-                    `;
-
-                    // Render Items in this group
+                    container.innerHTML += `<div class="menu-category-header"><span>${cat}</span><span class="menu-category-count">${items.length}</span></div>`;
                     items.forEach(item => {
                         const img = item.foto_url && item.foto_url.length > 10 ? item.foto_url : 'https://placehold.co/100?text=Menu';
-                        const exclusiveBadge = item.is_exclusive ? '<span class="mi-exclusive">Eksklusif</span>' : '';
-                        
-                        // Priority / Andalan Check
                         const isPriority = item.is_priority === true;
                         const starClass = isPriority ? 'active' : '';
-                        const starTitle = isPriority ? 'Batalkan Menu Andalan' : 'Jadikan Menu Andalan';
-
                         const isAvailable = item.is_available !== false; 
-                        const statusText = isAvailable ? '' : '<span style="color:red; font-size:10px; font-weight:bold;">(HABIS)</span>';
-                        const opacity = isAvailable ? '1' : '0.6';
-                        const checkedState = isAvailable ? 'checked' : '';
-
                         const div = document.createElement('div');
                         div.className = 'menu-item';
-                        div.style.opacity = opacity;
+                        div.style.opacity = isAvailable ? '1' : '0.6';
                         div.innerHTML = `
                             <img src="${img}" class="mi-img">
                             <div class="mi-info">
-                                <div class="mi-name">${item.nama_menu} ${statusText}</div>
+                                <div class="mi-name">${item.nama_menu} ${isAvailable ? '' : '<span style="color:red; font-size:10px;">(HABIS)</span>'}</div>
                                 <div class="mi-price">Rp ${parseInt(item.harga).toLocaleString()}</div>
                                 <div style="margin-top:5px;">
-                                    ${exclusiveBadge}
+                                    ${item.is_exclusive ? '<span class="mi-exclusive">Eksklusif</span>' : ''}
                                     ${isPriority ? '<span style="color:#FFC107; font-size:10px; font-weight:bold;"><i class="ph-fill ph-star"></i> Andalan</span>' : ''}
                                 </div>
                             </div>
                             <div class="mi-actions">
-                                <!-- PRIORITY TOGGLE BTN -->
-                                <button class="btn-icon priority ${starClass}" onclick="toggleProductPriority('${item.id}', ${!isPriority})" title="${starTitle}">
-                                    <i class="ph-fill ph-star"></i>
-                                </button>
-
-                                <label class="switch" style="transform:scale(0.7); margin-right:5px;" title="Ubah Status Stok">
-                                    <input type="checkbox" onchange="toggleProductStatus('${item.id}', this.checked)" ${checkedState}>
-                                    <span class="slider"></span>
-                                </label>
-                                
+                                <button class="btn-icon priority ${starClass}" onclick="toggleProductPriority('${item.id}', ${!isPriority})"><i class="ph-fill ph-star"></i></button>
+                                <label class="switch" style="transform:scale(0.7);"><input type="checkbox" onchange="toggleProductStatus('${item.id}', this.checked)" ${isAvailable ? 'checked' : ''}><span class="slider"></span></label>
                                 <button class="btn-icon edit" onclick="editMenu('${item.id}')"><i class="ph-bold ph-pencil-simple"></i></button>
                                 <button class="btn-icon delete" onclick="deleteMenu('${item.id}', '${item.nama_menu}')"><i class="ph-bold ph-trash"></i></button>
-                            </div>
-                        `;
+                            </div>`;
                         container.appendChild(div);
                     });
                 });
@@ -684,27 +590,12 @@
         }
 
         window.toggleProductStatus = async (id, isAvailable) => {
-            try { await updateDoc(doc(db, "products", id), { is_available: isAvailable, updated_at: new Date().toISOString() }); } 
-            catch(e) { alert("Gagal update stok."); }
+            try { await updateDoc(doc(db, "products", id), { is_available: isAvailable }); } catch(e) {}
         };
 
         window.toggleProductPriority = async (id, isPriority) => {
-            try { 
-                await updateDoc(doc(db, "products", id), { 
-                    is_priority: isPriority, 
-                    updated_at: new Date().toISOString() 
-                }); 
-            } 
-            catch(e) { alert("Gagal update status andalan."); }
+            try { await updateDoc(doc(db, "products", id), { is_priority: isPriority }); } catch(e) {}
         };
-
-        // --- REPLY & OTHER FUNCTIONS ---
-        function maskName(name) {
-            if (!name) return 'Pelanggan';
-            const parts = name.split(' ');
-            if (parts.length === 1) return parts[0].substring(0, 1) + '***';
-            return parts[0] + ' ' + parts[1].substring(0, 1) + '***';
-        }
 
         window.openReplyModal = (id) => {
             document.getElementById('reply-id').value = id;
@@ -715,21 +606,18 @@
         window.sendReply = async () => {
             const id = document.getElementById('reply-id').value;
             const text = document.getElementById('reply-text').value.trim();
-            if(!text) { alert("Tulis balasan dulu ya!"); return; }
-            const btn = document.querySelector('#modal-reply .btn-submit');
-            const originalText = btn.innerText;
-            btn.innerText = "Mengirim..."; btn.disabled = true;
+            if(!text) { showToast("Tulis balasan dulu ya!", false); return; }
             try {
                 await updateDoc(doc(db, "reviews", id), { reply: text, replied_at: new Date().toISOString() });
                 document.getElementById('modal-reply').style.display = 'none';
-            } catch(e) { alert("Gagal: " + e.message); } 
-            finally { btn.innerText = originalText; btn.disabled = false; }
+                showToast("Balasan terkirim!");
+            } catch(e) { showToast("Gagal membalas.", false); }
         };
 
         window.toggleShopStatus = async () => {
             const isOpen = document.getElementById('shop-toggle').checked;
-            const status = isOpen ? "BUKA" : "TUTUP";
-            await updateDoc(doc(db, "vendors", currentUser.id), { status: status });
+            await updateDoc(doc(db, "vendors", currentUser.id), { status: isOpen ? "BUKA" : "TUTUP" });
+            showToast("Status toko diperbarui!");
         };
 
         window.handleShopPhoto = (event) => {
@@ -737,19 +625,15 @@
             if (!file) return;
             const reader = new FileReader();
             reader.onload = function(e) {
-                const img = new Image();
-                img.src = e.target.result;
+                const img = new Image(); img.src = e.target.result;
                 img.onload = async function() {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const MAX_WIDTH = 300; 
-                    canvas.width = MAX_WIDTH;
-                    canvas.height = img.height * (MAX_WIDTH / img.width);
+                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                    canvas.width = 300; canvas.height = img.height * (300 / img.width);
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     const photoBase64 = canvas.toDataURL('image/jpeg', 0.6);
                     document.getElementById('shop-photo-display').src = photoBase64;
-                    try { await updateDoc(doc(db, "vendors", currentUser.id), { shop_photo: photoBase64 }); } 
-                    catch(err) { alert("Gagal upload foto."); }
+                    await updateDoc(doc(db, "vendors", currentUser.id), { shop_photo: photoBase64 });
+                    showToast("Foto profil diperbarui!");
                 }
             }
             reader.readAsDataURL(file);
@@ -758,11 +642,7 @@
         // --- AGREEMENT LOGIC ---
         function showAgreementForSigning() {
             document.getElementById('ag-action-area').style.display = 'flex';
-            document.getElementById('ag-readonly-area').style.display = 'none';
             document.getElementById('agreement-overlay').style.display = 'flex';
-            document.getElementById('check-agree').checked = false;
-            document.getElementById('input-signature').value = "";
-            checkAgreementStatus();
         }
         window.viewAgreementReadOnly = () => {
             document.getElementById('ag-action-area').style.display = 'none';
@@ -772,25 +652,18 @@
         window.closeAgreementModal = () => { document.getElementById('agreement-overlay').style.display = 'none'; }
         window.checkAgreementStatus = () => {
             const isChecked = document.getElementById('check-agree').checked;
-            const signature = document.getElementById('input-signature').value.trim();
+            const sig = document.getElementById('input-signature').value.trim();
             const btn = document.getElementById('btn-agree-final');
-            if(isChecked && signature.length >= 3) btn.classList.add('active');
-            else btn.classList.remove('active');
+            if(isChecked && sig.length >= 3) btn.classList.add('active'); else btn.classList.remove('active');
         }
         window.signAgreement = async () => {
-            const signatureName = document.getElementById('input-signature').value.trim();
-            if(!signatureName) return;
-            const btn = document.getElementById('btn-agree-final');
-            btn.innerHTML = "Memproses...";
+            const sig = document.getElementById('input-signature').value.trim();
             try {
-                await updateDoc(doc(db, "vendors", currentUser.id), {
-                    terms_agreed: true, terms_agreed_at: new Date().toISOString(),
-                    terms_signature_name: signatureName, terms_version: "v1.0"
-                });
+                await updateDoc(doc(db, "vendors", currentUser.id), { terms_agreed: true, terms_signature_name: sig, terms_agreed_at: new Date().toISOString() });
                 document.getElementById('agreement-overlay').style.display = 'none';
                 document.getElementById('dashboard').style.display = 'block';
-                alert("Terima kasih. Anda resmi menjadi Mitra Projekgo.");
-            } catch (e) { alert("Gagal: " + e.message); btn.innerHTML = "SETUJU & TANDA TANGANI"; }
+                showToast("Kemitraan Disetujui!");
+            } catch (e) {}
         }
 
         function loadReviews() {
@@ -800,73 +673,44 @@
                 container.innerHTML = '';
                 let totalRating = 0; let count = 0;
                 if(snap.empty) {
-                    container.innerHTML = `<div style="text-align:center; padding:20px; color:#ccc; font-size:12px;">Belum ada ulasan ditemukan.</div>`;
-                    document.getElementById('stat-orders').innerText = "0";
-                    document.getElementById('stat-rating').innerText = "0.0";
+                    document.getElementById('stat-orders').innerText = "0"; document.getElementById('stat-rating').innerText = "0.0";
                     return;
                 }
                 snap.forEach(d => {
-                    const r = d.data();
-                    count++;
-                    totalRating += parseFloat(r.rating || 0);
+                    const r = d.data(); count++; totalRating += parseFloat(r.rating || 0);
                     const stars = '★'.repeat(Math.floor(r.rating)) + '☆'.repeat(5 - Math.floor(r.rating));
-                    let dateStr = '-';
-                    if(r.date) { try { if(r.date.toDate) dateStr = r.date.toDate().toLocaleDateString(); else dateStr = new Date(r.date).toLocaleDateString(); } catch(e) {} }
-                    const displayName = maskName(r.user_name);
-                    let replySection = r.reply ? `<div class="rev-reply"><strong>Respon Anda:</strong><br>${r.reply}</div>` : `<button class="btn-reply" onclick="openReplyModal('${d.id}')"><i class="ph-bold ph-arrow-u-up-left"></i> Balas</button>`;
-                    container.innerHTML += `<div class="review-item"><div class="rev-header"><span class="rev-user">${displayName}</span><span class="rev-date">${dateStr}</span></div><div class="rev-stars">${stars}</div><div class="rev-text">${r.text || '<i>Tidak ada teks ulasan.</i>'}</div>${replySection}</div>`;
+                    let replySection = r.reply ? `<div class="rev-reply"><strong>Respon Anda:</strong><br>${r.reply}</div>` : `<button class="btn-reply" onclick="openReplyModal('${d.id}')">Balas</button>`;
+                    container.innerHTML += `<div class="review-item"><div class="rev-header"><strong>${r.user_name}</strong></div><div class="rev-stars">${stars}</div><div class="rev-text">${r.text || ''}</div>${replySection}</div>`;
                 });
                 document.getElementById('stat-orders').innerText = count;
-                document.getElementById('stat-rating').innerText = (count > 0 ? (totalRating / count).toFixed(1) : "0.0");
+                document.getElementById('stat-rating').innerText = (totalRating / count).toFixed(1);
             });
         }
 
-        // --- 6. MENU CRUD (UPDATED) ---
+        // --- MENU CRUD ---
         window.openModal = () => {
             document.getElementById('modal-title').innerText = "Tambah Menu";
-            document.getElementById('menu-id').value = "";
-            document.getElementById('inp-nama').value = "";
-            document.getElementById('inp-harga').value = "";
-            document.getElementById('inp-kategori').selectedIndex = 0;
-            document.getElementById('inp-tipe').value = ""; // Clear tipe
-            document.getElementById('inp-desc').value = "";
-            document.getElementById('inp-exclusive').checked = false;
-            document.getElementById('inp-priority').checked = false; // Clear priority
-            document.getElementById('inp-var-title').value = "";
-            document.getElementById('inp-var-options').value = "";
-            
-            document.getElementById('preview-img').src = "";
-            document.getElementById('preview-img').style.display = "none";
-            document.querySelector('.upload-placeholder').style.display = "block";
-            base64Image = "";
-            
+            document.getElementById('menu-id').value = ""; document.getElementById('inp-nama').value = "";
+            document.getElementById('inp-harga').value = ""; document.getElementById('inp-tipe').value = "";
+            document.getElementById('inp-desc').value = ""; document.getElementById('preview-img').style.display = "none";
+            document.querySelector('.upload-placeholder').style.display = "block"; base64Image = "";
             document.getElementById('modal-form').style.display = 'flex';
         };
 
         window.editMenu = (id) => {
             const item = currentProducts[id];
-            if(!item) return;
             document.getElementById('modal-title').innerText = "Edit Menu";
             document.getElementById('menu-id').value = id;
             document.getElementById('inp-nama').value = item.nama_menu;
             document.getElementById('inp-harga').value = item.harga;
             document.getElementById('inp-kategori').value = item.kategori;
-            document.getElementById('inp-tipe').value = item.tipe || ""; // Load tipe
+            document.getElementById('inp-tipe').value = item.tipe || "";
             document.getElementById('inp-desc').value = item.deskripsi || "";
             document.getElementById('inp-exclusive').checked = item.is_exclusive || false;
-            document.getElementById('inp-priority').checked = item.is_priority || false; // Load priority
-            document.getElementById('inp-var-title').value = item.variant_title || "";
-            document.getElementById('inp-var-options').value = item.variant_options ? item.variant_options.join(", ") : "";
-
+            document.getElementById('inp-priority').checked = item.is_priority || false;
             if(item.foto_url && item.foto_url.length > 20) {
-                base64Image = item.foto_url;
-                document.getElementById('preview-img').src = base64Image;
-                document.getElementById('preview-img').style.display = "block";
-                document.querySelector('.upload-placeholder').style.display = "none";
-            } else {
-                base64Image = "";
-                document.getElementById('preview-img').style.display = "none";
-                document.querySelector('.upload-placeholder').style.display = "block";
+                base64Image = item.foto_url; document.getElementById('preview-img').src = base64Image;
+                document.getElementById('preview-img').style.display = "block"; document.querySelector('.upload-placeholder').style.display = "none";
             }
             document.getElementById('modal-form').style.display = 'flex';
         }
@@ -875,22 +719,16 @@
 
         window.handleFileSelect = (event) => {
             const file = event.target.files[0];
-            if (!file) return;
             const reader = new FileReader();
             reader.onload = function(e) {
-                const img = new Image();
-                img.src = e.target.result;
+                const img = new Image(); img.src = e.target.result;
                 img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const MAX_WIDTH = 500; 
-                    canvas.width = MAX_WIDTH;
-                    canvas.height = img.height * (MAX_WIDTH / img.width);
+                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                    canvas.width = 500; canvas.height = img.height * (500 / img.width);
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     base64Image = canvas.toDataURL('image/jpeg', 0.6);
-                    const preview = document.getElementById('preview-img');
-                    preview.src = base64Image;
-                    preview.style.display = 'block';
+                    document.getElementById('preview-img').src = base64Image;
+                    document.getElementById('preview-img').style.display = 'block';
                     document.querySelector('.upload-placeholder').style.display = "none";
                 }
             }
@@ -901,64 +739,27 @@
             const id = document.getElementById('menu-id').value;
             const nama = document.getElementById('inp-nama').value;
             const harga = document.getElementById('inp-harga').value;
-            const kategori = document.getElementById('inp-kategori').value;
-            const tipe = document.getElementById('inp-tipe').value.trim(); // New Tipe
-            const desc = document.getElementById('inp-desc').value;
-            const isExclusive = document.getElementById('inp-exclusive').checked;
-            const isPriority = document.getElementById('inp-priority').checked; // New Priority
-            const varTitle = document.getElementById('inp-var-title').value.trim();
-            const varOptsStr = document.getElementById('inp-var-options').value.trim();
-            let varOptsArray = [];
-            if(varOptsStr) varOptsArray = varOptsStr.split(',').map(s => s.trim()).filter(s => s !== "");
-
-            if(!nama || !harga) { alert("Nama dan Harga wajib diisi!"); return; }
-
-            const btn = document.querySelector('.btn-submit');
-            btn.innerText = "Menyimpan...";
-            btn.disabled = true;
-
+            if(!nama || !harga) { showToast("Lengkapi data!", false); return; }
+            const btn = document.querySelector('.btn-submit'); btn.innerText = "Menyimpan..."; btn.disabled = true;
             const menuData = {
-                nama_menu: nama,
-                harga: parseInt(harga),
-                kategori: kategori,
-                tipe: tipe, // Save tipe
-                deskripsi: desc,
-                is_exclusive: isExclusive,
-                is_priority: isPriority, // Save priority
-                vendor_id: currentUser.id,
-                vendor_name: currentUser.name,
-                variant_title: varTitle,
-                variant_options: varOptsArray,
-                updated_at: new Date().toISOString()
+                nama_menu: nama, harga: parseInt(harga), kategori: document.getElementById('inp-kategori').value,
+                tipe: document.getElementById('inp-tipe').value.trim(), deskripsi: document.getElementById('inp-desc').value,
+                is_exclusive: document.getElementById('inp-exclusive').checked, is_priority: document.getElementById('inp-priority').checked,
+                vendor_id: currentUser.id, vendor_name: currentUser.name, updated_at: new Date().toISOString()
             };
             if(base64Image) menuData.foto_url = base64Image;
-
             try {
-                if(id) {
-                    await updateDoc(doc(db, "products", id), menuData);
-                } else {
-                    menuData.created_at = new Date().toISOString();
-                    menuData.is_available = true; 
-                    if(!base64Image) menuData.foto_url = "";
-                    await addDoc(collection(db, "products"), menuData);
-                }
-                closeModal();
-            } catch(e) {
-                alert("Gagal menyimpan: " + e.message);
-            } finally {
-                btn.innerText = "Simpan Menu";
-                btn.disabled = false;
-            }
+                if(id) { await updateDoc(doc(db, "products", id), menuData); }
+                else { menuData.created_at = new Date().toISOString(); menuData.is_available = true; await addDoc(collection(db, "products"), menuData); }
+                showToast("Menu berhasil disimpan!"); closeModal();
+            } catch(e) {} finally { btn.innerText = "Simpan Menu"; btn.disabled = false; }
         };
 
         window.deleteMenu = async (id, nama) => {
-            if(confirm(`Hapus menu "${nama}"?`)) {
-                await deleteDoc(doc(db, "products", id));
-            }
+            if(confirm(`Hapus menu "${nama}"?`)) { await deleteDoc(doc(db, "products", id)); showToast("Menu dihapus."); }
         };
 
         checkSession();
-
     </script>
 </body>
 </html>
