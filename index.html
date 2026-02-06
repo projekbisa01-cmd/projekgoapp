@@ -508,8 +508,17 @@
         }
         
         .nav-center-item { position: relative; top: -25px; }
-        .fab-whatsapp { width: 56px; height: 56px; background: #25D366; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 28px; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); border: 4px solid #f5f5f5; text-decoration: none; transition: transform 0.2s; }
+        .fab-whatsapp { width: 56px; height: 56px; background: #25D366; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 28px; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); border: 4px solid #f5f5f5; text-decoration: none; transition: transform 0.2s; cursor: pointer; }
         .fab-whatsapp:active { transform: scale(0.95); }
+
+        /* === NEW: ADMIN MODAL STYLES === */
+        #admin-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(3px); animation: fadeIn 0.2s; }
+        .admin-modal-content { background: white; width: 85%; max-width: 320px; padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.2); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .admin-modal-title { font-size: 18px; font-weight: 800; color: var(--dark); margin-bottom: 10px; }
+        .admin-modal-text { font-size: 13px; color: #666; margin-bottom: 20px; line-height: 1.5; }
+        .btn-wa-contact { display: flex; align-items: center; justify-content: center; gap: 10px; background: #25D366; color: white; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 700; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.2); transition: transform 0.1s; }
+        .btn-wa-contact:active { transform: scale(0.96); }
+        .close-admin-btn { margin-top: 15px; color: #888; font-size: 13px; font-weight: 600; cursor: pointer; }
 
         .service-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 20px; }
         .svc-card { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; }
@@ -654,6 +663,7 @@
                     <img src="https://cdn-icons-png.flaticon.com/512/2966/2966327.png" class="icon-3d">
                     <div class="label-3d">Sehat</div>
                 </div>
+                <!-- UPDATE: Kembali ke menu 'Lainnya' -->
                 <div class="menu-3d-item" onclick="openServiceForm('Bantuin Aja')">
                     <img src="https://cdn-icons-png.flaticon.com/512/9356/9356947.png" class="icon-3d">
                     <div class="label-3d">Lainnya</div>
@@ -873,6 +883,24 @@
             <a href="https://wa.me/6281292802623" target="_blank" class="btn-wa-admin"><i class="ph-fill ph-whatsapp-logo"></i> Hubungi Admin 1</a>
         </div>
     </div>
+    
+    <!-- === NEW: ADMIN HELP MODAL === -->
+    <div id="admin-modal" onclick="if(event.target===this) closeAdminModal()">
+        <div class="admin-modal-content">
+            <div class="admin-modal-title">Hubungi Admin</div>
+            <div class="admin-modal-text">Silahkan klik untuk bantuan lain, atau simpan nomer admin yah.</div>
+            
+            <a href="https://wa.me/62882008667068" target="_blank" class="btn-wa-contact">
+                <i class="ph-fill ph-whatsapp-logo" style="font-size:20px;"></i> Admin 1 (Utama)
+            </a>
+            
+            <a href="https://wa.me/6281292802623" target="_blank" class="btn-wa-contact">
+                <i class="ph-fill ph-whatsapp-logo" style="font-size:20px;"></i> Admin 2
+            </a>
+            
+            <div class="close-admin-btn" onclick="closeAdminModal()">Tutup</div>
+        </div>
+    </div>
 
     <!-- MODAL POPUP VARIAN -->
     <div id="variant-modal" onclick="if(event.target===this) closeVariantModal()">
@@ -915,9 +943,10 @@
             <div class="nav-item active" onclick="openPage('home')" id="nav-home"><i class="ph ph-house"></i><span>Beranda</span></div>
             <div class="nav-item" onclick="openPage('orders')" id="nav-orders"><i class="ph ph-receipt"></i><span>Pesanan</span></div>
             <div class="nav-center-item">
-                 <a href="https://wa.me/62882008667068" target="_blank" class="fab-whatsapp">
+                <!-- Updated: Changed from <a> to <div> with onclick event to open modal -->
+                 <div class="fab-whatsapp" onclick="openAdminModal()">
                     <i class="ph-fill ph-whatsapp-logo"></i>
-                 </a>
+                 </div>
             </div>
             <!-- UPDATED: Added onclick toggleCartPopup -->
             <div class="nav-item" onclick="toggleCartPopup()" id="nav-cart">
@@ -967,6 +996,11 @@
 
         window.showClosedModal = () => { document.getElementById('closed-modal').style.display = 'flex'; }
         window.closeClosedModal = () => { document.getElementById('closed-modal').style.display = 'none'; }
+        
+        // === NEW: ADMIN MODAL FUNCTIONS ===
+        window.openAdminModal = () => { document.getElementById('admin-modal').style.display = 'flex'; }
+        window.closeAdminModal = () => { document.getElementById('admin-modal').style.display = 'none'; }
+        
         window.initSplashScreen = () => { setTimeout(() => { const splash = document.getElementById('splash-screen'); if(splash) splash.classList.add('hidden'); }, 2500); }
         window.addEventListener('load', initSplashScreen);
 
@@ -1036,8 +1070,11 @@
             
             currentVendorIdForReviews = vendor.id;
             
+            // --- UPDATE: Mengambil lokasi untuk header detail (Prioritas: alamat_warung) ---
+            const locSuffix = vendor.alamat_warung ? ` - ${vendor.alamat_warung}` : (vendor.lokasi ? ` - ${vendor.lokasi}` : '');
+
             const img = vendor.shop_photo || 'https://cdn-icons-png.flaticon.com/512/1046/1046857.png';
-            document.getElementById('vendor-header-content').innerHTML = `<div class="vendor-header"><img src="${img}" class="vh-img"><div class="vh-overlay"></div><div class="vh-info"><div class="vh-name">${vendor.nama_warung}</div><div class="vh-meta"><span>⭐ 4.8 (200+)</span> • <span>Aneka Makanan</span> • <span>1.2km</span></div></div></div>`;
+            document.getElementById('vendor-header-content').innerHTML = `<div class="vendor-header"><img src="${img}" class="vh-img"><div class="vh-overlay"></div><div class="vh-info"><div class="vh-name">${vendor.nama_warung}${locSuffix}</div><div class="vh-meta"><span>⭐ 4.8 (200+)</span> • <span>Aneka Makanan</span> • <span>1.2km</span></div></div></div>`;
             
             // --- FILTER PRODUK ---
             const vendorMenu = allProducts.filter(p => p.vendor_name === vendor.nama_warung || p.vendor_id === vendor.id);
@@ -1547,6 +1584,9 @@
         window.handleSearch = (e) => {
             if(e.key === 'Enter') { const keyword = e.target.value.toLowerCase(); const filtered = allProducts.filter(p => p.nama_menu.toLowerCase().includes(keyword)); const c = document.getElementById('list-content'); c.innerHTML = ''; c.classList.add('product-list-grid'); if (filtered.length === 0) { c.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:#999;">Tidak ada hasil.</div>'; } else { filtered.forEach(item => { renderPcard(c, item); }); } document.getElementById('list-title').innerText = `Hasil: "${keyword}"`; openPage('list'); }
         }
+        
+        // HAPUS FUNGSI openUMKMPage KARENA SUDAH TIDAK DIPAKAI
+
         window.openServiceForm = (svc) => {
             currentServiceType = svc; document.getElementById('form-service-title').innerText = svc; const container = document.getElementById('dynamic-form-fields'); let html = '';
             if (svc === 'Ngojek' || svc === 'Mobil') { html += `<div class="form-group"><label class="form-label">Lokasi Jemput</label><input type="text" id="svc-jemput" class="form-input"></div><div class="form-group"><label class="form-label">Tujuan</label><input type="text" id="svc-tujuan" class="form-input"></div><div class="form-group"><label class="form-label">Jam</label><input type="text" id="svc-jam" class="form-input" placeholder="Sekarang"></div>`; } else if (svc === 'Kirim Paket') { html += `<div class="form-group"><label class="form-label">Jenis Paket</label><input type="text" id="svc-paket" class="form-input"></div><div class="form-group"><label class="form-label">Alamat Ambil</label><input type="text" id="svc-jemput" class="form-input"></div><div class="form-group"><label class="form-label">Alamat Tujuan</label><input type="text" id="svc-tujuan" class="form-input"></div><div class="form-group"><label class="form-label">Penerima</label><input type="text" id="svc-penerima" class="form-input"></div>`; } else { html += `<div class="form-group"><label class="form-label">Detail Pesanan</label><input type="text" id="svc-detail" class="form-input" placeholder="Apa yang bisa kami bantu?"></div><div class="form-group"><label class="form-label">Alamat / Lokasi</label><input type="text" id="svc-lokasi" class="form-input"></div>`; }
@@ -1565,15 +1605,30 @@
             const validVendorIds = allVendors.map(v => v.id);
             allProducts = rawProducts.filter(p => { return p.vendor_id && validVendorIds.includes(p.vendor_id); });
             const availableProducts = allProducts.filter(p => p.is_available !== false);
+            
+            // --- UPDATE: Menghapus Logika Filter Bidang Usaha. Semua dianggap Makanan ---
             const exclusiveItems = availableProducts.filter(p => p.is_exclusive === true);
+            
             renderHorizontalScroll('container-exclusive', exclusiveItems);
             renderWarungList(allVendors);
+            
+            // Hapus auto-redirect ke halaman UMKM jika sedang terbuka, kembalikan ke home jika perlu
             const listTitle = document.getElementById('list-title');
-            if (document.getElementById('page-list').style.display === 'block' && listTitle) { const currentCat = listTitle.innerText; if (!currentCat.includes('Hasil:')) { openCategoryPage(currentCat); } }
+            if (document.getElementById('page-list').style.display === 'block' && listTitle) { 
+                const currentCat = listTitle.innerText; 
+                // Jika user sedang di halaman kategori biasa, refresh
+                if (!currentCat.includes('Hasil:') && currentCat !== 'UMKM & Toko Kelontong') { 
+                    openCategoryPage(currentCat); 
+                }
+            }
         }
         
         function renderWarungList(vends) {
-            vends.sort((a, b) => {
+            // --- UPDATE: Menampilkan SEMUA warung (Hapus filter bidang usaha) ---
+            // Kita asumsikan semua data di database adalah Warung Makanan sesuai instruksi "Fokus Makanan Saja"
+            const foodVendors = vends;
+
+            foodVendors.sort((a, b) => {
                 const isOpenA = (a.status || 'BUKA').toUpperCase() === 'BUKA';
                 const isOpenB = (b.status || 'BUKA').toUpperCase() === 'BUKA';
                 if (isOpenA && !isOpenB) return -1;
@@ -1585,6 +1640,8 @@
             c.innerHTML='';
 
             const availableProducts = allProducts.filter(p => p.is_available !== false);
+            
+            // --- UPDATE: Best Seller ambil 15 produk teratas tanpa filter bidang usaha ---
             const bestSellerItems = availableProducts.slice(0, 15);
             
             let bestSellerInserted = false;
@@ -1625,7 +1682,8 @@
                 secondBannerInserted = true;
             };
             
-            vends.forEach((v, index) => {
+            // Loop menggunakan filtered foodVendors
+            foodVendors.forEach((v, index) => {
                 if (index === 5) { renderBestSeller(); }
                 if (index === 9) { renderBanner(); }
                 if (index === 15) { renderSecondBanner(); } // Panggil fungsi di index ke-15
@@ -1644,6 +1702,9 @@
                 const statusText = s ? 'Buka' : 'Tutup';
                 const statusColor = s ? '#00C853' : '#9E9E9E'; 
                 
+                // --- UPDATE: Menambahkan Lokasi di samping Nama Warung (Prioritas: alamat_warung) ---
+                const locationInfo = v.alamat_warung ? ` - ${v.alamat_warung}` : (v.lokasi ? ` - ${v.lokasi}` : (v.alamat ? ` - ${v.alamat}` : ''));
+
                 const div = document.createElement('div');
                 div.className = 'warung-list-item';
                 div.style.marginLeft = "15px";
@@ -1652,7 +1713,7 @@
                 if (s) { div.onclick = () => openVendorPage(v.id); } 
                 else { div.style.opacity = "0.6"; div.style.filter = "grayscale(100%)"; div.style.cursor = "default"; }
 
-                div.innerHTML = `<div style="position:relative;"><img src="${img}" class="wli-img">${!s ? '<div class="badge-habis-overlay" style="border-radius:12px;"><span class="badge-habis-text">TUTUP</span></div>' : ''}</div><div class="wli-content"><div class="wli-title">${v.nama_warung || 'Warung Projekgo'}</div><div class="wli-meta"><i class="ph-fill ph-star" style="color:#FFC107;"></i> <b>${rating}</b> <span style="color:#999;">(${reviewCount})</span> • $$$ • Aneka Makanan</div><div class="wli-price-row"><i class="ph-bold ph-tag" style="color:var(--primary);"></i><span style="color:var(--primary); font-weight:700;">Rp${formattedPrice}rb</span><span style="text-decoration:line-through; color:#bbb;">Rp${fakeCoret}rb</span><span style="color:#888;">• ${dist} km</span></div><div style="font-size:10px; color:${statusColor}; margin-bottom:0px; font-weight:700; line-height:1.2;">${statusText}</div><div class="wli-badges"><img src="https://i.ibb.co.com/Rk6TL6S7/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT.png" class="wli-badge-img"><img src="https://i.ibb.co.com/nqW2c7Jx/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT-1.png" class="wli-badge-img"><img src="https://i.ibb.co.com/9kmr57kn/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT-2.png" class="wli-badge-img"></div></div>`;
+                div.innerHTML = `<div style="position:relative;"><img src="${img}" class="wli-img">${!s ? '<div class="badge-habis-overlay" style="border-radius:12px;"><span class="badge-habis-text">TUTUP</span></div>' : ''}</div><div class="wli-content"><div class="wli-title">${v.nama_warung || 'Warung Projekgo'}${locationInfo}</div><div class="wli-meta"><i class="ph-fill ph-star" style="color:#FFC107;"></i> <b>${rating}</b> <span style="color:#999;">(${reviewCount})</span> • $$$ • Aneka Makanan</div><div class="wli-price-row"><i class="ph-bold ph-tag" style="color:var(--primary);"></i><span style="color:var(--primary); font-weight:700;">Rp${formattedPrice}rb</span><span style="text-decoration:line-through; color:#bbb;">Rp${fakeCoret}rb</span><span style="color:#888;">• ${dist} km</span></div><div style="font-size:10px; color:${statusColor}; margin-bottom:0px; font-weight:700; line-height:1.2;">${statusText}</div><div class="wli-badges"><img src="https://i.ibb.co.com/Rk6TL6S7/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT.png" class="wli-badge-img"><img src="https://i.ibb.co.com/nqW2c7Jx/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT-1.png" class="wli-badge-img"><img src="https://i.ibb.co.com/9kmr57kn/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT-2.png" class="wli-badge-img"></div></div>`;
                 c.appendChild(div);
             });
             
