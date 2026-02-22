@@ -179,14 +179,20 @@
 
         /* MODAL */
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 10002; align-items: flex-end; justify-content: center; }
-        .modal-box { background: white; padding: 30px; border-radius: 24px 24px 0 0; width: 100%; max-width: 500px; animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .modal-box { background: white; padding: 30px; border-radius: 24px 24px 0 0; width: 100%; max-width: 500px; animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1); max-height: 90vh; overflow-y: auto; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .modal-title { font-size: 20px; font-weight: 800; margin-bottom: 20px; }
         .form-group { margin-bottom: 15px; }
         .form-label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: var(--gray); }
-        .form-input, textarea { width: 100%; padding: 12px; border: 1.5px solid #eee; border-radius: 12px; font-family: inherit; font-size: 15px; outline: none; }
+        .form-input, textarea, select { width: 100%; padding: 12px; border: 1.5px solid #eee; border-radius: 12px; font-family: inherit; font-size: 15px; outline: none; background-color: white; }
+        .form-input:focus, textarea:focus, select:focus { border-color: var(--primary); }
         .modal-actions { display: flex; gap: 12px; margin-top: 25px; }
         .btn-modal { flex: 1; padding: 14px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; }
+
+        /* CHECKBOX KATEGORI */
+        .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 5px; }
+        .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--dark); cursor: pointer; }
+        .checkbox-label input[type="checkbox"] { accent-color: var(--primary); width: 18px; height: 18px; cursor: pointer; }
 
         /* BADGE */
         .unique-badge {
@@ -206,6 +212,8 @@
 
         @media (min-width: 640px) {
             .stats-grid { grid-template-columns: repeat(3, 1fr); }
+            .modal-box { border-radius: 24px; align-self: center; }
+            .modal-overlay { align-items: center; }
         }
     </style>
 </head>
@@ -270,13 +278,20 @@
                 <h1 class="page-title">Daftar Mitra</h1>
                 <p class="page-subtitle">Kelola status & Mitra Andalan</p>
             </div>
+            
+            <!-- Tambahan Search Bar Mitra -->
+            <div style="position: relative; margin-bottom: 20px;">
+                <i class="ph ph-magnifying-glass" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray); font-size: 20px;"></i>
+                <input type="text" id="search-vendors" class="form-input" style="padding-left: 45px;" placeholder="Cari nama warung, kategori, atau lokasi..." oninput="renderVendorsList()">
+            </div>
+
             <div class="data-card">
                 <div class="table-responsive">
                     <table>
                         <thead>
                             <tr>
                                 <th>Warung & Akses</th>
-                                <th>Lokasi</th>
+                                <th>Kategori & Lokasi</th>
                                 <th>Andalan</th>
                                 <th>Status</th>
                                 <th>Aksi</th>
@@ -297,6 +312,12 @@
             </div>
             
             <div id="menu-vendor-list-view">
+                <!-- Tambahan Search Bar List Vendor -->
+                <div style="position: relative; margin-bottom: 20px;">
+                    <i class="ph ph-magnifying-glass" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray); font-size: 20px;"></i>
+                    <input type="text" id="search-menu-vendors" class="form-input" style="padding-left: 45px;" placeholder="Cari nama mitra..." oninput="renderVendorMenuOverview()">
+                </div>
+
                 <div class="data-card">
                     <div class="table-responsive">
                         <table>
@@ -312,6 +333,13 @@
                     <i class="ph ph-arrow-left"></i> Kembali
                 </button>
                 <h3 id="detail-vendor-name" style="margin-bottom:15px;"></h3>
+                
+                <!-- Tambahan Search Bar Detail Menu -->
+                <div style="position: relative; margin-bottom: 20px;">
+                    <i class="ph ph-magnifying-glass" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray); font-size: 20px;"></i>
+                    <input type="text" id="search-menu-detail" class="form-input" style="padding-left: 45px;" placeholder="Cari nama menu atau kategori..." oninput="renderDetailProducts(currentVendorView)">
+                </div>
+
                 <div class="data-card">
                     <div class="table-responsive">
                         <table>
@@ -381,7 +409,7 @@
                 <button id="btn-broadcast-submit" class="btn-login" style="background:var(--primary);" onclick="kirimBroadcast()">Siarkan Sekarang</button>
             </div>
 
-            <!-- Riwayat Siaran (NEW) -->
+            <!-- Riwayat Siaran -->
             <div class="page-header">
                 <h2 class="page-title" style="font-size: 18px;">Riwayat Siaran</h2>
             </div>
@@ -437,7 +465,6 @@
                 <label class="form-label">Nama Warung</label>
                 <input type="text" id="new-vendor-name" class="form-input" placeholder="Contoh: Warung Berkah">
             </div>
-            <!-- REMOVED BIDANG USAHA SELECT -->
             <div class="form-group">
                 <label class="form-label">Lokasi</label>
                 <input type="text" id="new-vendor-location" class="form-input" placeholder="Alamat / Area (Cth: Blok A No. 1)">
@@ -469,11 +496,12 @@
         </div>
     </div>
 
-    <!-- MODAL EDIT INFO MITRA (BARU) -->
+    <!-- MODAL EDIT INFO MITRA (DENGAN KATEGORI) -->
     <div id="edit-vendor-info-modal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-title">Edit Info Mitra</div>
             <input type="hidden" id="evi-id">
+            
             <div class="form-group">
                 <label class="form-label">ID Mitra (Tidak dapat diubah)</label>
                 <input type="text" id="evi-id-display" class="form-input" disabled style="background:#f1f5f9; color:#999;">
@@ -482,11 +510,22 @@
                 <label class="form-label">Nama Warung</label>
                 <input type="text" id="evi-name" class="form-input">
             </div>
-            <!-- REMOVED BIDANG USAHA SELECT -->
+            
+            <!-- INPUT KATEGORI UTAMA BARU -->
+            <div class="form-group">
+                <label class="form-label">Kategori Utama (Bisa pilih lebih dari satu)</label>
+                <div id="evi-kategori-container" class="checkbox-grid">
+                    <!-- Akan diisi otomatis oleh JavaScript berupa checkbox -->
+                </div>
+                <!-- Field input text ini muncul hanya jika memilih "Tambah kategori lain..." -->
+                <input type="text" id="evi-kategori-custom" class="form-input" placeholder="Ketik kategori baru (pisahkan dgn koma jika banyak)..." style="display:none; margin-top: 15px; border-color: var(--primary);">
+            </div>
+            
             <div class="form-group">
                 <label class="form-label">Lokasi</label>
                 <input type="text" id="evi-location" class="form-input" placeholder="Update lokasi...">
             </div>
+            
             <div class="modal-actions">
                 <button class="btn-modal" style="background:#f1f5f9;" onclick="closeModal('edit-vendor-info-modal')">Batal</button>
                 <button class="btn-modal" style="background:var(--primary); color:white;" onclick="saveVendorInfoUpdate()">Simpan</button>
@@ -494,7 +533,7 @@
         </div>
     </div>
 
-    <!-- MODAL EDIT PRODUK (BARU) -->
+    <!-- MODAL EDIT PRODUK -->
     <div id="edit-product-modal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-title">Edit Menu</div>
@@ -553,6 +592,7 @@
         let adminAllProducts = []; 
         let adminAllVendors = [];
         let adminAllReviews = [];
+        let adminAllKategori = []; // Simpan data kategori utama
         let currentVendorView = null; 
         let deleteTarget = null; 
 
@@ -579,7 +619,57 @@
             if (pageId === 'reviews') showReviewList();
         }
 
-        // --- REVIEW PAGE LOGIC (UPDATED) ---
+        // --- RENDER KATEGORI OPTIONS ---
+        window.renderKategoriOptions = () => {
+            const container = document.getElementById('evi-kategori-container');
+            
+            // Daftar kategori utama default / bawaan
+            const defaultCategories = ["Sarapan", "Pernasian", "Minuman", "Ayam", "Berkuah", "aneka mie", "Snack"];
+            
+            // Ambil kategori custom dari Firebase yang belum ada di daftar default
+            const dbCategories = adminAllKategori
+                .map(k => k.nama || k.name || k.kategori_utama || k.id)
+                .filter(catName => {
+                    return !defaultCategories.some(d => d.toLowerCase() === (catName || '').toLowerCase());
+                });
+
+            // Gabungkan default list dengan custom list dari DB
+            const allCategories = [...defaultCategories, ...dbCategories];
+            
+            let html = '';
+            allCategories.forEach(catName => {
+                if(catName) {
+                    html += `
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="kategori_cb" value="${catName}">
+                        ${catName}
+                    </label>`;
+                }
+            });
+            
+            // Tambahkan opsi custom di akhir list
+            html += `
+            <label class="checkbox-label" style="font-weight:bold; color:var(--primary);">
+                <input type="checkbox" id="cb-lainnya" onchange="checkCustomKategori()">
+                + Lainnya...
+            </label>`;
+            
+            container.innerHTML = html;
+        }
+
+        window.checkCustomKategori = () => {
+            const cbLainnya = document.getElementById('cb-lainnya');
+            const customInput = document.getElementById('evi-kategori-custom');
+            
+            if(cbLainnya && cbLainnya.checked) {
+                customInput.style.display = 'block';
+                customInput.focus();
+            } else {
+                customInput.style.display = 'none';
+            }
+        }
+
+        // --- REVIEW PAGE LOGIC ---
         window.showReviewList = () => {
             document.getElementById('review-vendor-list').style.display = 'block';
             document.getElementById('review-detail-view').style.display = 'none';
@@ -677,20 +767,26 @@
             document.getElementById('menu-vendor-list-view').style.display = 'none';
             document.getElementById('menu-detail-view').style.display = 'block';
             document.getElementById('detail-vendor-name').innerText = vendorName;
-            renderDetailProducts(vendorName);
+            window.renderDetailProducts(vendorName);
         }
         
-        function renderDetailProducts(vendorName) {
+        window.renderDetailProducts = (vendorName) => {
             const detailBody = document.getElementById('detail-product-body');
+            if(!detailBody) return;
+            const searchKeyword = (document.getElementById('search-menu-detail')?.value || '').toLowerCase();
             detailBody.innerHTML = '';
-            const vendorProducts = adminAllProducts.filter(p => p.vendor_name === vendorName);
+            
+            const vendorProducts = adminAllProducts.filter(p => 
+                p.vendor_name === vendorName && 
+                ((p.nama_menu || '').toLowerCase().includes(searchKeyword) || (p.category || '').toLowerCase().includes(searchKeyword))
+            );
+
             if (vendorProducts.length === 0) {
-                detailBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px; color:#999;">Kosong.</td></tr>';
+                detailBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px; color:#999;">Kosong atau tidak ditemukan.</td></tr>';
             } else {
                 vendorProducts.forEach(p => {
                     const isAvail = p.is_available !== false;
                     const isExclusive = p.is_exclusive === true;
-                    // Escape string untuk passing parameter function
                     const safeName = p.nama_menu.replace(/'/g, "\\'");
                     const safeCat = (p.category || '').replace(/'/g, "\\'");
                     
@@ -723,20 +819,88 @@
             }
         }
         
-        function renderVendorMenuOverview() {
+        window.renderVendorMenuOverview = () => {
             const container = document.getElementById('menu-vendor-body');
+            if(!container) return;
+            const searchKeyword = (document.getElementById('search-menu-vendors')?.value || '').toLowerCase();
             container.innerHTML = '';
             const grouped = {};
             adminAllVendors.forEach(v => grouped[v.nama_warung] = 0);
             adminAllProducts.forEach(p => { if(grouped[p.vendor_name] !== undefined) grouped[p.vendor_name]++; });
+            
             for (const [vName, count] of Object.entries(grouped)) {
-                container.innerHTML += `<tr><td data-label="Mitra" style="font-weight:700;">${vName}</td><td data-label="Menu">${count} Menu</td><td data-label="Aksi"><button class="action-btn btn-view" onclick="openVendorMenu('${vName}')"><i class="ph-bold ph-caret-right"></i></button></td></tr>`;
+                if (vName.toLowerCase().includes(searchKeyword)) {
+                    container.innerHTML += `<tr><td data-label="Mitra" style="font-weight:700;">${vName}</td><td data-label="Menu">${count} Menu</td><td data-label="Aksi"><button class="action-btn btn-view" onclick="openVendorMenu('${vName}')"><i class="ph-bold ph-caret-right"></i></button></td></tr>`;
+                }
             }
         }
 
-        // --- BROADCAST LOGIC (IMPROVED) ---
+        window.renderVendorsList = () => {
+            const vendorBody = document.getElementById('vendor-list-body');
+            if(!vendorBody) return;
+            let hMain = '';
+            const searchKeyword = (document.getElementById('search-vendors')?.value || '').toLowerCase();
+            
+            const filteredVendors = adminAllVendors.filter(v => {
+                const name = (v.nama_warung || '').toLowerCase();
+                const address = (v.alamat_warung || v.lokasi || '').toLowerCase();
+                let kategoriDataRaw = v.kategori_utama || [];
+                let kategoriStr = Array.isArray(kategoriDataRaw) ? kategoriDataRaw.join(', ') : kategoriDataRaw;
+                
+                return name.includes(searchKeyword) || address.includes(searchKeyword) || kategoriStr.toLowerCase().includes(searchKeyword);
+            });
+
+            filteredVendors.forEach(v => {
+                const isOpen = v.status === 'BUKA';
+                const isFeatured = v.is_featured === true;
+                const safeName = (v.nama_warung || '').replace(/'/g, "\\'");
+                const addressData = v.alamat_warung || v.lokasi || '-';
+                const safeAddress = addressData.replace(/'/g, "\\'");
+                
+                let kategoriDataRaw = v.kategori_utama || [];
+                let kategoriStr = Array.isArray(kategoriDataRaw) ? kategoriDataRaw.join(', ') : kategoriDataRaw;
+                
+                hMain += `
+                    <tr>
+                        <td data-label="Warung & Akses">
+                            <div style="font-weight:700; font-size:16px; color:var(--primary);">${v.nama_warung}</div>
+                            <div class="unique-badge">ID: ${v.id}</div>
+                            <div style="font-size:11px; color:#666;">PIN: <b>${v.pin || '-'}</b></div>
+                        </td>
+                        <td data-label="Kategori & Lokasi">
+                            <div style="font-size:12px; font-weight:700; color:var(--info); margin-bottom: 4px;">
+                                ${kategoriStr ? `<i class="ph-fill ph-tag"></i> ${kategoriStr}` : '<i class="ph-fill ph-tag"></i> Belum ada kategori'}
+                            </div>
+                            <div style="font-size:13px; color:var(--dark); max-width: 150px; line-height:1.4;">
+                                ${addressData}
+                            </div>
+                        </td>
+                        <td data-label="Andalan">
+                            <button class="action-btn btn-feature ${isFeatured ? 'active' : ''}" title="Jadikan Andalan" onclick="toggleFeatured('${v.id}', ${isFeatured})">
+                                <i class="${isFeatured ? 'ph-fill' : 'ph-bold'} ph-star"></i>
+                            </button>
+                        </td>
+                        <td data-label="Status"><button class="btn-status ${isOpen ? 'open' : 'closed'}" onclick="toggleStatus('${v.id}', '${v.status}')">${v.status}</button></td>
+                        <td data-label="Aksi">
+                            <div style="display:flex; gap:5px; justify-content: flex-end;">
+                                <button class="action-btn btn-edit-info" title="Edit Info Warung" onclick="openEditVendorInfo('${v.id}')">
+                                    <i class="ph-bold ph-pencil-simple"></i>
+                                </button>
+                                <button class="action-btn btn-edit-pin" title="Ganti PIN" onclick="openChangePinModal('${v.id}', '${safeName}')">
+                                    <i class="ph-bold ph-key"></i>
+                                </button>
+                                <button class="action-btn btn-delete" onclick="askDelete('vendors', '${v.id}')">
+                                    <i class="ph-bold ph-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`;
+            });
+            vendorBody.innerHTML = hMain;
+        }
+
+        // --- BROADCAST LOGIC ---
         window.kirimBroadcast = async () => {
-            console.log("Tombol Broadcast Diklik");
             const btn = document.getElementById('btn-broadcast-submit');
             const title = document.getElementById('broadcast-title').value.trim();
             const body = document.getElementById('broadcast-body').value.trim();
@@ -759,8 +923,7 @@
                     document.getElementById('broadcast-title').value = "";
                     document.getElementById('broadcast-body').value = "";
                 } catch(e) {
-                    alert("Gagal mengirim: " + e.message + "\n\nCek apakah API Key valid dan Rules database mengizinkan write.");
-                    console.error(e);
+                    alert("Gagal mengirim: " + e.message);
                 } finally {
                     btn.innerText = "Siarkan Sekarang";
                     btn.disabled = false;
@@ -773,13 +936,11 @@
             document.getElementById('new-vendor-id').value = "";
             document.getElementById('new-vendor-pin').value = "";
             document.getElementById('new-vendor-name').value = "";
-            // REMOVED TYPE RESET
-            document.getElementById('new-vendor-location').value = ""; // Reset lokasi
+            document.getElementById('new-vendor-location').value = "";
             document.getElementById('add-modal').style.display = 'flex'; 
         }
         window.closeModal = (id) => { document.getElementById(id).style.display = 'none'; }
         
-        // Generator PIN Acak
         window.generateRandomPin = () => {
             const pin = Math.floor(100000 + Math.random() * 900000); // 6 digit
             document.getElementById('new-vendor-pin').value = pin;
@@ -790,7 +951,7 @@
             const id = rawId.toLowerCase().replace(/\s+/g, '_');
             const pin = document.getElementById('new-vendor-pin').value.trim();
             const nama = document.getElementById('new-vendor-name').value.trim();
-            const alamat = document.getElementById('new-vendor-location').value.trim(); // Ambil dari input lokasi
+            const alamat = document.getElementById('new-vendor-location').value.trim(); 
             
             if(!id || !pin || !nama) return alert("Mohon lengkapi semua form!");
             if(pin.length < 4) return alert("PIN minimal 4 karakter untuk keamanan!");
@@ -807,8 +968,8 @@
                 await setDoc(docRef, { 
                     id, 
                     nama_warung: nama, 
-                    bidang_usaha: 'Makanan', 
-                    alamat_warung: alamat || '-', // Simpan ke field alamat_warung
+                    kategori_utama: [], // Diubah menjadi default array kosong
+                    alamat_warung: alamat || '-', 
                     pin: pin,
                     status: 'BUKA', 
                     is_featured: false, 
@@ -820,16 +981,54 @@
                 alert(`Mitra Berhasil Didaftarkan!\n\nID Login: ${id}\nPIN Akses: ${pin}`);
             } catch(e) { 
                 alert("Gagal menyimpan: " + e.message); 
-                console.error(e);
             }
         }
 
-        // EDIT VENDOR INFO (NAMA & ALAMAT ONLY)
-        window.openEditVendorInfo = (id, currentName, currentAddress) => {
+        // EDIT VENDOR INFO (NAMA, ALAMAT & KATEGORI)
+        window.openEditVendorInfo = (id) => {
+            // Ambil data utuh dari array adminAllVendors berdasarkan ID
+            const vendor = adminAllVendors.find(v => v.id === id);
+            if(!vendor) return;
+
             document.getElementById('evi-id').value = id;
             document.getElementById('evi-id-display').value = id;
-            document.getElementById('evi-name').value = currentName;
-            document.getElementById('evi-location').value = currentAddress || ''; // Tampilkan alamat_warung di input
+            document.getElementById('evi-name').value = vendor.nama_warung;
+            document.getElementById('evi-location').value = vendor.alamat_warung || vendor.lokasi || ''; 
+            
+            // Setup array kategori bawaan (backward compatibility jika datanya string lawas)
+            let currentKategori = vendor.kategori_utama || [];
+            if(!Array.isArray(currentKategori)) {
+                currentKategori = currentKategori.split(',').map(s=>s.trim()).filter(s=>s);
+            }
+
+            // Uncheck semua checkbox terlebih dahulu
+            const checkboxes = document.querySelectorAll('input[name="kategori_cb"]');
+            const cbLainnya = document.getElementById('cb-lainnya');
+            const customInput = document.getElementById('evi-kategori-custom');
+            
+            let customCats = [];
+
+            checkboxes.forEach(cb => cb.checked = false);
+            if(cbLainnya) cbLainnya.checked = false;
+            customInput.style.display = 'none';
+            customInput.value = '';
+
+            // Centang box yang cocok dengan data kategori mitra ini
+            currentKategori.forEach(cat => {
+                const cb = Array.from(checkboxes).find(c => c.value.toLowerCase() === cat.toLowerCase());
+                if(cb) {
+                    cb.checked = true; // Jika ada di daftar, centang
+                } else if (cat) {
+                    customCats.push(cat); // Jika tidak ada, tampung sebagai custom
+                }
+            });
+
+            // Tampilkan custom list jika mitra memiliki kategori yang tidak ada di standard box
+            if(customCats.length > 0) {
+                if(cbLainnya) cbLainnya.checked = true;
+                customInput.style.display = 'block';
+                customInput.value = customCats.join(', ');
+            }
             
             document.getElementById('edit-vendor-info-modal').style.display = 'flex';
         }
@@ -841,10 +1040,43 @@
             
             if(!newName) return alert("Nama warung tidak boleh kosong");
 
+            let finalKategori = [];
+            
+            // 1. Ambil dari checkbox standar yang dicentang
+            const checkboxes = document.querySelectorAll('input[name="kategori_cb"]:checked');
+            checkboxes.forEach(cb => finalKategori.push(cb.value));
+
+            // 2. Ambil dari opsi Custom (Lainnya)
+            const cbLainnya = document.getElementById('cb-lainnya');
+            if(cbLainnya && cbLainnya.checked) {
+                const customVal = document.getElementById('evi-kategori-custom').value.trim();
+                if(customVal) {
+                    // Pecah by koma jika user ketik banyak "Snack Manis, Jus"
+                    const customArr = customVal.split(',').map(s=>s.trim()).filter(s=>s);
+                    customArr.forEach(async (newCat) => {
+                        finalKategori.push(newCat);
+                        
+                        // Validasi & Masukkan ke koleksi utama jika belum ada
+                        const exists = adminAllKategori.find(k => {
+                            const kName = k.nama || k.name || k.kategori_utama || "";
+                            return kName.toLowerCase() === newCat.toLowerCase();
+                        });
+
+                        if(!exists) {
+                            try {
+                                await addDoc(collection(db, "kategori_utama"), { nama: newCat });
+                            } catch(e) { console.error("Error menambah master kategori:", e); }
+                        }
+                    });
+                }
+            }
+
             try {
+                // Simpan ke Firebase (kategori_utama sekarang format array [])
                 await updateDoc(doc(db, "vendors", id), { 
                     nama_warung: newName,
-                    alamat_warung: newAddress // Update field alamat_warung
+                    alamat_warung: newAddress,
+                    kategori_utama: finalKategori
                 });
                 
                 closeModal('edit-vendor-info-modal');
@@ -854,7 +1086,7 @@
             }
         }
 
-        // EDIT PRODUCT (KATEGORI, HARGA, NAMA)
+        // EDIT PRODUCT
         window.openEditProduct = (id, name, price, category) => {
             document.getElementById('eprod-id').value = id;
             document.getElementById('eprod-name').value = name;
@@ -884,7 +1116,7 @@
             }
         }
 
-        // GANTI PIN FUNCTIONS
+        // GANTI PIN
         window.openChangePinModal = (id, name) => {
             document.getElementById('ep-id').value = id;
             document.getElementById('ep-name').innerText = name;
@@ -893,7 +1125,7 @@
         }
 
         window.generateRandomPinEdit = () => {
-            const pin = Math.floor(100000 + Math.random() * 900000); // 6 digit
+            const pin = Math.floor(100000 + Math.random() * 900000); 
             document.getElementById('ep-new-pin').value = pin;
         }
 
@@ -916,12 +1148,10 @@
             await updateDoc(doc(db, "vendors", id), { status: newStatus });
         }
         
-        // --- NEW: TOGGLE FEATURED SELLER (ANDALAN) ---
         window.toggleFeatured = async (id, currentVal) => {
             try {
                 await updateDoc(doc(db, "vendors", id), { is_featured: !currentVal });
             } catch(e) { 
-                console.error("Error updating featured status:", e); 
                 alert("Gagal memperbarui status andalan.");
             }
         }
@@ -946,64 +1176,34 @@
 
         // --- DATA SYNC ---
         function initData() {
+            // Ambil Master Kategori Pertama Kali
+            onSnapshot(collection(db, "kategori_utama"), (snap) => {
+                adminAllKategori = [];
+                snap.forEach(d => adminAllKategori.push({id: d.id, ...d.data()}));
+                renderKategoriOptions(); // Render ke dropdown select
+            });
+
+            // Ambil Data Vendor
             onSnapshot(collection(db, "vendors"), (snap) => {
-                const vendorBody = document.getElementById('vendor-list-body');
                 const recentBody = document.getElementById('recent-vendors-table');
-                let hMain = '', hRecent = '';
+                let hRecent = '';
                 adminAllVendors = [];
                 document.getElementById('count-vendors').innerText = snap.size;
                 snap.forEach(d => adminAllVendors.push({id: d.id, ...d.data()}));
                 
-                // Urutkan: Featured (Andalan) di atas
                 adminAllVendors.sort((a, b) => (b.is_featured === true) - (a.is_featured === true));
 
+                // Render tabel Mitra Utama (Sekarang memanggil fungsi yang mendukung fitur search)
+                window.renderVendorsList();
+
+                // Render tabel dashboard
                 adminAllVendors.forEach(v => {
                     const isOpen = v.status === 'BUKA';
-                    const isFeatured = v.is_featured === true;
-                    // Escape string untuk argumen function onclick
-                    const safeName = (v.nama_warung || '').replace(/'/g, "\\'");
-                    // Ambil data dari alamat_warung, fallback ke v.lokasi untuk data lama jika ada
-                    const addressData = v.alamat_warung || v.lokasi || '-';
-                    const safeAddress = addressData.replace(/'/g, "\\'");
-                    
-                    hMain += `
-                        <tr>
-                            <td data-label="Warung & Akses">
-                                <div style="font-weight:700; font-size:16px; color:var(--primary);">${v.nama_warung}</div>
-                                <div class="unique-badge">ID: ${v.id}</div>
-                                <div style="font-size:11px; color:#666;">PIN: <b>${v.pin || '-'}</b></div>
-                            </td>
-                            <!-- Lokasi column uses alamat_warung now -->
-                            <td data-label="Lokasi">
-                                <div style="font-size:13px; color:var(--dark); max-width: 150px; line-height:1.4;">
-                                    ${addressData}
-                                </div>
-                            </td>
-                            <td data-label="Andalan">
-                                <button class="action-btn btn-feature ${isFeatured ? 'active' : ''}" title="Jadikan Andalan" onclick="toggleFeatured('${v.id}', ${isFeatured})">
-                                    <i class="${isFeatured ? 'ph-fill' : 'ph-bold'} ph-star"></i>
-                                </button>
-                            </td>
-                            <td data-label="Status"><button class="btn-status ${isOpen ? 'open' : 'closed'}" onclick="toggleStatus('${v.id}', '${v.status}')">${v.status}</button></td>
-                            <td data-label="Aksi">
-                                <div style="display:flex; gap:5px; justify-content: flex-end;">
-                                    <button class="action-btn btn-edit-info" title="Edit Info Warung" onclick="openEditVendorInfo('${v.id}', '${safeName}', '${safeAddress}')">
-                                        <i class="ph-bold ph-pencil-simple"></i>
-                                    </button>
-                                    <button class="action-btn btn-edit-pin" title="Ganti PIN" onclick="openChangePinModal('${v.id}', '${safeName}')">
-                                        <i class="ph-bold ph-key"></i>
-                                    </button>
-                                    <button class="action-btn btn-delete" onclick="askDelete('vendors', '${v.id}')">
-                                        <i class="ph-bold ph-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>`;
                     hRecent += `<tr><td data-label="Warung" style="text-align:left;">${v.nama_warung}</td><td data-label="Status" style="text-align:right;"><span class="btn-status ${isOpen ? 'open' : 'closed'}">${v.status}</span></td></tr>`;
                 });
-                vendorBody.innerHTML = hMain;
                 recentBody.innerHTML = hRecent;
-                renderVendorMenuOverview();
+                
+                window.renderVendorMenuOverview();
                 renderReviewVendors();
             });
 
@@ -1011,8 +1211,8 @@
                 adminAllProducts = [];
                 document.getElementById('count-products').innerText = snap.size;
                 snap.forEach(d => adminAllProducts.push({id: d.id, ...d.data()}));
-                renderVendorMenuOverview();
-                if(currentVendorView) renderDetailProducts(currentVendorView);
+                window.renderVendorMenuOverview();
+                if(currentVendorView) window.renderDetailProducts(currentVendorView);
             });
 
             onSnapshot(collection(db, "reviews"), (snap) => {
