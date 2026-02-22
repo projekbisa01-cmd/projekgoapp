@@ -172,7 +172,7 @@
         .priority-wrapper .checkbox-label { color: #FF8F00; }
 
         /* LOCATION STYLES (NEW) */
-        #shop-location-input:disabled { background: #f0f0f0; color: #888; border-style: dashed; }
+        #shop-location-input:disabled, #shop-category-input:disabled { background: #f0f0f0; color: #888; border-style: dashed; }
         .btn-saved { background: #eee !important; color: #888 !important; border: 1px solid #ddd !important; cursor: default; }
 
     </style>
@@ -343,6 +343,29 @@
                 </div>
             </div>
             
+            <!-- KATEGORI RESTO (NEW) -->
+            <div class="variant-custom-box" style="margin-bottom: 20px; background: white; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+                <label class="form-label" style="font-size:14px; color:var(--dark); display:flex; align-items:center; gap:5px;">
+                    <i class="ph-fill ph-storefront" style="color:var(--primary);"></i> Kategori Utama Resto
+                </label>
+                <div style="font-size:11px; color:#888; margin-bottom:10px;">Fokus jualan utama warung Anda (Wajib diisi).</div>
+                <select id="shop-category-input" class="form-select" style="margin-bottom:10px;" disabled>
+                    <option value="">-- Pilih Kategori --</option>
+                    <option value="Sarapan">Sarapan</option>
+                    <option value="Pernasian">Pernasian</option>
+                    <option value="Minuman">Minuman</option>
+                    <option value="Ayam">Ayam</option>
+                    <option value="Berkuah">Berkuah</option>
+                    <option value="Aneka Mie">Aneka Mie</option>
+                    <option value="Snack">Snack</option>
+                </select>
+                
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-save-cat" class="btn-reply" onclick="saveShopCategory()" style="width:100%; justify-content:center; margin-top:0; display:none;">Simpan Kategori</button>
+                    <button id="btn-edit-cat" class="btn-reply" onclick="enableCategoryEdit()" style="width:100%; justify-content:center; margin-top:0; background:white;">Edit Kategori</button>
+                </div>
+            </div>
+
             <div class="profile-stat-box">
                 <div class="stat-card">
                     <div class="stat-num" id="stat-rating">0.0</div>
@@ -372,17 +395,24 @@
             <input type="file" id="file-input" hidden accept="image/*" onchange="handleFileSelect(event)">
             <div class="form-group"><label class="form-label">Nama Menu</label><input type="text" id="inp-nama" class="form-input"></div>
             <div class="form-group"><label class="form-label">Harga (Rp)</label><input type="number" id="inp-harga" class="form-input"></div>
-            <div class="form-group">
-                <label class="form-label">Kategori Utama</label>
-                <select id="inp-kategori" class="form-select">
-                    <option value="Pernasian">Pernasian</option><option value="Ayam">Ayam</option><option value="Minuman">Minuman</option>
-                    <option value="Berkuah">Berkuah</option><option value="Mie">Aneka Mie</option><option value="Snack">Snack</option>
-                </select>
-            </div>
-            <div class="form-group"><label class="form-label">Kelompok Menu (Custom)</label><input type="text" id="inp-tipe" class="form-input" list="cat-suggestions"></div>
+            <div class="form-group"><label class="form-label">Kategori / Kelompok Menu</label><input type="text" id="inp-tipe" class="form-input" placeholder="Cth: Makanan, Minuman, Snack" list="cat-suggestions"></div>
             <div class="form-group"><label class="form-label">Deskripsi Singkat</label><textarea id="inp-desc" class="form-textarea"></textarea></div>
-            <div class="checkbox-wrapper"><input type="checkbox" id="inp-exclusive"><label for="inp-exclusive" class="checkbox-label">Jadikan Menu Eksklusif?</label></div>
-            <div class="checkbox-wrapper priority-wrapper"><input type="checkbox" id="inp-priority"><label for="inp-priority" class="checkbox-label"><i class="ph-fill ph-star"></i> Jadikan Menu Andalan?</label></div>
+            
+            <div class="checkbox-wrapper" style="align-items: flex-start;">
+                <input type="checkbox" id="inp-exclusive" style="margin-top: 2px;">
+                <div>
+                    <label for="inp-exclusive" class="checkbox-label" style="display: block; margin-bottom: 4px;">Jadikan Menu Eksklusif?</label>
+                    <div style="font-size: 11px; color: #d84315; line-height: 1.4; font-weight: 500;">Menu yang khusus hanya dijual di aplikasi Projekgo. Anda bisa membuat menu baru, atau cukup mengganti nama menu lama (Cth: "Nasi Goreng Spesial Projekgo").</div>
+                </div>
+            </div>
+            <div class="checkbox-wrapper priority-wrapper" style="align-items: flex-start;">
+                <input type="checkbox" id="inp-priority" style="margin-top: 2px;">
+                <div>
+                    <label for="inp-priority" class="checkbox-label" style="display: block; margin-bottom: 4px;"><i class="ph-fill ph-star"></i> Jadikan Menu Andalan?</label>
+                    <div style="font-size: 11px; color: #b5651d; line-height: 1.4; font-weight: 500;">Menu ini akan selalu ditempatkan pada urutan paling atas di etalase pembeli. Sangat cocok untuk menu paling laris (Best Seller) atau rekomendasi utama!</div>
+                </div>
+            </div>
+
             <button class="btn-submit" onclick="saveMenu()">Simpan Menu</button>
             <button class="btn-cancel" onclick="closeModal()">Batal</button>
         </div>
@@ -504,6 +534,15 @@
                         enableLocationEdit();
                     }
 
+                    if(data.kategori_utama) {
+                        document.getElementById('shop-category-input').value = data.kategori_utama;
+                        currentUser.kategori_utama = data.kategori_utama;
+                        setCategorySavedState();
+                    } else {
+                        currentUser.kategori_utama = "";
+                        enableCategoryEdit();
+                    }
+
                 } else {
                     localStorage.removeItem('vendor_user'); location.reload();
                 }
@@ -562,6 +601,56 @@
             }
         };
 
+        // --- CATEGORY LOGIC ---
+        window.enableCategoryEdit = () => {
+            const input = document.getElementById('shop-category-input');
+            const btnSave = document.getElementById('btn-save-cat');
+            const btnEdit = document.getElementById('btn-edit-cat');
+            
+            input.disabled = false;
+            input.focus();
+            btnSave.style.display = 'flex';
+            btnSave.classList.remove('btn-saved');
+            btnSave.innerText = "Simpan Kategori";
+            btnEdit.style.display = 'none';
+        };
+
+        function setCategorySavedState() {
+            const input = document.getElementById('shop-category-input');
+            const btnSave = document.getElementById('btn-save-cat');
+            const btnEdit = document.getElementById('btn-edit-cat');
+            
+            input.disabled = true;
+            btnSave.style.display = 'flex';
+            btnSave.classList.add('btn-saved');
+            btnSave.innerText = "Kategori Tersimpan";
+            btnEdit.style.display = 'flex';
+        }
+
+        window.saveShopCategory = async () => {
+            const cat = document.getElementById('shop-category-input').value;
+            if(!cat) { showToast("Pilih kategori terlebih dahulu.", false); return; }
+            
+            const btn = document.getElementById('btn-save-cat');
+            if(btn.classList.contains('btn-saved')) return;
+
+            btn.innerText = "Menyimpan..."; btn.disabled = true;
+
+            try {
+                await updateDoc(doc(db, "vendors", currentUser.id), { 
+                    kategori_utama: cat,
+                    updated_at: new Date().toISOString()
+                });
+                currentUser.kategori_utama = cat;
+                showToast("Kategori berhasil disimpan!");
+                setCategorySavedState();
+            } catch(e) {
+                showToast("Gagal menyimpan: " + e.message, false);
+            } finally {
+                btn.disabled = false;
+            }
+        };
+
         // --- MENU LOGIC ---
         function loadMenu() {
             const q = query(collection(db, "products"), where("vendor_id", "==", currentUser.id));
@@ -580,7 +669,7 @@
                 snapshot.forEach(docSnap => {
                     const item = docSnap.data();
                     currentProducts[docSnap.id] = item;
-                    const groupKey = item.tipe || item.kategori || 'Lainnya';
+                    const groupKey = item.tipe || 'Lainnya';
                     if(!groups[groupKey]) groups[groupKey] = [];
                     groups[groupKey].push({ id: docSnap.id, ...item });
                 });
@@ -718,6 +807,16 @@
 
         // --- MENU CRUD ---
         window.openModal = () => {
+            if(!currentUser.kategori_utama) {
+                showToast("Wajib isi Kategori Resto di Profil sebelum tambah menu!", false);
+                switchTab('profile');
+                setTimeout(() => {
+                    const el = document.getElementById('shop-category-input');
+                    if(el) el.scrollIntoView({behavior: "smooth", block: "center"});
+                }, 300);
+                return;
+            }
+
             document.getElementById('modal-title').innerText = "Tambah Menu";
             document.getElementById('menu-id').value = ""; document.getElementById('inp-nama').value = "";
             document.getElementById('inp-harga').value = ""; document.getElementById('inp-tipe').value = "";
@@ -732,7 +831,6 @@
             document.getElementById('menu-id').value = id;
             document.getElementById('inp-nama').value = item.nama_menu;
             document.getElementById('inp-harga').value = item.harga;
-            document.getElementById('inp-kategori').value = item.kategori;
             document.getElementById('inp-tipe').value = item.tipe || "";
             document.getElementById('inp-desc').value = item.deskripsi || "";
             document.getElementById('inp-exclusive').checked = item.is_exclusive || false;
@@ -740,6 +838,8 @@
             if(item.foto_url && item.foto_url.length > 20) {
                 base64Image = item.foto_url; document.getElementById('preview-img').src = base64Image;
                 document.getElementById('preview-img').style.display = "block"; document.querySelector('.upload-placeholder').style.display = "none";
+            } else {
+                base64Image = ""; document.getElementById('preview-img').style.display = "none"; document.querySelector('.upload-placeholder').style.display = "block";
             }
             document.getElementById('modal-form').style.display = 'flex';
         }
@@ -769,10 +869,12 @@
             const nama = document.getElementById('inp-nama').value;
             const harga = document.getElementById('inp-harga').value;
             if(!nama || !harga) { showToast("Lengkapi data!", false); return; }
+            if(!base64Image) { showToast("Foto menu wajib diupload!", false); return; }
+
             const btn = document.querySelector('.btn-submit'); btn.innerText = "Menyimpan..."; btn.disabled = true;
             const menuData = {
-                nama_menu: nama, harga: parseInt(harga), kategori: document.getElementById('inp-kategori').value,
-                tipe: document.getElementById('inp-tipe').value.trim(), deskripsi: document.getElementById('inp-desc').value,
+                nama_menu: nama, harga: parseInt(harga), 
+                tipe: document.getElementById('inp-tipe').value.trim() || 'Lainnya', deskripsi: document.getElementById('inp-desc').value,
                 is_exclusive: document.getElementById('inp-exclusive').checked, is_priority: document.getElementById('inp-priority').checked,
                 vendor_id: currentUser.id, vendor_name: currentUser.name, updated_at: new Date().toISOString()
             };
