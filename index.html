@@ -665,7 +665,7 @@
 
             <!-- CONTAINER KATEGORI DINAMIS -->
             <div class="cat-grid" id="dynamic-cat-grid">
-                <!-- Data akan dimuat dari Firebase oleh JS -->
+                <!-- Data dimuat dari koleksi kategori_utama di Firebase -->
             </div>
 
             <!-- EXCLUSIVE SECTION -->
@@ -918,12 +918,12 @@
         const db = getFirestore(app);
 
         // DATA STORE
-        let rawProducts = [], allProducts = [], allVendors = [], allReviews = [], cart = [], favorites = JSON.parse(localStorage.getItem('favs')) || [];
+        let rawProducts = [], allProducts = [], allVendors = [], allReviews = [], allMainCategories = [], cart = [], favorites = JSON.parse(localStorage.getItem('favs')) || [];
         let currentDetailProduct = null, currentServiceType = "", pendingVariantItem = null, selectedVariantValue = null, currentReviewOrderId = null;
         let currentVendorIdForReviews = null; 
         const ADMIN_WA = "62882008667068";
 
-        // KAMUS IKON UNTUK KATEGORI UTAMA (BISA DISESUAIKAN)
+        // IKON FALLBACK JIKA DI DATABASE TIDAK ADA ICON_URL
         const categoryIconMap = {
             'Sarapan': 'https://i.ibb.co.com/XTM62zb/breakfast-10754741.png',
             'Pernasian': 'https://i.ibb.co.com/V0MYgnpP/fried-rice-7056143.png',
@@ -953,7 +953,6 @@
 
         window.showClosedModal = () => { document.getElementById('closed-modal').style.display = 'flex'; }
         window.closeClosedModal = () => { document.getElementById('closed-modal').style.display = 'none'; }
-        
         window.openAdminModal = () => { document.getElementById('admin-modal').style.display = 'flex'; }
         window.closeAdminModal = () => { document.getElementById('admin-modal').style.display = 'none'; }
         
@@ -1254,7 +1253,25 @@
             container.innerHTML = headerHtml + listHtml;
         }
 
-        // --- UPDATE: Menyesuaikan Logika Kategori (Filter berdasarkan kategori_utama atau kategori) ---
+        // --- HELPER BACA KATEGORI (Super Aman untuk Array, String, & String Pisah Koma) ---
+        function extractCategories(field) {
+            if (!field) return [];
+            
+            // 1. Jika formatnya murni Array dari Firebase
+            if (Array.isArray(field)) {
+                return field.filter(k => typeof k === 'string' && k.trim() !== '').map(k => k.trim());
+            }
+            
+            // 2. Jika formatnya String (Termasuk antisipasi penulisan manual pakai koma)
+            if (typeof field === 'string' && field.trim() !== '') {
+                // Antisipasi jika Admin mengetik manual "Ayam, Cepat Saji" atau "['Ayam', 'Cepat Saji']" 
+                let cleanStr = field.replace(/^\[|\]$/g, '').replace(/["']/g, ''); 
+                return cleanStr.split(',').map(k => k.trim()).filter(k => k !== '');
+            }
+            return [];
+        }
+
+        // --- UPDATE: Logika Filter Kategori Merender Berdasarkan Vendor ---
         window.openCategoryPage = (cat) => {
             const c = document.getElementById('list-content'); 
             c.innerHTML = ''; 
@@ -1266,15 +1283,20 @@
             } else if (cat === 'Paling Laris') { 
                 filteredItems = allProducts.slice(0, 15); 
             } else { 
-                // Cek vendor yang memiliki field kategori_utama ini
-                const matchingVendors = allVendors.filter(v => v.kategori_utama === cat || (v.kategori_utama || '').toLowerCase() === cat.toLowerCase()).map(v => v.id);
+                const targetCat = (cat || '').toLowerCase().trim();
                 
-                // UPDATE: Hanya membaca dari kategori vendor (mengabaikan kategori masing-masing menu)
+                // 1. Cek HANYA dari Vendor (menggunakan helper extractCategories yang baru)
+                const matchingVendors = allVendors.filter(v => {
+                    const cats = extractCategories(v.kategori_utama).map(k => k.toLowerCase());
+                    return cats.includes(targetCat);
+                }).map(v => v.id);
+                
+                // 2. Produk otomatis masuk JIKA ID vendor-nya cocok
                 filteredItems = allProducts.filter(p => matchingVendors.includes(p.vendor_id)); 
             }
             
             if (filteredItems.length === 0) { 
-                c.innerHTML = '<div style="text-align:center; padding:50px; color:#999; width:100%;">Produk tidak ditemukan.</div>'; 
+                c.innerHTML = '<div style="text-align:center; padding:50px; color:#999; width:100%;">Menu tidak ditemukan untuk kategori ini.</div>'; 
             } else {
                 const grouped = {};
                 filteredItems.forEach(item => { 
@@ -1544,7 +1566,20 @@
         }
 
         window.handleSearch = (e) => {
-            if(e.key === 'Enter') { const keyword = e.target.value.toLowerCase(); const filtered = allProducts.filter(p => p.nama_menu.toLowerCase().includes(keyword)); const c = document.getElementById('list-content'); c.innerHTML = ''; c.classList.add('product-list-grid'); if (filtered.length === 0) { c.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:#999;">Tidak ada hasil.</div>'; } else { filtered.forEach(item => { renderPcard(c, item); }); } document.getElementById('list-title').innerText = `Hasil: "${keyword}"`; openPage('list'); }
+            if(e.key === 'Enter') { 
+                const keyword = e.target.value.toLowerCase(); 
+                const filtered = allProducts.filter(p => typeof p.nama_menu === 'string' && p.nama_menu.toLowerCase().includes(keyword)); 
+                const c = document.getElementById('list-content'); 
+                c.innerHTML = ''; 
+                c.classList.add('product-list-grid'); 
+                if (filtered.length === 0) { 
+                    c.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:#999;">Tidak ada hasil.</div>'; 
+                } else { 
+                    filtered.forEach(item => { renderPcard(c, item); }); 
+                } 
+                document.getElementById('list-title').innerText = `Hasil: "${keyword}"`; 
+                openPage('list'); 
+            }
         }
 
         window.openServiceForm = (svc) => {
@@ -1556,50 +1591,99 @@
         window.detectLocation = () => { showToast("Mendeteksi Lokasi GPS..."); }
 
         function loadData() {
-            onSnapshot(collection(db, "vendors"), (snapshot) => { allVendors = []; snapshot.forEach(doc => { allVendors.push({id: doc.id, ...doc.data()}); }); filterAndRenderProducts(); });
-            onSnapshot(collection(db, "products"), (snapshot) => { rawProducts = []; snapshot.forEach(d => rawProducts.push({id:d.id, ...d.data()})); filterAndRenderProducts(); });
-            onSnapshot(collection(db, "reviews"), (snapshot) => { allReviews = []; snapshot.forEach(doc => allReviews.push({id: doc.id, ...doc.data()})); });
+            // Monitor koleksi vendors
+            onSnapshot(collection(db, "vendors"), (snapshot) => { 
+                allVendors = []; 
+                snapshot.forEach(doc => { allVendors.push({id: doc.id, ...doc.data()}); }); 
+                filterAndRenderProducts(); 
+            });
+            // Monitor koleksi products
+            onSnapshot(collection(db, "products"), (snapshot) => { 
+                rawProducts = []; 
+                snapshot.forEach(d => rawProducts.push({id:d.id, ...d.data()})); 
+                filterAndRenderProducts(); 
+            });
+            // Monitor koleksi reviews
+            onSnapshot(collection(db, "reviews"), (snapshot) => { 
+                allReviews = []; 
+                snapshot.forEach(doc => allReviews.push({id: doc.id, ...doc.data()})); 
+            });
+            // MONITOR KOLEKSI kategori_utama (BARU: DINAMIS DARI DATABASE)
+            onSnapshot(collection(db, "kategori_utama"), (snapshot) => {
+                allMainCategories = [];
+                snapshot.forEach(doc => {
+                    allMainCategories.push({id: doc.id, ...doc.data()});
+                });
+                renderCategories(); // Update UI Beranda
+            });
         }
 
-        // --- UPDATE: FUNGSI RENDER KATEGORI DINAMIS DARI DB ---
+        // --- UPDATE TERBARU: Menggabungkan Default, Vendor, dan Database menjadi satu ---
         function renderCategories() {
             const catGrid = document.getElementById('dynamic-cat-grid');
             if(!catGrid) return;
             catGrid.innerHTML = '';
             
-            // 1. Daftar kategori wajib (Bawaan)
+            // 1. Kategori Bawaan (Default)
             const baseCategories = ['Sarapan', 'Pernasian', 'Minuman', 'Ayam', 'Berkuah', 'Aneka Mie', 'Snack'];
             
-            // 2. Mengambil semua nilai kategori_utama dari field di collection vendors
-            const vendorCategories = allVendors.map(v => v.kategori_utama).filter(k => k && k.trim() !== '');
-            
-            // 3. Gabungkan kategori bawaan dan dari firebase vendors, hilangkan duplikat
-            const finalCategories = [...new Set([...baseCategories, ...vendorCategories])];
+            // 2. Ekstrak dari koleksi Vendors
+            let extractedFromVendors = [];
+            allVendors.forEach(v => {
+                extractedFromVendors.push(...extractCategories(v.kategori_utama));
+            });
 
-            // Membangun daftar elemen berdasarkan nilai unik yang didapat
+            // 3. Ambil dari koleksi khusus kategori_utama di Firebase
+            let dbCategories = [];
+            let dbIconMap = {}; // Simpan icon_url khusus dari database jika ada
+            allMainCategories.forEach(catDoc => {
+                const catName = catDoc.nama || catDoc.name;
+                if(catName) {
+                    dbCategories.push(catName);
+                    if(catDoc.icon_url) {
+                        dbIconMap[catName.toLowerCase()] = catDoc.icon_url;
+                    }
+                }
+            });
+            
+            // 4. Gabungkan semua dan saring agar tidak ada duplikat
+            const uniqueCatsMap = new Map();
+            [...baseCategories, ...extractedFromVendors, ...dbCategories].forEach(c => {
+                if (typeof c === 'string' && c.trim() !== '') {
+                    const lower = c.trim().toLowerCase();
+                    if(!uniqueCatsMap.has(lower)) {
+                        // Ubah huruf depan jadi kapital agar rapi
+                        const display = c.trim().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                        uniqueCatsMap.set(lower, display);
+                    }
+                }
+            });
+
+            // 5. Buat daftar final dengan ikon yang sesuai
+            let finalCategories = Array.from(uniqueCatsMap.entries()).map(([lowerCat, displayCat]) => {
+                // Cek icon: 1. Dari DB, 2. Kamus Lokal asli, 3. Kamus Lokal huruf kecil, 4. Default
+                const icon = dbIconMap[lowerCat] || categoryIconMap[displayCat] || categoryIconMap[lowerCat] || categoryIconMap['Default'];
+                return { name: displayCat, icon: icon };
+            });
+
+            // Tampilkan ke layar
             finalCategories.forEach(cat => {
-                // Pilih icon sesuai map (cek huruf kapital/kecil), atau default jika kategori baru
-                const icon = categoryIconMap[cat] || categoryIconMap[(cat || '').toLowerCase()] || categoryIconMap['Default'];
-                
                 const div = document.createElement('div');
                 div.className = 'cat-item';
-                div.onclick = () => openCategoryPage(cat);
-                div.innerHTML = `<div class="cat-icon-box"><img src="${icon}"></div><div class="cat-name">${cat}</div>`;
-                
+                div.onclick = () => openCategoryPage(cat.name);
+                div.innerHTML = `<div class="cat-icon-box"><img src="${cat.icon}"></div><div class="cat-name">${cat.name}</div>`;
                 catGrid.appendChild(div);
             });
 
-            // Logika infinite scroll otomatis jika ada banyak item (>3)
+            // Logika auto-scroll jika item cukup panjang
             if (finalCategories.length > 3) {
                 const items = Array.from(catGrid.children);
-                // Duplicate items for continuous scroll
                 items.forEach(item => { 
                     const clone = item.cloneNode(true); 
                     clone.onclick = () => openCategoryPage(item.querySelector('.cat-name').innerText);
                     catGrid.appendChild(clone); 
                 });
                 
-                // Tambahkan event listener scroll
                 catGrid.onscroll = () => { 
                     const maxScrollLeft = catGrid.scrollWidth / 2; 
                     if (catGrid.scrollLeft >= maxScrollLeft - 5) { 
@@ -1607,7 +1691,7 @@
                     } 
                 };
             } else {
-                catGrid.onscroll = null; // hapus logika scroll agar tidak bug jika item sedikit
+                catGrid.onscroll = null; 
             }
         }
 
@@ -1616,7 +1700,7 @@
             allProducts = rawProducts.filter(p => { return p.vendor_id && validVendorIds.includes(p.vendor_id); });
             const availableProducts = allProducts.filter(p => p.is_available !== false);
             
-            // Render kategori secara dinamis (menggabungkan yang bawaan & dari vendor)
+            // Update kategori di home (jika data vendor sudah ada)
             renderCategories();
 
             const exclusiveItems = availableProducts.filter(p => p.is_exclusive === true);
