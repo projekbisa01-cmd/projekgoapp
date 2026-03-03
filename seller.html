@@ -3,6 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Meta untuk PWA -->
+    <meta name="theme-color" content="#FF6600">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://i.ibb.co.com/cSvMG2BY/PROJEKITA-8.png">
+    <link rel="icon" type="image/png" href="https://i.ibb.co.com/cSvMG2BY/PROJEKITA-8.png">
+
     <title>Mitra Projekgo - Kelola Warung</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -113,9 +120,64 @@
         .upload-placeholder { text-align: center; color: #999; font-size: 12px; }
 
         .checkbox-wrapper { display: flex; gap: 10px; margin-top: 10px; padding: 10px; background: #FFF3E0; border-radius: 10px; border: 1px solid #FFE0B2; }
+
+        /* PWA POPUP STYLES */
+        .pwa-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 999999; display: none; align-items: center; justify-content: center; padding: 20px; opacity: 0; transition: opacity 0.3s; }
+        .pwa-overlay.show { display: flex; opacity: 1; }
+        
+        .pwa-modal { background: white; width: 100%; max-width: 320px; border-radius: 24px; padding: 25px 20px; text-align: center; position: relative; overflow: hidden; transform: scale(0.9); transition: transform 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .pwa-overlay.show .pwa-modal { transform: scale(1); }
+        .pwa-modal .top-bar { position: absolute; top: 0; left: 0; right: 0; height: 6px; background: var(--primary); }
+        
+        .pwa-icon { width: 85px; height: 85px; border-radius: 20px; margin: 0 auto 15px auto; object-fit: cover; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid #FFF3E0; }
+        .pwa-title { font-size: 22px; font-weight: 800; color: var(--dark); margin: 0 0 8px 0; letter-spacing: -0.5px; }
+        .pwa-desc { font-size: 13px; color: #555; margin-bottom: 20px; line-height: 1.5; font-weight: 500; }
+        
+        .btn-install-pwa { background: var(--primary); color: white; border: none; width: 100%; padding: 15px; border-radius: 14px; font-size: 15px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 102, 0, 0.3); margin-bottom: 12px; transition: 0.2s; text-transform: uppercase; }
+        .btn-install-pwa:active { transform: scale(0.96); }
+        .btn-close-pwa { background: transparent; color: #999; border: none; font-size: 12px; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; padding: 5px; }
+        
+        /* iOS Specific PWA Modal */
+        .pwa-ios-modal { position: absolute; bottom: 20px; left: 20px; right: 20px; background: white; border-radius: 20px; padding: 20px; text-align: left; transform: translateY(150%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .pwa-overlay.show .pwa-ios-modal { transform: translateY(0); }
+        .ios-close { position: absolute; top: 15px; right: 15px; background: #f5f5f5; border: none; width: 28px; height: 28px; border-radius: 50%; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #666; }
+        .ios-step { background: #F8F9FB; padding: 12px; border-radius: 12px; border: 1px solid #eee; margin-top: 15px; }
     </style>
 </head>
 <body>
+
+    <!-- POPUP INSTALL PWA (ANDROID/DESKTOP) -->
+    <div id="pwa-overlay-android" class="pwa-overlay">
+        <div class="pwa-modal">
+            <div class="top-bar"></div>
+            <img src="https://i.ibb.co.com/cSvMG2BY/PROJEKITA-8.png" alt="PROJEKGO" class="pwa-icon">
+            <h2 class="pwa-title">PROJEKGO</h2>
+            <p class="pwa-desc"><b>Wajib untuk Mitra!</b><br>Simpan aplikasi ini di layar utama HP Anda. Kelola warung, terima pesanan, dan atur menu jadi lebih cepat tanpa repot buka link web lagi!</p>
+            <button class="btn-install-pwa" onclick="installPWA()"><i class="ph-bold ph-download-simple" style="font-size: 20px;"></i> INSTALL SEKARANG</button>
+            <button class="btn-close-pwa" onclick="closePWA('android')">Nanti Saja</button>
+        </div>
+    </div>
+
+    <!-- POPUP INSTALL PWA (iOS / APPLE) -->
+    <div id="pwa-overlay-ios" class="pwa-overlay" style="align-items: flex-end;">
+        <div class="pwa-ios-modal">
+            <button class="ios-close" onclick="closePWA('ios')"><i class="ph-bold ph-x"></i></button>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <img src="https://i.ibb.co.com/cSvMG2BY/PROJEKITA-8.png" alt="PROJEKGO" style="width:60px; height:60px; border-radius:15px; border:1px solid #eee;">
+                <div>
+                    <h3 style="margin:0; font-size:18px; font-weight:800; color:var(--dark);">PROJEKGO</h3>
+                    <div style="font-size:12px; color:var(--primary); font-weight:600;">Aplikasi Mitra</div>
+                </div>
+            </div>
+            <div class="ios-step">
+                <p style="font-size:12px; color:#555; margin:0 0 10px 0; font-weight:600;">Kelola warung lebih cepat langsung dari layar utama HP Anda! Cara pasang:</p>
+                <ol style="margin:0; padding-left:18px; font-size:12px; color:#444; line-height:1.6; font-weight:600;">
+                    <li>Ketuk ikon <b style="color:#007AFF;">Bagikan (Share)</b> di menu bawah browser.</li>
+                    <li>Geser ke bawah dan pilih <b style="color:var(--dark);">"Tambah ke Layar Utama"</b> (Add to Home Screen).</li>
+                </ol>
+            </div>
+        </div>
+    </div>
 
     <div id="toast">
         <i class="ph-fill ph-check-circle"></i>
@@ -267,6 +329,95 @@
         // Daftar Kategori Default sesuai permintaan user
         let masterCategories = ["Sarapan", "Pernasian", "Minuman", "Ayam", "Berkuah", "Aneka Mie", "Snack", "Legendaris", "Masakan Khas", "Cepat Saji"]; 
         let isEditingCategory = false;
+
+        // --- SISTEM PWA (PROGRESSIVE WEB APP) ---
+        let deferredPrompt;
+        
+        function initPWA() {
+            // 1. Inject Manifest Dinamis (Tanpa butuh file manifest.json terpisah)
+            const manifest = {
+                name: "PROJEKGO",
+                short_name: "Projekgo",
+                start_url: window.location.href.split('?')[0],
+                display: "standalone",
+                background_color: "#F8F9FB",
+                theme_color: "#FF6600",
+                icons: [{
+                    src: "https://i.ibb.co.com/cSvMG2BY/PROJEKITA-8.png",
+                    sizes: "192x192",
+                    type: "image/png"
+                }, {
+                    src: "https://i.ibb.co.com/cSvMG2BY/PROJEKITA-8.png",
+                    sizes: "512x512",
+                    type: "image/png"
+                }]
+            };
+            const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+            const manifestUrl = URL.createObjectURL(manifestBlob);
+            const link = document.createElement('link');
+            link.rel = 'manifest';
+            link.href = manifestUrl;
+            document.head.appendChild(link);
+
+            // 2. Inject Service Worker Dummy (Syarat mutlak agar browser mau memunculkan tombol install)
+            if ('serviceWorker' in navigator) {
+                const swCode = "self.addEventListener('fetch', function(e) {});";
+                const swBlob = new Blob([swCode], {type: 'application/javascript'});
+                const swUrl = URL.createObjectURL(swBlob);
+                navigator.serviceWorker.register(swUrl).catch(err => console.log('SW Registration failed', err));
+            }
+
+            // 3. Logic Android / Desktop
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                
+                // Muncul Agresif (1.5 detik) jika belum di-close oleh user
+                if (!sessionStorage.getItem('pwa_closed')) {
+                    setTimeout(() => {
+                        const overlay = document.getElementById('pwa-overlay-android');
+                        if(overlay) {
+                            overlay.classList.add('show');
+                        }
+                    }, 1500); 
+                }
+            });
+
+            // 4. Logic iOS (Apple) - Deteksi dan instruksi
+            const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+            const isInStandaloneMode = () => ('standalone' in window.navigator) && (window.navigator.standalone);
+            
+            if (isIos() && !isInStandaloneMode() && !sessionStorage.getItem('pwa_closed')) {
+                setTimeout(() => {
+                    const overlay = document.getElementById('pwa-overlay-ios');
+                    if(overlay) {
+                        overlay.classList.add('show');
+                    }
+                }, 1500);
+            }
+        }
+
+        window.installPWA = async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('User accepted the install prompt');
+                    document.getElementById('pwa-overlay-android').classList.remove('show');
+                }
+                deferredPrompt = null;
+            }
+        };
+
+        window.closePWA = (type) => {
+            sessionStorage.setItem('pwa_closed', 'true'); // Simpan di sesi agar tidak mengganggu selama app dibuka
+            if(type === 'android') document.getElementById('pwa-overlay-android').classList.remove('show');
+            if(type === 'ios') document.getElementById('pwa-overlay-ios').classList.remove('show');
+        };
+
+        // Jalankan inisialisasi PWA
+        initPWA();
+
 
         // --- CORE HELPERS ---
         window.showToast = (msg, isSuccess = true) => {
