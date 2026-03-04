@@ -1172,7 +1172,15 @@
                 }
                 deferredPrompt = null;
             } else {
-                alert("Instalasi PWA diblokir. Pastikan Anda membuka link ini dari browser utama (seperti Chrome/Safari).");
+                // Perbaikan: Memberikan panduan yang lebih baik alih-alih sekadar menyalahkan browser
+                const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                const isHttps = window.location.protocol === 'https:';
+
+                if (!isHttps && !isLocal) {
+                    alert("Aplikasi tidak bisa di-install karena koneksi belum aman (HTTPS).");
+                } else {
+                    alert("Aplikasi ini mungkin sudah ter-install di HP Anda, atau Chrome sedang memprosesnya. Coba periksa daftar aplikasi atau menu browser Anda (titik tiga di pojok kanan atas) dan cari 'Tambahkan ke Layar Utama'.");
+                }
             }
         };
 
