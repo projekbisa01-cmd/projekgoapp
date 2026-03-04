@@ -1066,16 +1066,20 @@
             deferredPrompt = e;
             // Munculkan popup ajakan custom kita setelah 3 detik pengguna membuka web
             setTimeout(() => {
-                if (!localStorage.getItem('pwa_dismissed')) {
-                    document.getElementById('pwa-install-modal').style.display = 'block';
-                }
+                // Dibuat agresif: Langsung tampil setiap kali web dibuka (tanpa cek localStorage)
+                document.getElementById('pwa-install-modal').style.display = 'block';
             }, 3000);
         });
 
         window.closePwaModal = () => {
             document.getElementById('pwa-install-modal').style.display = 'none';
-            // Menyimpan state agar tidak terus mengganggu pengguna jika sudah ditolak
-            localStorage.setItem('pwa_dismissed', 'true'); 
+            
+            // Mode Agresif: Jika diklik "Nanti", popup akan muncul lagi secara otomatis setelah 2 menit (120000 ms)
+            setTimeout(() => {
+                if (deferredPrompt) {
+                    document.getElementById('pwa-install-modal').style.display = 'block';
+                }
+            }, 120000); 
         };
 
         window.installPwa = async () => {
