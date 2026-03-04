@@ -652,19 +652,35 @@
 
         /* --- PWA MODAL STYLES --- */
         #pwa-install-modal {
-            display: none; position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%);
-            width: 90%; max-width: 400px; background: white; border-radius: 20px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.25); z-index: 4000; padding: 20px;
-            animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            border: 2px solid var(--primary);
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9); backdrop-filter: blur(8px);
+            z-index: 999999; align-items: center; justify-content: center;
+            padding: 20px;
         }
-        .pwa-header { display: flex; align-items: center; gap: 15px; margin-bottom: 12px; }
-        .pwa-logo { width: 50px; height: 50px; border-radius: 12px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .pwa-title { font-weight: 800; font-size: 15px; color: var(--dark); line-height: 1.3; }
-        .pwa-desc { font-size: 12px; color: #555; line-height: 1.5; margin-bottom: 15px; }
-        .pwa-actions { display: flex; gap: 10px; }
-        .btn-pwa-install { flex: 1; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 15px rgba(255,102,0,0.3); }
-        .btn-pwa-later { background: #f0f0f0; color: #555; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; }
+        .pwa-agg-content {
+            background: white; width: 100%; max-width: 340px; border-radius: 30px;
+            padding: 30px 20px; text-align: center; position: relative; overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .pwa-agg-content::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px;
+            background: var(--primary); animation: pulseWidth 2s infinite;
+        }
+        @keyframes pulseWidth { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        .pwa-icon-wrapper { position: relative; display: inline-block; margin-bottom: 15px; }
+        .pwa-icon-wrapper img { width: 80px; height: 80px; border-radius: 20px; box-shadow: 0 10px 20px rgba(255,102,0,0.2); border: 2px solid #FFF0E5; }
+        .pwa-badge-req { position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); background: #00C853; color: white; font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 10px; white-space: nowrap; box-shadow: 0 4px 10px rgba(0, 200, 83, 0.3); }
+        .pwa-agg-title { font-size: 20px; font-weight: 800; color: var(--dark); margin-bottom: 5px; line-height: 1.2; }
+        .pwa-agg-subtitle { font-size: 12px; color: #2E7D32; font-weight: 700; margin-bottom: 15px; background: #E8F5E9; display: inline-block; padding: 4px 12px; border-radius: 8px; }
+        .pwa-benefits { background: #FFF3E0; border: 1px solid #FFE0B2; border-radius: 15px; padding: 15px; text-align: left; margin-bottom: 20px; }
+        .pwa-benefits-title { font-size: 11px; font-weight: 800; color: #E65100; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
+        .pwa-benefits ul { margin: 0; padding-left: 0; list-style: none; }
+        .pwa-benefits li { font-size: 11px; color: #555; margin-bottom: 6px; display: flex; align-items: flex-start; gap: 6px; font-weight: 600; }
+        .pwa-benefits li i { color: #00C853; font-size: 14px; margin-top: 1px; }
+        .btn-pwa-agg-install { width: 100%; background: linear-gradient(45deg, #FF6600, #FF9900); color: white; border: none; padding: 16px; border-radius: 16px; font-weight: 800; font-size: 16px; cursor: pointer; box-shadow: 0 8px 20px rgba(255,102,0,0.4); display: flex; align-items: center; justify-content: center; gap: 8px; animation: bounceBtn 2s infinite; text-transform: uppercase; letter-spacing: 1px; }
+        @keyframes bounceBtn { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        .btn-pwa-agg-close { background: transparent; border: none; color: #999; font-size: 11px; font-weight: 600; text-decoration: underline; margin-top: 15px; cursor: pointer; padding: 5px; }
 
     </style>
 </head>
@@ -988,25 +1004,42 @@
 
     <div id="toast-notification" class="toast-box"><i class="ph-fill ph-check-circle toast-icon"></i><div class="toast-msg">Berhasil ditambahkan!</div></div>
 
-    <!-- PWA INSTALL MODAL -->
+    <!-- PWA INSTALL MODAL AGRESSIVE -->
     <div id="pwa-install-modal">
-        <div class="pwa-header">
-            <img src="https://i.ibb.co.com/CpLCW6R2/Whats-App-Image-2026-01-29-at-10-12-08.jpg" class="pwa-logo" alt="Katalog Projekgo">
-            <div class="pwa-title">Pasang Aplikasi Projekgo Sekarang!</div>
-        </div>
-        <div class="pwa-desc">
-            Nikmati pengalaman pesan makanan yang jauh lebih baik dengan menginstal aplikasi ini ke layar utama HP kamu:
-            <ul style="text-align: left; padding-left: 20px; margin-top: 10px; margin-bottom: 10px; color: #444; font-size: 11px; line-height: 1.6;">
-                <li>🚀 <b>Lebih Cepat & Ringan:</b> Akses instan tanpa harus buka browser dan ketik link lagi.</li>
-                <li>💾 <b>Hemat Memori:</b> Tanpa perlu download file besar dari PlayStore.</li>
-                <li>📱 <b>Layar Penuh:</b> Tampilan penuh yang lebih nyaman tanpa address bar yang mengganggu.</li>
-                <li>🛍️ <b>Akses Mudah:</b> Cek dan pesan menu restoran favorit kapan saja.</li>
-            </ul>
-            <div style="font-size: 10px; color: #888; font-style: italic; border-top: 1px solid #eee; padding-top: 5px;">*Pemesanan tetap terhubung otomatis ke WhatsApp Admin.</div>
-        </div>
-        <div class="pwa-actions">
-            <button class="btn-pwa-later" onclick="closePwaModal()">Nanti</button>
-            <button class="btn-pwa-install" onclick="installPwa()"><i class="ph-bold ph-download-simple"></i> Pasang Sekarang</button>
+        <div class="pwa-agg-content">
+            <div class="pwa-icon-wrapper">
+                <img src="https://i.ibb.co.com/CpLCW6R2/Whats-App-Image-2026-01-29-at-10-12-08.jpg" alt="Projekgo">
+                <div class="pwa-badge-req">DIREKOMENDASIKAN</div>
+            </div>
+            <div class="pwa-agg-title">Yuk, Install Aplikasinya!</div>
+            <div class="pwa-agg-subtitle">Banyak kemudahan menantimu</div>
+            
+            <div class="pwa-benefits">
+                <div class="pwa-benefits-title"><i class="ph-fill ph-lightning"></i> Keuntungan Install:</div>
+                <ul>
+                    <li><i class="ph-fill ph-check-circle"></i> Buka aplikasi langsung tanpa link browser</li>
+                    <li><i class="ph-fill ph-check-circle"></i> Memori kecil,cepat dan hemat ruang</li>
+                    <li><i class="ph-fill ph-check-circle"></i> Hemat kuota internet & baterai HP</li>
+                </ul>
+            </div>
+
+            <!-- Area untuk Android -->
+            <div id="pwa-action-android">
+                <button class="btn-pwa-agg-install" onclick="installPwa()">
+                    <i class="ph-bold ph-download-simple"></i> Install Sekarang
+                </button>
+            </div>
+
+            <!-- Area untuk iOS (disembunyikan secara default) -->
+            <div id="pwa-action-ios" style="display: none; background: #f9f9f9; padding: 12px; border-radius: 12px; border: 1px dashed #ccc; margin-bottom: 10px; text-align: left;">
+                <div style="font-size: 12px; font-weight: 800; color: var(--dark); margin-bottom: 5px;">Cara Install (iPhone/iPad):</div>
+                <ol style="font-size: 11px; color: #555; margin: 0; padding-left: 20px; font-weight: 600; line-height: 1.5;">
+                    <li>Ketuk ikon <b>Bagikan</b> <i class="ph-bold ph-export" style="color:#007AFF;"></i> di bawah layar.</li>
+                    <li>Gulir & Pilih <b>"Tambah ke Layar Utama"</b>.</li>
+                </ol>
+            </div>
+
+            <button class="btn-pwa-agg-close" onclick="closePwaModal()">Nanti Saja</button>
         </div>
     </div>
 
@@ -1080,23 +1113,38 @@
             return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
         }
 
-        // AGRESSIF FORCE-SHOW: 
-        // Munculkan popup ajakan custom kita setelah 4 detik secara paksa, tanpa menunggu izin browser
-        setTimeout(() => {
-            if (!isPwaInstalled()) {
-                document.getElementById('pwa-install-modal').style.display = 'block';
+        const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+
+        function showAggressivePwaPrompt() {
+            if (isPwaInstalled()) return;
+            
+            const modal = document.getElementById('pwa-install-modal');
+            modal.style.display = 'flex';
+
+            if (isIos()) {
+                document.getElementById('pwa-action-android').style.display = 'none';
+                document.getElementById('pwa-action-ios').style.display = 'block';
             }
-        }, 4000);
+        }
+
+        // AGRESSIF FORCE-SHOW: 
+        // Munculkan popup setiap kali dibuka (setelah 1.5 detik agar animasi awal selesai)
+        setTimeout(() => {
+            showAggressivePwaPrompt();
+        }, 1500);
+
+        // Jika ditutup, akan dipaksa muncul lagi secara berkala (sangat agresif)
+        let pwaNagInterval;
 
         window.closePwaModal = () => {
             document.getElementById('pwa-install-modal').style.display = 'none';
             
-            // Mode Agresif: Jika diklik "Nanti", popup akan muncul lagi secara otomatis setelah 2 menit
-            setTimeout(() => {
-                if (!isPwaInstalled()) {
-                    document.getElementById('pwa-install-modal').style.display = 'block';
-                }
-            }, 120000); 
+            // Mode Agresif: Muncul lagi setiap 15 detik!
+            if (!pwaNagInterval) {
+                pwaNagInterval = setInterval(() => {
+                    showAggressivePwaPrompt();
+                }, 15000); 
+            }
         };
 
         window.installPwa = async () => {
@@ -1106,13 +1154,20 @@
                 const { outcome } = await deferredPrompt.userChoice;
                 if (outcome === 'accepted') {
                     document.getElementById('pwa-install-modal').style.display = 'none';
+                    if (pwaNagInterval) clearInterval(pwaNagInterval);
                 }
                 deferredPrompt = null;
             } else {
-                // Fallback / Alternatif jika HP user (Misal iPhone/Safari) memblokir prompt otomatis
-                alert("Pemasangan otomatis tidak didukung di browser ini.\n\nCARA PASANG MANUAL:\n1. Ketuk ikon 'Bagikan' (Share) di browser Anda.\n2. Pilih 'Tambahkan ke Layar Utama' (Add to Home Screen).");
+                // Fallback / Alternatif jika browser memblokir prompt (Misal Android dengan browser lama)
+                alert("Pemasangan otomatis tidak didukung di browser ini.\\n\\nSilahkan cek menu browser (titik tiga) lalu pilih 'Install Aplikasi' atau 'Tambahkan ke Layar Utama'.");
             }
         };
+
+        // Hentikan interval jika tiba-tiba aplikasi terdeteksi diinstall (misal event browser)
+        window.addEventListener('appinstalled', () => {
+             if (pwaNagInterval) clearInterval(pwaNagInterval);
+             document.getElementById('pwa-install-modal').style.display = 'none';
+        });
         // -------------------------------------------------------------
 
         const firebaseConfig = {
