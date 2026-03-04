@@ -992,12 +992,21 @@
     <div id="pwa-install-modal">
         <div class="pwa-header">
             <img src="https://i.ibb.co.com/CpLCW6R2/Whats-App-Image-2026-01-29-at-10-12-08.jpg" class="pwa-logo" alt="Katalog Projekgo">
-            <div class="pwa-title">Pasang Aplikasi KATALOG PROJEKGO</div>
+            <div class="pwa-title">Pasang Aplikasi Projekgo Sekarang!</div>
         </div>
-        <div class="pwa-desc">Simpan aplikasi ini ke layar utama kamu sebagai referensi mencari menu restoran favorit. <b>Pemesanan makanan tetap dilakukan via WhatsApp admin!</b></div>
+        <div class="pwa-desc">
+            Nikmati pengalaman pesan makanan yang jauh lebih baik dengan menginstal aplikasi ini ke layar utama HP kamu:
+            <ul style="text-align: left; padding-left: 20px; margin-top: 10px; margin-bottom: 10px; color: #444; font-size: 11px; line-height: 1.6;">
+                <li>🚀 <b>Lebih Cepat & Ringan:</b> Akses instan tanpa harus buka browser dan ketik link lagi.</li>
+                <li>💾 <b>Hemat Memori:</b> Tanpa perlu download file besar dari PlayStore.</li>
+                <li>📱 <b>Layar Penuh:</b> Tampilan penuh yang lebih nyaman tanpa address bar yang mengganggu.</li>
+                <li>🛍️ <b>Akses Mudah:</b> Cek dan pesan menu restoran favorit kapan saja.</li>
+            </ul>
+            <div style="font-size: 10px; color: #888; font-style: italic; border-top: 1px solid #eee; padding-top: 5px;">*Pemesanan tetap terhubung otomatis ke WhatsApp Admin.</div>
+        </div>
         <div class="pwa-actions">
             <button class="btn-pwa-later" onclick="closePwaModal()">Nanti</button>
-            <button class="btn-pwa-install" onclick="installPwa()"><i class="ph-bold ph-download-simple"></i> Simpan Aplikasi</button>
+            <button class="btn-pwa-install" onclick="installPwa()"><i class="ph-bold ph-download-simple"></i> Pasang Sekarang</button>
         </div>
     </div>
 
@@ -1064,31 +1073,44 @@
             // Mencegah prompt bawaan browser muncul seketika
             e.preventDefault();
             deferredPrompt = e;
-            // Munculkan popup ajakan custom kita setelah 3 detik pengguna membuka web
-            setTimeout(() => {
-                // Dibuat agresif: Langsung tampil setiap kali web dibuka (tanpa cek localStorage)
-                document.getElementById('pwa-install-modal').style.display = 'block';
-            }, 3000);
         });
+
+        // Deteksi apakah aplikasi sudah terinstal (dijalankan sebagai aplikasi penuh/standalone)
+        function isPwaInstalled() {
+            return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        }
+
+        // AGRESSIF FORCE-SHOW: 
+        // Munculkan popup ajakan custom kita setelah 4 detik secara paksa, tanpa menunggu izin browser
+        setTimeout(() => {
+            if (!isPwaInstalled()) {
+                document.getElementById('pwa-install-modal').style.display = 'block';
+            }
+        }, 4000);
 
         window.closePwaModal = () => {
             document.getElementById('pwa-install-modal').style.display = 'none';
             
-            // Mode Agresif: Jika diklik "Nanti", popup akan muncul lagi secara otomatis setelah 2 menit (120000 ms)
+            // Mode Agresif: Jika diklik "Nanti", popup akan muncul lagi secara otomatis setelah 2 menit
             setTimeout(() => {
-                if (deferredPrompt) {
+                if (!isPwaInstalled()) {
                     document.getElementById('pwa-install-modal').style.display = 'block';
                 }
             }, 120000); 
         };
 
         window.installPwa = async () => {
-            document.getElementById('pwa-install-modal').style.display = 'none';
             if (deferredPrompt) {
                 // Munculkan prompt instalasi sistem operasi asli
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    document.getElementById('pwa-install-modal').style.display = 'none';
+                }
                 deferredPrompt = null;
+            } else {
+                // Fallback / Alternatif jika HP user (Misal iPhone/Safari) memblokir prompt otomatis
+                alert("Pemasangan otomatis tidak didukung di browser ini.\n\nCARA PASANG MANUAL:\n1. Ketuk ikon 'Bagikan' (Share) di browser Anda.\n2. Pilih 'Tambahkan ke Layar Utama' (Add to Home Screen).");
             }
         };
         // -------------------------------------------------------------
