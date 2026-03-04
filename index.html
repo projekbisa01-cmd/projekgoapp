@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="KATALOG PROJEKGO">
     <link rel="apple-touch-icon" href="https://i.ibb.co.com/CpLCW6R2/Whats-App-Image-2026-01-29-at-10-12-08.jpg">
-    <link rel="manifest" id="pwa-manifest">
+    <link rel="manifest" href="/manifest.json">
     
     <title>Projekgo - Super App</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -680,8 +680,9 @@
         .pwa-benefits li i { color: #00C853; font-size: 14px; margin-top: 1px; }
         .btn-pwa-agg-install { width: 100%; background: linear-gradient(45deg, #FF6600, #FF9900); color: white; border: none; padding: 16px; border-radius: 16px; font-weight: 800; font-size: 16px; cursor: pointer; box-shadow: 0 8px 20px rgba(255,102,0,0.4); display: flex; align-items: center; justify-content: center; gap: 8px; animation: bounceBtn 2s infinite; text-transform: uppercase; letter-spacing: 1px; }
         @keyframes bounceBtn { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        /* Tombol tutup sekarang langsung muncul dan bisa ditekan */
         .btn-pwa-agg-close { background: transparent; border: none; color: #999; font-size: 11px; font-weight: 600; text-decoration: underline; margin-top: 15px; cursor: pointer; padding: 5px; }
-
+        
     </style>
 </head>
 <body>
@@ -1066,39 +1067,13 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, getDocs, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- PWA CONFIGURATION (Dynamic Manifest & Service Worker) ---
-        const manifestContent = {
-            name: "KATALOG PROJEKGO",
-            short_name: "PROJEKGO",
-            start_url: window.location.href,
-            display: "standalone",
-            background_color: "#FAFAFA",
-            theme_color: "#FF6600",
-            icons: [{
-                src: "https://i.ibb.co.com/CpLCW6R2/Whats-App-Image-2026-01-29-at-10-12-08.jpg",
-                sizes: "512x512",
-                type: "image/jpeg",
-                purpose: "any maskable"
-            }]
-        };
-        const manifestBlob = new Blob([JSON.stringify(manifestContent)], {type: 'application/manifest+json'});
-        document.getElementById('pwa-manifest').setAttribute('href', URL.createObjectURL(manifestBlob));
-
+        // --- PWA CONFIGURATION (Physical Manifest & Service Worker) ---
         if ('serviceWorker' in navigator) {
-            try {
-                const swContent = `
-                    self.addEventListener('install', (e) => self.skipWaiting());
-                    self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
-                    self.addEventListener('fetch', (e) => {});
-                `;
-                const swBlob = new Blob([swContent], { type: 'application/javascript' });
-                // Menambahkan explicit scope dan try-catch untuk menghindari error Invalid Scope dari browser
-                navigator.serviceWorker.register(URL.createObjectURL(swBlob), { scope: '/' }).catch(() => {
-                    // Penanganan ini sengaja dibiarkan diam karena ini normal di iframe Blob
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch((error) => {
+                    console.warn("PWA Service Worker tidak dapat didaftarkan:", error);
                 });
-            } catch (error) {
-                console.warn("PWA Service Worker tidak dapat didaftarkan di lingkungan ini.");
-            }
+            });
         }
 
         let deferredPrompt;
@@ -1115,8 +1090,9 @@
 
         const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
 
-        function showAggressivePwaPrompt() {
-            if (isPwaInstalled()) return;
+        function showPwaPrompt() {
+            // Hanya muncul jika belum diinstall DAN pengguna belum mengklik "Nanti Saja" pada sesi ini
+            if (isPwaInstalled() || sessionStorage.getItem('pwaPromptClosed')) return;
             
             const modal = document.getElementById('pwa-install-modal');
             modal.style.display = 'flex';
@@ -1127,24 +1103,15 @@
             }
         }
 
-        // AGRESSIF FORCE-SHOW: 
-        // Munculkan popup setiap kali dibuka (setelah 1.5 detik agar animasi awal selesai)
+        // Tampilkan prompt satu kali secara wajar (misalnya setelah 2 detik)
         setTimeout(() => {
-            showAggressivePwaPrompt();
-        }, 1500);
-
-        // Jika ditutup, akan dipaksa muncul lagi secara berkala (sangat agresif)
-        let pwaNagInterval;
+            showPwaPrompt();
+        }, 2000);
 
         window.closePwaModal = () => {
             document.getElementById('pwa-install-modal').style.display = 'none';
-            
-            // Mode Agresif: Muncul lagi setiap 15 detik!
-            if (!pwaNagInterval) {
-                pwaNagInterval = setInterval(() => {
-                    showAggressivePwaPrompt();
-                }, 15000); 
-            }
+            // Menyimpan memori bahwa user telah menutup popup ini agar tidak diganggu lagi selama sesi aktif
+            sessionStorage.setItem('pwaPromptClosed', 'true');
         };
 
         window.installPwa = async () => {
@@ -1154,7 +1121,6 @@
                 const { outcome } = await deferredPrompt.userChoice;
                 if (outcome === 'accepted') {
                     document.getElementById('pwa-install-modal').style.display = 'none';
-                    if (pwaNagInterval) clearInterval(pwaNagInterval);
                 }
                 deferredPrompt = null;
             } else {
@@ -1163,9 +1129,8 @@
             }
         };
 
-        // Hentikan interval jika tiba-tiba aplikasi terdeteksi diinstall (misal event browser)
+        // Hentikan penawaran jika tiba-tiba aplikasi terdeteksi diinstall (misal event browser)
         window.addEventListener('appinstalled', () => {
-             if (pwaNagInterval) clearInterval(pwaNagInterval);
              document.getElementById('pwa-install-modal').style.display = 'none';
         });
         // -------------------------------------------------------------
