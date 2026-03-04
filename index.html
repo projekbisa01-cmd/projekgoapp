@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-title" content="Katalog Projekgo">
     <link rel="apple-touch-icon" href="https://i.ibb.co.com/hJ43nXyc/Whats-App-Image-2026-01-29-at-10-12-08.jpg">
     
-    <!-- MENGGUNAKAN MANIFEST DINAMIS (INLINE PWA) -->
+    <!-- MENGGUNAKAN MANIFEST VIRTUAL/INLINE -->
     <link rel="manifest" id="dynamic-manifest">
     
     <title>Katalog Projekgo</title>
@@ -1070,10 +1070,10 @@
         import { getFirestore, collection, getDocs, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // ====================================================================
-        // --- 1. GENERATE MANIFEST & SERVICE WORKER SECARA DINAMIS (INLINE PWA) ---
+        // --- 1. GENERATE MANIFEST & SERVICE WORKER VIRTUAL (INLINE) ---
         // ====================================================================
         
-        // A. Inject Manifest Data URI
+        // A. Inject Manifest menggunakan Blob URL
         const manifestData = {
             "name": "Katalog Projekgo",
             "short_name": "Projekgo",
@@ -1096,20 +1096,16 @@
                 }
             ]
         };
-        const manifestString = encodeURIComponent(JSON.stringify(manifestData));
-        document.getElementById('dynamic-manifest').setAttribute('href', 'data:application/json;charset=utf-8,' + manifestString);
+        const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
+        const manifestUrl = URL.createObjectURL(manifestBlob);
+        document.getElementById('dynamic-manifest').setAttribute('href', manifestUrl);
 
-        // B. Inject & Daftarkan Service Worker via Blob (Bypass file fisik .sw.js)
+        // B. Inject & Daftarkan Service Worker via Blob
         if ('serviceWorker' in navigator) {
             const swCode = `
-                self.addEventListener('install', (e) => {
-                    self.skipWaiting();
-                });
-                self.addEventListener('activate', (e) => {
-                    e.waitUntil(clients.claim());
-                });
-                self.addEventListener('fetch', (e) => {
-                    // Hanya sebagai pass-through agar dianggap PWA valid oleh Chrome
+                self.addEventListener('install', (e) => { self.skipWaiting(); });
+                self.addEventListener('activate', (e) => { e.waitUntil(clients.claim()); });
+                self.addEventListener('fetch', (e) => { 
                     e.respondWith(fetch(e.request).catch(() => new Response('Tampaknya Anda sedang Offline')));
                 });
             `;
@@ -1119,42 +1115,36 @@
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register(swUrl)
                 .then((registration) => {
-                    console.log('Inline ServiceWorker berhasil didaftarkan');
+                    console.log('Virtual ServiceWorker berhasil didaftarkan');
                 })
-                .catch((error) => {
-                    console.warn("Inline ServiceWorker gagal didaftarkan:", error);
+                .catch((err) => {
+                    console.warn("Virtual ServiceWorker gagal didaftarkan:", err);
                 });
             });
         }
 
         // ====================================================================
-        // --- 2. Penangkap Event beforeinstallprompt ---
+        // --- 2. LOGIKA INSTALASI PWA (SEPERTI BARU LAHIR) ---
         // ====================================================================
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
+            console.log("Event beforeinstallprompt ditangkap!");
         });
 
+        // Deteksi apakah web sedang dibuka di dalam mode aplikasi (standalone)
         const isPwaInstalled = () => {
             return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
         };
-
-        // ====================================================================
-        // --- 3. Penanganan Khusus iOS (Apple) ---
-        // ====================================================================
         const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
 
-        // ====================================================================
-        // --- 4. Sifat Agresif (Nagging) ---
-        // ====================================================================
         const showPwaPromptAggressively = () => {
-            if (isPwaInstalled()) return; // Jika sudah diinstal, tidak perlu muncul
+            if (isPwaInstalled()) return; // Jangan munculkan jika sudah di dalam aplikasi
             
             const modal = document.getElementById('pwa-install-modal');
             if (modal.style.display !== 'flex') {
                 modal.style.display = 'flex';
-
                 if (isIos()) {
                     document.getElementById('pwa-action-android').style.display = 'none';
                     document.getElementById('pwa-action-ios').style.display = 'block';
@@ -1165,19 +1155,17 @@
             }
         };
 
-        // Muncul setelah 2 detik pertama, lalu berulang setiap 10 detik (agresif)
+        // Modifikasi "Seperti Baru Lahir": 
+        // Selalu munculkan modal setiap kali web dibuka di browser (setelah 5 detik), 
+        // tanpa mempedulikan ingatan session/local storage masa lalu.
         setTimeout(() => {
-            showPwaPromptAggressively();
-            
-            setInterval(() => {
+            if (!isPwaInstalled()) {
                 showPwaPromptAggressively();
-            }, 10000);
-        }, 2000);
+            }
+        }, 5000);
 
         window.closePwaModal = () => {
             document.getElementById('pwa-install-modal').style.display = 'none';
-            // Pesan toast peringatan karena akan dimunculkan lagi nanti
-            showToast("Aplikasi akan mengingatkan Anda untuk Install kembali 😊");
         };
 
         window.installPwa = async () => {
@@ -1187,16 +1175,17 @@
                 if (outcome === 'accepted') {
                     document.getElementById('pwa-install-modal').style.display = 'none';
                 }
+                // Hapus event agar tidak bentrok, Chrome akan mengaturnya
                 deferredPrompt = null;
             } else {
-                // Perbaikan: Memberikan panduan yang lebih baik alih-alih sekadar menyalahkan browser
+                // Fallback jika Chrome memblokir event bawaan karena pengguna pernah klik cancel/uninstall
                 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
                 const isHttps = window.location.protocol === 'https:';
-
+                
                 if (!isHttps && !isLocal) {
-                    alert("Aplikasi tidak bisa di-install karena koneksi belum aman (HTTPS).");
+                    alert("PWA membutuhkan koneksi aman (HTTPS) untuk bisa diinstall.");
                 } else {
-                    alert("Aplikasi ini mungkin sudah ter-install di HP Anda, atau Chrome sedang memprosesnya. Coba periksa daftar aplikasi atau menu browser Anda (titik tiga di pojok kanan atas) dan cari 'Tambahkan ke Layar Utama'.");
+                    alert("Silakan klik opsi browser (titik tiga di pojok kanan atas) lalu pilih 'Tambahkan ke Layar Utama' atau 'Install Aplikasi'.");
                 }
             }
         };
