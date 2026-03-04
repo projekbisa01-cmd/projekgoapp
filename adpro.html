@@ -3,6 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- PWA Meta Tags & Virtual Manifest -->
+    <meta name="theme-color" content="#FF6600">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Admin">
+    <link rel="apple-touch-icon" href="https://i.ibb.co.com/jvsG9cZD/PROJEKITA-10.png">
+    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Admin%22%2C%22short_name%22%3A%22Admin%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23F8F9FB%22%2C%22theme_color%22%3A%22%23FF6600%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fi.ibb.co.com%2FjvsG9cZD%2FPROJEKITA-10.png%22%2C%22sizes%22%3A%22192x192%20512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
+    
     <title>Admin Pusat - Projekgo</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -236,9 +245,14 @@
             <i class="ph-fill ph-rocket"></i>
             <span>Projekgo</span>
         </div>
-        <button class="btn-logout-top" onclick="logout()" title="Keluar">
-            <i class="ph-bold ph-sign-out"></i>
-        </button>
+        <div style="display:flex; gap:10px;">
+            <button id="btn-install-pwa" style="display:none; background: #e0f2fe; border: none; width: 40px; height: 40px; border-radius: 10px; align-items: center; justify-content: center; color: #0284c7; cursor: pointer;" title="Install App">
+                <i class="ph-bold ph-download-simple"></i>
+            </button>
+            <button class="btn-logout-top" onclick="logout()" title="Keluar">
+                <i class="ph-bold ph-sign-out"></i>
+            </button>
+        </div>
     </div>
 
     <!-- MAIN CONTENT -->
@@ -595,6 +609,36 @@
         let adminAllKategori = []; // Simpan data kategori utama
         let currentVendorView = null; 
         let deleteTarget = null; 
+
+        // --- PWA VIRTUAL LOGIC ---
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Mencegah Chrome lama menampilkan prompt secara otomatis
+            e.preventDefault();
+            // Simpan event agar bisa dipicu nanti
+            deferredPrompt = e;
+            // Tampilkan tombol Install App
+            const installBtn = document.getElementById('btn-install-pwa');
+            if(installBtn) installBtn.style.display = 'flex';
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const installBtn = document.getElementById('btn-install-pwa');
+            if(installBtn) {
+                installBtn.addEventListener('click', async () => {
+                    if (deferredPrompt) {
+                        // Tampilkan prompt instalasi PWA
+                        deferredPrompt.prompt();
+                        // Tunggu respon pengguna (menerima atau menolak)
+                        const { outcome } = await deferredPrompt.userChoice;
+                        // Hapus prompt karena hanya bisa digunakan sekali
+                        deferredPrompt = null;
+                        // Sembunyikan tombol kembali
+                        installBtn.style.display = 'none';
+                    }
+                });
+            }
+        });
 
         // --- AUTH ---
         window.checkLogin = () => {
