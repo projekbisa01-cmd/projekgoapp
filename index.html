@@ -9,9 +9,6 @@
     <meta name="apple-mobile-web-app-title" content="Katalog Projekgo">
     <link rel="apple-touch-icon" href="https://i.ibb.co.com/hJ43nXyc/Whats-App-Image-2026-01-29-at-10-12-08.jpg">
     
-    <!-- UPDATE: Data Manifest dimasukkan langsung ke HTML agar terbaca oleh browser -->
-    <link rel="manifest" href='data:application/manifest+json;utf-8,{"name":"Katalog Projekgo","short_name":"Projekgo","start_url":".","display":"standalone","background_color":"#FAFAFA","theme_color":"#FF6600","icons":[{"src":"https://i.ibb.co.com/hJ43nXyc/Whats-App-Image-2026-01-29-at-10-12-08.jpg","sizes":"192x192","type":"image/jpeg"},{"src":"https://i.ibb.co.com/hJ43nXyc/Whats-App-Image-2026-01-29-at-10-12-08.jpg","sizes":"512x512","type":"image/jpeg"}]}'>
-    
     <title>Katalog Projekgo</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -1069,56 +1066,105 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, getDocs, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- PWA CONFIGURATION (Physical Manifest & Service Worker) ---
+        // ====================================================================
+        // --- 1. Inject Manifest.json secara Dinamis (Blob URL) ---
+        // ====================================================================
+        const manifest = {
+            "name": "Katalog Projekgo",
+            "short_name": "Projekgo",
+            "start_url": ".",
+            "display": "standalone",
+            "background_color": "#FAFAFA",
+            "theme_color": "#FF6600",
+            "icons": [
+                {
+                    "src": "https://i.ibb.co.com/hJ43nXyc/Whats-App-Image-2026-01-29-at-10-12-08.jpg",
+                    "sizes": "192x192",
+                    "type": "image/jpeg"
+                },
+                {
+                    "src": "https://i.ibb.co.com/hJ43nXyc/Whats-App-Image-2026-01-29-at-10-12-08.jpg",
+                    "sizes": "512x512",
+                    "type": "image/jpeg"
+                }
+            ]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+        const manifestUrl = URL.createObjectURL(manifestBlob);
+        const link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = manifestUrl;
+        document.head.appendChild(link);
+
+        // ====================================================================
+        // --- 2. Inject "Dummy" Service Worker ---
+        // ====================================================================
         if ('serviceWorker' in navigator) {
+            const swCode = "self.addEventListener('fetch', function(e) {}); self.addEventListener('install', function(e) { self.skipWaiting(); }); self.addEventListener('activate', function(e) { self.clients.claim(); });";
+            const swBlob = new Blob([swCode], {type: 'application/javascript'});
+            const swUrl = URL.createObjectURL(swBlob);
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').catch((error) => {
-                    console.warn("PWA Service Worker tidak dapat didaftarkan:", error);
+                navigator.serviceWorker.register(swUrl).catch((error) => {
+                    console.warn("Dummy Service Worker gagal didaftarkan:", error);
                 });
             });
         }
 
+        // ====================================================================
+        // --- 3. Penangkap Event beforeinstallprompt ---
+        // ====================================================================
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Mencegah prompt bawaan browser muncul seketika
             e.preventDefault();
             deferredPrompt = e;
         });
 
-        // Deteksi apakah aplikasi sudah terinstal (dijalankan sebagai aplikasi penuh/standalone)
-        function isPwaInstalled() {
+        const isPwaInstalled = () => {
             return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-        }
+        };
 
+        // ====================================================================
+        // --- 4. Penanganan Khusus iOS (Apple) ---
+        // ====================================================================
         const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
 
-        function showPwaPrompt() {
-            // Hanya muncul jika belum diinstall DAN pengguna belum mengklik "Nanti Saja" pada sesi ini
-            if (isPwaInstalled() || sessionStorage.getItem('pwaPromptClosed')) return;
+        // ====================================================================
+        // --- 5. Sifat Agresif (Nagging) ---
+        // ====================================================================
+        const showPwaPromptAggressively = () => {
+            if (isPwaInstalled()) return; // Jika sudah diinstal, tidak perlu muncul
             
             const modal = document.getElementById('pwa-install-modal');
-            modal.style.display = 'flex';
+            if (modal.style.display !== 'flex') {
+                modal.style.display = 'flex';
 
-            if (isIos()) {
-                document.getElementById('pwa-action-android').style.display = 'none';
-                document.getElementById('pwa-action-ios').style.display = 'block';
+                if (isIos()) {
+                    document.getElementById('pwa-action-android').style.display = 'none';
+                    document.getElementById('pwa-action-ios').style.display = 'block';
+                } else {
+                    document.getElementById('pwa-action-android').style.display = 'block';
+                    document.getElementById('pwa-action-ios').style.display = 'none';
+                }
             }
-        }
+        };
 
-        // Tampilkan prompt satu kali secara wajar (misalnya setelah 2 detik)
+        // Muncul setelah 2 detik pertama, lalu berulang setiap 10 detik (agresif)
         setTimeout(() => {
-            showPwaPrompt();
+            showPwaPromptAggressively();
+            
+            setInterval(() => {
+                showPwaPromptAggressively();
+            }, 10000);
         }, 2000);
 
         window.closePwaModal = () => {
             document.getElementById('pwa-install-modal').style.display = 'none';
-            // Menyimpan memori bahwa user telah menutup popup ini agar tidak diganggu lagi selama sesi aktif
-            sessionStorage.setItem('pwaPromptClosed', 'true');
+            // Pesan toast peringatan karena akan dimunculkan lagi nanti
+            showToast("Aplikasi akan mengingatkan Anda untuk Install kembali 😊");
         };
 
         window.installPwa = async () => {
             if (deferredPrompt) {
-                // Munculkan prompt instalasi sistem operasi asli
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
                 if (outcome === 'accepted') {
@@ -1126,16 +1172,14 @@
                 }
                 deferredPrompt = null;
             } else {
-                // Fallback / Alternatif jika browser memblokir prompt (Misal Android dengan browser lama)
-                alert("Instalasi PWA diblokir oleh browser.\n\nPastikan web Anda menggunakan link HTTPS dan terdapat file 'sw.js' pada server/hosting Anda.");
+                alert("Instalasi PWA diblokir. Pastikan Anda membuka link ini dari browser utama (seperti Chrome/Safari).");
             }
         };
 
-        // Hentikan penawaran jika tiba-tiba aplikasi terdeteksi diinstall (misal event browser)
         window.addEventListener('appinstalled', () => {
              document.getElementById('pwa-install-modal').style.display = 'none';
+             showToast("Terima kasih telah menginstall Katalog Projekgo!");
         });
-        // -------------------------------------------------------------
 
         const firebaseConfig = {
             apiKey: "AIzaSyCYvIMYoPme_rkOaZgeXbkAAtJ-cQdqamw", 
