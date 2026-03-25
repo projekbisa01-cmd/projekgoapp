@@ -404,12 +404,24 @@
         .pd-action { position: fixed; bottom: 80px; left: 0; right: 0; max-width: var(--max-width); margin: 0 auto; background: transparent; padding: 0 20px; display: flex; gap: 15px; z-index: 1001; pointer-events: none; }
         .btn-main-add { pointer-events: auto; flex-grow: 1; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 14px; font-weight: 700; font-size: 16px; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 102, 0, 0.4); display: flex; align-items: center; justify-content: center; gap: 8px; }
 
-        .vendor-header { position: relative; height: 180px; }
-        .vh-img { width: 100%; height: 100%; object-fit: cover; }
-        .vh-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.9)); }
-        .vh-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; color: white; }
-        .vh-name { font-size: 24px; font-weight: 800; margin-bottom: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
-        .vh-meta { font-size: 12px; display: flex; gap: 10px; opacity: 0.95; font-weight: 500; }
+        /* --- NEW VENDOR HEADER (UI CARD) --- */
+        .vh-wrapper { position: relative; background: var(--bg); padding-bottom: 10px; }
+        .vh-cover { width: 100%; height: 200px; position: relative; }
+        .vh-cover-img { width: 100%; height: 100%; object-fit: cover; }
+        .vh-cover-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 40%, transparent 100%); }
+        .vh-btn-back { position: absolute; top: 20px; left: 20px; width: 35px; height: 35px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--dark); box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; z-index: 10; transition: transform 0.2s; }
+        .vh-btn-back:active { transform: scale(0.9); }
+        .vh-card { margin: -60px 20px 0 20px; background: white; border-radius: 25px; padding: 45px 20px 20px 20px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.06); text-align: center; z-index: 5; }
+        .vh-logo { position: absolute; top: -35px; left: 50%; transform: translateX(-50%); width: 70px; height: 70px; background: white; border-radius: 50%; padding: 4px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .vh-logo img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+        .vh-btn-fav { position: absolute; top: 15px; right: 15px; width: 32px; height: 32px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; box-shadow: 0 4px 10px rgba(255,102,0,0.3); cursor: pointer; transition: 0.2s; }
+        .vh-btn-fav:active { transform: scale(0.9); }
+        .vh-name { font-size: 20px; font-weight: 800; color: var(--dark); margin-bottom: 6px; line-height: 1.2; }
+        .vh-address { font-size: 11px; color: #888; margin-bottom: 15px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .vh-stats-row { display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .vh-stat-item { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: #555; }
+        .vh-tags-row { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; }
+        .vh-tag { background: #f5f5f5; color: #666; font-size: 10px; font-weight: 600; padding: 5px 12px; border-radius: 12px; }
         
         .review-card-scroll { 
             min-width: 280px; 
@@ -853,14 +865,9 @@
 
         <!-- ===== 6. HALAMAN DETAIL WARUNG ===== -->
         <div id="page-vendor" class="page">
-            <div class="sub-header" style="position:fixed; width:100%; max-width:480px; background:rgba(255,255,255,0.95); backdrop-filter:blur(10px); box-shadow:none; border-bottom:1px solid rgba(0,0,0,0.05);">
-                <div class="btn-back" onclick="goBack()"><i class="ph ph-arrow-left"></i></div>
-                <div class="page-title" id="vendor-page-title" style="flex-grow:1; text-align:center;">Detail Warung</div>
-                <div style="width:24px;"></div>
-            </div>
-            
-            <div id="vendor-header-content" style="padding-top:60px;"></div>
-            <div class="section-title" style="margin-top:10px;"><span>🌟 Menu Andalan</span></div>
+            <!-- Sub-header default disembunyikan karena menggunakan header card UI yang baru -->
+            <div id="vendor-header-content" style="padding-top: 0;"></div>
+            <div class="section-title" style="margin-top:5px;"><span>🌟 Menu Andalan</span></div>
             <div id="vendor-menu-grid" class="vendor-menu-grid"></div>
             <div class="review-summary">
                 <div class="rs-big"><span id="vendor-avg-rating">4.8</span> <i class="ph-fill ph-star"></i></div>
@@ -1350,10 +1357,51 @@
             if (!vendor) { const prod = rawProducts.find(p => p.vendor_id === vendorId); if (prod) vendor = {id: vendorId, nama_warung: prod.vendor_name, shop_photo: null}; else { const vByName = allVendors.find(v => v.nama_warung === vendorId); if (vByName) vendor = vByName; else vendor = {id: 'temp', nama_warung: 'Detail Warung', shop_photo: null}; } }
             
             currentVendorIdForReviews = vendor.id;
-            const locSuffix = vendor.alamat_warung ? ` - ${vendor.alamat_warung}` : (vendor.lokasi ? ` - ${vendor.lokasi}` : '');
-
+            
             const img = vendor.shop_photo || 'https://cdn-icons-png.flaticon.com/512/1046/1046857.png';
-            document.getElementById('vendor-header-content').innerHTML = `<div class="vendor-header"><img src="${img}" class="vh-img"><div class="vh-overlay"></div><div class="vh-info"><div class="vh-name">${vendor.nama_warung}${locSuffix}</div><div class="vh-meta"><span>⭐ 4.8 (200+)</span> • <span>Aneka Makanan</span> • <span>1.2km</span></div></div></div>`;
+            const bgImg = vendor.cover_photo || img; // Menggunakan shop_photo sebagai cover jika tidak ada cover_photo
+            const fullAddress = vendor.alamat_warung || vendor.lokasi || vendor.alamat || "Detail alamat belum tersedia";
+            const ratingMock = (4.5 + Math.random() * 0.4).toFixed(1);
+            
+            // Ekstrak tag/kategori toko
+            let tagsHtml = '';
+            const tagsArr = extractCategories(vendor.kategori_utama).slice(0, 3);
+            if(tagsArr.length > 0) {
+                tagsArr.forEach(t => { tagsHtml += `<div class="vh-tag">${t}</div>`; });
+            } else {
+                tagsHtml = `<div class="vh-tag">Aneka Makanan</div>`;
+            }
+
+            document.getElementById('vendor-header-content').innerHTML = `
+                <div class="vh-wrapper">
+                    <div class="vh-cover">
+                        <img src="${bgImg}" class="vh-cover-img">
+                        <div class="vh-cover-overlay"></div>
+                        <div class="vh-btn-back" onclick="goBack()"><i class="ph-bold ph-caret-left"></i></div>
+                    </div>
+                    <div class="vh-card">
+                        <div class="vh-logo">
+                            <img src="${img}">
+                        </div>
+                        <div class="vh-btn-fav" onclick="showToast('Disimpan ke Favorit ❤️')">
+                            <i class="ph-fill ph-bookmark-simple"></i>
+                        </div>
+                        
+                        <div class="vh-name">${vendor.nama_warung}</div>
+                        <div class="vh-address">${fullAddress}</div>
+                        
+                        <div class="vh-stats-row">
+                            <div class="vh-stat-item"><i class="ph-fill ph-star" style="color:#FFC107;"></i> ${ratingMock}</div>
+                            <div class="vh-stat-item"><i class="ph-fill ph-clock" style="color:#FF6600;"></i> 20-30 Min</div>
+                            <div class="vh-stat-item"><i class="ph-fill ph-moped" style="color:#4CAF50;"></i> Pengantaran</div>
+                        </div>
+                        
+                        <div class="vh-tags-row">
+                            ${tagsHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
             
             // NOTE: ambil dari rawProducts agar tetap bisa dibuka meski beda filter
             const vendorMenu = rawProducts.filter(p => p.vendor_name === vendor.nama_warung || p.vendor_id === vendor.id);
