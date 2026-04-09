@@ -1075,7 +1075,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, addDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // ====================================================================
         // --- 1. GENERATE MANIFEST & SERVICE WORKER VIRTUAL (INLINE) ---
@@ -1537,36 +1537,56 @@
                 listContainer.appendChild(fragment);
             }
             
-            const vendorReviews = allReviews.filter(r => r.vendor_name === vendor.nama_warung);
-            const avgRating = vendorReviews.length > 0 ? (vendorReviews.reduce((acc, curr) => acc + curr.rating, 0) / vendorReviews.length).toFixed(1) : "New";
-            document.getElementById('vendor-avg-rating').innerText = avgRating;
-            
-            const sortedReviews = vendorReviews.sort((a,b) => b.timestamp - a.timestamp);
-            const previewReviews = sortedReviews.slice(0, 2); 
+            // --- OPTIMASI: Lazy Load Review (Hanya tarik review khusus warung ini saja) ---
+            const actionContainer = document.getElementById('vendor-reviews-action');
+            reviewsContainer.innerHTML = '<div style="padding:15px; width:100%; text-align:center; font-size:12px; color:#888;">Memuat ulasan...</div>';
+            document.getElementById('vendor-avg-rating').innerText = "...";
+            actionContainer.innerHTML = '';
 
-            if (previewReviews.length === 0) { 
-                reviewsContainer.innerHTML = `<div style="padding:15px; color:#888; font-size:13px; font-style:italic; width:100%; text-align:center;">Belum ada komentar.</div>`; 
-                document.getElementById('vendor-reviews-action').innerHTML = '';
-            } else { 
-                previewReviews.forEach(rev => { 
-                    let starsHtml = ''; 
-                    for(let i=0; i<5; i++) { starsHtml += i < rev.rating ? '<i class="ph-fill ph-star"></i>' : '<i class="ph ph-star" style="color:#ddd;"></i>'; } 
-                    let displayName = rev.user;
-                    if (displayName.length > 2) { displayName = displayName.substring(0, 2) + "***"; }
+            const loadVendorReviews = async () => {
+                try {
+                    const q = query(collection(db, "reviews"), where("vendor_name", "==", vendor.nama_warung));
+                    const snapshot = await getDocs(q);
+                    let vendorReviews = [];
+                    snapshot.forEach(doc => vendorReviews.push({id: doc.id, ...doc.data()}));
                     
-                    reviewsContainer.innerHTML += `
-                        <div class="review-card-scroll">
-                            <div class="rc-text-box">"${rev.text}"</div>
-                            <div class="rc-footer">
-                                <div class="rc-user-small"><i class="ph-fill ph-user"></i> ${displayName}</div>
-                                <div class="rc-stars-small">${starsHtml}</div>
-                            </div>
-                        </div>`; 
-                });
-                
-                const actionContainer = document.getElementById('vendor-reviews-action');
-                actionContainer.innerHTML = `<div class="btn-see-more-reviews" onclick="openAllReviewsPage()">Lihat Semua Ulasan (${vendorReviews.length})</div>`;
-            }
+                    // Update cache review global agar bisa diakses di halaman "Semua Ulasan"
+                    allReviews = allReviews.filter(r => r.vendor_name !== vendor.nama_warung).concat(vendorReviews);
+
+                    const avgRating = vendorReviews.length > 0 ? (vendorReviews.reduce((acc, curr) => acc + curr.rating, 0) / vendorReviews.length).toFixed(1) : "New";
+                    document.getElementById('vendor-avg-rating').innerText = avgRating;
+                    
+                    reviewsContainer.innerHTML = '';
+                    const sortedReviews = vendorReviews.sort((a,b) => b.timestamp - a.timestamp);
+                    const previewReviews = sortedReviews.slice(0, 2); 
+
+                    if (previewReviews.length === 0) { 
+                        reviewsContainer.innerHTML = `<div style="padding:15px; color:#888; font-size:13px; font-style:italic; width:100%; text-align:center;">Belum ada komentar.</div>`; 
+                    } else { 
+                        previewReviews.forEach(rev => { 
+                            let starsHtml = ''; 
+                            for(let i=0; i<5; i++) { starsHtml += i < rev.rating ? '<i class="ph-fill ph-star"></i>' : '<i class="ph ph-star" style="color:#ddd;"></i>'; } 
+                            let displayName = rev.user;
+                            if (displayName.length > 2) { displayName = displayName.substring(0, 2) + "***"; }
+                            
+                            reviewsContainer.innerHTML += `
+                                <div class="review-card-scroll">
+                                    <div class="rc-text-box">"${rev.text}"</div>
+                                    <div class="rc-footer">
+                                        <div class="rc-user-small"><i class="ph-fill ph-user"></i> ${displayName}</div>
+                                        <div class="rc-stars-small">${starsHtml}</div>
+                                    </div>
+                                </div>`; 
+                        });
+                        actionContainer.innerHTML = `<div class="btn-see-more-reviews" onclick="openAllReviewsPage()">Lihat Semua Ulasan (${vendorReviews.length})</div>`;
+                    }
+                } catch(e) {
+                    reviewsContainer.innerHTML = `<div style="padding:15px; color:red; font-size:12px; width:100%; text-align:center;">Gagal memuat ulasan.</div>`;
+                }
+            };
+            loadVendorReviews();
+            // -----------------------------------------------------------------------------
+
             openPage('vendor');
         }
 
@@ -1983,28 +2003,55 @@
         }
         window.submitServiceForm = () => { if(!checkOperationalStatus()) return; let inputs = document.querySelectorAll('[id^="svc-"]'); let message = `Halo Admin Projekgo, pesan jasa *${currentServiceType}*:%0A%0A`; let filled = true; inputs.forEach(input => { const label = input.previousElementSibling.innerText; const val = input.value.trim(); if(val === '') filled = false; message += `▪️ ${label}: ${val}%0A`; }); if(!filled) { showToast("Mohon lengkapi data."); return; } window.open(`https://wa.me/${ADMIN_WA}?text=${message}`, '_blank'); }
 
-        function loadData() {
-            onSnapshot(collection(db, "vendors"), (snapshot) => { 
-                allVendors = []; 
-                snapshot.forEach(doc => { allVendors.push({id: doc.id, ...doc.data()}); }); 
-                filterAndRenderProducts(); 
-            });
-            onSnapshot(collection(db, "products"), (snapshot) => { 
-                rawProducts = []; 
-                snapshot.forEach(d => rawProducts.push({id:d.id, ...d.data()})); 
-                filterAndRenderProducts(); 
-            });
-            onSnapshot(collection(db, "reviews"), (snapshot) => { 
-                allReviews = []; 
-                snapshot.forEach(doc => allReviews.push({id: doc.id, ...doc.data()})); 
-            });
-            onSnapshot(collection(db, "kategori_utama"), (snapshot) => {
+        // --- OPTIMASI HEMAT KUOTA FIREBASE ---
+        async function loadData() {
+            // 1. Cek Data di Memory/Session Storage (Tahan 1 Jam)
+            const cacheTime = sessionStorage.getItem('app_data_time');
+            const now = Date.now();
+            const isCacheValid = cacheTime && (now - parseInt(cacheTime) < 60 * 60 * 1000); 
+
+            if (isCacheValid) {
+                const cachedVendors = sessionStorage.getItem('cache_vendors');
+                const cachedProducts = sessionStorage.getItem('cache_products');
+                const cachedCategories = sessionStorage.getItem('cache_categories');
+
+                if (cachedVendors && cachedProducts && cachedCategories) {
+                    allVendors = JSON.parse(cachedVendors);
+                    rawProducts = JSON.parse(cachedProducts);
+                    allMainCategories = JSON.parse(cachedCategories);
+                    filterAndRenderProducts();
+                    return; // Selesai, data dimuat secara gratis dari memori HP pelanggan
+                }
+            }
+
+            // 2. Jika tidak ada cache, fetch 1x dari Firebase (TIDAK Real-time)
+            try {
+                const [venSnap, prodSnap, catSnap] = await Promise.all([
+                    getDocs(collection(db, "vendors")),
+                    getDocs(collection(db, "products")),
+                    getDocs(collection(db, "kategori_utama"))
+                ]);
+
+                allVendors = [];
+                venSnap.forEach(doc => allVendors.push({id: doc.id, ...doc.data()}));
+
+                rawProducts = [];
+                prodSnap.forEach(d => rawProducts.push({id: d.id, ...d.data()}));
+
                 allMainCategories = [];
-                snapshot.forEach(doc => {
-                    allMainCategories.push({id: doc.id, ...doc.data()});
-                });
-                renderCategories(); 
-            });
+                catSnap.forEach(doc => allMainCategories.push({id: doc.id, ...doc.data()}));
+
+                // Simpan ke Cache HP Pelanggan
+                sessionStorage.setItem('cache_vendors', JSON.stringify(allVendors));
+                sessionStorage.setItem('cache_products', JSON.stringify(rawProducts));
+                sessionStorage.setItem('cache_categories', JSON.stringify(allMainCategories));
+                sessionStorage.setItem('app_data_time', now.toString());
+
+                filterAndRenderProducts();
+            } catch (error) {
+                console.error("Error mengambil data:", error);
+                showToast("Koneksi tidak stabil. Gagal memuat menu.");
+            }
         }
 
         // --- FILTER LOKASI UTAMA ---
