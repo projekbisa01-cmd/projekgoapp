@@ -588,17 +588,26 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, deleteDoc, doc, setDoc, updateDoc, addDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // Mengganti onSnapshot dengan getDocs, query, limit, dan orderBy untuk hemat kuota
+        import { getFirestore, collection, getDocs, query, limit, orderBy, deleteDoc, doc, setDoc, updateDoc, addDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // --- PENTING: GANTI DENGAN API KEY BARU KAMU ---
         const firebaseConfig = {
-            apiKey: "MASUKKAN_KEY_BARU_DISINI", 
-            authDomain: "projekgo-app.firebaseapp.com",
-            projectId: "projekgo-app",
-            storageBucket: "projekgo-app.firebasestorage.app",
-            messagingSenderId: "910691523179",
-            appId: "1:910691523179:web:2c78d27de6a02cec952f2e"
-        };
+
+  apiKey: "AIzaSyAc4ZnBU6xAil7Un4Y53Jxncj_B6eURHBo",
+
+  authDomain: "projekgo-app.firebaseapp.com",
+
+  projectId: "projekgo-app",
+
+  storageBucket: "projekgo-app.firebasestorage.app",
+
+  messagingSenderId: "910691523179",
+
+  appId: "1:910691523179:web:2c78d27de6a02cec952f2e"
+
+};
+
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -966,6 +975,8 @@
                     alert("Siaran berhasil dikirim!");
                     document.getElementById('broadcast-title').value = "";
                     document.getElementById('broadcast-body').value = "";
+                    // Refresh history secara lokal
+                    await window.fetchBroadcasts();
                 } catch(e) {
                     alert("Gagal mengirim: " + e.message);
                 } finally {
@@ -1023,6 +1034,8 @@
                 
                 closeModal('add-modal');
                 alert(`Mitra Berhasil Didaftarkan!\n\nID Login: ${id}\nPIN Akses: ${pin}`);
+                // Perbarui daftar lokal
+                await window.fetchVendors();
             } catch(e) { 
                 alert("Gagal menyimpan: " + e.message); 
             }
@@ -1125,6 +1138,7 @@
                 
                 closeModal('edit-vendor-info-modal');
                 alert("Info Mitra Berhasil Diupdate!");
+                await window.fetchVendors();
             } catch(e) {
                 alert("Gagal update: " + e.message);
             }
@@ -1155,6 +1169,7 @@
                 });
                 closeModal('edit-product-modal');
                 alert("Menu berhasil direvisi!");
+                await window.fetchProducts();
             } catch(e) {
                 alert("Gagal update menu: " + e.message);
             }
@@ -1182,19 +1197,31 @@
                 await updateDoc(doc(db, "vendors", id), { pin: newPin });
                 closeModal('edit-pin-modal');
                 alert("PIN berhasil diubah!");
+                await window.fetchVendors();
             } catch(e) {
                 alert("Gagal update PIN: " + e.message);
             }
         }
 
+        // --- OPTIMASI KUOTA: UPDATE ARRAY LOKAL PADA FITUR TOGGLE ---
         window.toggleStatus = async (id, currentStatus) => {
             const newStatus = (currentStatus === 'BUKA') ? 'TUTUP' : 'BUKA';
             await updateDoc(doc(db, "vendors", id), { status: newStatus });
+            
+            // Mengubah state secara lokal agar UI update tanpa Fetch (0 reads)
+            const idx = adminAllVendors.findIndex(v => v.id === id);
+            if(idx !== -1) adminAllVendors[idx].status = newStatus;
+            window.renderVendorsList();
+            window.updateRecentVendorsTable();
         }
         
         window.toggleFeatured = async (id, currentVal) => {
             try {
                 await updateDoc(doc(db, "vendors", id), { is_featured: !currentVal });
+                const idx = adminAllVendors.findIndex(v => v.id === id);
+                if(idx !== -1) adminAllVendors[idx].is_featured = !currentVal;
+                adminAllVendors.sort((a, b) => (b.is_featured === true) - (a.is_featured === true));
+                window.renderVendorsList();
             } catch(e) { 
                 alert("Gagal memperbarui status andalan.");
             }
@@ -1202,108 +1229,155 @@
 
         window.toggleProductStock = async (id, currentStatus) => {
             await updateDoc(doc(db, "products", id), { is_available: !currentStatus });
+            const idx = adminAllProducts.findIndex(p => p.id === id);
+            if(idx !== -1) adminAllProducts[idx].is_available = !currentStatus;
+            if(currentVendorView) window.renderDetailProducts(currentVendorView);
         }
+
         window.toggleExclusive = async (id, currentVal) => {
             try {
                 await updateDoc(doc(db, "products", id), { is_exclusive: !currentVal });
+                const idx = adminAllProducts.findIndex(p => p.id === id);
+                if(idx !== -1) adminAllProducts[idx].is_exclusive = !currentVal;
+                if(currentVendorView) window.renderDetailProducts(currentVendorView);
             } catch(e) { console.error("Error toggling exclusive:", e); }
         }
+
         window.askDelete = (coll, id) => {
             deleteTarget = { coll, id };
             document.getElementById('delete-modal').style.display = 'flex';
         }
+
         document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
             if(!deleteTarget) return;
-            await deleteDoc(doc(db, deleteTarget.coll, deleteTarget.id));
-            closeModal('delete-modal');
+            const btn = document.getElementById('confirm-delete-btn');
+            const originalText = btn.innerText;
+            btn.innerText = "Menghapus...";
+
+            try {
+                await deleteDoc(doc(db, deleteTarget.coll, deleteTarget.id));
+                closeModal('delete-modal');
+                
+                // Fetch ulang hanya koleksi yang baru saja dihapus datanya
+                if (deleteTarget.coll === 'vendors') await window.fetchVendors();
+                if (deleteTarget.coll === 'products') await window.fetchProducts();
+                if (deleteTarget.coll === 'broadcasts') await window.fetchBroadcasts();
+            } catch(e) {
+                alert("Gagal menghapus: " + e.message);
+            } finally {
+                btn.innerText = originalText;
+            }
         });
 
-        // --- DATA SYNC ---
-        function initData() {
-            // Ambil Master Kategori Pertama Kali
-            onSnapshot(collection(db, "kategori_utama"), (snap) => {
-                adminAllKategori = [];
-                snap.forEach(d => adminAllKategori.push({id: d.id, ...d.data()}));
-                renderKategoriOptions(); // Render ke dropdown select
+        // Ekstraksi Render UI untuk digunakan ulang
+        window.updateRecentVendorsTable = () => {
+            const recentBody = document.getElementById('recent-vendors-table');
+            if(!recentBody) return;
+            let hRecent = '';
+            adminAllVendors.forEach(v => {
+                const isOpen = v.status === 'BUKA';
+                hRecent += `<tr><td data-label="Warung" style="text-align:left;">${v.nama_warung}</td><td data-label="Status" style="text-align:right;"><span class="btn-status ${isOpen ? 'open' : 'closed'}">${v.status}</span></td></tr>`;
             });
+            recentBody.innerHTML = hRecent;
+        }
 
-            // Ambil Data Vendor
-            onSnapshot(collection(db, "vendors"), (snap) => {
-                const recentBody = document.getElementById('recent-vendors-table');
-                let hRecent = '';
-                adminAllVendors = [];
-                document.getElementById('count-vendors').innerText = snap.size;
-                snap.forEach(d => adminAllVendors.push({id: d.id, ...d.data()}));
-                
-                adminAllVendors.sort((a, b) => (b.is_featured === true) - (a.is_featured === true));
+        // --- DATA SYNC HEMAT KUOTA (GETDOCS) ---
+        window.fetchKategori = async () => {
+            const snap = await getDocs(collection(db, "kategori_utama"));
+            adminAllKategori = [];
+            snap.forEach(d => adminAllKategori.push({id: d.id, ...d.data()}));
+            renderKategoriOptions(); 
+        }
 
-                // Render tabel Mitra Utama (Sekarang memanggil fungsi yang mendukung fitur search)
-                window.renderVendorsList();
+        window.fetchVendors = async () => {
+            const snap = await getDocs(collection(db, "vendors"));
+            adminAllVendors = [];
+            document.getElementById('count-vendors').innerText = snap.size;
+            snap.forEach(d => adminAllVendors.push({id: d.id, ...d.data()}));
+            
+            adminAllVendors.sort((a, b) => (b.is_featured === true) - (a.is_featured === true));
+            window.renderVendorsList();
+            window.updateRecentVendorsTable();
+            window.renderVendorMenuOverview();
+            renderReviewVendors();
+        }
 
-                // Render tabel dashboard
-                adminAllVendors.forEach(v => {
-                    const isOpen = v.status === 'BUKA';
-                    hRecent += `<tr><td data-label="Warung" style="text-align:left;">${v.nama_warung}</td><td data-label="Status" style="text-align:right;"><span class="btn-status ${isOpen ? 'open' : 'closed'}">${v.status}</span></td></tr>`;
-                });
-                recentBody.innerHTML = hRecent;
-                
-                window.renderVendorMenuOverview();
-                renderReviewVendors();
+        window.fetchProducts = async () => {
+            const snap = await getDocs(collection(db, "products"));
+            adminAllProducts = [];
+            document.getElementById('count-products').innerText = snap.size;
+            snap.forEach(d => adminAllProducts.push({id: d.id, ...d.data()}));
+            
+            window.renderVendorMenuOverview();
+            if(currentVendorView) window.renderDetailProducts(currentVendorView);
+        }
+
+        window.fetchReviews = async () => {
+            const snap = await getDocs(collection(db, "reviews"));
+            adminAllReviews = [];
+            let totalRating = 0;
+            snap.forEach(d => {
+                const data = d.data();
+                adminAllReviews.push({id: d.id, ...data});
+                totalRating += parseFloat(data.rating || 0);
             });
+            if(snap.size > 0) {
+                document.getElementById('global-rating').innerText = (totalRating / snap.size).toFixed(1);
+            }
+            renderReviewVendors();
+        }
 
-            onSnapshot(collection(db, "products"), (snap) => {
-                adminAllProducts = [];
-                document.getElementById('count-products').innerText = snap.size;
-                snap.forEach(d => adminAllProducts.push({id: d.id, ...d.data()}));
-                window.renderVendorMenuOverview();
-                if(currentVendorView) window.renderDetailProducts(currentVendorView);
-            });
+        window.fetchBroadcasts = async () => {
+            // Optimasi Ekstra: Dibatasi 30 siaran terbaru
+            const q = query(collection(db, "broadcasts"), orderBy("created_at", "desc"), limit(30));
+            const snap = await getDocs(q);
+            const container = document.getElementById('broadcast-history-list');
+            if(!container) return;
+            
+            container.innerHTML = '';
+            if(snap.empty) {
+                container.innerHTML = '<div style="text-align:center; color:#999; padding:20px;">Belum ada riwayat siaran.</div>';
+                return;
+            }
 
-            onSnapshot(collection(db, "reviews"), (snap) => {
-                adminAllReviews = [];
-                let totalRating = 0;
-                snap.forEach(d => {
-                    const data = d.data();
-                    adminAllReviews.push({id: d.id, ...data});
-                    totalRating += parseFloat(data.rating || 0);
-                });
-                if(snap.size > 0) {
-                    document.getElementById('global-rating').innerText = (totalRating / snap.size).toFixed(1);
-                }
-                renderReviewVendors();
-            });
-
-            onSnapshot(collection(db, "broadcasts"), (snap) => {
-                const container = document.getElementById('broadcast-history-list');
-                if(!container) return;
-                
-                container.innerHTML = '';
-                if(snap.empty) {
-                    container.innerHTML = '<div style="text-align:center; color:#999; padding:20px;">Belum ada riwayat siaran.</div>';
-                    return;
-                }
-
-                const broadcasts = [];
-                snap.forEach(doc => broadcasts.push({id: doc.id, ...doc.data()}));
-                
-                broadcasts.sort((a,b) => b.created_at - a.created_at);
-
-                broadcasts.forEach(b => {
-                    const date = new Date(b.created_at).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'});
-                    container.innerHTML += `
-                        <div class="data-card" style="padding: 15px; display:flex; justify-content:space-between; align-items:start; margin-bottom:10px;">
-                            <div>
-                                <div style="font-weight:700; margin-bottom:4px;">${b.title}</div>
-                                <div style="font-size:13px; color:#555; margin-bottom:8px;">${b.message}</div>
-                                <div style="font-size:11px; color:#999;"><i class="ph ph-clock"></i> ${date}</div>
-                            </div>
-                            <button class="action-btn btn-delete" onclick="askDelete('broadcasts', '${b.id}')">
-                                <i class="ph-bold ph-trash"></i>
-                            </button>
+            const broadcasts = [];
+            snap.forEach(doc => broadcasts.push({id: doc.id, ...doc.data()}));
+            
+            broadcasts.forEach(b => {
+                const date = new Date(b.created_at).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'});
+                container.innerHTML += `
+                    <div class="data-card" style="padding: 15px; display:flex; justify-content:space-between; align-items:start; margin-bottom:10px;">
+                        <div>
+                            <div style="font-weight:700; margin-bottom:4px;">${b.title}</div>
+                            <div style="font-size:13px; color:#555; margin-bottom:8px;">${b.message}</div>
+                            <div style="font-size:11px; color:#999;"><i class="ph ph-clock"></i> ${date}</div>
                         </div>
-                    `;
-                });
+                        <button class="action-btn btn-delete" onclick="askDelete('broadcasts', '${b.id}')">
+                            <i class="ph-bold ph-trash"></i>
+                        </button>
+                    </div>
+                `;
             });
+        }
+
+        async function initData() {
+            // Validasi API Key sebelum memanggil database
+            if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "MASUKKAN_KEY_BARU_DISINI") {
+                alert("KONEKSI GAGAL: Anda belum memasukkan API Key Firebase. Silakan edit kode HTML dan ganti 'MASUKKAN_KEY_BARU_DISINI' dengan API Key Anda yang sebenarnya.");
+                return;
+            }
+
+            try {
+                // Semua fungsi fetch dipanggil dan ditunggu (await) untuk menangkap error jika gagal
+                await window.fetchKategori();
+                await window.fetchVendors();
+                await window.fetchProducts();
+                await window.fetchReviews();
+                await window.fetchBroadcasts();
+            } catch (error) {
+                console.error("Kesalahan koneksi Firebase:", error);
+                alert("Gagal terhubung ke database Cloud Firestore (Timeout).\n\nPastikan:\n1. Internet Anda stabil.\n2. API Key Firebase di kode sudah benar.\n3. Rules Firestore mengizinkan akses (bukan mode terkunci).\n\nDetail: " + error.message);
+            }
         }
     </script>
 </body>
