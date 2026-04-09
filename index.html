@@ -1226,6 +1226,13 @@
 
         const ADMIN_WA = "62882008667068";
 
+        // ====================================================================
+        // GAMBAR PENGGANTI (FALLBACK) JIKA PENJUAL BELUM UPLOAD FOTO
+        // Menggunakan garpu sendok dan tulisan "Gambar Belum Tersedia"
+        // ====================================================================
+        const FALLBACK_MENU_IMG = "https://placehold.co/400x400/f5f5f5/888888?text=🍽️%0AGambar+Belum%0ATersedia"; 
+        const FALLBACK_VENDOR_IMG = "https://placehold.co/400x300/f5f5f5/888888?text=🍽️%0AGambar+Belum%0ATersedia";
+
         // Inisialisasi Teks Navigasi Atas Sesuai Pilihan Lokasi Terakhir
         document.getElementById('loc-text').innerText = currentArea === 'Gombong' ? 'Sekitar Gombong ▾' : 'Kebumen Kota ▾';
 
@@ -1361,7 +1368,7 @@
             
             currentVendorIdForReviews = vendor.id;
             
-            const img = vendor.shop_photo || 'https://cdn-icons-png.flaticon.com/512/1046/1046857.png';
+            const img = vendor.shop_photo || FALLBACK_VENDOR_IMG;
             const bgImg = vendor.cover_photo || img; // Menggunakan shop_photo sebagai cover jika tidak ada cover_photo
             const fullAddress = vendor.alamat_warung || vendor.lokasi || vendor.alamat || "Detail alamat belum tersedia";
             const ratingMock = (4.5 + Math.random() * 0.4).toFixed(1);
@@ -1428,7 +1435,7 @@
             if(gridTitleEl) gridTitleEl.innerText = sectionTitle;
 
             topItems.forEach(item => {
-                const imgItem = item.foto_url && item.foto_url.length > 5 ? item.foto_url : 'https://placehold.co/100?text=Menu'; 
+                const imgItem = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG; 
                 const realPrice = parseInt(item.harga); 
                 const fakePrice = Math.ceil(realPrice * 1.2); 
                 const isFav = favorites.includes(item.id) ? 'active' : '';
@@ -1465,7 +1472,7 @@
             if (bottomItems.length > 0) {
                 titleBottom.style.display = 'flex';
                 bottomItems.forEach(item => {
-                    const imgItem = item.foto_url && item.foto_url.length > 5 ? item.foto_url : 'https://placehold.co/100?text=Menu'; 
+                    const imgItem = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG; 
                     const realPrice = parseInt(item.harga); 
                     const fakePrice = Math.ceil(realPrice * 1.2); 
                     const isFav = favorites.includes(item.id) ? 'active' : '';
@@ -1513,7 +1520,7 @@
                     fragment.appendChild(headerDiv);
                     
                     items.forEach(item => {
-                        const imgItem = item.foto_url && item.foto_url.length > 5 ? item.foto_url : 'https://placehold.co/100?text=Menu'; 
+                        const imgItem = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG; 
                         const realPrice = parseInt(item.harga); 
                         const fakePrice = Math.ceil(realPrice * 1.2); 
                         const isFav = favorites.includes(item.id) ? 'active' : ''; 
@@ -1715,7 +1722,7 @@
                     
                     let vId = groupData.id;
                     let vendorObj = null;
-                    let vendorImg = 'https://cdn-icons-png.flaticon.com/512/1046/1046857.png';
+                    let vendorImg = FALLBACK_VENDOR_IMG;
 
                     if (!vId) { 
                         vendorObj = currentDisplayVendors.find(v => v.nama_warung === vendorName); 
@@ -1757,7 +1764,7 @@
         }
 
         function renderHorizontalCard(container, item) {
-            const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : 'https://placehold.co/150x150?text=Menu'; const realPrice = parseInt(item.harga); const fakePrice = Math.ceil(realPrice * 1.2); const vendorName = item.vendor_name || "Warung Projekgo"; const isFav = favorites.includes(item.id) ? 'active' : ''; const exclusiveBadge = item.is_exclusive ? '<div class="badge-exclusive">Exclusive</div>' : ''; const priorityBadge = '<div class="badge-priority"><i class="ph-fill ph-lightning"></i> Prioritas</div>'; const rating = (4.0 + Math.random()).toFixed(1); const sold = Math.floor(Math.random() * 500) + 50;
+            const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG; const realPrice = parseInt(item.harga); const fakePrice = Math.ceil(realPrice * 1.2); const vendorName = item.vendor_name || "Warung Projekgo"; const isFav = favorites.includes(item.id) ? 'active' : ''; const exclusiveBadge = item.is_exclusive ? '<div class="badge-exclusive">Exclusive</div>' : ''; const priorityBadge = '<div class="badge-priority"><i class="ph-fill ph-lightning"></i> Prioritas</div>'; const rating = (4.0 + Math.random()).toFixed(1); const sold = Math.floor(Math.random() * 500) + 50;
             const isAvailable = item.is_available !== false; const habisBadge = isAvailable ? '' : '<div class="badge-habis-overlay" style="border-radius:12px;"><span class="badge-habis-text">HABIS</span></div>'; const imgStyle = isAvailable ? '' : 'filter:grayscale(100%); opacity:0.7;'; const addAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, stok habis 🙏')`; const addStyle = isAvailable ? '' : 'background:#ccc; cursor:not-allowed;';
             const div = document.createElement('div'); div.className = 'h-card';
             div.innerHTML = `<div style="position:relative;">${habisBadge}${priorityBadge}${exclusiveBadge}<div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')"><i class="ph-fill ph-heart"></i></div><img src="${img}" class="h-img" style="${imgStyle}" onclick="openProductDetail('${item.id}')"></div><div class="h-info" onclick="openProductDetail('${item.id}')"><div class="h-vendor"><i class="ph-fill ph-storefront"></i> ${vendorName}</div><div class="h-name">${item.nama_menu}</div><div class="h-stats"><i class="ph-fill ph-star"></i> ${rating} • Terjual ${sold}+</div><div class="price-row"><div class="price-box"><div style="display:flex; align-items:center; gap:3px;"><span class="p-label-normal">Normal</span><span class="p-coret">Rp ${fakePrice.toLocaleString()}</span></div><span class="p-real">Rp ${realPrice.toLocaleString()}</span></div><div class="btn-add-mini" style="${addStyle}" onclick="${addAction}"><i class="ph-bold ph-plus" style="color:white;"></i></div></div></div>`;
@@ -1768,13 +1775,13 @@
         window.openProductDetail = (id) => {
             const item = rawProducts.find(p => p.id === id); if(!item) return;
             currentDetailProduct = item; 
-            const img = item.foto_url || 'https://placehold.co/400?text=Menu'; 
+            const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG; 
             const realPrice = parseInt(item.harga); 
             const fakePrice = Math.ceil(realPrice * 1.2); 
             const desc = item.deskripsi || "Menu spesial dari Projekgo. Terbuat dari bahan pilihan, dimasak dengan bumbu rahasia yang menggugah selera. Porsi pas dan bikin kenyang.";
             
             const vendorName = item.vendor_name || "Warung Projekgo";
-            let vendorImg = 'https://cdn-icons-png.flaticon.com/512/1046/1046857.png';
+            let vendorImg = FALLBACK_VENDOR_IMG;
             
             const vendorObj = allVendors.find(v => v.id === item.vendor_id);
             if (vendorObj && vendorObj.shop_photo) {
@@ -1826,7 +1833,7 @@
         window.renderFavoritesPage = () => { const container = document.getElementById('fav-list-content'); container.innerHTML = ''; const favItems = rawProducts.filter(p => favorites.includes(p.id)); if(favItems.length === 0) { container.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:#999;">Belum ada menu favorit.</div>'; return; } favItems.forEach(item => { renderPcard(container, item); }); }
         
         function renderPcard(container, item) {
-            const img = item.foto_url || 'https://placehold.co/150'; const realPrice = parseInt(item.harga); const fakePrice = Math.ceil(realPrice * 1.2); const isFav = favorites.includes(item.id) ? 'active' : ''; const exclusiveBadge = item.is_exclusive ? '<div class="badge-exclusive" style="font-size:8px;">Exclusive</div>' : ''; const priorityBadge = '<div class="badge-priority"><i class="ph-fill ph-lightning"></i> Prioritas</div>'; const rating = (4.0 + Math.random()).toFixed(1); const sold = Math.floor(Math.random() * 500) + 50;
+            const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG; const realPrice = parseInt(item.harga); const fakePrice = Math.ceil(realPrice * 1.2); const isFav = favorites.includes(item.id) ? 'active' : ''; const exclusiveBadge = item.is_exclusive ? '<div class="badge-exclusive" style="font-size:8px;">Exclusive</div>' : ''; const priorityBadge = '<div class="badge-priority"><i class="ph-fill ph-lightning"></i> Prioritas</div>'; const rating = (4.0 + Math.random()).toFixed(1); const sold = Math.floor(Math.random() * 500) + 50;
             const isAvailable = item.is_available !== false; const habisBadge = isAvailable ? '' : '<div class="badge-habis-overlay" style="border-radius:12px;"><span class="badge-habis-text">HABIS</span></div>'; const imgStyle = isAvailable ? '' : 'filter:grayscale(100%); opacity:0.7;'; const addAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, stok habis 🙏')`; const addStyle = isAvailable ? '' : 'background:#ccc; cursor:not-allowed;';
             const div = document.createElement('div'); div.className = 'p-card'; div.innerHTML = `<div style="position:relative;">${habisBadge}${priorityBadge}${exclusiveBadge}<img src="${img}" style="width:100%; height:120px; object-fit:cover; ${imgStyle}" onclick="openProductDetail('${item.id}')"><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}'); if(document.getElementById('page-favorites').style.display==='block') renderFavoritesPage();" style="top:5px; right:5px;"><i class="ph-fill ph-heart"></i></div></div><div class="p-info"><div onclick="openProductDetail('${item.id}')"><div style="font-size:10px; color:#888;">${item.vendor_name || 'Warung'}</div><div style="font-weight:700; font-size:13px; margin-bottom:2px;">${item.nama_menu}</div><div class="h-stats" style="margin-bottom:8px;"><i class="ph-fill ph-star"></i> ${rating} • Terjual ${sold}+</div><div style="display:flex; flex-direction:column;"><span class="p-coret" style="font-size:10px; text-decoration:line-through; color:#ccc;">Rp ${fakePrice.toLocaleString()}</span><span style="font-weight:800; color:var(--primary);">Rp ${realPrice.toLocaleString()}</span></div></div><button onclick="${addAction}" style="align-self:flex-end; background:var(--primary-light); color:var(--primary); border:none; width:24px; height:24px; border-radius:8px; font-weight:700; ${addStyle}">+</button></div>`; container.appendChild(div);
         }
@@ -2232,7 +2239,7 @@
 
                 const vendorProds = allProducts.filter(p => p.vendor_id === v.id && p.is_available !== false);
                 const s = (v.status||'BUKA').toUpperCase()==='BUKA'; 
-                const img = v.shop_photo || 'https://cdn-icons-png.flaticon.com/512/1046/1046857.png'; 
+                const img = v.shop_photo || FALLBACK_VENDOR_IMG; 
                 const prices = vendorProds.map(p => parseInt(p.harga)); 
                 const minPrice = prices.length ? Math.min(...prices) : 10000; 
                 const formattedPrice = (minPrice/1000).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 1 });
