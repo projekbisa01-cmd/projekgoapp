@@ -310,21 +310,48 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, where, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyDq0UCWj43rCP3rqvAGbdyr2FFV7kyhZTA",
-            authDomain: "projekgo-app.firebaseapp.com",
-            projectId: "projekgo-app",
-            storageBucket: "projekgo-app.firebasestorage.app",
-            messagingSenderId: "910691523179",
-            appId: "1:910691523179:web:2c78d27de6a02cec952f2e"
-        };
+
+  apiKey: "AIzaSyAc4ZnBU6xAil7Un4Y53Jxncj_B6eURHBo",
+
+  authDomain: "projekgo-app.firebaseapp.com",
+
+  projectId: "projekgo-app",
+
+  storageBucket: "projekgo-app.firebasestorage.app",
+
+  messagingSenderId: "910691523179",
+
+  appId: "1:910691523179:web:2c78d27de6a02cec952f2e"
+
+};
+
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let isFirebaseAuthReady = false;
+
+        // Pantau status autentikasi secara real-time
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                console.log("Firebase Auth Siap! UID:", user.uid);
+                isFirebaseAuthReady = true;
+            } else {
+                console.log("Mencoba login anonim ke Firebase...");
+                signInAnonymously(auth).catch(error => {
+                    console.error("Error Auth Anonim:", error);
+                    showToast("Gagal terhubung ke autentikasi Firebase.", false);
+                });
+            }
+        });
 
         let currentUser = null;
-        let base64Image = "";
+        let uploadedImageUrl = ""; // Variabel baru untuk menyimpan Link ImgBB
+        const IMGBB_API_KEY = "6d715fc6c609e348b721d5e503ad7975"; // Wajib diisi dengan API Key ImgBB Anda!
         let currentProducts = {};
         // Daftar Kategori Default sesuai permintaan user
         let masterCategories = ["Sarapan", "Pernasian", "Minuman", "Ayam", "Berkuah", "Aneka Mie", "Snack", "Legendaris", "Masakan Khas", "Cepat Saji"]; 
@@ -601,6 +628,21 @@
             });
         }
 
+        // --- FUNGSI UPLOAD KE IMGBB ---
+        const uploadToImgBB = async (base64Data) => {
+            const base64Clean = base64Data.split(',')[1];
+            const formData = new FormData();
+            formData.append('image', base64Clean);
+            
+            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if(data.success) return data.data.url;
+            throw new Error("ImgBB Upload Failed");
+        };
+
         window.openModal = () => {
             if(!currentUser.kategori_utama || currentUser.kategori_utama.length === 0) {
                 showToast("Wajib pilih Kategori Resto di Profil dulu!", false);
@@ -611,7 +653,9 @@
             document.getElementById('menu-id').value = ""; document.getElementById('inp-nama').value = "";
             document.getElementById('inp-harga').value = ""; document.getElementById('inp-tipe').value = "";
             document.getElementById('inp-desc').value = ""; document.getElementById('preview-img').style.display = "none";
-            document.querySelector('.upload-placeholder').style.display = "block"; base64Image = "";
+            document.querySelector('.upload-placeholder').innerHTML = '<i class="ph ph-camera" style="font-size:24px;"></i><br>Klik untuk Upload';
+            document.querySelector('.upload-placeholder').style.display = "block"; 
+            uploadedImageUrl = "";
             document.getElementById('modal-form').style.display = 'flex';
         };
 
@@ -619,15 +663,26 @@
             const item = currentProducts[id];
             document.getElementById('modal-title').innerText = "Edit Menu";
             document.getElementById('menu-id').value = id;
-            document.getElementById('inp-nama').value = item.nama_menu;
-            document.getElementById('inp-harga').value = item.harga;
+            
+            // Pastikan tidak ada nilai undefined yang masuk ke form
+            document.getElementById('inp-nama').value = item.nama_menu || "";
+            document.getElementById('inp-harga').value = item.harga || "";
             document.getElementById('inp-tipe').value = item.tipe || "";
             document.getElementById('inp-desc').value = item.deskripsi || "";
             document.getElementById('inp-exclusive').checked = item.is_exclusive || false;
             document.getElementById('inp-priority').checked = item.is_priority || false;
+            
+            // Reset state gambar terlebih dahulu untuk mencegah bug
+            uploadedImageUrl = "";
+            document.getElementById('preview-img').style.display = "none"; 
+            document.querySelector('.upload-placeholder').innerHTML = '<i class="ph ph-camera" style="font-size:24px;"></i><br>Klik untuk Ganti Foto';
+            document.querySelector('.upload-placeholder').style.display = "block";
+
             if(item.foto_url) {
-                base64Image = item.foto_url; document.getElementById('preview-img').src = base64Image;
-                document.getElementById('preview-img').style.display = "block"; document.querySelector('.upload-placeholder').style.display = "none";
+                uploadedImageUrl = item.foto_url; 
+                document.getElementById('preview-img').src = uploadedImageUrl;
+                document.getElementById('preview-img').style.display = "block"; 
+                document.querySelector('.upload-placeholder').style.display = "none";
             }
             document.getElementById('modal-form').style.display = 'flex';
         };
@@ -636,17 +691,33 @@
 
         window.handleFileSelect = (e) => {
             const file = e.target.files[0];
+            if(!file) return;
+            
+            const placeholder = document.querySelector('.upload-placeholder');
+            placeholder.innerHTML = '<div class="loader-spinner" style="width:20px;height:20px;border-width:3px;margin:0 auto 10px auto;"></div> Mengunggah...';
+            placeholder.style.display = 'block';
+            document.getElementById('preview-img').style.display = 'none';
+
             const reader = new FileReader();
             reader.onload = (event) => {
                 const img = new Image(); img.src = event.target.result;
-                img.onload = () => {
+                img.onload = async () => {
+                    // Kompresi di canvas sebelum upload ke ImgBB agar lebih cepat
                     const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
                     canvas.width = 400; canvas.height = img.height * (400 / img.width);
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    base64Image = canvas.toDataURL('image/jpeg', 0.6);
-                    document.getElementById('preview-img').src = base64Image;
-                    document.getElementById('preview-img').style.display = 'block';
-                    document.querySelector('.upload-placeholder').style.display = "none";
+                    const base64Data = canvas.toDataURL('image/jpeg', 0.8);
+                    
+                    try {
+                        const url = await uploadToImgBB(base64Data);
+                        uploadedImageUrl = url;
+                        document.getElementById('preview-img').src = uploadedImageUrl;
+                        document.getElementById('preview-img').style.display = 'block';
+                        placeholder.style.display = "none";
+                    } catch (err) {
+                        showToast("Gagal unggah foto ke ImgBB", false);
+                        placeholder.innerHTML = '<i class="ph ph-camera" style="font-size:24px;"></i><br>Upload Gagal, Coba Lagi';
+                    }
                 };
             };
             reader.readAsDataURL(file);
@@ -656,19 +727,55 @@
             const id = document.getElementById('menu-id').value;
             const nama = document.getElementById('inp-nama').value.trim();
             const harga = document.getElementById('inp-harga').value;
-            if(!nama || !harga || !base64Image) return showToast("Lengkapi data dan foto!", false);
-            const btn = document.querySelector('.btn-submit'); btn.innerText = "Menyimpan..."; btn.disabled = true;
+            
+            if(!nama || !harga || !uploadedImageUrl) return showToast("Lengkapi data dan foto!", false);
+            
+            const btn = document.querySelector('.btn-submit'); 
+            btn.innerText = "Menyimpan..."; 
+            btn.disabled = true;
+            
+            if (!isFirebaseAuthReady) {
+                showToast("Tunggu sebentar, sedang menyinkronkan dengan server...", false);
+                btn.innerText = "Simpan Menu"; 
+                btn.disabled = false;
+                return;
+            }
+
+            // Filter ketat: Pastikan tidak ada nilai undefined di dalam object data
             const data = {
-                nama_menu: nama, harga: parseInt(harga), tipe: document.getElementById('inp-tipe').value.trim() || 'Lainnya',
-                deskripsi: document.getElementById('inp-desc').value, is_exclusive: document.getElementById('inp-exclusive').checked,
-                is_priority: document.getElementById('inp-priority').checked, vendor_id: currentUser.id, vendor_name: currentUser.name,
-                foto_url: base64Image, updated_at: new Date().toISOString()
+                nama_menu: nama, 
+                harga: parseInt(harga) || 0, 
+                tipe: document.getElementById('inp-tipe').value.trim() || 'Lainnya',
+                deskripsi: document.getElementById('inp-desc').value || "", 
+                is_exclusive: document.getElementById('inp-exclusive').checked || false,
+                is_priority: document.getElementById('inp-priority').checked || false, 
+                vendor_id: currentUser.id || "", 
+                vendor_name: currentUser.name || "Vendor",
+                foto_url: uploadedImageUrl, 
+                updated_at: new Date().toISOString()
             };
+            
             try {
-                if(id) await updateDoc(doc(db, "products", id), data);
-                else { data.created_at = new Date().toISOString(); await addDoc(collection(db, "products"), data); }
-                showToast("Menu disimpan!"); closeModal();
-            } catch(e) { showToast("Gagal simpan menu.", false); } finally { btn.innerText = "Simpan Menu"; btn.disabled = false; }
+                if(id) {
+                    await updateDoc(doc(db, "products", id), data);
+                } else { 
+                    data.created_at = new Date().toISOString(); 
+                    await addDoc(collection(db, "products"), data); 
+                }
+                showToast("Menu berhasil disimpan!"); 
+                closeModal();
+            } catch(e) { 
+                console.error("Error Simpan Menu:", e);
+                // Menampilkan peringatan spesifik jika terkait Rules Firebase
+                if (e.message.includes("permission") || e.code === "permission-denied") {
+                    showToast("Gagal: Akses Firebase ditolak! Buka Firebase Console dan atur Rules menjadi true.", false);
+                } else {
+                    showToast("Gagal: " + e.message.substring(0, 30), false); 
+                }
+            } finally { 
+                btn.innerText = "Simpan Menu"; 
+                btn.disabled = false; 
+            }
         };
 
         window.deleteMenu = async (id, nama) => {
@@ -683,6 +790,8 @@
 
         window.handleShopPhoto = (e) => {
             const file = e.target.files[0];
+            if(!file) return;
+            showToast("Mengunggah foto profil...", true);
             const reader = new FileReader();
             reader.onload = (event) => {
                 const img = new Image(); img.src = event.target.result;
@@ -690,10 +799,16 @@
                     const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
                     canvas.width = 250; canvas.height = 250;
                     ctx.drawImage(img, 0, 0, 250, 250);
-                    const photo = canvas.toDataURL('image/jpeg', 0.6);
-                    document.getElementById('shop-photo-display').src = photo;
-                    await updateDoc(doc(db, "vendors", currentUser.id), { shop_photo: photo });
-                    showToast("Foto profil diperbarui!");
+                    const base64Data = canvas.toDataURL('image/jpeg', 0.8);
+                    
+                    try {
+                        const url = await uploadToImgBB(base64Data);
+                        document.getElementById('shop-photo-display').src = url;
+                        await updateDoc(doc(db, "vendors", currentUser.id), { shop_photo: url });
+                        showToast("Foto profil diperbarui!");
+                    } catch (err) {
+                        showToast("Gagal unggah foto profil", false);
+                    }
                 };
             };
             reader.readAsDataURL(file);
