@@ -697,6 +697,26 @@
         /* Tombol tutup sekarang langsung muncul dan bisa ditekan */
         .btn-pwa-agg-close { background: transparent; border: none; color: #999; font-size: 11px; font-weight: 600; text-decoration: underline; margin-top: 15px; cursor: pointer; padding: 5px; }
         
+        /* --- IMAGE VIEWER MODAL --- */
+        #image-viewer-modal {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.95); z-index: 999999;
+            align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        #image-viewer-modal.show { opacity: 1; }
+        .viewer-img {
+            max-width: 100%; max-height: 100%; object-fit: contain;
+            transform: scale(0.8); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #image-viewer-modal.show .viewer-img { transform: scale(1); }
+        .close-viewer-btn {
+            position: absolute; top: 20px; right: 20px; color: white; font-size: 24px; cursor: pointer;
+            background: rgba(255,255,255,0.2); width: 35px; height: 35px; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; z-index: 10;
+        }
+
     </style>
 </head>
 <body>
@@ -1054,6 +1074,12 @@
         </div>
     </div>
 
+    <!-- MODAL IMAGE VIEWER FULLSCREEN -->
+    <div id="image-viewer-modal" onclick="closeImageViewer()">
+        <div class="close-viewer-btn"><i class="ph-bold ph-x"></i></div>
+        <img id="viewer-img-content" class="viewer-img" src="" alt="Full Screen" onclick="event.stopPropagation()">
+    </div>
+
     <!-- NAVBAR BAWAH -->
     <div class="bottom-nav-container">
         <nav class="bottom-nav">
@@ -1277,6 +1303,20 @@
         window.openAdminModal = () => { document.getElementById('admin-modal').style.display = 'flex'; }
         window.closeAdminModal = () => { document.getElementById('admin-modal').style.display = 'none'; }
         
+        // --- LOGIKA IMAGE VIEWER ---
+        window.openImageViewer = (src) => {
+            const modal = document.getElementById('image-viewer-modal');
+            document.getElementById('viewer-img-content').src = src;
+            modal.style.display = 'flex';
+            modal.offsetHeight; // trigger reflow
+            modal.classList.add('show');
+        }
+        window.closeImageViewer = () => {
+            const modal = document.getElementById('image-viewer-modal');
+            modal.classList.remove('show');
+            setTimeout(() => { modal.style.display = 'none'; }, 300);
+        }
+
         // --- LOGIKA MODAL LOKASI ---
         window.openLocationModal = () => {
             const modal = document.getElementById('location-modal');
@@ -1548,7 +1588,7 @@
                         const div = document.createElement('div'); 
                         div.className = 'menu-list-item'; 
                         // MENAMBAHKAN loading="lazy" PADA TAG IMG AGAR GAMBAR TIDAK DIMUAT SEMUA SEKALIGUS
-                        div.innerHTML = `<div style="position:relative;">${habisBadge}<img src="${imgItem}" class="mli-img" style="${grayscaleClass}" loading="lazy" onclick="openProductDetail('${item.id}')"><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')" style="width:24px; height:24px; font-size:12px; top:4px; right:4px;"><i class="ph-fill ph-heart"></i></div></div><div class="mli-info" style="${opacityClass}"><div onclick="openProductDetail('${item.id}')"><div class="mli-title">${item.nama_menu}</div><div class="mli-desc">${desc}</div></div><div class="mli-action"><div class="mli-price-box"><span class="mli-coret">Rp ${fakePrice.toLocaleString()}</span><span class="mli-price">Rp ${realPrice.toLocaleString()}</span></div><button class="mli-btn" style="${addBtnStyle}" onclick="${addBtnAction}">Tambah +</button></div></div>`; 
+                        div.innerHTML = `<div style="position:relative;">${habisBadge}<img src="${imgItem}" class="mli-img" style="${grayscaleClass}; cursor:zoom-in;" loading="lazy" onclick="openImageViewer('${imgItem}')"><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')" style="width:24px; height:24px; font-size:12px; top:4px; right:4px;"><i class="ph-fill ph-heart"></i></div></div><div class="mli-info" style="${opacityClass}"><div onclick="openProductDetail('${item.id}')"><div class="mli-title">${item.nama_menu}</div><div class="mli-desc">${desc}</div></div><div class="mli-action"><div class="mli-price-box"><span class="mli-coret">Rp ${fakePrice.toLocaleString()}</span><span class="mli-price">Rp ${realPrice.toLocaleString()}</span></div><button class="mli-btn" style="${addBtnStyle}" onclick="${addBtnAction}">Tambah +</button></div></div>`; 
                         fragment.appendChild(div);
                     });
                 });
@@ -1802,6 +1842,8 @@
             }
 
             document.getElementById('pd-img').src = img; 
+            document.getElementById('pd-img').style.cursor = 'zoom-in';
+            document.getElementById('pd-img').onclick = () => openImageViewer(img); // Pemicu layar penuh
             
             const vendorEl = document.getElementById('pd-vendor');
             vendorEl.innerHTML = `<img src="${vendorImg}" class="pd-vendor-img"> <span>${vendorName}</span> <i class="ph-bold ph-caret-right" style="font-size:12px; color:#ccc; margin-left:auto;"></i>`;
