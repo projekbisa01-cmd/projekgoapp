@@ -1220,6 +1220,12 @@
         let currentDetailProduct = null, currentServiceType = "", pendingVariantItem = null, selectedVariantValue = null, currentReviewOrderId = null;
         let currentVendorIdForReviews = null; 
         
+        // --- HELPER UNTUK BYPASS BLOKIR IMGBB ---
+        const fixImgUrl = (url) => {
+            if (!url || typeof url !== 'string') return url;
+            return url.replace('//i.ibb.co/', '//i.ibb.co.com/');
+        };
+        
         // --- VARIABEL LOKASI ---
         let currentArea = localStorage.getItem('user_area') || 'Gombong'; // Default ke Gombong
         let currentDisplayVendors = []; // Warung yang sesuai lokasi aktif
@@ -1299,8 +1305,15 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        window.initSplashScreen = () => { setTimeout(() => { const splash = document.getElementById('splash-screen'); if(splash) splash.classList.add('hidden'); }, 500); }
-        window.addEventListener('load', initSplashScreen);
+        window.initSplashScreen = () => { 
+            const splash = document.getElementById('splash-screen'); 
+            if(splash && !splash.classList.contains('hidden')) {
+                splash.classList.add('hidden'); 
+            }
+        };
+        // Hapus penundaan window.onload agar tidak menunggu gambar didownload semua.
+        // Fallback: paksa masuk maksimal 2.5 detik meskipun jaringan lambat.
+        setTimeout(window.initSplashScreen, 2500);
 
         let currentPage = 'home';
         const pageScrolls = {};
@@ -2026,6 +2039,12 @@
                     allVendors = JSON.parse(cachedVendors);
                     rawProducts = JSON.parse(cachedProducts);
                     allMainCategories = JSON.parse(cachedCategories);
+                    
+                    // Terapkan fix image ke data cache (berjaga-jaga jika cache lama masih pakai i.ibb.co)
+                    allVendors.forEach(v => { v.shop_photo = fixImgUrl(v.shop_photo); v.cover_photo = fixImgUrl(v.cover_photo); });
+                    rawProducts.forEach(p => { p.foto_url = fixImgUrl(p.foto_url); });
+                    allMainCategories.forEach(c => { c.icon_url = fixImgUrl(c.icon_url); });
+
                     filterAndRenderProducts();
                     return; // Selesai, data dimuat secara gratis dari memori HP pelanggan
                 }
@@ -2040,13 +2059,26 @@
                 ]);
 
                 allVendors = [];
-                venSnap.forEach(doc => allVendors.push({id: doc.id, ...doc.data()}));
+                venSnap.forEach(doc => {
+                    let d = doc.data();
+                    d.shop_photo = fixImgUrl(d.shop_photo);
+                    d.cover_photo = fixImgUrl(d.cover_photo);
+                    allVendors.push({id: doc.id, ...d});
+                });
 
                 rawProducts = [];
-                prodSnap.forEach(d => rawProducts.push({id: d.id, ...d.data()}));
+                prodSnap.forEach(doc => {
+                    let d = doc.data();
+                    d.foto_url = fixImgUrl(d.foto_url);
+                    rawProducts.push({id: doc.id, ...d});
+                });
 
                 allMainCategories = [];
-                catSnap.forEach(doc => allMainCategories.push({id: doc.id, ...doc.data()}));
+                catSnap.forEach(doc => {
+                    let d = doc.data();
+                    d.icon_url = fixImgUrl(d.icon_url);
+                    allMainCategories.push({id: doc.id, ...d});
+                });
 
                 // Simpan ke Cache HP Pelanggan
                 sessionStorage.setItem('cache_vendors', JSON.stringify(allVendors));
@@ -2058,6 +2090,7 @@
             } catch (error) {
                 console.error("Error mengambil data:", error);
                 showToast("Koneksi tidak stabil. Gagal memuat menu.");
+                window.initSplashScreen(); // Pastikan splash hilang jika error
             }
         }
 
@@ -2103,6 +2136,9 @@
                     openCategoryPage(currentCat); 
                 }
             }
+            
+            // Segera hilangkan splash screen setelah UI beranda siap (data dimuat)
+            window.initSplashScreen();
         }
 
         function renderCategories() {
