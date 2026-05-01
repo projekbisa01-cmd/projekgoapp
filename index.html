@@ -81,26 +81,40 @@
         /* --- 2. HERO IMAGE --- */
         .hero-header-card {
             margin: 0; 
-            height: 200px; 
+            height: 220px; /* Ditinggikan sedikit agar lengkungan oval terlihat sempurna */
             width: 100%;
             overflow: hidden;
             position: relative;
-            background-color: white;
-            border-bottom-left-radius: 30px; 
-            border-bottom-right-radius: 30px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            background-color: #eee;
+            /* Lengkungan oval modern di bagian bawah */
+            border-radius: 0 0 100% 100% / 0 0 45px 45px; 
+            box-shadow: 0 12px 25px rgba(0,0,0,0.08);
         }
-        .hero-img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
+        .hero-img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            object-position: center; 
+            display: block; 
+            transform: scale(1.05); /* Sedikit di-zoom untuk memastikan tepi lengkungan terisi penuh */
+        }
+        /* Overlay gradien tipis agar gambar terlihat lebih premium */
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.4) 100%);
+            z-index: 1;
+        }
 
         /* --- NEW: FLOATING 3D MENU (LAYANAN) --- */
         .floating-menu-3d {
             position: relative;
-            margin: -50px 10px 15px 10px; 
-            background: rgba(255, 255, 255, 0.6); /* Latar belakang dibuat lebih transparan */
+            margin: 15px 10px; /* Diubah menjadi positif (15px) agar posisinya 100% berada di bawah gambar header tanpa menimpanya */
+            background: rgba(255, 255, 255, 0.6); 
             backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 20px 5px; 
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border-radius: 16px; /* Lengkungan sedikit disesuaikan */
+            padding: 12px 5px; /* Tinggi/padding box diperkecil */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08); /* Bayangan dibuat lebih halus */
             display: grid;
             grid-template-columns: repeat(6, 1fr); 
             gap: 2px; 
@@ -112,26 +126,26 @@
             flex-direction: column;
             align-items: center;
             text-align: center;
-            gap: 5px;
+            gap: 4px; /* Jarak ikon dan teks diperkecil */
             cursor: pointer;
             transition: transform 0.2s;
         }
         .menu-3d-item:active { transform: scale(0.95); }
 
         .icon-3d {
-            width: 38px; 
-            height: 38px;
+            width: 30px; /* Ukuran ikon diperkecil dari 38px */
+            height: 30px;
             object-fit: contain;
-            filter: drop-shadow(0 5px 8px rgba(0,0,0,0.15)); 
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.12)); 
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .menu-3d-item:hover .icon-3d { transform: translateY(-5px) scale(1.1); } 
+        .menu-3d-item:hover .icon-3d { transform: translateY(-3px) scale(1.1); } 
 
         .label-3d {
-            font-size: 9px; 
+            font-size: 8px; /* Ukuran font diperkecil dari 9px */
             font-weight: 700;
             color: var(--dark);
-            line-height: 1.2;
+            line-height: 1.1;
             white-space: nowrap; 
         }
 
@@ -248,18 +262,18 @@
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            gap: 8px; 
+            gap: 6px; 
             cursor: pointer; 
-            min-width: 85px; 
+            min-width: 75px; 
             flex-shrink: 0; 
             transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
         }
         .cat-item:active { transform: scale(0.9); }
 
-        .cat-icon-box { width: 85px; height: 85px; background: transparent; border-radius: 24px; display: flex; align-items: center; justify-content: center; font-size: 36px; color: var(--primary); box-shadow: none; border: none; }
-        .cat-icon-box img { width: 68px !important; height: 68px !important; object-fit: contain; }
+        .cat-icon-box { width: 60px; height: 60px; background: transparent; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 30px; color: var(--primary); box-shadow: none; border: none; }
+        .cat-icon-box img { width: 50px !important; height: 50px !important; object-fit: contain; }
         
-        .cat-name { font-size: 13px; font-weight: 700; color: #333; text-align: center; line-height: 1.2; text-transform: capitalize; }
+        .cat-name { font-size: 12px; font-weight: 700; color: #333; text-align: center; line-height: 1.2; text-transform: capitalize; }
 
         /* --- SECTION LAIN --- */
         .promo-section-layout { display: flex; align-items: center; padding: 15px 0 15px 20px; margin-bottom: 8px; overflow-x: auto; position: relative; gap: 12px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
@@ -656,13 +670,28 @@
         .loc-option:active { transform: scale(0.98); }
         .loc-option i { font-size: 22px; }
 
-        #splash-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: #ffffff; z-index: 99999; display: flex; align-items: center; justify-content: center; transition: opacity 0.6s ease-out, visibility 0.6s; }
+        /* --- SPLASH SCREEN & ONBOARDING --- */
+        #splash-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: #ffffff; z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.6s ease-out, visibility 0.6s; overflow: hidden; }
         #splash-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-        .splash-content { text-align: center; display: flex; flex-direction: column; align-items: center; animation: splashEntry 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
-        @keyframes splashEntry { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .splash-logo { width: 120px; height: 120px; border-radius: 24px; object-fit: cover; margin-bottom: 20px; box-shadow: 0 15px 35px rgba(255, 102, 0, 0.2); }
-        .splash-text { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 24px; font-weight: 800; color: var(--primary); letter-spacing: 2px; margin: 0; }
-        .splash-loader { margin-top: 20px; width: 40px; height: 40px; border: 4px solid #FFF0E5; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        .splash-slide { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; opacity: 0; transition: opacity 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; transform: scale(0.9); }
+        .splash-slide.active { opacity: 1; pointer-events: auto; transform: scale(1); }
+        
+        .splash-img-wrapper { width: 100%; height: 220px; margin-bottom: 30px; display: flex; align-items: center; justify-content: center; }
+        .splash-icon-box { width: 140px; height: 140px; background: linear-gradient(135deg, #FFF0E5, #FFD1B3); border-radius: 40px; display: flex; align-items: center; justify-content: center; font-size: 70px; color: var(--primary); box-shadow: 0 15px 35px rgba(255, 102, 0, 0.15); animation: floatUp 3s ease-in-out infinite; transform: rotate(-5deg); }
+        .splash-icon-box i { transform: rotate(5deg); }
+        @keyframes floatUp { 0%, 100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-15px) rotate(-2deg); } }
+        
+        .splash-title { font-size: 22px; font-weight: 800; color: var(--dark); margin-bottom: 15px; text-align: center; line-height: 1.3; }
+        .splash-desc { font-size: 14px; color: #666; text-align: center; line-height: 1.6; font-weight: 500; max-width: 320px; }
+        
+        .splash-dots { position: absolute; bottom: 110px; display: flex; gap: 8px; }
+        .splash-dot { width: 8px; height: 8px; border-radius: 50%; background: #eee; transition: 0.3s; }
+        .splash-dot.active { width: 24px; background: var(--primary); border-radius: 10px; }
+        
+        .splash-btn-skip { position: absolute; top: env(safe-area-inset-top, 20px); right: 20px; margin-top: 15px; font-size: 14px; font-weight: 700; color: #888; background: transparent; padding: 6px 10px; cursor: pointer; z-index: 10; border: none; }
+        .splash-btn-next { position: absolute; bottom: 30px; width: calc(100% - 60px); max-width: 400px; background: var(--primary); color: white; padding: 16px; border-radius: 16px; font-weight: 800; font-size: 16px; text-align: center; border: none; box-shadow: 0 8px 20px rgba(255, 102, 0, 0.3); transition: transform 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; cursor: pointer; }
+        .splash-btn-next:active { transform: scale(0.96); }
+        .splash-loader-mini { display: none; width: 18px; height: 18px; border: 3px solid rgba(255,255,255,0.3); border-top: 3px solid white; border-radius: 50%; animation: spin 1s linear infinite; }
 
         /* --- PWA MODAL STYLES --- */
         #pwa-install-modal {
@@ -741,13 +770,56 @@
 </head>
 <body>
 
-    <!-- SPLASH SCREEN -->
+    <!-- SPLASH SCREEN / ONBOARDING -->
     <div id="splash-screen">
-        <div class="splash-content">
-            <img src="https://i.ibb.co.com/hJ43nXyc/Whats-App-Image-2026-01-29-at-10-12-08.jpg" alt="Projekgo Logo" class="splash-logo">
-            <h1 class="splash-text">KATALOG UMKM PROJEKGO</h1>
-            <div class="splash-loader"></div>
+        <button class="splash-btn-skip" onclick="skipSplash()">Lewati</button>
+
+        <!-- Slide 1 -->
+        <div class="splash-slide active" id="slide-0">
+            <div class="splash-img-wrapper">
+                <div class="splash-icon-box"><i class="ph-fill ph-wallet"></i></div>
+            </div>
+            <div class="splash-title">Lebih Hemat<br>20% - 30%</div>
+            <div class="splash-desc">Harga makanan asli dari penjual, tidak dinaikkan sama sekali! Ditambah lagi, belanja makin tenang tanpa biaya aplikasi.</div>
         </div>
+
+        <!-- Slide 2 -->
+        <div class="splash-slide" id="slide-1">
+            <div class="splash-img-wrapper">
+                <div class="splash-icon-box" style="background: linear-gradient(135deg, #E8F5E9, #A5D6A7); color: #2E7D32;"><i class="ph-fill ph-moped"></i></div>
+            </div>
+            <div class="splash-title">Pengantaran Prioritas<br>Versi Hemat</div>
+            <div class="splash-desc">Ongkir hemat tapi prioritas! Kamu dilayani khusus oleh 1 rider. Pesanan tidak digabung dengan orang lain, pasti lebih cepat.</div>
+        </div>
+
+        <!-- Slide 3 -->
+        <div class="splash-slide" id="slide-2">
+            <div class="splash-img-wrapper">
+                <div class="splash-icon-box" style="background: linear-gradient(135deg, #FFF9C4, #FFF176); color: #F57F17;"><i class="ph-fill ph-shopping-bag-open"></i></div>
+            </div>
+            <div class="splash-title">Pesan Apa Saja,<br>Di Mana Saja</div>
+            <div class="splash-desc">Bisa pesan di beberapa tempat sekalian! Bahkan bisa titip beli di luar menu aplikasi. Apa saja dan di mana saja, Projekgo bantu.</div>
+        </div>
+
+        <!-- Slide 4 -->
+        <div class="splash-slide" id="slide-3">
+            <div class="splash-img-wrapper">
+                <div class="splash-icon-box" style="background: linear-gradient(135deg, #E3F2FD, #90CAF9); color: #1565C0;"><i class="ph-fill ph-handshake"></i></div>
+            </div>
+            <div class="splash-title">100% Dukung<br>Ekonomi Lokal</div>
+            <div class="splash-desc">Rider, UMKM, dan pelanggan adalah warga lokal. Pesan di Projekgo berarti kamu membantu perputaran ekonomi daerah kita!</div>
+        </div>
+
+        <div class="splash-dots">
+            <div class="splash-dot active" id="dot-0"></div>
+            <div class="splash-dot" id="dot-1"></div>
+            <div class="splash-dot" id="dot-2"></div>
+            <div class="splash-dot" id="dot-3"></div>
+        </div>
+
+        <button class="splash-btn-next" onclick="nextSplash()" id="btn-splash-next">
+            Lanjut <i class="ph-bold ph-arrow-right"></i>
+        </button>
     </div>
 
     <div class="app-container">
@@ -768,8 +840,9 @@
             </nav>
 
             <div class="hero-header-card">
-                <!-- Gambar hero / header diganti sesuai permintaan -->
-                <img src="https://i.ibb.co.com/xtPb4TxY/Desain-tanpa-judul-22.png" class="hero-img">
+                <div class="hero-overlay"></div>
+                <!-- Gambar hero / header oval diganti dengan yang lebih menarik dan menggugah selera -->
+                <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=800&auto=format&fit=crop" class="hero-img" alt="Promo Projekgo">
             </div>
 
             <div class="floating-menu-3d">
@@ -908,7 +981,7 @@
         <div id="page-vendor" class="page">
             <!-- Sub-header default disembunyikan karena menggunakan header card UI yang baru -->
             <div id="vendor-header-content" style="padding-top: 0;"></div>
-            <div class="section-title" style="margin-top:5px;"><span>🌟 Menu Andalan</span></div>
+            <div class="section-title" style="margin-top:5px;"><span id="dynamic-vendor-menu-title" style="display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-medal" style="color:#FF9900; font-size:22px;"></i> Menu Andalan</span></div>
             <div id="vendor-menu-grid" class="vendor-menu-grid"></div>
             <div class="review-summary">
                 <div class="rs-big"><span id="vendor-avg-rating">4.8</span> <i class="ph-fill ph-star"></i></div>
@@ -1306,27 +1379,29 @@
 
         // ====================================================================
         // GAMBAR PENGGANTI (FALLBACK) JIKA PENJUAL BELUM UPLOAD FOTO
-        // Menggunakan garpu sendok dan tulisan "Gambar Belum Tersedia"
+        // Menggunakan SVG Inline Data URI agar render INSTAN (0 detik) tanpa loading
         // ====================================================================
-        const FALLBACK_MENU_IMG = "https://placehold.co/400x400/f5f5f5/888888?text=🍽️%0AGambar+Belum%0ATersedia"; 
-        const FALLBACK_VENDOR_IMG = "https://placehold.co/400x300/f5f5f5/888888?text=🍽️%0AGambar+Belum%0ATersedia";
+        const FALLBACK_MENU_IMG = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23FFF9F5'/%3E%3Ccircle cx='200' cy='170' r='90' fill='%23FFE0CC'/%3E%3Cpath d='M120 200 C 120 120, 280 120, 280 200 Z' fill='%23FF8533'/%3E%3Crect x='105' y='200' width='190' height='12' rx='6' fill='%23FF6600'/%3E%3Ccircle cx='200' cy='120' r='14' fill='%23FF6600'/%3E%3Cpath d='M160 150 Q 200 120 240 150' fill='none' stroke='%23FFB380' stroke-width='6' stroke-linecap='round'/%3E%3Ctext x='200' y='275' font-family='system-ui, sans-serif' font-size='26' font-weight='800' fill='%23FF6600' text-anchor='middle'%3EMenu Andalan%3C/text%3E%3Ctext x='200' y='305' font-family='system-ui, sans-serif' font-size='14' font-weight='600' fill='%23FF8533' text-anchor='middle'%3EFoto Belum Tersedia%3C/text%3E%3C/svg%3E"; 
+        
+        const FALLBACK_VENDOR_IMG = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23FFF9F5'/%3E%3Cpath d='M140 180 L140 130 L260 130 L260 180 Z' fill='%23FFE0CC'/%3E%3Cpath d='M130 130 L270 130 L280 100 L120 100 Z' fill='%23FF8533'/%3E%3Crect x='185' y='145' width='30' height='35' fill='%23FFB380'/%3E%3Ctext x='200' y='230' font-family='system-ui, sans-serif' font-size='24' font-weight='800' fill='%23FF6600' text-anchor='middle'%3EToko / Warung%3C/text%3E%3Ctext x='200' y='255' font-family='system-ui, sans-serif' font-size='13' font-weight='600' fill='%23FF8533' text-anchor='middle'%3EFoto Belum Tersedia%3C/text%3E%3C/svg%3E";
 
         // Inisialisasi Teks Navigasi Atas Sesuai Pilihan Lokasi Terakhir
         document.getElementById('loc-text').innerText = currentArea === 'Gombong' ? 'Sekitar Gombong ▾' : 'Kebumen Kota ▾';
 
         // IKON FALLBACK JIKA DI DATABASE TIDAK ADA ICON_URL
+        // Menggunakan SVG Data URI agar render INSTAN (0 detik) tanpa loading eksternal
         const categoryIconMap = {
-            'Sarapan': 'https://i.ibb.co.com/PZPBQXX3/Desain-tanpa-judul-15.png',
-            'Pernasian': 'https://i.ibb.co.com/vCHxLyQ3/Desain-tanpa-judul-14.png',
-            'Minuman': 'https://i.ibb.co.com/vCcJjTyK/Desain-tanpa-judul-13.png',
-            'Ayam': 'https://i.ibb.co.com/PGnG30nM/Desain-tanpa-judul-19.png',
-            'Berkuah': 'https://i.ibb.co.com/LdxKm2gC/Desain-tanpa-judul-18.png',
-            'Aneka Mie': 'https://i.ibb.co.com/ZRLWVQ0n/Desain-tanpa-judul-12.png',
-            'aneka mie': 'https://i.ibb.co.com/ZRLWVQ0n/Desain-tanpa-judul-12.png',
-            'Snack': 'https://i.ibb.co.com/svXbW2fZ/Desain-tanpa-judul-17.png',
-            'Legendaris': 'https://i.ibb.co.com/JFWYdm4N/Desain-tanpa-judul-20.png',
-            'Cepat Saji': 'https://i.ibb.co.com/WNf9m2n1/Desain-tanpa-judul-21.png',
-            'Default': 'https://cdn-icons-png.flaticon.com/512/3170/3170733.png'
+            'Sarapan': "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23FFF0E5'/%3E%3Cpath d='M35 35 Q 50 25 65 35 Q 80 50 65 70 Q 40 85 30 65 Q 20 45 35 35 Z' fill='%23FFFFFF' stroke='%23FFE0CC' stroke-width='2'/%3E%3Ccircle cx='50' cy='50' r='14' fill='%23FF9900'/%3E%3C/svg%3E",
+            'Pernasian': "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23F1F8E9'/%3E%3Cpath d='M25 55 Q 25 80 50 80 Q 75 80 75 55 Z' fill='%238BC34A'/%3E%3Cpath d='M28 55 C 28 30 72 30 72 55 Z' fill='%23FFFFFF'/%3E%3Cpath d='M40 30 L 40 20 M 50 28 L 50 15 M 60 30 L 60 20' stroke='%23DCEDC8' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E",
+            'Minuman': "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23E3F2FD'/%3E%3Cpath d='M35 35 L 65 35 L 60 80 L 40 80 Z' fill='%2390CAF9'/%3E%3Cpath d='M32 35 L 68 35 L 68 28 L 32 28 Z' fill='%2342A5F5'/%3E%3Cpath d='M50 28 L 50 10 L 65 10' fill='none' stroke='%231E88E5' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E",
+            'Ayam': "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23FFF9C4'/%3E%3Cpath d='M40 70 L 25 85 A 8 8 0 0 1 15 75 L 30 60' stroke='%23FBC02D' stroke-width='8' stroke-linecap='round'/%3E%3Cpath d='M30 60 C 20 40 50 15 70 25 C 85 35 75 65 55 70 C 45 72 35 65 30 60 Z' fill='%23F57F17'/%3E%3C/svg%3E",
+            'Berkuah': "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23FFF3E0'/%3E%3Cpath d='M20 60 A 30 25 0 0 0 80 60 Z' fill='%23FF9800'/%3E%3Cellipse cx='50' cy='60' rx='30' ry='8' fill='%23FFB74D'/%3E%3Cpath d='M35 45 Q 40 30 35 15 M 50 45 Q 55 30 50 15 M 65 45 Q 70 30 65 15' stroke='%23FFE0B2' stroke-width='4' stroke-linecap='round' fill='none'/%3E%3C/svg%3E",
+            'Aneka Mie': "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23FFEBEE'/%3E%3Cpath d='M25 65 Q 25 85 50 85 Q 75 85 75 65 Z' fill='%23F44336'/%3E%3Cpath d='M30 65 Q 40 40 50 65 T 70 65 M 35 65 Q 50 30 60 65' stroke='%23FFCDD2' stroke-width='4' fill='none'/%3E%3Cpath d='M20 30 L 80 50 M 20 20 L 80 40' stroke='%23B71C1C' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E",
+            'aneka mie': "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23FFEBEE'/%3E%3Cpath d='M25 65 Q 25 85 50 85 Q 75 85 75 65 Z' fill='%23F44336'/%3E%3Cpath d='M30 65 Q 40 40 50 65 T 70 65 M 35 65 Q 50 30 60 65' stroke='%23FFCDD2' stroke-width='4' fill='none'/%3E%3Cpath d='M20 30 L 80 50 M 20 20 L 80 40' stroke='%23B71C1C' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E",
+            'Snack': "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23EFEBE9'/%3E%3Cpath d='M30 45 C 30 25 70 25 70 45 Z' fill='%23FFB300'/%3E%3Crect x='28' y='48' width='44' height='6' rx='3' fill='%234CAF50'/%3E%3Crect x='30' y='57' width='40' height='8' rx='4' fill='%23795548'/%3E%3Cpath d='M30 68 C 30 80 70 80 70 68 Z' fill='%23FFB300'/%3E%3C/svg%3E",
+            'Legendaris': "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23FFF0E5'/%3E%3Cpath d='M25 65 C 25 35 75 35 75 65 Z' fill='%23FF6600'/%3E%3Cpath d='M50 35 L 53 45 L 63 45 L 55 52 L 58 62 L 50 56 L 42 62 L 45 52 L 37 45 L 47 45 Z' fill='%23FFFFFF'/%3E%3Crect x='20' y='65' width='60' height='6' rx='3' fill='%23D84315'/%3E%3C/svg%3E",
+            'Cepat Saji': "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23FFEBEE'/%3E%3Cpath d='M35 80 L 65 80 L 75 40 L 25 40 Z' fill='%23E53935'/%3E%3Cpath d='M30 40 L 30 20 M 40 40 L 40 15 M 50 40 L 50 10 M 60 40 L 60 15 M 70 40 L 70 20' stroke='%23FFC107' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E",
+            'Default': "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23F5F5F5'/%3E%3Cpath d='M40 20 L 40 50 A 10 10 0 0 0 50 60 L 50 80 M 60 20 L 60 80' stroke='%239E9E9E' stroke-width='6' stroke-linecap='round' fill='none'/%3E%3Cpath d='M35 20 L 45 20 M 35 30 L 45 30' stroke='%239E9E9E' stroke-width='4'/%3E%3C/svg%3E"
         };
 
         const savedProfile = JSON.parse(localStorage.getItem('user_profile')) || {name: 'User Projekgo', phone: '0812-XXXX-XXXX'};
@@ -1391,15 +1466,62 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        window.initSplashScreen = () => { 
-            const splash = document.getElementById('splash-screen'); 
-            if(splash && !splash.classList.contains('hidden')) {
-                splash.classList.add('hidden'); 
+        // --- LOGIKA SPLASH SCREEN & ONBOARDING ---
+        let currentSlide = 0;
+        const totalSlides = 4;
+        let isDataReady = false;
+
+        window.nextSplash = () => {
+            if (currentSlide < totalSlides - 1) {
+                document.getElementById(`slide-${currentSlide}`).classList.remove('active');
+                document.getElementById(`dot-${currentSlide}`).classList.remove('active');
+                currentSlide++;
+                document.getElementById(`slide-${currentSlide}`).classList.add('active');
+                document.getElementById(`dot-${currentSlide}`).classList.add('active');
+
+                if (currentSlide === totalSlides - 1) {
+                    const btn = document.getElementById('btn-splash-next');
+                    btn.innerHTML = 'Mulai Sekarang <div class="splash-loader-mini" id="splash-loader-mini"></div>';
+                }
+            } else {
+                window.finishSplash();
             }
         };
-        // Hapus penundaan window.onload agar tidak menunggu gambar didownload semua.
-        // Fallback: paksa masuk maksimal 2.5 detik meskipun jaringan lambat.
-        setTimeout(window.initSplashScreen, 2500);
+
+        window.skipSplash = () => {
+            window.finishSplash();
+        };
+
+        window.finishSplash = () => {
+            // Tahan jika data di background masih memuat
+            if (!isDataReady) {
+                const btn = document.getElementById('btn-splash-next');
+                btn.innerHTML = 'Menyiapkan Data... <div class="splash-loader-mini" style="display:inline-block;"></div>';
+                btn.style.opacity = '0.8';
+                btn.disabled = true;
+                return;
+            }
+            const splash = document.getElementById('splash-screen');
+            if(splash && !splash.classList.contains('hidden')) {
+                splash.classList.add('hidden');
+            }
+        };
+
+        window.initSplashScreen = () => { 
+            isDataReady = true;
+            const btn = document.getElementById('btn-splash-next');
+            // Jika user sebelumnya sudah klik namun tertahan, otomatis tutup saat data siap
+            if (btn && btn.disabled) {
+                window.finishSplash();
+            }
+        };
+        
+        // Fallback: anggap data siap maksimal 8 detik jika koneksi error
+        setTimeout(() => { 
+            isDataReady = true; 
+            const btn = document.getElementById('btn-splash-next');
+            if (btn && btn.disabled) window.finishSplash();
+        }, 8000);
 
         let currentPage = 'home';
         const pageScrolls = {};
@@ -1521,17 +1643,17 @@
             gridContainer.innerHTML = '';
 
             let topItems = priorityItems;
-            let sectionTitle = "🌟 Menu Andalan";
+            let sectionTitle = `<i class="ph-fill ph-medal" style="color:#FF9900; font-size:22px;"></i> Menu Andalan`;
             
             if (priorityItems.length === 0) {
                 topItems = availableMenu.filter(i => parseInt(i.harga) >= 10000).slice(0, 4);
-                sectionTitle = "🌟 Menu Pilihan";
+                sectionTitle = `<i class="ph-fill ph-thumbs-up" style="color:#FF9900; font-size:22px;"></i> Menu Pilihan`;
             } else {
                 topItems = priorityItems.slice(0, 4); 
             }
 
-            const gridTitleEl = document.querySelector('.section-title span');
-            if(gridTitleEl) gridTitleEl.innerText = sectionTitle;
+            const gridTitleEl = document.getElementById('dynamic-vendor-menu-title');
+            if(gridTitleEl) gridTitleEl.innerHTML = sectionTitle;
 
             topItems.forEach(item => {
                 const imgItem = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG; 
