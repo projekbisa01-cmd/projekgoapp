@@ -29,7 +29,7 @@
             --shadow-md: 0 8px 24px rgba(0,0,0,0.08);
             --max-width: 480px; 
             --warning: #FFC107;
-            --nav-height: 70px;
+            --nav-height: 115px;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -58,15 +58,41 @@
             position: sticky;
             top: 0;
             z-index: 1002;
-            background: rgba(255, 255, 255, 0.95); 
+            background: rgba(255, 255, 255, 0.98); 
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            box-shadow: 0 1px 0 rgba(0,0,0,0.05);
-            padding: 10px 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            padding: 10px 20px 15px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .sticky-search-bar {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            height: var(--nav-height);
+            background: #f5f5f5;
+            border-radius: 12px;
+            padding: 10px 15px;
+            gap: 10px;
+            cursor: pointer;
+            border: 1px solid #eee;
+        }
+
+        .sticky-search-bar input {
+            border: none;
+            background: transparent;
+            flex-grow: 1;
+            outline: none;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--dark);
+            cursor: pointer;
+        }
+
+        .sticky-search-bar input::placeholder {
+            color: #999;
         }
 
         .nav-left { display: flex; align-items: center; gap: 12px; }
@@ -78,43 +104,15 @@
         .header-icon { font-size: 24px; color: var(--dark); padding: 8px; background: #f0f0f0; border-radius: 50%; cursor: pointer; transition: 0.2s; }
         .header-icon:active { transform: scale(0.95); background: #e0e0e0; }
 
-        /* --- 2. HERO IMAGE --- */
-        .hero-header-card {
-            margin: 0; 
-            height: 220px; /* Ditinggikan sedikit agar lengkungan oval terlihat sempurna */
-            width: 100%;
-            overflow: hidden;
-            position: relative;
-            background-color: #eee;
-            /* Lengkungan oval modern di bagian bawah */
-            border-radius: 0 0 100% 100% / 0 0 45px 45px; 
-            box-shadow: 0 12px 25px rgba(0,0,0,0.08);
-        }
-        .hero-img { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: cover; 
-            object-position: center; 
-            display: block; 
-            transform: scale(1.05); /* Sedikit di-zoom untuk memastikan tepi lengkungan terisi penuh */
-        }
-        /* Overlay gradien tipis agar gambar terlihat lebih premium */
-        .hero-overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.4) 100%);
-            z-index: 1;
-        }
-
         /* --- NEW: FLOATING 3D MENU (LAYANAN) --- */
         .floating-menu-3d {
             position: relative;
-            margin: 15px 10px; /* Diubah menjadi positif (15px) agar posisinya 100% berada di bawah gambar header tanpa menimpanya */
-            background: rgba(255, 255, 255, 0.6); 
-            backdrop-filter: blur(10px);
-            border-radius: 16px; /* Lengkungan sedikit disesuaikan */
-            padding: 12px 5px; /* Tinggi/padding box diperkecil */
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08); /* Bayangan dibuat lebih halus */
+            margin: 20px 15px 10px 15px;
+            background: transparent; 
+            backdrop-filter: none;
+            border-radius: 0; 
+            padding: 0; 
+            box-shadow: none; 
             display: grid;
             grid-template-columns: repeat(6, 1fr); 
             gap: 2px; 
@@ -827,22 +825,21 @@
         <div id="page-home">
             
             <nav class="top-nav-sticky">
-                <div class="nav-left">
-                    <img src="https://i.ibb.co.com/hJ43nXyc/Whats-App-Image-2026-01-29-at-10-12-08.jpg" alt="Logo Projekgo" class="brand-logo-img" onclick="window.location.href='https://projekgo.id'">
-                    <!-- UPDATE DI SINI: Lokasi dinamis dengan klik modal -->
-                    <div class="user-loc" onclick="openLocationModal()">
-                        Pilih Lokasi Resto
-                        <b id="loc-text">Sekitar Gombong ▾</b>
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <div class="nav-left">
+                        <img src="https://i.ibb.co.com/hJ43nXyc/Whats-App-Image-2026-01-29-at-10-12-08.jpg" alt="Logo Projekgo" class="brand-logo-img" onclick="window.location.href='https://projekgo.id'">
+                        <div class="user-loc" onclick="openLocationModal()">
+                            Pilih Lokasi Resto
+                            <b id="loc-text">Sekitar Gombong ▾</b>
+                        </div>
                     </div>
+                    <i class="ph ph-bell header-icon" onclick="openPage('notifications')"></i>
                 </div>
-                <i class="ph ph-bell header-icon" onclick="openPage('notifications')"></i>
+                <div class="sticky-search-bar" onclick="openSearchModal()">
+                    <i class="ph ph-magnifying-glass" style="color: var(--primary); font-size: 18px;"></i>
+                    <input type="text" placeholder="Mau makan apa hari ini?" readonly>
+                </div>
             </nav>
-
-            <div class="hero-header-card">
-                <div class="hero-overlay"></div>
-                <!-- Gambar hero / header oval diganti dengan yang lebih menarik dan menggugah selera -->
-                <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=800&auto=format&fit=crop" class="hero-img" alt="Promo Projekgo">
-            </div>
 
             <div class="floating-menu-3d">
                 <div class="menu-3d-item" onclick="openServiceForm('Ngojek')">
@@ -899,13 +896,6 @@
             <div style="padding-bottom: 15px;">
                 <div class="section-title" id="warung-sticky-header"><span>🏪 Warung di Sekitar Gombong</span></div>
                 <div id="container-warung" class="warung-list" style="padding: 0; gap: 0;"></div>
-            </div>
-
-            <!-- FLOATING SEARCH BADGE -->
-            <div class="fab-search-container">
-                <div class="fab-search" onclick="openSearchModal()">
-                    <img src="https://i.ibb.co.com/hFwkMgzW/PROVELO-1.png" alt="PROVELO Search">
-                </div>
             </div>
         </div> 
 
@@ -1364,10 +1354,14 @@
         let currentDetailProduct = null, currentServiceType = "", pendingVariantItem = null, selectedVariantValue = null, currentReviewOrderId = null;
         let currentVendorIdForReviews = null; 
         
-        // --- HELPER UNTUK BYPASS BLOKIR IMGBB ---
-        const fixImgUrl = (url) => {
+        // --- HELPER UNTUK BYPASS BLOKIR IMGBB & MENGABAIKAN FIREBASE ---
+        window.fixImgUrl = (url) => {
             if (!url || typeof url !== 'string') return url;
-            return url.replace('//i.ibb.co/', '//i.ibb.co.com/');
+            // Jika link dari ImgBB dan belum berformat .com, maka diperbaiki. Link Firebase Storage akan dibiarkan aman.
+            if (url.includes('i.ibb.co/') && !url.includes('i.ibb.co.com/')) {
+                return url.replace('i.ibb.co/', 'i.ibb.co.com/');
+            }
+            return url;
         };
         
         // --- VARIABEL LOKASI ---
@@ -1377,7 +1371,7 @@
         const ADMIN_WA = "62882008667068";
 
         // ====================================================================
-        // GAMBAR PENGGANTI (FALLBACK) JIKA PENJUAL BELUM UPLOAD FOTO
+        // GAMBAR PENGGANTI (FALLBACK) JIKA PENJUAL BELUM UPLOAD FOTO ATAU FOTO ERROR
         // Menggunakan SVG Inline Data URI agar render INSTAN (0 detik) tanpa loading
         // ====================================================================
         const FALLBACK_MENU_IMG = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23FFF9F5'/%3E%3Ccircle cx='200' cy='170' r='90' fill='%23FFE0CC'/%3E%3Cpath d='M120 200 C 120 120, 280 120, 280 200 Z' fill='%23FF8533'/%3E%3Crect x='105' y='200' width='190' height='12' rx='6' fill='%23FF6600'/%3E%3Ccircle cx='200' cy='120' r='14' fill='%23FF6600'/%3E%3Cpath d='M160 150 Q 200 120 240 150' fill='none' stroke='%23FFB380' stroke-width='6' stroke-linecap='round'/%3E%3Ctext x='200' y='275' font-family='system-ui, sans-serif' font-size='26' font-weight='800' fill='%23FF6600' text-anchor='middle'%3EMenu Andalan%3C/text%3E%3Ctext x='200' y='305' font-family='system-ui, sans-serif' font-size='14' font-weight='600' fill='%23FF8533' text-anchor='middle'%3EFoto Belum Tersedia%3C/text%3E%3C/svg%3E"; 
@@ -1605,13 +1599,13 @@
             document.getElementById('vendor-header-content').innerHTML = `
                 <div class="vh-wrapper">
                     <div class="vh-cover">
-                        <img src="${bgImg}" class="vh-cover-img">
+                        <img src="${bgImg}" class="vh-cover-img" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
                         <div class="vh-cover-overlay"></div>
                         <div class="vh-btn-back" onclick="goBack()"><i class="ph-bold ph-caret-left"></i></div>
                     </div>
                     <div class="vh-card">
                         <div class="vh-logo">
-                            <img src="${img}">
+                            <img src="${img}" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
                         </div>
                         <div class="vh-btn-fav" onclick="showToast('Disimpan ke Favorit ❤️')">
                             <i class="ph-fill ph-bookmark-simple"></i>
@@ -1669,7 +1663,7 @@
 
                 const div = document.createElement('div'); 
                 div.className = 'menu-grid-item'; 
-                div.innerHTML = `<div style="position:relative;">${habisBadge}<div class="badge-priority" style="top:5px; left:5px;">⭐ Unggulan</div><img src="${imgItem}" class="mgi-img" style="${grayscaleClass}" onclick="openProductDetail('${item.id}')"><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')" style="top:5px; right:5px;"><i class="ph-fill ph-heart"></i></div></div><div class="mgi-info" style="${opacityClass}"><div style="font-weight:700; font-size:13px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" onclick="openProductDetail('${item.id}')">${item.nama_menu}</div><div style="display:flex; align-items:center; justify-content:space-between;"><div style="display:flex; flex-direction:column;"><span class="p-coret" style="font-size:9px;">Rp ${fakePrice.toLocaleString()}</span><span style="font-weight:800; color:var(--primary); font-size:13px;">Rp ${realPrice.toLocaleString()}</span></div><div class="btn-add-mini" style="${addBtnStyle}" onclick="${addBtnAction}">+</div></div></div>`; 
+                div.innerHTML = `<div style="position:relative;">${habisBadge}<div class="badge-priority" style="top:5px; left:5px;">⭐ Unggulan</div><img src="${imgItem}" class="mgi-img" style="${grayscaleClass}" onerror="this.src='${FALLBACK_MENU_IMG}'" onclick="openProductDetail('${item.id}')"><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')" style="top:5px; right:5px;"><i class="ph-fill ph-heart"></i></div></div><div class="mgi-info" style="${opacityClass}"><div style="font-weight:700; font-size:13px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" onclick="openProductDetail('${item.id}')">${item.nama_menu}</div><div style="display:flex; align-items:center; justify-content:space-between;"><div style="display:flex; flex-direction:column;"><span class="p-coret" style="font-size:9px;">Rp ${fakePrice.toLocaleString()}</span><span style="font-weight:800; color:var(--primary); font-size:13px;">Rp ${realPrice.toLocaleString()}</span></div><div class="btn-add-mini" style="${addBtnStyle}" onclick="${addBtnAction}">+</div></div></div>`; 
                 gridContainer.appendChild(div);
             });
 
@@ -1706,7 +1700,7 @@
 
                     const div = document.createElement('div'); 
                     div.className = 'menu-grid-item'; 
-                    div.innerHTML = `<div style="position:relative;">${habisBadge}<div class="badge-priority" style="top:5px; left:5px;">${badgeLabel}</div><img src="${imgItem}" class="mgi-img" style="${grayscaleClass}" onclick="openProductDetail('${item.id}')"><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')" style="top:5px; right:5px;"><i class="ph-fill ph-heart"></i></div></div><div class="mgi-info" style="${opacityClass}"><div style="font-weight:700; font-size:13px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" onclick="openProductDetail('${item.id}')">${item.nama_menu}</div><div style="display:flex; align-items:center; justify-content:space-between;"><div style="display:flex; flex-direction:column;"><span class="p-coret" style="font-size:9px;">Rp ${fakePrice.toLocaleString()}</span><span style="font-weight:800; color:var(--primary); font-size:13px;">Rp ${realPrice.toLocaleString()}</span></div><div class="btn-add-mini" style="${addBtnStyle}" onclick="${addBtnAction}">+</div></div></div>`; 
+                    div.innerHTML = `<div style="position:relative;">${habisBadge}<div class="badge-priority" style="top:5px; left:5px;">${badgeLabel}</div><img src="${imgItem}" class="mgi-img" style="${grayscaleClass}" onerror="this.src='${FALLBACK_MENU_IMG}'" onclick="openProductDetail('${item.id}')"><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')" style="top:5px; right:5px;"><i class="ph-fill ph-heart"></i></div></div><div class="mgi-info" style="${opacityClass}"><div style="font-weight:700; font-size:13px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" onclick="openProductDetail('${item.id}')">${item.nama_menu}</div><div style="display:flex; align-items:center; justify-content:space-between;"><div style="display:flex; flex-direction:column;"><span class="p-coret" style="font-size:9px;">Rp ${fakePrice.toLocaleString()}</span><span style="font-weight:800; color:var(--primary); font-size:13px;">Rp ${realPrice.toLocaleString()}</span></div><div class="btn-add-mini" style="${addBtnStyle}" onclick="${addBtnAction}">+</div></div></div>`; 
                     gridBottomContainer.appendChild(div);
                 });
             }
@@ -1755,7 +1749,7 @@
                         const div = document.createElement('div'); 
                         div.className = 'menu-list-item'; 
                         // MENAMBAHKAN loading="lazy" PADA TAG IMG AGAR GAMBAR TIDAK DIMUAT SEMUA SEKALIGUS
-                        div.innerHTML = `<div style="position:relative;">${habisBadge}<img src="${imgItem}" class="mli-img" style="${grayscaleClass}; cursor:zoom-in;" loading="lazy" onclick="openImageViewer('${imgItem}')"><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')" style="width:24px; height:24px; font-size:12px; top:4px; right:4px;"><i class="ph-fill ph-heart"></i></div></div><div class="mli-info" style="${opacityClass}"><div onclick="openProductDetail('${item.id}')"><div class="mli-title">${item.nama_menu}</div><div class="mli-desc">${desc}</div></div><div class="mli-action"><div class="mli-price-box"><span class="mli-coret">Rp ${fakePrice.toLocaleString()}</span><span class="mli-price">Rp ${realPrice.toLocaleString()}</span></div><button class="mli-btn" style="${addBtnStyle}" onclick="${addBtnAction}">Tambah +</button></div></div>`; 
+                        div.innerHTML = `<div style="position:relative;">${habisBadge}<img src="${imgItem}" class="mli-img" style="${grayscaleClass}; cursor:zoom-in;" loading="lazy" onerror="this.src='${FALLBACK_MENU_IMG}'" onclick="openImageViewer('${imgItem}')"><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')" style="width:24px; height:24px; font-size:12px; top:4px; right:4px;"><i class="ph-fill ph-heart"></i></div></div><div class="mli-info" style="${opacityClass}"><div onclick="openProductDetail('${item.id}')"><div class="mli-title">${item.nama_menu}</div><div class="mli-desc">${desc}</div></div><div class="mli-action"><div class="mli-price-box"><span class="mli-coret">Rp ${fakePrice.toLocaleString()}</span><span class="mli-price">Rp ${realPrice.toLocaleString()}</span></div><button class="mli-btn" style="${addBtnStyle}" onclick="${addBtnAction}">Tambah +</button></div></div>`; 
                         fragment.appendChild(div);
                     });
                 });
@@ -1957,7 +1951,7 @@
                     
                     const headerHTML = `
                         <div class="group-vendor-header-styled" onclick="openVendorPage('${vId}')" style="flex-direction:row; align-items:center; gap:12px; padding-bottom:10px;">
-                            <img src="${vendorImg}" style="width:50px; height:50px; border-radius:8px; object-fit:cover; border:1px solid #eee;">
+                            <img src="${vendorImg}" onerror="this.src='${FALLBACK_VENDOR_IMG}'" style="width:50px; height:50px; border-radius:8px; object-fit:cover; border:1px solid #eee;">
                             <div style="flex:1;">
                                 <div class="gvh-s-name" style="font-size:18px; font-weight:800; margin-bottom:2px;">${vendorName}</div>
                                 <div class="gvh-s-meta"><i class="ph-fill ph-star" style="color:#FFC107;"></i> ${rating} • Aneka Makanan</div>
@@ -1987,7 +1981,7 @@
             const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG; const realPrice = parseInt(item.harga); const fakePrice = Math.ceil(realPrice * 1.2); const vendorName = item.vendor_name || "Warung Projekgo"; const isFav = favorites.includes(item.id) ? 'active' : ''; const exclusiveBadge = item.is_exclusive ? '<div class="badge-exclusive">Exclusive</div>' : ''; const priorityBadge = '<div class="badge-priority"><i class="ph-fill ph-lightning"></i> Prioritas</div>'; const rating = (4.0 + Math.random()).toFixed(1); const sold = Math.floor(Math.random() * 500) + 50;
             const isAvailable = item.is_available !== false; const habisBadge = isAvailable ? '' : '<div class="badge-habis-overlay" style="border-radius:12px;"><span class="badge-habis-text">HABIS</span></div>'; const imgStyle = isAvailable ? '' : 'filter:grayscale(100%); opacity:0.7;'; const addAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, stok habis 🙏')`; const addStyle = isAvailable ? '' : 'background:#ccc; cursor:not-allowed;';
             const div = document.createElement('div'); div.className = 'h-card';
-            div.innerHTML = `<div style="position:relative;">${habisBadge}${priorityBadge}${exclusiveBadge}<div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')"><i class="ph-fill ph-heart"></i></div><img src="${img}" class="h-img" style="${imgStyle}" onclick="openProductDetail('${item.id}')"></div><div class="h-info" onclick="openProductDetail('${item.id}')"><div class="h-vendor"><i class="ph-fill ph-storefront"></i> ${vendorName}</div><div class="h-name">${item.nama_menu}</div><div class="h-stats"><i class="ph-fill ph-star"></i> ${rating} • Terjual ${sold}+</div><div class="price-row"><div class="price-box"><div style="display:flex; align-items:center; gap:3px;"><span class="p-label-normal">Normal</span><span class="p-coret">Rp ${fakePrice.toLocaleString()}</span></div><span class="p-real">Rp ${realPrice.toLocaleString()}</span></div><div class="btn-add-mini" style="${addStyle}" onclick="${addAction}"><i class="ph-bold ph-plus" style="color:white;"></i></div></div></div>`;
+            div.innerHTML = `<div style="position:relative;">${habisBadge}${priorityBadge}${exclusiveBadge}<div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')"><i class="ph-fill ph-heart"></i></div><img src="${img}" class="h-img" style="${imgStyle}" onerror="this.src='${FALLBACK_MENU_IMG}'" onclick="openProductDetail('${item.id}')"></div><div class="h-info" onclick="openProductDetail('${item.id}')"><div class="h-vendor"><i class="ph-fill ph-storefront"></i> ${vendorName}</div><div class="h-name">${item.nama_menu}</div><div class="h-stats"><i class="ph-fill ph-star"></i> ${rating} • Terjual ${sold}+</div><div class="price-row"><div class="price-box"><div style="display:flex; align-items:center; gap:3px;"><span class="p-label-normal">Normal</span><span class="p-coret">Rp ${fakePrice.toLocaleString()}</span></div><span class="p-real">Rp ${realPrice.toLocaleString()}</span></div><div class="btn-add-mini" style="${addStyle}" onclick="${addAction}"><i class="ph-bold ph-plus" style="color:white;"></i></div></div></div>`;
             container.appendChild(div);
         }
 
@@ -2008,12 +2002,14 @@
                 vendorImg = vendorObj.shop_photo;
             }
 
-            document.getElementById('pd-img').src = img; 
-            document.getElementById('pd-img').style.cursor = 'zoom-in';
-            document.getElementById('pd-img').onclick = () => openImageViewer(img); // Pemicu layar penuh
+            const pdImg = document.getElementById('pd-img');
+            pdImg.src = img; 
+            pdImg.onerror = function() { this.src = FALLBACK_MENU_IMG; };
+            pdImg.style.cursor = 'zoom-in';
+            pdImg.onclick = () => openImageViewer(img); // Pemicu layar penuh
             
             const vendorEl = document.getElementById('pd-vendor');
-            vendorEl.innerHTML = `<img src="${vendorImg}" class="pd-vendor-img"> <span>${vendorName}</span> <i class="ph-bold ph-caret-right" style="font-size:12px; color:#ccc; margin-left:auto;"></i>`;
+            vendorEl.innerHTML = `<img src="${vendorImg}" onerror="this.src='${FALLBACK_VENDOR_IMG}'" class="pd-vendor-img"> <span>${vendorName}</span> <i class="ph-bold ph-caret-right" style="font-size:12px; color:#ccc; margin-left:auto;"></i>`;
             vendorEl.onclick = () => openVendorPage(item.vendor_id);
 
             document.getElementById('pd-title').innerText = item.nama_menu; 
@@ -2057,7 +2053,7 @@
         function renderPcard(container, item) {
             const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG; const realPrice = parseInt(item.harga); const fakePrice = Math.ceil(realPrice * 1.2); const isFav = favorites.includes(item.id) ? 'active' : ''; const exclusiveBadge = item.is_exclusive ? '<div class="badge-exclusive" style="font-size:8px;">Exclusive</div>' : ''; const priorityBadge = '<div class="badge-priority"><i class="ph-fill ph-lightning"></i> Prioritas</div>'; const rating = (4.0 + Math.random()).toFixed(1); const sold = Math.floor(Math.random() * 500) + 50;
             const isAvailable = item.is_available !== false; const habisBadge = isAvailable ? '' : '<div class="badge-habis-overlay" style="border-radius:12px;"><span class="badge-habis-text">HABIS</span></div>'; const imgStyle = isAvailable ? '' : 'filter:grayscale(100%); opacity:0.7;'; const addAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, stok habis 🙏')`; const addStyle = isAvailable ? '' : 'background:#ccc; cursor:not-allowed;';
-            const div = document.createElement('div'); div.className = 'p-card'; div.innerHTML = `<div style="position:relative;">${habisBadge}${priorityBadge}${exclusiveBadge}<img src="${img}" style="width:100%; height:120px; object-fit:cover; ${imgStyle}" onclick="openProductDetail('${item.id}')"><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}'); if(document.getElementById('page-favorites').style.display==='block') renderFavoritesPage();" style="top:5px; right:5px;"><i class="ph-fill ph-heart"></i></div></div><div class="p-info"><div onclick="openProductDetail('${item.id}')"><div style="font-size:10px; color:#888;">${item.vendor_name || 'Warung'}</div><div style="font-weight:700; font-size:13px; margin-bottom:2px;">${item.nama_menu}</div><div class="h-stats" style="margin-bottom:8px;"><i class="ph-fill ph-star"></i> ${rating} • Terjual ${sold}+</div><div style="display:flex; flex-direction:column;"><span class="p-coret" style="font-size:10px; text-decoration:line-through; color:#ccc;">Rp ${fakePrice.toLocaleString()}</span><span style="font-weight:800; color:var(--primary);">Rp ${realPrice.toLocaleString()}</span></div></div><button onclick="${addAction}" style="align-self:flex-end; background:var(--primary-light); color:var(--primary); border:none; width:24px; height:24px; border-radius:8px; font-weight:700; ${addStyle}">+</button></div>`; container.appendChild(div);
+            const div = document.createElement('div'); div.className = 'p-card'; div.innerHTML = `<div style="position:relative;">${habisBadge}${priorityBadge}${exclusiveBadge}<img src="${img}" style="width:100%; height:120px; object-fit:cover; ${imgStyle}" onerror="this.src='${FALLBACK_MENU_IMG}'" onclick="openProductDetail('${item.id}')"><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}'); if(document.getElementById('page-favorites').style.display==='block') renderFavoritesPage();" style="top:5px; right:5px;"><i class="ph-fill ph-heart"></i></div></div><div class="p-info"><div onclick="openProductDetail('${item.id}')"><div style="font-size:10px; color:#888;">${item.vendor_name || 'Warung'}</div><div style="font-weight:700; font-size:13px; margin-bottom:2px;">${item.nama_menu}</div><div class="h-stats" style="margin-bottom:8px;"><i class="ph-fill ph-star"></i> ${rating} • Terjual ${sold}+</div><div style="display:flex; flex-direction:column;"><span class="p-coret" style="font-size:10px; text-decoration:line-through; color:#ccc;">Rp ${fakePrice.toLocaleString()}</span><span style="font-weight:800; color:var(--primary);">Rp ${realPrice.toLocaleString()}</span></div></div><button onclick="${addAction}" style="align-self:flex-end; background:var(--primary-light); color:var(--primary); border:none; width:24px; height:24px; border-radius:8px; font-weight:700; ${addStyle}">+</button></div>`; container.appendChild(div);
         }
 
         window.toggleCartPopup = () => {
@@ -2672,7 +2668,7 @@
                 if (s) { div.onclick = () => openVendorPage(v.id); } 
                 else { div.style.opacity = "0.6"; div.style.filter = "grayscale(100%)"; div.style.cursor = "default"; }
 
-                div.innerHTML = `<div style="position:relative;"><img src="${img}" class="wli-img">${!s ? '<div class="badge-habis-overlay" style="border-radius:12px;"><span class="badge-habis-text">TUTUP</span></div>' : ''}</div><div class="wli-content"><div class="wli-title">${v.nama_warung || 'Warung Projekgo'}${locationInfo}</div><div class="wli-meta" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-bottom: 6px;"><div style="display:flex; align-items:center; gap:3px;"><i class="ph-fill ph-star" style="color:#FFC107;"></i> <b>${rating}</b> <span style="color:#999;">(${reviewCount})</span></div><div style="white-space: normal; line-height: 1.4; color: #666; font-size: 11px;">${menuDesc}</div></div><div class="wli-price-row"><i class="ph-bold ph-tag" style="color:var(--primary);"></i><span style="color:var(--primary); font-weight:700;">Rp${formattedPrice}rb</span><span style="text-decoration:line-through; color:#bbb;">Rp${fakeCoret}rb</span><span style="color:#888;">• ${dist} km</span></div><div style="font-size:10px; color:${statusColor}; margin-bottom:0px; font-weight:700; line-height:1.2;">${statusText}</div><div class="wli-badges"><img src="https://i.ibb.co.com/Rk6TL6S7/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT.png" class="wli-badge-img"><img src="https://i.ibb.co.com/nqW2c7Jx/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT-1.png" class="wli-badge-img"><img src="https://i.ibb.co.com/9kmr57kn/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT-2.png" class="wli-badge-img"></div></div>`;
+                div.innerHTML = `<div style="position:relative;"><img src="${img}" class="wli-img" onerror="this.src='${FALLBACK_VENDOR_IMG}'">${!s ? '<div class="badge-habis-overlay" style="border-radius:12px;"><span class="badge-habis-text">TUTUP</span></div>' : ''}</div><div class="wli-content"><div class="wli-title">${v.nama_warung || 'Warung Projekgo'}${locationInfo}</div><div class="wli-meta" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-bottom: 6px;"><div style="display:flex; align-items:center; gap:3px;"><i class="ph-fill ph-star" style="color:#FFC107;"></i> <b>${rating}</b> <span style="color:#999;">(${reviewCount})</span></div><div style="white-space: normal; line-height: 1.4; color: #666; font-size: 11px;">${menuDesc}</div></div><div class="wli-price-row"><i class="ph-bold ph-tag" style="color:var(--primary);"></i><span style="color:var(--primary); font-weight:700;">Rp${formattedPrice}rb</span><span style="text-decoration:line-through; color:#bbb;">Rp${fakeCoret}rb</span><span style="color:#888;">• ${dist} km</span></div><div style="font-size:10px; color:${statusColor}; margin-bottom:0px; font-weight:700; line-height:1.2;">${statusText}</div><div class="wli-badges"><img src="https://i.ibb.co.com/Rk6TL6S7/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT.png" class="wli-badge-img"><img src="https://i.ibb.co.com/nqW2c7Jx/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT-1.png" class="wli-badge-img"><img src="https://i.ibb.co.com/9kmr57kn/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT-2.png" class="wli-badge-img"></div></div>`;
                 c.appendChild(div);
             });
             
