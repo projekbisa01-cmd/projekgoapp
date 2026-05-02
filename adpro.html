@@ -590,6 +590,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         // Mengganti onSnapshot dengan getDocs, query, limit, dan orderBy untuk hemat kuota
         import { getFirestore, collection, getDocs, query, limit, orderBy, deleteDoc, doc, setDoc, updateDoc, addDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getStorage, ref, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
         // --- PENTING: GANTI DENGAN API KEY BARU KAMU ---
         const firebaseConfig = {
@@ -611,6 +612,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const storage = getStorage(app);
 
         let adminAllProducts = []; 
         let adminAllVendors = [];
@@ -1255,7 +1257,41 @@
             btn.innerText = "Menghapus...";
 
             try {
-                await deleteDoc(doc(db, deleteTarget.coll, deleteTarget.id));
+                // --- FUNGSI BARU: Hapus File Gambar di Firebase Storage sebelum hapus data ---
+                const docRef = doc(db, deleteTarget.coll, deleteTarget.id);
+                const docSnap = await getDoc(docRef);
+                
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const urlsToDelete = [];
+                    
+                    // Kumpulkan URL gambar yang akan dihapus
+                    if (deleteTarget.coll === 'products' && data.foto_url) {
+                        urlsToDelete.push(data.foto_url);
+                    } else if (deleteTarget.coll === 'vendors') {
+                        if (data.shop_photo) urlsToDelete.push(data.shop_photo);
+                        if (data.cover_photo) urlsToDelete.push(data.cover_photo);
+                    }
+                    
+                    // Eksekusi penghapusan file di Firebase Storage
+                    for (const url of urlsToDelete) {
+                        // Pastikan URL tersebut memang berasal dari Firebase Storage kita
+                        if (url && url.includes('firebasestorage.googleapis.com')) {
+                            try {
+                                const fileRef = ref(storage, url);
+                                await deleteObject(fileRef);
+                                console.log("File gambar sampah berhasil dihapus dari storage!");
+                            } catch (err) {
+                                console.warn("Gambar tidak ditemukan atau sudah terhapus di storage", err);
+                            }
+                        }
+                    }
+                }
+                
+                // -------------------------------------------------------------------------
+                
+                // Hapus data teks dari database Firestore
+                await deleteDoc(docRef);
                 closeModal('delete-modal');
                 
                 // Fetch ulang hanya koleksi yang baru saja dihapus datanya
