@@ -243,8 +243,10 @@
 
         /* KATEGORI */
         .cat-grid { 
-            display: flex; 
-            gap: 20px; 
+            display: grid; 
+            grid-template-rows: repeat(2, 1fr); 
+            grid-auto-flow: column; 
+            gap: 15px 20px; 
             padding: 10px 20px 20px 20px; 
             background: var(--white); 
             margin: 0; 
@@ -276,7 +278,8 @@
         /* --- SECTION LAIN --- */
         .promo-section-layout { display: flex; align-items: center; padding: 15px 0 15px 20px; margin-bottom: 0; border-bottom: 8px solid #f9f9f9; overflow-x: auto; position: relative; gap: 12px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
         .promo-section-layout::-webkit-scrollbar { display: none; }
-        #wrapper-exclusive { background: rgba(255, 102, 0, 0.1); }
+        #wrapper-exclusive { background: #FFF4E6 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23FFE0B2' fill-opacity='0.4' d='M0,192L48,197.3C96,203,192,213,288,208C384,203,480,181,576,170.7C672,160,768,160,864,176C960,192,1056,224,1152,229.3C1248,235,1344,213,1392,202.7L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") no-repeat bottom / cover; }
+        #wrapper-best-seller { background: #F0FDF4 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23DCFCE7' fill-opacity='0.5' d='M0,128L48,144C96,160,192,192,288,181.3C384,171,480,117,576,106.7C672,96,768,128,864,149.3C960,171,1056,181,1152,176C1248,171,1344,149,1392,138.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") no-repeat bottom / cover; }
 
         .promo-info-side { min-width: 130px; width: 130px; padding-right: 0; flex-shrink: 0; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; z-index: auto; }
         .promo-icon-circle { width: 50px; height: 50px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 2px solid white; }
@@ -667,6 +670,11 @@
         .loc-option:active { transform: scale(0.98); }
         .loc-option i { font-size: 22px; }
 
+        /* --- STYLES UNTUK MORE MENU MODAL --- */
+        #more-menu-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 2500; align-items: flex-end; justify-content: center; backdrop-filter: blur(2px); opacity: 0; transition: opacity 0.3s; }
+        #more-menu-modal.show { opacity: 1; }
+        #more-menu-modal.show .cart-popup-sheet { transform: translateY(0); }
+
         /* --- REGISTRATION / WELCOME SCREEN --- */
         #registration-screen {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -887,38 +895,11 @@
                 </div>
             </nav>
 
-            <div class="floating-menu-3d">
-                <div class="menu-3d-item" onclick="openServiceForm('Ngojek')">
-                    <img src="https://i.ibb.co.com/Fb71zHny/1023346-removebg-preview.png" class="icon-3d">
-                    <div class="label-3d">Ngojek</div>
-                </div>
-                <div class="menu-3d-item" onclick="openServiceForm('Mobil')">
-                    <img src="https://cdn-icons-png.flaticon.com/512/2555/2555013.png" class="icon-3d">
-                    <div class="label-3d">Mobil</div>
-                </div>
-                <div class="menu-3d-item" onclick="openServiceForm('Kirim Paket')">
-                    <img src="https://i.ibb.co.com/7NkBqtRf/desain-vektor-gaya-ikon-kotak-pengiriman-1250006-14080-removebg-preview-1.png" class="icon-3d">
-                    <div class="label-3d">Kirim</div>
-                </div>
-                <div class="menu-3d-item" onclick="openServiceForm('Belanja')">
-                    <img src="https://cdn-icons-png.flaticon.com/512/3081/3081840.png" class="icon-3d">
-                    <div class="label-3d">Belanja</div>
-                </div>
-                 <div class="menu-3d-item" onclick="openServiceForm('Beli Obat')">
-                    <img src="https://cdn-icons-png.flaticon.com/512/2966/2966327.png" class="icon-3d">
-                    <div class="label-3d">Sehat</div>
-                </div>
-                <div class="menu-3d-item" onclick="openServiceForm('Bantuin Aja')">
-                    <img src="https://cdn-icons-png.flaticon.com/512/9356/9356947.png" class="icon-3d">
-                    <div class="label-3d">Lainnya</div>
-                </div>
-            </div>
-
             <div class="section-title" style="margin-bottom: 0px; padding-bottom: 5px;">
                 <span>🍽️ Kategori Pilihan</span>
             </div>
 
-            <div class="swipe-hint-box">
+            <div class="swipe-hint-box" style="display: none;">
                 <span class="swipe-hint-text">Geser ke samping</span>
                 <i class="ph-bold ph-caret-double-right swipe-hint-icon"></i>
             </div>
@@ -1161,6 +1142,44 @@
         </div>
     </div>
 
+    <!-- NEW: MODAL MENU LAINNYA (DIPERBARUI DENGAN MENU LAYANAN) -->
+    <div id="more-menu-modal" onclick="if(event.target===this) closeMoreMenuModal()">
+        <div class="cart-popup-sheet" style="min-height: 30vh;">
+            <div class="cp-header">
+                <div class="cp-title">Layanan Projekgo</div>
+                <div class="cp-close" onclick="closeMoreMenuModal()">&times;</div>
+            </div>
+            
+            <div class="floating-menu-3d" style="grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 20px 10px; padding-bottom: 20px;">
+                <div class="menu-3d-item" onclick="closeMoreMenuModal(); openServiceForm('Ngojek')">
+                    <img src="https://i.ibb.co.com/Fb71zHny/1023346-removebg-preview.png" class="icon-3d" style="width:45px; height:45px;">
+                    <div class="label-3d" style="font-size:11px; margin-top:5px;">Ngojek</div>
+                </div>
+                <div class="menu-3d-item" onclick="closeMoreMenuModal(); openServiceForm('Mobil')">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2555/2555013.png" class="icon-3d" style="width:45px; height:45px;">
+                    <div class="label-3d" style="font-size:11px; margin-top:5px;">Mobil</div>
+                </div>
+                <div class="menu-3d-item" onclick="closeMoreMenuModal(); openServiceForm('Kirim Paket')">
+                    <img src="https://i.ibb.co.com/7NkBqtRf/desain-vektor-gaya-ikon-kotak-pengiriman-1250006-14080-removebg-preview-1.png" class="icon-3d" style="width:45px; height:45px;">
+                    <div class="label-3d" style="font-size:11px; margin-top:5px;">Kirim Paket</div>
+                </div>
+                <div class="menu-3d-item" onclick="closeMoreMenuModal(); openServiceForm('Belanja')">
+                    <img src="https://cdn-icons-png.flaticon.com/512/3081/3081840.png" class="icon-3d" style="width:45px; height:45px;">
+                    <div class="label-3d" style="font-size:11px; margin-top:5px;">Belanja</div>
+                </div>
+                 <div class="menu-3d-item" onclick="closeMoreMenuModal(); openServiceForm('Beli Obat')">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2966/2966327.png" class="icon-3d" style="width:45px; height:45px;">
+                    <div class="label-3d" style="font-size:11px; margin-top:5px;">Beli Obat</div>
+                </div>
+                <div class="menu-3d-item" onclick="closeMoreMenuModal(); openServiceForm('Bantuin Aja')">
+                    <img src="https://cdn-icons-png.flaticon.com/512/9356/9356947.png" class="icon-3d" style="width:45px; height:45px;">
+                    <div class="label-3d" style="font-size:11px; margin-top:5px;">Bantuin Aja</div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
     <div id="toast-notification" class="toast-box"><i class="ph-fill ph-check-circle toast-icon"></i><div class="toast-msg">Berhasil ditambahkan!</div></div>
 
     <!-- PWA INSTALL MODAL AGRESSIVE -->
@@ -1238,7 +1257,7 @@
     <div class="bottom-nav-container">
         <nav class="bottom-nav">
             <div class="nav-item active" onclick="openPage('home')" id="nav-home"><i class="ph ph-house"></i><span>Beranda</span></div>
-            <div class="nav-item" onclick="openPage('orders')" id="nav-orders"><i class="ph ph-receipt"></i><span>Pesanan</span></div>
+            <div class="nav-item" onclick="openMoreMenuModal()" id="nav-more"><i class="ph ph-list"></i><span>Lainnya</span></div>
             <div class="nav-center-item">
                  <div class="fab-whatsapp" onclick="openAdminModal()">
                     <i class="ph-fill ph-whatsapp-logo"></i>
@@ -1526,6 +1545,20 @@
 
         window.closeLocationModal = () => {
             const modal = document.getElementById('location-modal');
+            modal.classList.remove('show');
+            setTimeout(() => { modal.style.display = 'none'; }, 300);
+        }
+
+        // --- LOGIKA MORE MENU MODAL ---
+        window.openMoreMenuModal = () => {
+            const modal = document.getElementById('more-menu-modal');
+            modal.style.display = 'flex';
+            modal.offsetHeight; 
+            modal.classList.add('show');
+        }
+
+        window.closeMoreMenuModal = () => {
+            const modal = document.getElementById('more-menu-modal');
             modal.classList.remove('show');
             setTimeout(() => { modal.style.display = 'none'; }, 300);
         }
@@ -2655,8 +2688,18 @@
             foodVendors.sort((a, b) => {
                 const isOpenA = (a.status || 'BUKA').toUpperCase() === 'BUKA';
                 const isOpenB = (b.status || 'BUKA').toUpperCase() === 'BUKA';
+                
+                // Aturan 1: Status BUKA akan selalu di atas yang TUTUP
                 if (isOpenA && !isOpenB) return -1;
                 if (!isOpenA && isOpenB) return 1;
+                
+                // Aturan 2: Jika status sama (sama-sama buka atau tutup), prioritaskan Resto Andalan
+                const isAndalanA = a.is_andalan === true;
+                const isAndalanB = b.is_andalan === true;
+                
+                if (isAndalanA && !isAndalanB) return -1;
+                if (!isAndalanA && isAndalanB) return 1;
+
                 return 0;
             });
 
@@ -2742,6 +2785,9 @@
                 }
                 // --------------------------------------
 
+                // Menambahkan Badge Visual "Andalan" khusus untuk yang memiliki is_andalan = true
+                const andalanBadge = v.is_andalan ? '<div class="badge-priority" style="top:5px; left:5px; background:linear-gradient(45deg, #FF6600, #FF9900); color:white; border:1px solid rgba(255,255,255,0.3); box-shadow:0 2px 5px rgba(0,0,0,0.2);"><i class="ph-fill ph-medal"></i> Andalan</div>' : '';
+
                 const div = document.createElement('div');
                 div.className = 'warung-list-item';
                 div.style.marginLeft = "15px";
@@ -2750,7 +2796,7 @@
                 if (s) { div.onclick = () => openVendorPage(v.id); } 
                 else { div.style.opacity = "0.6"; div.style.filter = "grayscale(100%)"; div.style.cursor = "default"; }
 
-                div.innerHTML = `<div style="position:relative;"><img src="${img}" class="wli-img" onerror="this.src='${FALLBACK_VENDOR_IMG}'">${!s ? '<div class="badge-habis-overlay" style="border-radius:12px;"><span class="badge-habis-text">TUTUP</span></div>' : ''}</div><div class="wli-content"><div class="wli-title">${v.nama_warung || 'Warung Projekgo'}${locationInfo}</div><div class="wli-meta" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-bottom: 6px;"><div style="display:flex; align-items:center; gap:3px;"><i class="ph-fill ph-star" style="color:#FFC107;"></i> <b>${rating}</b> <span style="color:#999;">(${reviewCount})</span></div><div style="white-space: normal; line-height: 1.4; color: #666; font-size: 11px;">${menuDesc}</div></div><div class="wli-price-row"><i class="ph-bold ph-tag" style="color:var(--primary);"></i><span style="color:var(--primary); font-weight:700;">Rp${formattedPrice}rb</span><span style="text-decoration:line-through; color:#bbb;">Rp${fakeCoret}rb</span><span style="color:#888;">• ${dist} km</span></div><div style="font-size:10px; color:${statusColor}; margin-bottom:0px; font-weight:700; line-height:1.2;">${statusText}</div><div class="wli-badges"><img src="https://i.ibb.co.com/Rk6TL6S7/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT.png" class="wli-badge-img"><img src="https://i.ibb.co.com/nqW2c7Jx/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT-1.png" class="wli-badge-img"><img src="https://i.ibb.co.com/9kmr57kn/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT-2.png" class="wli-badge-img"></div></div>`;
+                div.innerHTML = `<div style="position:relative;">${andalanBadge}<img src="${img}" class="wli-img" onerror="this.src='${FALLBACK_VENDOR_IMG}'">${!s ? '<div class="badge-habis-overlay" style="border-radius:12px;"><span class="badge-habis-text">TUTUP</span></div>' : ''}</div><div class="wli-content"><div class="wli-title">${v.nama_warung || 'Warung Projekgo'}${locationInfo}</div><div class="wli-meta" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-bottom: 6px;"><div style="display:flex; align-items:center; gap:3px;"><i class="ph-fill ph-star" style="color:#FFC107;"></i> <b>${rating}</b> <span style="color:#999;">(${reviewCount})</span></div><div style="white-space: normal; line-height: 1.4; color: #666; font-size: 11px;">${menuDesc}</div></div><div class="wli-price-row"><i class="ph-bold ph-tag" style="color:var(--primary);"></i><span style="color:var(--primary); font-weight:700;">Rp${formattedPrice}rb</span><span style="text-decoration:line-through; color:#bbb;">Rp${fakeCoret}rb</span><span style="color:#888;">• ${dist} km</span></div><div style="font-size:10px; color:${statusColor}; margin-bottom:0px; font-weight:700; line-height:1.2;">${statusText}</div><div class="wli-badges"><img src="https://i.ibb.co.com/Rk6TL6S7/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT.png" class="wli-badge-img"><img src="https://i.ibb.co.com/nqW2c7Jx/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT-1.png" class="wli-badge-img"><img src="https://i.ibb.co.com/9kmr57kn/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT-2.png" class="wli-badge-img"></div></div>`;
                 c.appendChild(div);
             });
             
