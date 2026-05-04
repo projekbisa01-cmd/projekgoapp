@@ -52,13 +52,15 @@
         .shop-name { font-size: 20px; font-weight: 800; }
         .shop-id { font-size: 12px; opacity: 0.8; margin-bottom: 15px; }
         
-        /* TABS */
-        .tabs { display: flex; justify-content: space-around; background: white; padding: 10px; border-radius: 16px; margin: -30px 20px 20px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; z-index: 10; }
-        .tab-item { padding: 10px 20px; font-weight: 600; color: var(--gray); cursor: pointer; border-radius: 10px; transition: 0.3s; flex: 1; text-align: center; font-size: 14px; }
-        .tab-item.active { background: var(--primary); color: white; }
+        /* BOTTOM NAVBAR */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 12px 0; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); z-index: 1000; padding-bottom: calc(12px + env(safe-area-inset-bottom)); border-top-left-radius: 25px; border-top-right-radius: 25px; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--gray); font-size: 11px; font-weight: 700; gap: 4px; cursor: pointer; flex: 1; transition: 0.3s; -webkit-tap-highlight-color: transparent; }
+        .nav-item i { font-size: 24px; transition: 0.3s; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item.active i { transform: translateY(-3px); }
 
         /* CONTENT SECTIONS */
-        .content-section { display: none; padding: 0 20px; }
+        .content-section { display: none; padding: 20px; }
         .content-section.active { display: block; }
 
         /* MENU ITEM */
@@ -113,7 +115,8 @@
         .btn-cancel { width: 100%; background: transparent; color: #666; padding: 15px; border: none; font-weight: 600; cursor: pointer; }
         .btn-reply { background: transparent; border: 1px solid var(--primary); color: var(--primary); padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; }
 
-        .fab-add { position: fixed; bottom: 20px; right: 20px; width: 56px; height: 56px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 15px rgba(255, 102, 0, 0.4); cursor: pointer; z-index: 100; }
+        .fab-add { position: fixed; bottom: 90px; right: 20px; width: 56px; height: 56px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 15px rgba(255, 102, 0, 0.4); cursor: pointer; z-index: 100; transition: transform 0.2s; }
+        .fab-add:active { transform: scale(0.9); }
         
         .img-preview-box { width: 100%; height: 150px; background: #f5f5f5; border-radius: 10px; border: 2px dashed #ddd; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; cursor: pointer; margin-bottom: 15px; }
         .img-preview-box img { width: 100%; height: 100%; object-fit: cover; display: none; }
@@ -209,11 +212,6 @@
             </div>
         </div>
 
-        <div class="tabs">
-            <div class="tab-item active" onclick="switchTab('menu')" id="tab-menu">Daftar Menu</div>
-            <div class="tab-item" onclick="switchTab('profile')" id="tab-profile">Profil & Ulasan</div>
-        </div>
-
         <div id="content-menu" class="content-section active">
             <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
                 <h3 style="margin:0;">Daftar Menu</h3>
@@ -236,6 +234,75 @@
             <div class="status-card">
                 <div class="status-label"><div id="status-dot" class="status-dot"></div><span id="status-text">Status Toko</span></div>
                 <label class="switch"><input type="checkbox" id="shop-toggle" onchange="toggleShopStatus()"><span class="slider"></span></label>
+            </div>
+
+            <!-- JAM OPERASIONAL (EDITABLE) -->
+            <div class="variant-custom-box" style="background: white; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-bottom: 20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+                    <label class="form-label" style="font-size:14px; color:var(--dark); display:flex; align-items:center; gap:5px; margin:0;">
+                        <i class="ph-fill ph-clock" style="color:var(--primary);"></i> Jam Operasional
+                    </label>
+                </div>
+                <div style="font-size:11px; color:#888; margin-bottom:10px;">Atur jam buka dan tutup. Biarkan kosong jika buka 24 jam. (Tombol status di atas tetap bisa digunakan untuk tutup mendadak).</div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <div style="flex:1;">
+                        <div style="font-size:11px; color:#555; margin-bottom:4px; font-weight:600;">Buka (Contoh: 08:00)</div>
+                        <input type="time" id="inp-jam-buka" class="form-input" style="padding:10px; border-radius:8px;">
+                    </div>
+                    <div style="flex:1;">
+                        <div style="font-size:11px; color:#555; margin-bottom:4px; font-weight:600;">Tutup (Contoh: 21:00)</div>
+                        <input type="time" id="inp-jam-tutup" class="form-input" style="padding:10px; border-radius:8px;">
+                    </div>
+                </div>
+                <button onclick="saveShopHours()" id="btn-save-hours" class="btn-submit" style="width:100%; padding:10px 15px; font-size:12px; border-radius:8px; margin-top:10px;">Simpan Jam</button>
+            </div>
+
+            <!-- NAMA RESTO (EDITABLE) -->
+            <div class="variant-custom-box" style="background: white; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-bottom: 20px;">
+                <label class="form-label" style="font-size:14px; color:var(--dark); display:flex; align-items:center; gap:5px;">
+                    <i class="ph-fill ph-pencil-simple" style="color:var(--primary);"></i> Nama Warung
+                </label>
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <input type="text" id="inp-shop-name" class="form-input" style="flex:1; padding:10px; border-radius:8px;" placeholder="Nama Warung">
+                    <button onclick="saveShopName()" id="btn-save-name" class="btn-submit" style="width:auto; padding:10px 15px; font-size:12px; border-radius:8px;">Simpan</button>
+                </div>
+            </div>
+
+            <!-- CATATAN TOKO (EDITABLE) -->
+            <div class="variant-custom-box" style="background: white; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-bottom: 20px;">
+                <label class="form-label" style="font-size:14px; color:var(--dark); display:flex; align-items:center; gap:5px;">
+                    <i class="ph-fill ph-megaphone" style="color:var(--primary);"></i> Catatan Toko / Banner
+                </label>
+                <div style="font-size:11px; color:#888; margin-bottom:10px;">Tampilkan pesan singkat di katalog Anda (Misal: "Buka jam 10 pagi" atau "Promo gratis es teh!").</div>
+                <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+                    <textarea id="inp-shop-note" class="form-textarea" style="padding:10px; border-radius:8px; font-size:13px; min-height:60px;" placeholder="Tulis catatan toko di sini (Opsional)..."></textarea>
+                    <button onclick="saveShopNote()" id="btn-save-note" class="btn-submit" style="width:100%; padding:10px 15px; font-size:12px; border-radius:8px;">Simpan Catatan</button>
+                </div>
+            </div>
+
+            <!-- NOMOR WHATSAPP (EDITABLE) -->
+            <div class="variant-custom-box" style="background: white; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-bottom: 20px;">
+                <label class="form-label" style="font-size:14px; color:var(--dark); display:flex; align-items:center; gap:5px;">
+                    <i class="ph-fill ph-whatsapp-logo" style="color:#25D366;"></i> Nomor WhatsApp
+                </label>
+                <div style="font-size:11px; color:#888; margin-bottom:10px;">Gunakan awalan 62 atau 0 (Contoh: 6281234567890). Pesanan dari pembeli akan masuk ke nomor ini.</div>
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <input type="number" id="inp-shop-wa" class="form-input" style="flex:1; padding:10px; border-radius:8px;" placeholder="628xxxxxxxx">
+                    <button onclick="saveShopWA()" id="btn-save-wa" class="btn-submit" style="width:auto; padding:10px 15px; font-size:12px; border-radius:8px; background:#25D366; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);">Simpan</button>
+                </div>
+            </div>
+
+            <!-- BAGIKAN WARUNG -->
+            <div class="variant-custom-box" style="background: white; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-bottom: 20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                    <div>
+                        <label class="form-label" style="font-size:14px; color:var(--dark); display:flex; align-items:center; gap:5px; margin-bottom: 5px;">
+                            <i class="ph-fill ph-share-network" style="color:var(--primary);"></i> Link Warung
+                        </label>
+                        <div style="font-size:11px; color:#888;">Sebarkan link katalog menu ke pelanggan atau tempel di Bio IG/WA.</div>
+                    </div>
+                    <button onclick="shareWarung()" class="btn-reply" style="background:var(--primary); color:white; border:none; padding:10px 15px; height:fit-content; box-shadow: 0 4px 10px rgba(255, 102, 0, 0.3);"><i class="ph-bold ph-copy"></i> Salin</button>
+                </div>
             </div>
 
             <!-- KATEGORI RESTO (MULTIPLE CHOICE ARRAY) -->
@@ -268,6 +335,19 @@
 
             <h3 style="margin:20px 0 10px 0;">Ulasan Pelanggan</h3>
             <div id="reviews-container"></div>
+            <div style="height: 40px;"></div>
+        </div>
+        
+        <!-- BOTTOM NAVBAR -->
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="switchTab('menu')" id="nav-menu">
+                <i class="ph-fill ph-list-dashes"></i>
+                <span>Menu</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('profile')" id="nav-profile">
+                <i class="ph-fill ph-storefront"></i>
+                <span>Warung</span>
+            </div>
         </div>
     </div>
 
@@ -283,7 +363,19 @@
             </div>
             <input type="file" id="file-input" hidden accept="image/*" onchange="handleFileSelect(event)">
             <div class="form-group"><label class="form-label">Nama Menu</label><input type="text" id="inp-nama" class="form-input"></div>
-            <div class="form-group"><label class="form-label">Harga (Rp)</label><input type="number" id="inp-harga" class="form-input"></div>
+            
+            <!-- Mengubah form harga menjadi bersebelahan -->
+            <div style="display:flex; gap:10px; margin-bottom:15px;">
+                <div style="flex:1;">
+                    <label class="form-label" style="color:#FF6600;">Harga Coret</label>
+                    <input type="number" id="inp-harga-asli" class="form-input" placeholder="Opsional">
+                </div>
+                <div style="flex:1;">
+                    <label class="form-label">Harga Jual (Rp)</label>
+                    <input type="number" id="inp-harga" class="form-input">
+                </div>
+            </div>
+
             <div class="form-group"><label class="form-label">Kelompok Menu (Etalase)</label><input type="text" id="inp-tipe" class="form-input" placeholder="Cth: Makanan, Minuman"></div>
             <div class="form-group"><label class="form-label">Deskripsi</label><textarea id="inp-desc" class="form-textarea"></textarea></div>
             
@@ -486,10 +578,16 @@
 
         window.logout = () => { if(confirm("Keluar dari aplikasi?")) { localStorage.removeItem('vendor_user'); location.reload(); }};
 
+        window.openPreview = () => {
+            if(!currentUser || !currentUser.id) return showToast("Data warung belum siap", false);
+            const shopLink = `https://katalog.projekgo.id/?warung=${currentUser.id}`;
+            window.open(shopLink, '_blank');
+        };
+
         window.switchTab = (tab) => {
-            document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
-            document.getElementById(`tab-${tab}`).classList.add('active');
+            document.getElementById(`nav-${tab}`).classList.add('active');
             document.getElementById(`content-${tab}`).classList.add('active');
         };
 
@@ -586,6 +684,19 @@
                     text.innerText = isOpen ? "Toko BUKA" : "Toko TUTUP";
                     dot.className = isOpen ? "status-dot open" : "status-dot closed";
                     
+                    // Set nilai input jam operasional dari database
+                    document.getElementById('inp-jam-buka').value = data.jam_buka || "";
+                    document.getElementById('inp-jam-tutup').value = data.jam_tutup || "";
+                    
+                    // Set nilai input nama warung dari database
+                    document.getElementById('inp-shop-name').value = data.nama_warung || currentUser.name;
+                    
+                    // Set nilai input catatan toko dari database
+                    document.getElementById('inp-shop-note').value = data.catatan_toko || "";
+                    
+                    // Set nilai input WA dari database
+                    document.getElementById('inp-shop-wa').value = data.no_wa || "";
+                    
                     // Terapkan fixImgUrl ke foto profil warung
                     if(data.shop_photo) {
                         data.shop_photo = fixImgUrl(data.shop_photo);
@@ -632,7 +743,10 @@
                                 <img src="${img}" class="mi-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1046/1046857.png'">
                                 <div class="mi-info">
                                     <div class="mi-name">${item.nama_menu}</div>
-                                    <div class="mi-price">Rp ${parseInt(item.harga).toLocaleString()}</div>
+                                    <div class="mi-price">
+                                        ${item.harga_asli && parseInt(item.harga_asli) > parseInt(item.harga) ? `<span style="font-size:11px; text-decoration:line-through; color:#999; margin-right:4px;">Rp ${parseInt(item.harga_asli).toLocaleString()}</span>` : ''}
+                                        Rp ${parseInt(item.harga).toLocaleString()}
+                                    </div>
                                     <div style="margin-top:5px;">
                                         ${item.is_exclusive ? '<span style="background:var(--primary);color:white;font-size:9px;padding:2px 5px;border-radius:4px;font-weight:700;">Eksklusif</span>' : ''}
                                         ${item.is_priority ? '<span style="color:#FFC107;font-size:10px;font-weight:700;"><i class="ph-fill ph-star"></i> Andalan</span>' : ''}
@@ -671,7 +785,8 @@
             }
             document.getElementById('modal-title').innerText = "Tambah Menu";
             document.getElementById('menu-id').value = ""; document.getElementById('inp-nama').value = "";
-            document.getElementById('inp-harga').value = ""; document.getElementById('inp-tipe').value = "";
+            document.getElementById('inp-harga').value = ""; document.getElementById('inp-harga-asli').value = ""; 
+            document.getElementById('inp-tipe').value = "";
             document.getElementById('inp-desc').value = ""; document.getElementById('preview-img').style.display = "none";
             
             document.getElementById('file-input').value = ""; // Reset input file agar bisa pilih ulang foto
@@ -690,6 +805,7 @@
             // Pastikan tidak ada nilai undefined yang masuk ke form
             document.getElementById('inp-nama').value = item.nama_menu || "";
             document.getElementById('inp-harga').value = item.harga || "";
+            document.getElementById('inp-harga-asli').value = item.harga_asli || "";
             document.getElementById('inp-tipe').value = item.tipe || "";
             document.getElementById('inp-desc').value = item.deskripsi || "";
             document.getElementById('inp-exclusive').checked = item.is_exclusive || false;
@@ -776,6 +892,7 @@
             const id = document.getElementById('menu-id').value;
             const nama = document.getElementById('inp-nama').value.trim();
             const harga = document.getElementById('inp-harga').value;
+            const hargaAsli = document.getElementById('inp-harga-asli').value;
             
             if(!nama || !harga || !uploadedImageUrl) return showToast("Lengkapi data dan foto!", false);
             
@@ -794,6 +911,7 @@
             const data = {
                 nama_menu: nama, 
                 harga: parseInt(harga) || 0, 
+                harga_asli: parseInt(hargaAsli) || 0,
                 tipe: document.getElementById('inp-tipe').value.trim() || 'Lainnya',
                 deskripsi: document.getElementById('inp-desc').value || "", 
                 is_exclusive: document.getElementById('inp-exclusive').checked || false,
@@ -831,11 +949,173 @@
             if(confirm(`Hapus menu "${nama}"?`)) { await deleteDoc(doc(db, "products", id)); showToast("Menu dihapus."); }
         };
 
+        window.moveMenuOrder = async (id, category, direction) => {
+            // Ambil semua item dalam kategori yang sama
+            const items = Object.values(currentProducts)
+                .filter(p => (p.tipe || 'Lainnya') === category)
+                .sort((a, b) => (a.urutan || 0) - (b.urutan || 0));
+
+            const currentIndex = items.findIndex(p => p.id === id);
+            if (currentIndex === -1) return;
+            
+            const targetIndex = currentIndex + direction;
+            if (targetIndex < 0 || targetIndex >= items.length) return;
+
+            // Reset ulang urutan secara berurutan untuk menghindari bug data lama yang nilai urutannya sama/undefined
+            items.forEach((item, idx) => {
+                item.newUrutan = idx * 10; 
+            });
+
+            // Tukar urutan antara item saat ini dengan item target (di atas/bawahnya)
+            const temp = items[currentIndex].newUrutan;
+            items[currentIndex].newUrutan = items[targetIndex].newUrutan;
+            items[targetIndex].newUrutan = temp;
+
+            try {
+                // Simpan perubahan urutan ke Firebase
+                const promises = items.map(item => updateDoc(doc(db, "products", item.id), { urutan: item.newUrutan }));
+                await Promise.all(promises);
+            } catch (e) {
+                console.error(e);
+                showToast("Gagal mengubah urutan", false);
+            }
+        };
+
+        window.toggleMenuStock = async (id, isAvailable) => {
+            try {
+                await updateDoc(doc(db, "products", id), { is_available: isAvailable });
+                showToast(isAvailable ? "Stok diperbarui: Tersedia" : "Stok diperbarui: Habis");
+            } catch (e) {
+                console.error(e);
+                showToast("Gagal mengubah stok", false);
+            }
+        };
+
         window.toggleShopStatus = async () => {
             const isOpen = document.getElementById('shop-toggle').checked;
             await updateDoc(doc(db, "vendors", currentUser.id), { status: isOpen ? "BUKA" : "TUTUP" });
             showToast("Status toko diperbarui!");
         };
+
+        window.saveShopHours = async () => {
+            const jamBuka = document.getElementById('inp-jam-buka').value;
+            const jamTutup = document.getElementById('inp-jam-tutup').value;
+            
+            const btn = document.getElementById('btn-save-hours');
+            btn.innerText = "Memproses..."; btn.disabled = true;
+            
+            try {
+                await updateDoc(doc(db, "vendors", currentUser.id), { 
+                    jam_buka: jamBuka,
+                    jam_tutup: jamTutup
+                });
+                showToast("Jam operasional berhasil disimpan!");
+            } catch (error) {
+                console.error(error);
+                showToast("Gagal menyimpan jam operasional", false);
+            } finally {
+                btn.innerText = "Simpan Jam"; btn.disabled = false;
+            }
+        };
+
+        window.saveShopName = async () => {
+            const newName = document.getElementById('inp-shop-name').value.trim();
+            if(!newName) return showToast("Nama warung tidak boleh kosong!", false);
+            
+            const btn = document.getElementById('btn-save-name');
+            btn.innerText = "Memproses..."; btn.disabled = true;
+            
+            try {
+                // Update ke database
+                await updateDoc(doc(db, "vendors", currentUser.id), { nama_warung: newName });
+                
+                // Update local data & UI
+                currentUser.name = newName;
+                localStorage.setItem('vendor_user', JSON.stringify(currentUser));
+                document.getElementById('display-name').innerText = newName;
+                
+                showToast("Nama warung berhasil diubah!");
+            } catch (error) {
+                console.error(error);
+                showToast("Gagal mengubah nama warung", false);
+            } finally {
+                btn.innerText = "Simpan"; btn.disabled = false;
+            }
+        };
+
+        window.saveShopNote = async () => {
+            const newNote = document.getElementById('inp-shop-note').value.trim();
+            const btn = document.getElementById('btn-save-note');
+            btn.innerText = "Memproses..."; btn.disabled = true;
+            
+            try {
+                await updateDoc(doc(db, "vendors", currentUser.id), { catatan_toko: newNote });
+                showToast("Catatan toko berhasil disimpan!");
+            } catch (error) {
+                console.error(error);
+                showToast("Gagal menyimpan catatan", false);
+            } finally {
+                btn.innerText = "Simpan Catatan"; btn.disabled = false;
+            }
+        };
+
+        window.saveShopWA = async () => {
+            let newWA = document.getElementById('inp-shop-wa').value.trim();
+            if(!newWA) return showToast("Nomor WA tidak boleh kosong!", false);
+            
+            // Format standardisasi otomatis (mengubah awalan 0 menjadi 62 agar format WA internasional berfungsi valid)
+            if(newWA.startsWith('0')) {
+                newWA = '62' + newWA.substring(1);
+            }
+            
+            const btn = document.getElementById('btn-save-wa');
+            btn.innerText = "Memproses..."; btn.disabled = true;
+            
+            try {
+                await updateDoc(doc(db, "vendors", currentUser.id), { no_wa: newWA });
+                document.getElementById('inp-shop-wa').value = newWA; // Update form dengan nomor yg sudah diformat ke 62
+                showToast("Nomor WhatsApp berhasil disimpan!");
+            } catch (error) {
+                console.error(error);
+                showToast("Gagal menyimpan nomor WA", false);
+            } finally {
+                btn.innerText = "Simpan"; btn.disabled = false;
+            }
+        };
+
+        window.shareWarung = () => {
+            // Format link toko telah disesuaikan dengan domain katalog yang baru
+            const shopLink = `https://katalog.projekgo.id/?warung=${currentUser.id}`;
+            const shareText = `Halo! Lihat katalog menu dan pesan langsung dari *${currentUser.name}* melalui link berikut:\n\n${shopLink}`;
+
+            // Coba panggil fitur Share bawaan HP (Native Share)
+            if (navigator.share) {
+                navigator.share({
+                    title: currentUser.name,
+                    text: shareText,
+                    url: shopLink
+                }).catch(err => {
+                    console.log("Share dibatalkan atau tidak didukung:", err);
+                    fallbackCopyText(shareText); // Jika gagal/batal, salin teks ke clipboard
+                });
+            } else {
+                fallbackCopyText(shareText); // Jika tidak support native share, salin teks
+            }
+        };
+
+        // Fungsi fallback untuk menyalin teks (Aman untuk WebView/iFrame)
+        function fallbackCopyText(text) {
+            const el = document.createElement('textarea');
+            el.value = text;
+            el.setAttribute('readonly', '');
+            el.style.position = 'absolute';
+            el.style.left = '-9999px';
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            showToast("Teks & Link warung disalin ke Clipboard!");
+        }
 
         window.handleShopPhoto = (e) => {
             const file = e.target.files[0];
