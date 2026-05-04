@@ -111,7 +111,8 @@
         .form-label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px; color: #555; }
         .form-input, .form-textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; }
         
-        .btn-submit { width: 100%; background: var(--primary); color: white; padding: 15px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; }
+        .btn-submit { width: 100%; background: var(--primary); color: white; padding: 15px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .btn-submit:disabled { background: var(--gray); cursor: not-allowed; }
         .btn-cancel { width: 100%; background: transparent; color: #666; padding: 15px; border: none; font-weight: 600; cursor: pointer; }
         .btn-reply { background: transparent; border: 1px solid var(--primary); color: var(--primary); padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; }
 
@@ -123,6 +124,19 @@
         .upload-placeholder { text-align: center; color: #999; font-size: 12px; }
 
         .checkbox-wrapper { display: flex; gap: 10px; margin-top: 10px; padding: 10px; background: #FFF3E0; border-radius: 10px; border: 1px solid #FFE0B2; }
+
+        /* TNC FULL PAGE SCROLL STYLES */
+        #tnc-overlay { position: fixed; inset: 0; background: white; z-index: 10500; display: none; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .tnc-modal { background: white; width: 100%; min-height: 100vh; display: block; box-shadow: none; }
+        .tnc-header { background: var(--primary); color: white; padding: 20px; text-align: center; font-weight: 800; font-size: 16px; position: sticky; top: 0; z-index: 10; }
+        .tnc-body { padding: 20px; font-size: 13px; line-height: 1.6; color: #333; background: #fafafa; }
+        .tnc-body h4 { margin: 15px 0 5px 0; color: var(--dark); font-size: 14px; font-weight: 700; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+        .tnc-body ul { padding-left: 20px; margin-top: 5px; margin-bottom: 15px; }
+        .tnc-body li { margin-bottom: 8px; }
+        .tnc-footer { padding: 25px 20px 40px 20px; background: white; border-top: 2px solid #eee; }
+        .tnc-checkbox-item { display: flex; gap: 12px; margin-bottom: 18px; align-items: flex-start; }
+        .tnc-checkbox-item input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--primary); flex-shrink: 0; margin-top: 2px; }
+        .tnc-checkbox-item label { font-size: 12px; font-weight: 600; color: #444; line-height: 1.5; cursor: pointer; }
 
         /* PWA POPUP STYLES */
         .pwa-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 999999; display: none; align-items: center; justify-content: center; padding: 20px; opacity: 0; transition: opacity 0.3s; }
@@ -148,6 +162,109 @@
     </style>
 </head>
 <body>
+
+    <!-- OVERLAY SYARAT DAN KETENTUAN (TNC) -->
+    <div id="tnc-overlay">
+        <div class="tnc-modal">
+            <div class="tnc-header">Perjanjian Kerjasama Merchant</div>
+            <div class="tnc-body">
+                <div style="text-align: center; margin-bottom: 25px;">
+                    <img src="https://i.ibb.co/cSvMG2BY/PROJEKITA-8.png" alt="Logo" style="width: 60px; border-radius: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                    <h3 style="margin: 15px 0 5px 0; font-weight: 800;">SYARAT DAN KETENTUAN<br>KEMITRAAN MERCHANT PROJEKGO</h3>
+                </div>
+                <p>Selamat datang di Projekgo!</p>
+                <p>Projekgo hadir dengan misi sosial untuk menumbuhkan daya beli lokal dan memajukan Usaha Mikro, Kecil, dan Menengah (UMKM) kuliner di wilayah kita. Kami berkomitmen untuk menyediakan platform katalog digital dengan sistem pengantaran lokal TANPA KOMISI (0%).</p>
+                <p>Dengan mendaftar dan menggunakan layanan Projekgo sebagai Merchant, Anda (selanjutnya disebut "Mitra Merchant") menyatakan setuju untuk mematuhi dan terikat pada seluruh Syarat dan Ketentuan di bawah ini bersama Projekgo (selanjutnya disebut "Penyedia Platform").</p>
+
+                <h4>PASAL 1: DEFINISI DAN MODEL BISNIS</h4>
+                <ul>
+                    <li><strong>Projekgo</strong> adalah aplikasi penyedia layanan katalog digital dan pengantaran lokal yang bertujuan menghubungkan pelanggan dengan Mitra Merchant tanpa memungut komisi dari penjualan makanan.</li>
+                    <li><strong>Mitra Merchant</strong> adalah pemilik usaha kuliner yang mendaftarkan produknya ke dalam katalog aplikasi Projekgo.</li>
+                    <li><strong>Sistem Pemesanan (WhatsApp Order):</strong> Aplikasi Projekgo berfungsi eksklusif sebagai katalog (etalase digital). Seluruh proses transaksi, komunikasi pesanan, dan konfirmasi akan diarahkan dan diselesaikan melalui aplikasi pesan singkat WhatsApp.</li>
+                    <li><strong>Komisi 0%:</strong> Projekgo tidak memotong keuntungan dari harga makanan yang dijual oleh Mitra Merchant. Pendapatan Projekgo atau mitra pengemudi (driver) murni didapatkan dari biaya ongkos kirim (delivery fee) yang dibebankan kepada pelanggan.</li>
+                </ul>
+
+                <h4>PASAL 2: HAK DAN KEWAJIBAN PARA PIHAK</h4>
+                <strong>A. Kewajiban Projekgo:</strong>
+                <ul>
+                    <li>Menampilkan nama usaha, logo, daftar menu, foto produk, dan harga dari Mitra Merchant di dalam aplikasi Projekgo dengan tampilan yang baik.</li>
+                    <li>Menyediakan mitra pengemudi (driver) lokal untuk mengambil dan mengantarkan pesanan dari Mitra Merchant ke pelanggan dengan aman.</li>
+                    <li>Meneruskan pesanan pelanggan kepada Mitra Merchant secara akurat melalui WhatsApp.</li>
+                    <li>Tidak melakukan pemotongan, penahanan, atau memungut biaya administrasi (0% komisi) atas nominal harga makanan yang terjual.</li>
+                </ul>
+                <strong>B. Kewajiban Mitra Merchant:</strong>
+                <ul>
+                    <li>Memberikan informasi usaha, ketersediaan menu, foto produk asli, dan harga yang akurat kepada Projekgo.</li>
+                    <li><strong>Wajib memberikan harga jual yang SAMA</strong> antara harga di toko fisik (offline) dengan harga di aplikasi Projekgo (tidak di-markup).</li>
+                    <li>Merespons pesanan yang masuk melalui WhatsApp dengan cepat dan menyiapkan pesanan sesuai dengan estimasi waktu yang disepakati.</li>
+                    <li>Mematuhi standar kualitas makanan, kebersihan, dan pengemasan yang ditetapkan oleh Projekgo.</li>
+                </ul>
+
+                <h4>PASAL 3: STANDAR OPERASIONAL PROSEDUR (SOP)</h4>
+                <ul>
+                    <li><strong>Alur Pemesanan:</strong> Pelanggan memilih menu di aplikasi Projekgo &rarr; Pelanggan menekan tombol pesan &rarr; Pesanan diteruskan via WhatsApp &rarr; Mitra Merchant mengonfirmasi pesanan dan mulai memasak &rarr; Driver Projekgo mengambil pesanan dan mengantarkannya kepada pelanggan.</li>
+                    <li><strong>Pembaruan Katalog:</strong> Jika ada perubahan harga, menu habis (sold out), atau toko tutup, Mitra Merchant wajib segera memperbarui status di aplikasi atau menginformasikannya kepada admin Projekgo.</li>
+                    <li><strong>Penyiapan Pesanan:</strong> Mitra Merchant wajib menyiapkan pesanan setelah ada konfirmasi "Pesanan Diproses" via WhatsApp. Waktu penyiapan standar adalah 15 - 30 menit tergantung jenis makanan.</li>
+                </ul>
+
+                <h4>PASAL 4: STANDAR KUALITAS MAKANAN (QUALITY CONTROL)</h4>
+                <p>Untuk menjaga kepercayaan pelanggan lokal, Mitra Merchant wajib mematuhi standar berikut:</p>
+                <ul>
+                    <li><strong>Kebersihan (Higiene):</strong> Makanan diolah, dimasak, dan disajikan dengan standar kebersihan yang tinggi, menggunakan bahan baku yang segar dan layak konsumsi.</li>
+                    <li><strong>Kesesuaian Produk:</strong> Makanan dan minuman yang disajikan harus sesuai dengan deskripsi dan foto yang tertera pada katalog aplikasi Projekgo (porsi, varian rasa, tingkat kepedasan, dll).</li>
+                    <li><strong>Pengemasan (Packaging):</strong> Kemasan harus aman, tertutup rapat, dan anti-tumpah, khususnya untuk makanan berkuah dan minuman. Disarankan menggunakan segel (selotip/kabel tis) pada kemasan untuk memastikan makanan tidak terbuka selama perjalanan.</li>
+                </ul>
+
+                <h4>PASAL 5: MANAJEMEN RISIKO DAN TANGGUNG JAWAB</h4>
+                <ul>
+                    <li><strong>Risiko Kerusakan Makanan:</strong> Jika kerusakan makanan terjadi karena pengemasan yang buruk dari Mitra Merchant, kerugian sepenuhnya menjadi tanggung jawab Mitra Merchant. Jika akibat kelalaian driver Projekgo, kerugian menjadi tanggung jawab Projekgo/Driver.</li>
+                    <li><strong>Risiko Keterlambatan:</strong> Projekgo tidak bertanggung jawab atas penurunan kualitas makanan yang disebabkan oleh lamanya waktu penyiapan makanan dari pihak Mitra Merchant.</li>
+                    <li><strong>Risiko Pesanan Fiktif:</strong> Projekgo dan Mitra Merchant akan berkoordinasi memvalidasi pesanan via WhatsApp. Jika terjadi pesanan fiktif, penyelesaian disepakati bersama secara musyawarah.</li>
+                    <li><strong>Kesehatan Konsumen:</strong> Segala risiko medis akibat pengolahan makanan menjadi tanggung jawab penuh Mitra Merchant. Projekgo dibebaskan dari tuntutan hukum terkait hal ini.</li>
+                </ul>
+
+                <h4>PASAL 6: JANGKA WAKTU DAN PEMUTUSAN KEMITRAAN</h4>
+                <ul>
+                    <li>Kemitraan ini berlaku sejak Mitra Merchant menyetujui formulir ini.</li>
+                    <li>Dapat diakhiri kapan saja dengan pemberitahuan tertulis 3 hari kerja sebelum penutupan.</li>
+                    <li>Projekgo berhak memutus kemitraan sepihak jika Merchant terbukti melanggar standar kualitas, menaikkan harga sepihak, atau melakukan penipuan.</li>
+                </ul>
+
+                <h4>PASAL 7: PENYELESAIAN SENGKETA</h4>
+                <p>Kemitraan ini didasari atas asas kekeluargaan dan gotong royong antar warga lokal. Apabila terjadi perselisihan, kedua belah pihak sepakat menyelesaikannya secara musyawarah untuk mufakat.</p>
+            </div>
+            
+            <div class="tnc-footer" id="tnc-form-area">
+                <div style="font-size:15px; font-weight:800; color:var(--primary); margin-bottom:15px; border-left: 4px solid var(--primary); padding-left: 10px;">PERNYATAAN PERSETUJUAN</div>
+                
+                <div class="tnc-checkbox-item">
+                    <input type="checkbox" id="cb-tnc-1">
+                    <label for="cb-tnc-1">Saya, atas nama perwakilan sah dari usaha yang didaftarkan, telah membaca, memahami, dan menyetujui seluruh Syarat dan Ketentuan Kemitraan Projekgo di atas.</label>
+                </div>
+                <div class="tnc-checkbox-item">
+                    <input type="checkbox" id="cb-tnc-2">
+                    <label for="cb-tnc-2">Saya berkomitmen untuk menjaga kualitas makanan, memberikan harga jujur tanpa mark-up, dan berkolaborasi demi menumbuhkan ekosistem ekonomi lokal bersama Projekgo.</label>
+                </div>
+
+                <div class="form-group" style="margin-top: 25px;">
+                    <label class="form-label">Nama Usaha (Merchant)</label>
+                    <input type="text" id="inp-tnc-usaha" class="form-input" style="background:#f5f5f5; font-weight: 700; color: #333;" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nama Pemilik / Penanggung Jawab</label>
+                    <input type="text" id="inp-tnc-pemilik" class="form-input" placeholder="Masukkan nama lengkap Anda">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">No. WhatsApp Aktif</label>
+                    <input type="number" id="inp-tnc-wa" class="form-input" placeholder="Contoh: 62812345678">
+                </div>
+
+                <button class="btn-submit" id="btn-submit-tnc" style="margin-top: 10px; height: 55px;" onclick="submitTNC()">DAFTAR SEKARANG / SETUJU & LANJUTKAN</button>
+                <button class="btn-cancel" id="btn-close-tnc" style="display:none; margin-top: 10px;" onclick="closeTNC()">Kembali ke Profil</button>
+            </div>
+        </div>
+    </div>
+
 
     <!-- POPUP INSTALL PWA (ANDROID/DESKTOP) -->
     <div id="pwa-overlay-android" class="pwa-overlay">
@@ -236,14 +353,27 @@
                 <label class="switch"><input type="checkbox" id="shop-toggle" onchange="toggleShopStatus()"><span class="slider"></span></label>
             </div>
 
-            <!-- JAM OPERASIONAL (EDITABLE) -->
+            <!-- BAGIAN: PERJANJIAN KERJASAMA -->
+            <div class="variant-custom-box" style="background: #FFF8E1; border: 1px solid #FFECB3; box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-bottom: 20px;" id="box-kerjasama">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <label class="form-label" style="font-size:14px; color:#E65100; display:flex; align-items:center; gap:5px; margin:0;">
+                        <i class="ph-fill ph-handshake" style="color:#FF8F00;"></i> Kerjasama Kemitraan
+                    </label>
+                    <button onclick="viewTNC()" style="background:transparent; color:#E65100; border:1px solid #FFCC80; padding:5px 12px; border-radius:10px; font-weight:700; font-size:11px; cursor:pointer;">Lihat Dokumen</button>
+                </div>
+                <div style="font-size:11px; color:#b5651d; margin-top:5px; display:flex; align-items:center; gap:4px;">
+                    <i class="ph-fill ph-check-circle" style="color:var(--success);"></i> Disetujui
+                </div>
+            </div>
+
+            <!-- JAM OPERASIONAL -->
             <div class="variant-custom-box" style="background: white; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-bottom: 20px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
                     <label class="form-label" style="font-size:14px; color:var(--dark); display:flex; align-items:center; gap:5px; margin:0;">
                         <i class="ph-fill ph-clock" style="color:var(--primary);"></i> Jam Operasional
                     </label>
                 </div>
-                <div style="font-size:11px; color:#888; margin-bottom:10px;">Atur jam buka dan tutup. Biarkan kosong jika buka 24 jam. (Tombol status di atas tetap bisa digunakan untuk tutup mendadak).</div>
+                <div style="font-size:11px; color:#888; margin-bottom:10px;">Atur jam buka dan tutup. Biarkan kosong jika buka 24 jam.</div>
                 <div style="display:flex; gap:10px; align-items:center;">
                     <div style="flex:1;">
                         <div style="font-size:11px; color:#555; margin-bottom:4px; font-weight:600;">Buka (Contoh: 08:00)</div>
@@ -257,7 +387,7 @@
                 <button onclick="saveShopHours()" id="btn-save-hours" class="btn-submit" style="width:100%; padding:10px 15px; font-size:12px; border-radius:8px; margin-top:10px;">Simpan Jam</button>
             </div>
 
-            <!-- NAMA RESTO (EDITABLE) -->
+            <!-- NAMA RESTO -->
             <div class="variant-custom-box" style="background: white; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-bottom: 20px;">
                 <label class="form-label" style="font-size:14px; color:var(--dark); display:flex; align-items:center; gap:5px;">
                     <i class="ph-fill ph-pencil-simple" style="color:var(--primary);"></i> Nama Warung
@@ -268,24 +398,24 @@
                 </div>
             </div>
 
-            <!-- CATATAN TOKO (EDITABLE) -->
+            <!-- CATATAN TOKO -->
             <div class="variant-custom-box" style="background: white; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-bottom: 20px;">
                 <label class="form-label" style="font-size:14px; color:var(--dark); display:flex; align-items:center; gap:5px;">
                     <i class="ph-fill ph-megaphone" style="color:var(--primary);"></i> Catatan Toko / Banner
                 </label>
-                <div style="font-size:11px; color:#888; margin-bottom:10px;">Tampilkan pesan singkat di katalog Anda (Misal: "Buka jam 10 pagi" atau "Promo gratis es teh!").</div>
+                <div style="font-size:11px; color:#888; margin-bottom:10px;">Tampilkan pesan singkat di katalog Anda.</div>
                 <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
                     <textarea id="inp-shop-note" class="form-textarea" style="padding:10px; border-radius:8px; font-size:13px; min-height:60px;" placeholder="Tulis catatan toko di sini (Opsional)..."></textarea>
                     <button onclick="saveShopNote()" id="btn-save-note" class="btn-submit" style="width:100%; padding:10px 15px; font-size:12px; border-radius:8px;">Simpan Catatan</button>
                 </div>
             </div>
 
-            <!-- NOMOR WHATSAPP (EDITABLE) -->
+            <!-- NOMOR WHATSAPP -->
             <div class="variant-custom-box" style="background: white; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-bottom: 20px;">
                 <label class="form-label" style="font-size:14px; color:var(--dark); display:flex; align-items:center; gap:5px;">
                     <i class="ph-fill ph-whatsapp-logo" style="color:#25D366;"></i> Nomor WhatsApp
                 </label>
-                <div style="font-size:11px; color:#888; margin-bottom:10px;">Gunakan awalan 62 atau 0 (Contoh: 6281234567890). Pesanan dari pembeli akan masuk ke nomor ini.</div>
+                <div style="font-size:11px; color:#888; margin-bottom:10px;">Gunakan awalan 62 atau 0 (Contoh: 6281234567890).</div>
                 <div style="display:flex; gap:10px; margin-top:10px;">
                     <input type="number" id="inp-shop-wa" class="form-input" style="flex:1; padding:10px; border-radius:8px;" placeholder="628xxxxxxxx">
                     <button onclick="saveShopWA()" id="btn-save-wa" class="btn-submit" style="width:auto; padding:10px 15px; font-size:12px; border-radius:8px; background:#25D366; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);">Simpan</button>
@@ -299,18 +429,18 @@
                         <label class="form-label" style="font-size:14px; color:var(--dark); display:flex; align-items:center; gap:5px; margin-bottom: 5px;">
                             <i class="ph-fill ph-share-network" style="color:var(--primary);"></i> Link Warung
                         </label>
-                        <div style="font-size:11px; color:#888;">Sebarkan link katalog menu ke pelanggan atau tempel di Bio IG/WA.</div>
+                        <div style="font-size:11px; color:#888;">Sebarkan link katalog menu ke pelanggan.</div>
                     </div>
                     <button onclick="shareWarung()" class="btn-reply" style="background:var(--primary); color:white; border:none; padding:10px 15px; height:fit-content; box-shadow: 0 4px 10px rgba(255, 102, 0, 0.3);"><i class="ph-bold ph-copy"></i> Salin</button>
                 </div>
             </div>
 
-            <!-- KATEGORI RESTO (MULTIPLE CHOICE ARRAY) -->
+            <!-- KATEGORI RESTO -->
             <div class="variant-custom-box" style="background: white; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
                 <label class="form-label" style="font-size:14px; color:var(--dark); display:flex; align-items:center; gap:5px;">
                     <i class="ph-fill ph-storefront" style="color:var(--primary);"></i> Kategori Utama Resto
                 </label>
-                <div style="font-size:11px; color:#888; margin-bottom:10px;">Pilih fokus jualan utama warung Anda (Bisa pilih beberapa).</div>
+                <div style="font-size:11px; color:#888; margin-bottom:10px;">Pilih fokus jualan utama warung Anda.</div>
                 
                 <div id="category-checkbox-group" class="disabled-group">
                     <div style="width:100%; text-align:center; padding:10px; color:#ccc; font-size:12px;">Memuat kategori...</div>
@@ -351,7 +481,7 @@
         </div>
     </div>
 
-    <!-- MODAL FORM -->
+    <!-- MODAL FORM MENU -->
     <div id="modal-form">
         <div class="modal-content">
             <h3 style="margin-top:0;" id="modal-title">Tambah Menu</h3>
@@ -364,7 +494,6 @@
             <input type="file" id="file-input" hidden accept="image/*" onchange="handleFileSelect(event)">
             <div class="form-group"><label class="form-label">Nama Menu</label><input type="text" id="inp-nama" class="form-input"></div>
             
-            <!-- Mengubah form harga menjadi bersebelahan -->
             <div style="display:flex; gap:10px; margin-bottom:15px;">
                 <div style="flex:1;">
                     <label class="form-label" style="color:#FF6600;">Harga Coret</label>
@@ -406,21 +535,13 @@
         import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
         const firebaseConfig = {
-
-  apiKey: "AIzaSyAc4ZnBU6xAil7Un4Y53Jxncj_B6eURHBo",
-
-  authDomain: "projekgo-app.firebaseapp.com",
-
-  projectId: "projekgo-app",
-
-  storageBucket: "projekgo-app.firebasestorage.app",
-
-  messagingSenderId: "910691523179",
-
-  appId: "1:910691523179:web:2c78d27de6a02cec952f2e"
-
-};
-
+            apiKey: "AIzaSyAc4ZnBU6xAil7Un4Y53Jxncj_B6eURHBo",
+            authDomain: "projekgo-app.firebaseapp.com",
+            projectId: "projekgo-app",
+            storageBucket: "projekgo-app.firebasestorage.app",
+            messagingSenderId: "910691523179",
+            appId: "1:910691523179:web:2c78d27de6a02cec952f2e"
+        };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -429,32 +550,23 @@
 
         let isFirebaseAuthReady = false;
 
-        // Pantau status autentikasi secara real-time
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                console.log("Firebase Auth Siap! UID:", user.uid);
                 isFirebaseAuthReady = true;
             } else {
-                console.log("Mencoba login anonim ke Firebase...");
-                signInAnonymously(auth).catch(error => {
-                    console.error("Error Auth Anonim:", error);
-                    showToast("Gagal terhubung ke autentikasi Firebase.", false);
-                });
+                signInAnonymously(auth).catch(error => console.error("Error Auth Anonim:", error));
             }
         });
 
         let currentUser = null;
-        let uploadedImageUrl = ""; // Variabel untuk menyimpan Link dari Firebase Storage
+        let uploadedImageUrl = ""; 
         let currentProducts = {};
-        // Daftar Kategori Default sesuai permintaan user
         let masterCategories = ["Sarapan", "Pernasian", "Minuman", "Ayam", "Berkuah", "Aneka Mie", "Snack", "Legendaris", "Masakan Khas", "Cepat Saji"]; 
         let isEditingCategory = false;
 
-        // --- SISTEM PWA (PROGRESSIVE WEB APP) ---
+        // --- SISTEM PWA ---
         let deferredPrompt;
-        
         function initPWA() {
-            // 1. Inject Manifest Dinamis (Tanpa butuh file manifest.json terpisah)
             const manifest = {
                 name: "PROJEKGO",
                 short_name: "Projekgo",
@@ -462,24 +574,14 @@
                 display: "standalone",
                 background_color: "#F8F9FB",
                 theme_color: "#FF6600",
-                icons: [{
-                    src: "https://i.ibb.co/cSvMG2BY/PROJEKITA-8.png",
-                    sizes: "192x192",
-                    type: "image/png"
-                }, {
-                    src: "https://i.ibb.co/cSvMG2BY/PROJEKITA-8.png",
-                    sizes: "512x512",
-                    type: "image/png"
-                }]
+                icons: [{ src: "https://i.ibb.co/cSvMG2BY/PROJEKITA-8.png", sizes: "192x192", type: "image/png" }, { src: "https://i.ibb.co/cSvMG2BY/PROJEKITA-8.png", sizes: "512x512", type: "image/png" }]
             };
             const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
             const manifestUrl = URL.createObjectURL(manifestBlob);
             const link = document.createElement('link');
-            link.rel = 'manifest';
-            link.href = manifestUrl;
+            link.rel = 'manifest'; link.href = manifestUrl;
             document.head.appendChild(link);
 
-            // 2. Inject Service Worker Dummy (Syarat mutlak agar browser mau memunculkan tombol install)
             if ('serviceWorker' in navigator) {
                 const swCode = "self.addEventListener('fetch', function(e) {});";
                 const swBlob = new Blob([swCode], {type: 'application/javascript'});
@@ -487,33 +589,17 @@
                 navigator.serviceWorker.register(swUrl).catch(err => console.log('SW Registration failed', err));
             }
 
-            // 3. Logic Android / Desktop
             window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredPrompt = e;
-                
-                // Muncul Agresif (1.5 detik) jika belum di-close oleh user
+                e.preventDefault(); deferredPrompt = e;
                 if (!sessionStorage.getItem('pwa_closed')) {
-                    setTimeout(() => {
-                        const overlay = document.getElementById('pwa-overlay-android');
-                        if(overlay) {
-                            overlay.classList.add('show');
-                        }
-                    }, 1500); 
+                    setTimeout(() => { document.getElementById('pwa-overlay-android').classList.add('show'); }, 1500); 
                 }
             });
 
-            // 4. Logic iOS (Apple) - Deteksi dan instruksi
             const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
             const isInStandaloneMode = () => ('standalone' in window.navigator) && (window.navigator.standalone);
-            
             if (isIos() && !isInStandaloneMode() && !sessionStorage.getItem('pwa_closed')) {
-                setTimeout(() => {
-                    const overlay = document.getElementById('pwa-overlay-ios');
-                    if(overlay) {
-                        overlay.classList.add('show');
-                    }
-                }, 1500);
+                setTimeout(() => { document.getElementById('pwa-overlay-ios').classList.add('show'); }, 1500);
             }
         }
 
@@ -521,23 +607,18 @@
             if (deferredPrompt) {
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    console.log('User accepted the install prompt');
-                    document.getElementById('pwa-overlay-android').classList.remove('show');
-                }
+                if (outcome === 'accepted') document.getElementById('pwa-overlay-android').classList.remove('show');
                 deferredPrompt = null;
             }
         };
 
         window.closePWA = (type) => {
-            sessionStorage.setItem('pwa_closed', 'true'); // Simpan di sesi agar tidak mengganggu selama app dibuka
+            sessionStorage.setItem('pwa_closed', 'true'); 
             if(type === 'android') document.getElementById('pwa-overlay-android').classList.remove('show');
             if(type === 'ios') document.getElementById('pwa-overlay-ios').classList.remove('show');
         };
 
-        // Jalankan inisialisasi PWA
         initPWA();
-
 
         // --- CORE HELPERS ---
         window.showToast = (msg, isSuccess = true) => {
@@ -547,10 +628,8 @@
             setTimeout(() => toast.classList.remove('show'), 3000);
         };
 
-        // HELPER BARU: Memperbaiki URL gambar ImgBB (Menambah .com otomatis)
         window.fixImgUrl = (url) => {
             if (!url || typeof url !== 'string') return url;
-            // Jika link mengandung 'i.ibb.co' dan belum ada '.com', maka tambahkan
             if (url.includes('i.ibb.co/') && !url.includes('i.ibb.co.com/')) {
                 return url.replace('i.ibb.co/', 'i.ibb.co.com/');
             }
@@ -573,41 +652,97 @@
                     showToast("ID atau PIN salah!", false);
                     btn.innerHTML = "Masuk ke Dashboard"; btn.disabled = false;
                 }
-            } catch (e) { showToast(e.message, false); btn.disabled = false; }
+            } catch (e) { showToast("Gagal Login", false); btn.disabled = false; }
         };
 
         window.logout = () => { if(confirm("Keluar dari aplikasi?")) { localStorage.removeItem('vendor_user'); location.reload(); }};
-
-        window.openPreview = () => {
-            if(!currentUser || !currentUser.id) return showToast("Data warung belum siap", false);
-            const shopLink = `https://katalog.projekgo.id/?warung=${currentUser.id}`;
-            window.open(shopLink, '_blank');
-        };
 
         window.switchTab = (tab) => {
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
             document.getElementById(`nav-${tab}`).classList.add('active');
             document.getElementById(`content-${tab}`).classList.add('active');
+            window.scrollTo(0,0);
         };
 
-        // --- DYNAMIC CATEGORY LOGIC (WITH FALLBACK) ---
+        // --- LOGIKA PERJANJIAN KERJASAMA (TNC) ---
+        window.openTNCModal = (isViewOnly = false, data = {}) => {
+            const overlay = document.getElementById('tnc-overlay');
+            overlay.style.display = 'block';
+            overlay.scrollTo(0,0); // Reset scroll ke atas
+            
+            document.getElementById('inp-tnc-usaha').value = data.nama_warung || currentUser.name || "";
+            
+            const cb1 = document.getElementById('cb-tnc-1');
+            const cb2 = document.getElementById('cb-tnc-2');
+            const inpPemilik = document.getElementById('inp-tnc-pemilik');
+            const inpWA = document.getElementById('inp-tnc-wa');
+            const btnSubmit = document.getElementById('btn-submit-tnc');
+            const btnClose = document.getElementById('btn-close-tnc');
+
+            if (isViewOnly) {
+                cb1.checked = true; cb1.disabled = true;
+                cb2.checked = true; cb2.disabled = true;
+                inpPemilik.value = data.nama_pemilik || ""; inpPemilik.disabled = true;
+                inpWA.value = data.no_wa || ""; inpWA.disabled = true;
+                btnSubmit.style.display = 'none';
+                btnClose.style.display = 'block';
+            } else {
+                cb1.checked = false; cb1.disabled = false;
+                cb2.checked = false; cb2.disabled = false;
+                inpPemilik.value = ""; inpPemilik.disabled = false;
+                inpWA.value = data.no_wa || ""; inpWA.disabled = false;
+                btnSubmit.style.display = 'block';
+                btnClose.style.display = 'none';
+            }
+        };
+
+        window.closeTNC = () => {
+            document.getElementById('tnc-overlay').style.display = 'none';
+        };
+
+        window.viewTNC = async () => {
+            try {
+                const docSnap = await getDoc(doc(db, "vendors", currentUser.id));
+                if (docSnap.exists()) openTNCModal(true, docSnap.data());
+            } catch (e) { showToast("Gagal memuat dokumen", false); }
+        };
+
+        window.submitTNC = async () => {
+            const cb1 = document.getElementById('cb-tnc-1').checked;
+            const cb2 = document.getElementById('cb-tnc-2').checked;
+            const pemilik = document.getElementById('inp-tnc-pemilik').value.trim();
+            let wa = document.getElementById('inp-tnc-wa').value.trim();
+
+            if (!cb1 || !cb2) return showToast("Anda wajib mencentang kedua persetujuan!", false);
+            if (!pemilik) return showToast("Nama Pemilik wajib diisi!", false);
+            if (!wa) return showToast("Nomor WhatsApp wajib diisi!", false);
+
+            if(wa.startsWith('0')) wa = '62' + wa.substring(1);
+            const btn = document.getElementById('btn-submit-tnc');
+            btn.innerText = "MENYIMPAN..."; btn.disabled = true;
+
+            try {
+                await updateDoc(doc(db, "vendors", currentUser.id), {
+                    tnc_agreed: true,
+                    tnc_agreed_at: new Date().toISOString(),
+                    nama_pemilik: pemilik, no_wa: wa
+                });
+                showToast("Berhasil Disimpan!"); closeTNC();
+                document.getElementById('box-kerjasama').style.display = 'block';
+                document.getElementById('inp-shop-wa').value = wa;
+            } catch (error) { showToast("Gagal menyimpan", false);
+            } finally { btn.innerText = "DAFTAR SEKARANG / SETUJU & LANJUTKAN"; btn.disabled = false; }
+        };
+
+        // --- DYNAMIC CATEGORY LOGIC ---
         function loadMasterCategories() {
-            // Mengambil master kategori yang dibuat Admin di koleksi 'kategori_utama'
             onSnapshot(collection(db, "kategori_utama"), (snap) => {
                 if (!snap.empty) {
                     const fetchedCats = [];
-                    snap.forEach(d => {
-                        const data = d.data();
-                        fetchedCats.push(data.nama || d.id);
-                    });
-                    // Gabungkan kategori dari DB dengan daftar default agar tidak ada yang terlewat
+                    snap.forEach(d => fetchedCats.push(d.data().nama || d.id));
                     masterCategories = [...new Set([...masterCategories, ...fetchedCats])];
                 }
-                renderCategoryUI();
-            }, (error) => {
-                console.error("Gagal memuat kategori dari Firebase:", error);
-                // Jika gagal, tetap gunakan masterCategories default yang sudah diinisialisasi di atas
                 renderCategoryUI();
             });
         }
@@ -616,15 +751,10 @@
             const container = document.getElementById('category-checkbox-group');
             container.innerHTML = '';
             const userCats = Array.isArray(currentUser?.kategori_utama) ? currentUser.kategori_utama : [];
-            
             masterCategories.forEach(cat => {
-                const isChecked = userCats.includes(cat);
                 const wrapper = document.createElement('label');
                 wrapper.className = 'cat-checkbox-wrapper';
-                wrapper.innerHTML = `
-                    <input type="checkbox" value="${cat}" class="cat-checkbox" ${isChecked ? 'checked' : ''} ${!isEditingCategory ? 'disabled' : ''}>
-                    <span>${cat}</span>
-                `;
+                wrapper.innerHTML = `<input type="checkbox" value="${cat}" class="cat-checkbox" ${userCats.includes(cat) ? 'checked' : ''} ${!isEditingCategory ? 'disabled' : ''}><span>${cat}</span>`;
                 container.appendChild(wrapper);
             });
             if(isEditingCategory) container.classList.remove('disabled-group');
@@ -632,8 +762,7 @@
         }
 
         window.enableCategoryEdit = () => {
-            isEditingCategory = true;
-            renderCategoryUI();
+            isEditingCategory = true; renderCategoryUI();
             document.getElementById('btn-save-cat').style.display = 'block';
             document.getElementById('btn-edit-cat').style.display = 'none';
         };
@@ -645,14 +774,9 @@
             const btn = document.getElementById('btn-save-cat');
             btn.innerText = "Menyimpan..."; btn.disabled = true;
             try {
-                await updateDoc(doc(db, "vendors", currentUser.id), {
-                    kategori_utama: selected,
-                    updated_at: new Date().toISOString()
-                });
-                currentUser.kategori_utama = selected;
-                isEditingCategory = false;
-                renderCategoryUI();
-                showToast("Kategori berhasil disimpan!");
+                await updateDoc(doc(db, "vendors", currentUser.id), { kategori_utama: selected, updated_at: new Date().toISOString() });
+                currentUser.kategori_utama = selected; isEditingCategory = false;
+                renderCategoryUI(); showToast("Kategori disimpan!");
                 document.getElementById('btn-save-cat').style.display = 'none';
                 document.getElementById('btn-edit-cat').style.display = 'block';
             } catch(e) { showToast("Gagal simpan.", false); } finally { btn.innerText = "Simpan Kategori"; btn.disabled = false; }
@@ -664,70 +788,46 @@
             document.getElementById('login-page').style.display = 'none';
             document.getElementById('display-name').innerText = currentUser.name;
             document.getElementById('display-id').innerText = "ID: " + currentUser.id;
-
             loadMasterCategories();
-
             onSnapshot(doc(db, "vendors", currentUser.id), (snap) => {
                 document.getElementById('loading-screen').style.display = 'none';
                 document.getElementById('dashboard').style.display = 'block';
                 if(snap.exists()) {
                     const data = snap.data();
-                    const val = data.kategori_utama;
-                    if (Array.isArray(val)) currentUser.kategori_utama = val;
-                    else if (typeof val === 'string' && val.trim() !== "") currentUser.kategori_utama = [val];
-                    else currentUser.kategori_utama = [];
-                    
+                    if (!data.tnc_agreed) {
+                        openTNCModal(false, data);
+                        document.getElementById('box-kerjasama').style.display = 'none';
+                    } else {
+                        document.getElementById('box-kerjasama').style.display = 'block';
+                    }
+                    currentUser.kategori_utama = Array.isArray(data.kategori_utama) ? data.kategori_utama : [];
                     const isOpen = (data.status || 'BUKA') === 'BUKA';
                     document.getElementById('shop-toggle').checked = isOpen;
-                    const text = document.getElementById('status-text');
-                    const dot = document.getElementById('status-dot');
-                    text.innerText = isOpen ? "Toko BUKA" : "Toko TUTUP";
-                    dot.className = isOpen ? "status-dot open" : "status-dot closed";
-                    
-                    // Set nilai input jam operasional dari database
+                    document.getElementById('status-text').innerText = isOpen ? "Toko BUKA" : "Toko TUTUP";
+                    document.getElementById('status-dot').className = isOpen ? "status-dot open" : "status-dot closed";
                     document.getElementById('inp-jam-buka').value = data.jam_buka || "";
                     document.getElementById('inp-jam-tutup').value = data.jam_tutup || "";
-                    
-                    // Set nilai input nama warung dari database
                     document.getElementById('inp-shop-name').value = data.nama_warung || currentUser.name;
-                    
-                    // Set nilai input catatan toko dari database
                     document.getElementById('inp-shop-note').value = data.catatan_toko || "";
-                    
-                    // Set nilai input WA dari database
                     document.getElementById('inp-shop-wa').value = data.no_wa || "";
-                    
-                    // Terapkan fixImgUrl ke foto profil warung
-                    if(data.shop_photo) {
-                        data.shop_photo = fixImgUrl(data.shop_photo);
-                        document.getElementById('shop-photo-display').src = data.shop_photo;
-                    }
+                    if(data.shop_photo) document.getElementById('shop-photo-display').src = fixImgUrl(data.shop_photo);
                     renderCategoryUI();
                 }
             });
-
-            loadMenu();
-            loadReviews();
+            loadMenu(); loadReviews();
         }
 
-        // --- MENU & REVIEWS LOGIC ---
+        // --- MENU LOGIC ---
         function loadMenu() {
-            const q = query(collection(db, "products"), where("vendor_id", "==", currentUser.id));
-            onSnapshot(q, (snapshot) => {
+            onSnapshot(query(collection(db, "products"), where("vendor_id", "==", currentUser.id)), (snapshot) => {
                 const container = document.getElementById('menu-container');
                 container.innerHTML = '';
                 document.getElementById('menu-count').innerText = snapshot.size + " Menu";
                 currentProducts = {};
-                if(snapshot.empty) {
-                    container.innerHTML = '<div style="text-align:center; padding:40px; color:#999;">Belum ada menu.</div>';
-                    return;
-                }
+                if(snapshot.empty) { container.innerHTML = '<div style="text-align:center; padding:40px; color:#999;">Belum ada menu.</div>'; return; }
                 const groups = {};
                 snapshot.forEach(docSnap => {
                     const item = docSnap.data();
-                    // Terapkan fixImgUrl pada foto menu yang dimuat dari database
-                    if (item.foto_url) item.foto_url = fixImgUrl(item.foto_url);
-                    
                     currentProducts[docSnap.id] = item;
                     const groupKey = item.tipe || 'Lainnya';
                     if(!groups[groupKey]) groups[groupKey] = [];
@@ -736,25 +836,20 @@
                 Object.keys(groups).sort().forEach(cat => {
                     container.innerHTML += `<div class="menu-category-header"><span>${cat}</span><span class="menu-category-count">${groups[cat].length}</span></div>`;
                     groups[cat].forEach(item => {
-                        const img = item.foto_url || 'https://placehold.co/100?text=Menu';
                         container.innerHTML += `
                             <div class="menu-item">
-                                <!-- Tambahan onerror: Jika foto gagal dimuat jaringan, tampilkan ikon default -->
-                                <img src="${img}" class="mi-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1046/1046857.png'">
+                                <img src="${fixImgUrl(item.foto_url) || 'https://cdn-icons-png.flaticon.com/512/1046/1046857.png'}" class="mi-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1046/1046857.png'">
                                 <div class="mi-info">
                                     <div class="mi-name">${item.nama_menu}</div>
-                                    <div class="mi-price">
-                                        ${item.harga_asli && parseInt(item.harga_asli) > parseInt(item.harga) ? `<span style="font-size:11px; text-decoration:line-through; color:#999; margin-right:4px;">Rp ${parseInt(item.harga_asli).toLocaleString()}</span>` : ''}
-                                        Rp ${parseInt(item.harga).toLocaleString()}
-                                    </div>
+                                    <div class="mi-price">${item.harga_asli > item.harga ? `<span style="font-size:11px; text-decoration:line-through; color:#999; margin-right:4px;">Rp ${item.harga_asli.toLocaleString()}</span>` : ''} Rp ${item.harga.toLocaleString()}</div>
                                     <div style="margin-top:5px;">
                                         ${item.is_exclusive ? '<span style="background:var(--primary);color:white;font-size:9px;padding:2px 5px;border-radius:4px;font-weight:700;">Eksklusif</span>' : ''}
                                         ${item.is_priority ? '<span style="color:#FFC107;font-size:10px;font-weight:700;"><i class="ph-fill ph-star"></i> Andalan</span>' : ''}
                                     </div>
                                 </div>
                                 <div class="mi-actions">
-                                    <button class="btn-icon" style="color:#2196F3;" onclick="editMenu('${item.id}')"><i class="ph-bold ph-pencil-simple"></i></button>
-                                    <button class="btn-icon" style="color:var(--danger);" onclick="deleteMenu('${item.id}', '${item.nama_menu}')"><i class="ph-bold ph-trash"></i></button>
+                                    <button style="color:#2196F3; background:none; border:none; padding:5px;" onclick="editMenu('${item.id}')"><i class="ph-bold ph-pencil-simple" style="font-size:20px;"></i></button>
+                                    <button style="color:var(--danger); background:none; border:none; padding:5px;" onclick="deleteMenu('${item.id}', '${item.nama_menu}')"><i class="ph-bold ph-trash" style="font-size:20px;"></i></button>
                                 </div>
                             </div>`;
                     });
@@ -762,126 +857,62 @@
             });
         }
 
-        // --- FUNGSI UPLOAD KE FIREBASE STORAGE ---
         const uploadToFirebaseStorage = async (base64Data, path) => {
-            try {
-                const storageRef = ref(storage, path);
-                // Upload string base64 dengan format data_url
-                await uploadString(storageRef, base64Data, 'data_url');
-                // Dapatkan link download dari file yang baru diupload
-                const downloadURL = await getDownloadURL(storageRef);
-                return downloadURL;
-            } catch (error) {
-                console.error("Firebase Storage Upload Error:", error);
-                throw error;
-            }
+            const storageRef = ref(storage, path);
+            await uploadString(storageRef, base64Data, 'data_url');
+            return await getDownloadURL(storageRef);
         };
 
         window.openModal = () => {
-            if(!currentUser.kategori_utama || currentUser.kategori_utama.length === 0) {
-                showToast("Wajib pilih Kategori Resto di Profil dulu!", false);
-                switchTab('profile');
-                return;
-            }
+            if(!currentUser.kategori_utama || currentUser.kategori_utama.length === 0) { showToast("Pilih Kategori Resto dulu!", false); switchTab('profile'); return; }
             document.getElementById('modal-title').innerText = "Tambah Menu";
             document.getElementById('menu-id').value = ""; document.getElementById('inp-nama').value = "";
             document.getElementById('inp-harga').value = ""; document.getElementById('inp-harga-asli').value = ""; 
-            document.getElementById('inp-tipe').value = "";
-            document.getElementById('inp-desc').value = ""; document.getElementById('preview-img').style.display = "none";
-            
-            document.getElementById('file-input').value = ""; // Reset input file agar bisa pilih ulang foto
-            
-            document.querySelector('.upload-placeholder').innerHTML = '<i class="ph ph-camera" style="font-size:24px;"></i><br>Klik untuk Upload';
-            document.querySelector('.upload-placeholder').style.display = "block"; 
-            uploadedImageUrl = "";
-            document.getElementById('modal-form').style.display = 'flex';
+            document.getElementById('inp-tipe').value = ""; document.getElementById('inp-desc').value = ""; 
+            document.getElementById('preview-img').style.display = "none"; document.querySelector('.upload-placeholder').style.display = "block";
+            uploadedImageUrl = ""; document.getElementById('modal-form').style.display = 'flex';
         };
 
         window.editMenu = (id) => {
             const item = currentProducts[id];
             document.getElementById('modal-title').innerText = "Edit Menu";
             document.getElementById('menu-id').value = id;
-            
-            // Pastikan tidak ada nilai undefined yang masuk ke form
-            document.getElementById('inp-nama').value = item.nama_menu || "";
-            document.getElementById('inp-harga').value = item.harga || "";
+            document.getElementById('inp-nama').value = item.nama_menu;
+            document.getElementById('inp-harga').value = item.harga;
             document.getElementById('inp-harga-asli').value = item.harga_asli || "";
             document.getElementById('inp-tipe').value = item.tipe || "";
             document.getElementById('inp-desc').value = item.deskripsi || "";
-            document.getElementById('inp-exclusive').checked = item.is_exclusive || false;
-            document.getElementById('inp-priority').checked = item.is_priority || false;
-            
-            document.getElementById('file-input').value = ""; // Reset input file
-            
-            // Reset state gambar terlebih dahulu untuk mencegah bug
-            uploadedImageUrl = "";
-            document.getElementById('preview-img').style.display = "none"; 
-            document.querySelector('.upload-placeholder').innerHTML = '<i class="ph ph-camera" style="font-size:24px;"></i><br>Klik untuk Ganti Foto';
-            document.querySelector('.upload-placeholder').style.display = "block";
-
-            if(item.foto_url) {
-                // Terapkan fixImgUrl pada saat mode Edit dipanggil
-                uploadedImageUrl = fixImgUrl(item.foto_url); 
-                document.getElementById('preview-img').src = uploadedImageUrl;
-                document.getElementById('preview-img').style.display = "block"; 
-                document.querySelector('.upload-placeholder').style.display = "none";
-                document.getElementById('preview-img').style.opacity = '1'; // Pastikan opacity normal
-            }
+            document.getElementById('inp-exclusive').checked = !!item.is_exclusive;
+            document.getElementById('inp-priority').checked = !!item.is_priority;
+            uploadedImageUrl = item.foto_url;
+            document.getElementById('preview-img').src = fixImgUrl(item.foto_url);
+            document.getElementById('preview-img').style.display = "block";
+            document.querySelector('.upload-placeholder').style.display = "none";
             document.getElementById('modal-form').style.display = 'flex';
         };
 
         window.closeModal = () => document.getElementById('modal-form').style.display = 'none';
 
         window.handleFileSelect = (e) => {
-            const file = e.target.files[0];
-            if(!file) return;
-            
+            const file = e.target.files[0]; if(!file) return;
             const placeholder = document.querySelector('.upload-placeholder');
-            placeholder.innerHTML = '<div class="loader-spinner" style="width:20px;height:20px;border-width:3px;margin:0 auto 10px auto;"></div> Memproses...';
-            placeholder.style.display = 'block';
-            document.getElementById('preview-img').style.display = 'none';
-
-            // KEMBALI MENGGUNAKAN FILEREADER: Paling stabil untuk semua HP, mencegah bug gambar putih
+            placeholder.innerHTML = 'Memproses...';
             const reader = new FileReader();
             reader.onload = (event) => {
                 const img = new Image(); 
-                
                 img.onload = async () => {
-                    const canvas = document.createElement('canvas'); 
-                    const ctx = canvas.getContext('2d');
-                    
-                    // Hitung dimensi dengan Math.round agar angkanya bulat pasti
-                    const maxWidth = 400;
-                    const scaleSize = maxWidth / img.width;
-                    canvas.width = maxWidth;
-                    canvas.height = Math.round(img.height * scaleSize);
-                    
-                    // Beri background putih sebelum gambar dicetak
-                    ctx.fillStyle = "#ffffff";
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                    const maxWidth = 400; const scale = maxWidth / img.width;
+                    canvas.width = maxWidth; canvas.height = img.height * scale;
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    
                     const base64Data = canvas.toDataURL('image/jpeg', 0.8);
-                    
                     document.getElementById('preview-img').src = base64Data;
                     document.getElementById('preview-img').style.display = 'block';
-                    document.getElementById('preview-img').style.opacity = '0.5';
                     placeholder.style.display = "none";
-                    
                     try {
-                        const fileName = `menu_${currentUser.id}_${Date.now()}.jpg`;
-                        const path = `vendors/${currentUser.id}/menu/${fileName}`;
-                        const url = await uploadToFirebaseStorage(base64Data, path);
-                        
-                        uploadedImageUrl = url;
-                        document.getElementById('preview-img').style.opacity = '1';
-                        showToast("Foto berhasil disiapkan!");
-                    } catch (err) {
-                        showToast("Gagal unggah foto, periksa koneksi", false);
-                        document.getElementById('preview-img').style.display = 'none';
-                        placeholder.innerHTML = '<i class="ph ph-camera" style="font-size:24px;"></i><br>Upload Gagal, Coba Lagi';
-                        placeholder.style.display = "block";
-                    }
+                        uploadedImageUrl = await uploadToFirebaseStorage(base64Data, `vendors/${currentUser.id}/menu/${Date.now()}.jpg`);
+                        showToast("Foto siap!");
+                    } catch (err) { showToast("Gagal upload", false); placeholder.style.display = "block"; }
                 };
                 img.src = event.target.result;
             };
@@ -892,261 +923,73 @@
             const id = document.getElementById('menu-id').value;
             const nama = document.getElementById('inp-nama').value.trim();
             const harga = document.getElementById('inp-harga').value;
-            const hargaAsli = document.getElementById('inp-harga-asli').value;
-            
-            if(!nama || !harga || !uploadedImageUrl) return showToast("Lengkapi data dan foto!", false);
-            
-            const btn = document.querySelector('.btn-submit'); 
-            btn.innerText = "Menyimpan..."; 
-            btn.disabled = true;
-            
-            if (!isFirebaseAuthReady) {
-                showToast("Tunggu sebentar, sedang menyinkronkan dengan server...", false);
-                btn.innerText = "Simpan Menu"; 
-                btn.disabled = false;
-                return;
-            }
-
-            // Filter ketat: Pastikan tidak ada nilai undefined di dalam object data
+            if(!nama || !harga || !uploadedImageUrl) return showToast("Lengkapi data!", false);
+            const btn = document.querySelector('.btn-submit'); btn.disabled = true;
             const data = {
-                nama_menu: nama, 
-                harga: parseInt(harga) || 0, 
-                harga_asli: parseInt(hargaAsli) || 0,
-                tipe: document.getElementById('inp-tipe').value.trim() || 'Lainnya',
-                deskripsi: document.getElementById('inp-desc').value || "", 
-                is_exclusive: document.getElementById('inp-exclusive').checked || false,
-                is_priority: document.getElementById('inp-priority').checked || false, 
-                vendor_id: currentUser.id || "", 
-                vendor_name: currentUser.name || "Vendor",
-                foto_url: uploadedImageUrl, 
-                updated_at: new Date().toISOString()
+                nama_menu: nama, harga: parseInt(harga), harga_asli: parseInt(document.getElementById('inp-harga-asli').value) || 0,
+                tipe: document.getElementById('inp-tipe').value.trim() || 'Lainnya', deskripsi: document.getElementById('inp-desc').value || "", 
+                is_exclusive: document.getElementById('inp-exclusive').checked, is_priority: document.getElementById('inp-priority').checked, 
+                vendor_id: currentUser.id, vendor_name: currentUser.name, foto_url: uploadedImageUrl, updated_at: new Date().toISOString()
             };
-            
             try {
-                if(id) {
-                    await updateDoc(doc(db, "products", id), data);
-                } else { 
-                    data.created_at = new Date().toISOString(); 
-                    await addDoc(collection(db, "products"), data); 
-                }
-                showToast("Menu berhasil disimpan!"); 
-                closeModal();
-            } catch(e) { 
-                console.error("Error Simpan Menu:", e);
-                // Menampilkan peringatan spesifik jika terkait Rules Firebase
-                if (e.message.includes("permission") || e.code === "permission-denied") {
-                    showToast("Gagal: Akses Firebase ditolak! Buka Firebase Console dan atur Rules menjadi true.", false);
-                } else {
-                    showToast("Gagal: " + e.message.substring(0, 30), false); 
-                }
-            } finally { 
-                btn.innerText = "Simpan Menu"; 
-                btn.disabled = false; 
-            }
+                if(id) await updateDoc(doc(db, "products", id), data);
+                else { data.created_at = new Date().toISOString(); await addDoc(collection(db, "products"), data); }
+                showToast("Menu disimpan!"); closeModal();
+            } catch(e) { showToast("Gagal menyimpan", false); } finally { btn.disabled = false; }
         };
 
-        window.deleteMenu = async (id, nama) => {
-            if(confirm(`Hapus menu "${nama}"?`)) { await deleteDoc(doc(db, "products", id)); showToast("Menu dihapus."); }
-        };
-
-        window.moveMenuOrder = async (id, category, direction) => {
-            // Ambil semua item dalam kategori yang sama
-            const items = Object.values(currentProducts)
-                .filter(p => (p.tipe || 'Lainnya') === category)
-                .sort((a, b) => (a.urutan || 0) - (b.urutan || 0));
-
-            const currentIndex = items.findIndex(p => p.id === id);
-            if (currentIndex === -1) return;
-            
-            const targetIndex = currentIndex + direction;
-            if (targetIndex < 0 || targetIndex >= items.length) return;
-
-            // Reset ulang urutan secara berurutan untuk menghindari bug data lama yang nilai urutannya sama/undefined
-            items.forEach((item, idx) => {
-                item.newUrutan = idx * 10; 
-            });
-
-            // Tukar urutan antara item saat ini dengan item target (di atas/bawahnya)
-            const temp = items[currentIndex].newUrutan;
-            items[currentIndex].newUrutan = items[targetIndex].newUrutan;
-            items[targetIndex].newUrutan = temp;
-
-            try {
-                // Simpan perubahan urutan ke Firebase
-                const promises = items.map(item => updateDoc(doc(db, "products", item.id), { urutan: item.newUrutan }));
-                await Promise.all(promises);
-            } catch (e) {
-                console.error(e);
-                showToast("Gagal mengubah urutan", false);
-            }
-        };
-
-        window.toggleMenuStock = async (id, isAvailable) => {
-            try {
-                await updateDoc(doc(db, "products", id), { is_available: isAvailable });
-                showToast(isAvailable ? "Stok diperbarui: Tersedia" : "Stok diperbarui: Habis");
-            } catch (e) {
-                console.error(e);
-                showToast("Gagal mengubah stok", false);
-            }
-        };
+        window.deleteMenu = async (id, nama) => { if(confirm(`Hapus "${nama}"?`)) { await deleteDoc(doc(db, "products", id)); showToast("Dihapus."); }};
 
         window.toggleShopStatus = async () => {
             const isOpen = document.getElementById('shop-toggle').checked;
             await updateDoc(doc(db, "vendors", currentUser.id), { status: isOpen ? "BUKA" : "TUTUP" });
-            showToast("Status toko diperbarui!");
+            showToast("Status diperbarui!");
         };
 
         window.saveShopHours = async () => {
-            const jamBuka = document.getElementById('inp-jam-buka').value;
-            const jamTutup = document.getElementById('inp-jam-tutup').value;
-            
-            const btn = document.getElementById('btn-save-hours');
-            btn.innerText = "Memproses..."; btn.disabled = true;
-            
-            try {
-                await updateDoc(doc(db, "vendors", currentUser.id), { 
-                    jam_buka: jamBuka,
-                    jam_tutup: jamTutup
-                });
-                showToast("Jam operasional berhasil disimpan!");
-            } catch (error) {
-                console.error(error);
-                showToast("Gagal menyimpan jam operasional", false);
-            } finally {
-                btn.innerText = "Simpan Jam"; btn.disabled = false;
-            }
+            await updateDoc(doc(db, "vendors", currentUser.id), { jam_buka: document.getElementById('inp-jam-buka').value, jam_tutup: document.getElementById('inp-jam-tutup').value });
+            showToast("Jam disimpan!");
         };
 
         window.saveShopName = async () => {
-            const newName = document.getElementById('inp-shop-name').value.trim();
-            if(!newName) return showToast("Nama warung tidak boleh kosong!", false);
-            
-            const btn = document.getElementById('btn-save-name');
-            btn.innerText = "Memproses..."; btn.disabled = true;
-            
-            try {
-                // Update ke database
-                await updateDoc(doc(db, "vendors", currentUser.id), { nama_warung: newName });
-                
-                // Update local data & UI
-                currentUser.name = newName;
-                localStorage.setItem('vendor_user', JSON.stringify(currentUser));
-                document.getElementById('display-name').innerText = newName;
-                
-                showToast("Nama warung berhasil diubah!");
-            } catch (error) {
-                console.error(error);
-                showToast("Gagal mengubah nama warung", false);
-            } finally {
-                btn.innerText = "Simpan"; btn.disabled = false;
-            }
+            const val = document.getElementById('inp-shop-name').value.trim();
+            if(!val) return;
+            await updateDoc(doc(db, "vendors", currentUser.id), { nama_warung: val });
+            currentUser.name = val; localStorage.setItem('vendor_user', JSON.stringify(currentUser));
+            document.getElementById('display-name').innerText = val; showToast("Nama diubah!");
         };
 
         window.saveShopNote = async () => {
-            const newNote = document.getElementById('inp-shop-note').value.trim();
-            const btn = document.getElementById('btn-save-note');
-            btn.innerText = "Memproses..."; btn.disabled = true;
-            
-            try {
-                await updateDoc(doc(db, "vendors", currentUser.id), { catatan_toko: newNote });
-                showToast("Catatan toko berhasil disimpan!");
-            } catch (error) {
-                console.error(error);
-                showToast("Gagal menyimpan catatan", false);
-            } finally {
-                btn.innerText = "Simpan Catatan"; btn.disabled = false;
-            }
+            await updateDoc(doc(db, "vendors", currentUser.id), { catatan_toko: document.getElementById('inp-shop-note').value.trim() });
+            showToast("Catatan disimpan!");
         };
 
         window.saveShopWA = async () => {
-            let newWA = document.getElementById('inp-shop-wa').value.trim();
-            if(!newWA) return showToast("Nomor WA tidak boleh kosong!", false);
-            
-            // Format standardisasi otomatis (mengubah awalan 0 menjadi 62 agar format WA internasional berfungsi valid)
-            if(newWA.startsWith('0')) {
-                newWA = '62' + newWA.substring(1);
-            }
-            
-            const btn = document.getElementById('btn-save-wa');
-            btn.innerText = "Memproses..."; btn.disabled = true;
-            
-            try {
-                await updateDoc(doc(db, "vendors", currentUser.id), { no_wa: newWA });
-                document.getElementById('inp-shop-wa').value = newWA; // Update form dengan nomor yg sudah diformat ke 62
-                showToast("Nomor WhatsApp berhasil disimpan!");
-            } catch (error) {
-                console.error(error);
-                showToast("Gagal menyimpan nomor WA", false);
-            } finally {
-                btn.innerText = "Simpan"; btn.disabled = false;
-            }
+            let val = document.getElementById('inp-shop-wa').value.trim();
+            if(!val) return; if(val.startsWith('0')) val = '62' + val.substring(1);
+            await updateDoc(doc(db, "vendors", currentUser.id), { no_wa: val }); showToast("WA disimpan!");
         };
 
         window.shareWarung = () => {
-            // Format link toko telah disesuaikan dengan domain katalog yang baru
-            const shopLink = `https://katalog.projekgo.id/?warung=${currentUser.id}`;
-            const shareText = `Halo! Lihat katalog menu dan pesan langsung dari *${currentUser.name}* melalui link berikut:\n\n${shopLink}`;
-
-            // Coba panggil fitur Share bawaan HP (Native Share)
-            if (navigator.share) {
-                navigator.share({
-                    title: currentUser.name,
-                    text: shareText,
-                    url: shopLink
-                }).catch(err => {
-                    console.log("Share dibatalkan atau tidak didukung:", err);
-                    fallbackCopyText(shareText); // Jika gagal/batal, salin teks ke clipboard
-                });
-            } else {
-                fallbackCopyText(shareText); // Jika tidak support native share, salin teks
-            }
+            const link = `https://katalog.projekgo.id/?warung=${currentUser.id}`;
+            const text = `Katalog *${currentUser.name}*:\n${link}`;
+            if (navigator.share) navigator.share({ title: currentUser.name, text: text, url: link });
+            else { const el = document.createElement('textarea'); el.value = text; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el); showToast("Link disalin!"); }
         };
 
-        // Fungsi fallback untuk menyalin teks (Aman untuk WebView/iFrame)
-        function fallbackCopyText(text) {
-            const el = document.createElement('textarea');
-            el.value = text;
-            el.setAttribute('readonly', '');
-            el.style.position = 'absolute';
-            el.style.left = '-9999px';
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand('copy');
-            document.body.removeChild(el);
-            showToast("Teks & Link warung disalin ke Clipboard!");
-        }
-
         window.handleShopPhoto = (e) => {
-            const file = e.target.files[0];
-            if(!file) return;
-            showToast("Mengunggah foto profil...", true);
+            const file = e.target.files[0]; if(!file) return;
+            showToast("Mengunggah...");
             const reader = new FileReader();
             reader.onload = (event) => {
                 const img = new Image(); 
                 img.onload = async () => {
-                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
-                    canvas.width = 250; canvas.height = 250;
-                    
-                    // FIX: Tambahkan pelapis putih untuk foto profil warung juga
-                    ctx.fillStyle = "#ffffff";
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(img, 0, 0, 250, 250);
-                    
-                    const base64Data = canvas.toDataURL('image/jpeg', 0.8);
-                    
+                    const canvas = document.createElement('canvas'); ctx = canvas.getContext('2d');
+                    canvas.width = 250; canvas.height = 250; ctx.drawImage(img, 0, 0, 250, 250);
                     try {
-                        const fileName = `profile_${currentUser.id}_${Date.now()}.jpg`;
-                        const path = `vendors/${currentUser.id}/profile/${fileName}`;
-                        const url = await uploadToFirebaseStorage(base64Data, path);
-                        
-                        document.getElementById('shop-photo-display').src = url;
-                        await updateDoc(doc(db, "vendors", currentUser.id), { shop_photo: url });
-                        showToast("Foto profil diperbarui!");
-                    } catch (err) {
-                        console.error(err);
-                        showToast("Gagal unggah foto profil", false);
-                    }
+                        const url = await uploadToFirebaseStorage(canvas.toDataURL('image/jpeg', 0.8), `vendors/${currentUser.id}/profile/${Date.now()}.jpg`);
+                        await updateDoc(doc(db, "vendors", currentUser.id), { shop_photo: url }); showToast("Foto profil diperbarui!");
+                    } catch (err) { showToast("Gagal upload", false); }
                 };
                 img.src = event.target.result;
             };
@@ -1155,19 +998,11 @@
 
         function loadReviews() {
             onSnapshot(query(collection(db, "reviews"), where("vendor_name", "==", currentUser.name)), (snap) => {
-                const container = document.getElementById('reviews-container');
-                container.innerHTML = '';
+                const container = document.getElementById('reviews-container'); container.innerHTML = '';
                 let tr = 0; let c = 0;
                 snap.forEach(d => {
                     const r = d.data(); c++; tr += parseFloat(r.rating || 0);
-                    container.innerHTML += `
-                        <div style="background:white;padding:15px;border-radius:12px;margin-bottom:10px;box-shadow:0 2px 5px rgba(0,0,0,0.02);">
-                            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;">
-                                <strong>${r.user_name}</strong>
-                                <span style="color:#FFC107;">★ ${r.rating}</span>
-                            </div>
-                            <div style="font-size:13px;color:#555;">${r.text || ''}</div>
-                        </div>`;
+                    container.innerHTML += `<div style="background:white;padding:15px;border-radius:12px;margin-bottom:10px;"><div style="display:flex;justify-content:space-between;font-size:12px;"><strong>${r.user_name}</strong><span style="color:#FFC107;">★ ${r.rating}</span></div><div style="font-size:13px;color:#555;">${r.text || ''}</div></div>`;
                 });
                 document.getElementById('stat-orders').innerText = c;
                 document.getElementById('stat-rating').innerText = c > 0 ? (tr/c).toFixed(1) : "0.0";
@@ -1175,15 +1010,7 @@
         }
 
         const saved = localStorage.getItem('vendor_user');
-        if(saved) { 
-            currentUser = JSON.parse(saved); 
-            // Terapkan fixImgUrl pada data cache di dalam localStorage
-            if (currentUser.shop_photo) currentUser.shop_photo = fixImgUrl(currentUser.shop_photo);
-            // Simpan ulang ke localStorage jika ada perubahan link agar besok tidak macet
-            localStorage.setItem('vendor_user', JSON.stringify(currentUser));
-            
-            initDashboard(); 
-        }
+        if(saved) { currentUser = JSON.parse(saved); initDashboard(); }
         else { document.getElementById('login-page').style.display = 'flex'; document.getElementById('loading-screen').style.display = 'none'; }
     </script>
 </body>
