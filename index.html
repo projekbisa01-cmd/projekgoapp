@@ -437,6 +437,11 @@
         .vh-tags-row { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; }
         .vh-tag { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); font-size: 10px; font-weight: 600; padding: 5px 12px; border-radius: 12px; }
         
+        /* --- STYLES UNTUK CATATAN TOKO --- */
+        .vendor-notice { background: rgba(255, 255, 255, 0.15); color: #fff; font-size: 11px; padding: 10px 12px; border-radius: 12px; margin-bottom: 15px; text-align: left; line-height: 1.4; border: 1px dashed rgba(255, 255, 255, 0.4); display: flex; gap: 8px; align-items: flex-start; font-weight: 500; }
+        .vendor-notice i { font-size: 16px; margin-top: 1px; color: #FFD54F; }
+        .wli-notice { font-size: 9px; color: #E65100; background: #FFF3E0; padding: 4px 6px; border-radius: 6px; margin-top: 5px; display: inline-flex; align-items: center; gap: 4px; line-height: 1.2; border: 1px solid #FFE0B2; font-weight: 700; width: fit-content; }
+        
         .review-card-scroll { 
             min-width: 280px; 
             background: #F5F5F5; 
@@ -1274,7 +1279,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, addDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, addDoc, query, where, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // ====================================================================
         // --- 1. GENERATE MANIFEST & SERVICE WORKER VIRTUAL (INLINE) ---
@@ -1691,6 +1696,41 @@
             });
         }
 
+        // --- FUNGSI MUAT CATATAN TOKO ---
+        window.muatCatatanToko = async (vendorId) => {
+            try {
+                // 1. Arahkan ke dokumen warung di collection "vendors"
+                const warungRef = doc(db, "vendors", vendorId);
+                const warungSnap = await getDoc(warungRef);
+
+                if (warungSnap.exists()) {
+                    const dataWarung = warungSnap.data();
+                    
+                    // 2. Tangkap elemen kontainer HTML Anda
+                    const kontainerCatatan = document.getElementById('kontainer-catatan');
+                    const teksCatatan = document.getElementById('teks-catatan');
+
+                    if (kontainerCatatan && teksCatatan) {
+                        // 3. Cek apakah field 'catatan_toko' ada dan tidak kosong 
+                        // (Tambahan: mengecek juga field 'catatan' jika database Anda masih pakai penamaan lama)
+                        const isiCatatan = dataWarung.catatan_toko || dataWarung.catatan;
+
+                        if (isiCatatan && isiCatatan.trim() !== "") {
+                            // Isi teksnya
+                            teksCatatan.innerText = isiCatatan;
+                            // Tampilkan kontainernya (menggunakan 'flex' agar rata dengan icon)
+                            kontainerCatatan.style.display = 'flex';
+                        } else {
+                            // Sembunyikan jika tidak ada catatan
+                            kontainerCatatan.style.display = 'none';
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error("Error mengambil catatan toko:", error);
+            }
+        };
+
         window.openVendorPage = (vendorId) => {
             let vendor = allVendors.find(v => v.id === vendorId);
             if (!vendor) { const prod = rawProducts.find(p => p.vendor_id === vendorId); if (prod) vendor = {id: vendorId, nama_warung: prod.vendor_name, shop_photo: null}; else { const vByName = allVendors.find(v => v.nama_warung === vendorId); if (vByName) vendor = vByName; else vendor = {id: 'temp', nama_warung: 'Detail Warung', shop_photo: null}; } }
@@ -1701,6 +1741,14 @@
             const bgImg = vendor.cover_photo || img; // Menggunakan shop_photo sebagai cover jika tidak ada cover_photo
             const fullAddress = vendor.alamat_warung || vendor.lokasi || vendor.alamat || "Detail alamat belum tersedia";
             const ratingMock = (4.5 + Math.random() * 0.4).toFixed(1);
+            
+            // --- LOGIKA CATATAN TOKO (VENDOR PAGE) ---
+            let catatanTokoHtml = `
+            <div id="kontainer-catatan" style="display: ${vendor.catatan ? 'flex' : 'none'}; background: #FFF3E0; padding: 10px 12px; border-radius: 12px; margin-bottom: 15px; border: 1px dashed #FFB74D; align-items: flex-start; gap: 8px;">
+                <i class="ph-fill ph-megaphone" style="color: #FF6600; font-size: 16px; margin-top: 1px;"></i>
+                <span id="teks-catatan" style="color: #E65100; font-size: 11px; font-weight: 600; line-height: 1.4;">${vendor.catatan || ''}</span>
+            </div>`;
+            // ----------------------------------------------
             
             // Ekstrak tag/kategori toko
             let tagsHtml = '';
@@ -1729,6 +1777,8 @@
                         <div class="vh-name">${vendor.nama_warung}</div>
                         <div class="vh-address">${fullAddress}</div>
                         
+                        ${catatanTokoHtml}
+                        
                         <div class="vh-stats-row">
                             <div class="vh-stat-item"><i class="ph-fill ph-star" style="color:#FFC107;"></i> ${ratingMock}</div>
                             <div class="vh-stat-item"><i class="ph-fill ph-clock" style="color:#FF6600;"></i> 20-30 Min</div>
@@ -1741,6 +1791,11 @@
                     </div>
                 </div>
             `;
+            
+            // Panggil fungsinya saat halaman vendor dimuat untuk update catatan dari database
+            if (vendor.id !== 'temp') {
+                muatCatatanToko(vendor.id);
+            }
             
             // NOTE: ambil dari rawProducts agar tetap bisa dibuka meski beda filter
             const vendorMenu = rawProducts.filter(p => p.vendor_name === vendor.nama_warung || p.vendor_id === vendor.id);
@@ -2612,6 +2667,30 @@
             
             // Segera hilangkan splash screen setelah UI beranda siap (data dimuat)
             window.initSplashScreen();
+
+            // --- LOGIKA TANGKAP PARAMETER URL (warung) ---
+            if (!window.hasCheckedUrl) {
+                window.hasCheckedUrl = true; // Pastikan pengecekan URL hanya berjalan 1x saat awal dimuat
+                const urlParams = new URLSearchParams(window.location.search);
+                const vendorId = urlParams.get('warung');
+                
+                if (vendorId) {
+                    // Cek apakah data warung ada di database (yang sudah ter-load sebelumnya)
+                    const isVendorExist = allVendors.some(v => v.id === vendorId) || rawProducts.some(p => p.vendor_id === vendorId);
+                    
+                    if (isVendorExist) {
+                        // Jika data ditemukan, arahkan langsung ke halaman detail warung tersebut
+                        setTimeout(() => {
+                            openVendorPage(vendorId);
+                        }, 400); // Diberi delay 400ms agar transisi Splash Screen ke Halaman tidak bertabrakan
+                    } else {
+                        // Jika tidak ada/kosong, tampilkan pesan dan tetap di beranda
+                        showToast('Warung tidak ditemukan');
+                        openPage('home');
+                    }
+                }
+            }
+            // ----------------------------------------------
         }
 
         function renderCategories() {
@@ -2772,6 +2851,14 @@
                 
                 const locationInfo = v.alamat_warung ? ` - ${v.alamat_warung}` : (v.lokasi ? ` - ${v.lokasi}` : (v.alamat ? ` - ${v.alamat}` : ''));
 
+                // --- LOGIKA CATATAN TOKO (WARUNG LIST) ---
+                let catatanTokoListHtml = `
+                <div id="kontainer-catatan-list-${v.id}" style="display: ${v.catatan ? 'inline-flex' : 'none'}; background: #FFF3E0; padding: 4px 6px; border-radius: 6px; margin-top: 5px; align-items: center; gap: 4px; border: 1px solid #FFE0B2; width: fit-content;">
+                    <i class="ph-fill ph-megaphone" style="color: #FF6600; font-size: 10px;"></i>
+                    <span id="teks-catatan-list-${v.id}" style="color: #E65100; font-size: 9px; font-weight: 700;">${v.catatan || ''}</span>
+                </div>`;
+                // ----------------------------------------------
+
                 // --- LOGIKA BARU: Ambil 4 Nama Menu ---
                 let menuDesc = "Aneka Makanan";
                 if (vendorProds && vendorProds.length > 0) {
@@ -2796,7 +2883,7 @@
                 if (s) { div.onclick = () => openVendorPage(v.id); } 
                 else { div.style.opacity = "0.6"; div.style.filter = "grayscale(100%)"; div.style.cursor = "default"; }
 
-                div.innerHTML = `<div style="position:relative;">${andalanBadge}<img src="${img}" class="wli-img" onerror="this.src='${FALLBACK_VENDOR_IMG}'">${!s ? '<div class="badge-habis-overlay" style="border-radius:12px;"><span class="badge-habis-text">TUTUP</span></div>' : ''}</div><div class="wli-content"><div class="wli-title">${v.nama_warung || 'Warung Projekgo'}${locationInfo}</div><div class="wli-meta" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-bottom: 6px;"><div style="display:flex; align-items:center; gap:3px;"><i class="ph-fill ph-star" style="color:#FFC107;"></i> <b>${rating}</b> <span style="color:#999;">(${reviewCount})</span></div><div style="white-space: normal; line-height: 1.4; color: #666; font-size: 11px;">${menuDesc}</div></div><div class="wli-price-row"><i class="ph-bold ph-tag" style="color:var(--primary);"></i><span style="color:var(--primary); font-weight:700;">Rp${formattedPrice}rb</span><span style="text-decoration:line-through; color:#bbb;">Rp${fakeCoret}rb</span><span style="color:#888;">• ${dist} km</span></div><div style="font-size:10px; color:${statusColor}; margin-bottom:0px; font-weight:700; line-height:1.2;">${statusText}</div><div class="wli-badges"><img src="https://i.ibb.co.com/Rk6TL6S7/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT.png" class="wli-badge-img"><img src="https://i.ibb.co.com/nqW2c7Jx/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT-1.png" class="wli-badge-img"><img src="https://i.ibb.co.com/9kmr57kn/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT-2.png" class="wli-badge-img"></div></div>`;
+                div.innerHTML = `<div style="position:relative;">${andalanBadge}<img src="${img}" class="wli-img" onerror="this.src='${FALLBACK_VENDOR_IMG}'">${!s ? '<div class="badge-habis-overlay" style="border-radius:12px;"><span class="badge-habis-text">TUTUP</span></div>' : ''}</div><div class="wli-content"><div class="wli-title">${v.nama_warung || 'Warung Projekgo'}${locationInfo}</div><div class="wli-meta" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-bottom: 6px;"><div style="display:flex; align-items:center; gap:3px;"><i class="ph-fill ph-star" style="color:#FFC107;"></i> <b>${rating}</b> <span style="color:#999;">(${reviewCount})</span></div><div style="white-space: normal; line-height: 1.4; color: #666; font-size: 11px;">${menuDesc}</div></div><div class="wli-price-row"><i class="ph-bold ph-tag" style="color:var(--primary);"></i><span style="color:var(--primary); font-weight:700;">Rp${formattedPrice}rb</span><span style="text-decoration:line-through; color:#bbb;">Rp${fakeCoret}rb</span><span style="color:#888;">• ${dist} km</span></div><div style="font-size:10px; color:${statusColor}; margin-bottom:0px; font-weight:700; line-height:1.2;">${statusText}</div>${catatanTokoListHtml}<div class="wli-badges"><img src="https://i.ibb.co.com/Rk6TL6S7/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT.png" class="wli-badge-img"><img src="https://i.ibb.co.com/nqW2c7Jx/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT-1.png" class="wli-badge-img"><img src="https://i.ibb.co.com/9kmr57kn/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT-2.png" class="wli-badge-img"></div></div>`;
                 c.appendChild(div);
             });
             
