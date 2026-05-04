@@ -591,6 +591,7 @@
         // Mengganti onSnapshot dengan getDocs, query, limit, dan orderBy untuk hemat kuota
         import { getFirestore, collection, getDocs, query, limit, orderBy, deleteDoc, doc, setDoc, updateDoc, addDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getStorage, ref, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         // --- PENTING: GANTI DENGAN API KEY BARU KAMU ---
         const firebaseConfig = {
@@ -613,6 +614,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const storage = getStorage(app);
+        const auth = getAuth(app);
 
         let adminAllProducts = []; 
         let adminAllVendors = [];
@@ -907,7 +909,7 @@
 
             filteredVendors.forEach(v => {
                 const isOpen = v.status === 'BUKA';
-                const isFeatured = v.is_featured === true;
+                const isFeatured = v.is_andalan === true;
                 const safeName = (v.nama_warung || '').replace(/'/g, "\\'");
                 const addressData = v.alamat_warung || v.lokasi || '-';
                 const safeAddress = addressData.replace(/'/g, "\\'");
@@ -1029,7 +1031,7 @@
                     alamat_warung: alamat || '-', 
                     pin: pin,
                     status: 'BUKA', 
-                    is_featured: false, 
+                    is_andalan: false, 
                     role: 'vendor', 
                     created_at: new Date().toISOString() 
                 });
@@ -1219,13 +1221,25 @@
         
         window.toggleFeatured = async (id, currentVal) => {
             try {
-                await updateDoc(doc(db, "vendors", id), { is_featured: !currentVal });
+                const newVal = !currentVal;
+                
+                // 1. Optimistic UI Update: Ubah state lokal & render tampilan secara INSTAN
                 const idx = adminAllVendors.findIndex(v => v.id === id);
-                if(idx !== -1) adminAllVendors[idx].is_featured = !currentVal;
-                adminAllVendors.sort((a, b) => (b.is_featured === true) - (a.is_featured === true));
+                if(idx !== -1) adminAllVendors[idx].is_andalan = newVal;
+                adminAllVendors.sort((a, b) => (b.is_andalan === true) - (a.is_andalan === true));
                 window.renderVendorsList();
+
+                // 2. Kirim update ke database di background (tanpa membuat layar terhenti menunggu)
+                await updateDoc(doc(db, "vendors", id), { is_andalan: newVal });
             } catch(e) { 
-                alert("Gagal memperbarui status andalan.");
+                console.error("Gagal toggle andalan:", e);
+                alert("Gagal memperbarui status andalan: " + e.message);
+                
+                // Rollback UI (kembalikan ke semula) jika tiba-tiba database gagal diupdate
+                const idx = adminAllVendors.findIndex(v => v.id === id);
+                if(idx !== -1) adminAllVendors[idx].is_andalan = currentVal;
+                adminAllVendors.sort((a, b) => (b.is_andalan === true) - (a.is_andalan === true));
+                window.renderVendorsList();
             }
         }
 
@@ -1331,7 +1345,7 @@
             document.getElementById('count-vendors').innerText = snap.size;
             snap.forEach(d => adminAllVendors.push({id: d.id, ...d.data()}));
             
-            adminAllVendors.sort((a, b) => (b.is_featured === true) - (a.is_featured === true));
+            adminAllVendors.sort((a, b) => (b.is_andalan === true) - (a.is_andalan === true));
             window.renderVendorsList();
             window.updateRecentVendorsTable();
             window.renderVendorMenuOverview();
@@ -1404,6 +1418,9 @@
             }
 
             try {
+                // Melakukan autentikasi anonim agar diizinkan oleh aturan Firebase yang mewajibkan login
+                await signInAnonymously(auth);
+
                 // Semua fungsi fetch dipanggil dan ditunggu (await) untuk menangkap error jika gagal
                 await window.fetchKategori();
                 await window.fetchVendors();
@@ -1412,7 +1429,13 @@
                 await window.fetchBroadcasts();
             } catch (error) {
                 console.error("Kesalahan koneksi Firebase:", error);
-                alert("Gagal terhubung ke database Cloud Firestore (Timeout).\n\nPastikan:\n1. Internet Anda stabil.\n2. API Key Firebase di kode sudah benar.\n3. Rules Firestore mengizinkan akses (bukan mode terkunci).\n\nDetail: " + error.message);
+                
+                // Deteksi khusus jika error masih terkait izin (Permissions)
+                if (error.code === 'permission-denied' || error.message.includes('permissions')) {
+                    alert("IZIN DITOLAK (Permission Denied): Firebase memblokir akses.\n\nSOLUSI: Buka Firebase Console > Firestore Database > tab 'Rules' (Aturan), lalu ubah kodenya menjadi:\n\nmatch /{document=**} {\n  allow read, write: if true;\n}\n\nLalu klik Publish/Terbitkan.");
+                } else {
+                    alert("Gagal terhubung ke database Cloud Firestore (Timeout).\n\nPastikan:\n1. Internet Anda stabil.\n2. API Key Firebase di kode sudah benar.\n3. Rules Firestore mengizinkan akses.\n\nDetail: " + error.message);
+                }
             }
         }
     </script>
