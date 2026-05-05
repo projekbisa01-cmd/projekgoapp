@@ -19,8 +19,9 @@
     <style>
         /* --- TEMA & VARIABEL --- */
         :root {
-            --primary: #FF6600; 
-            --primary-light: #FFF0E5;
+            --primary: #FF6B4A; /* Soft Orange-Pink (Coral) yang selaras dan lembut */
+            --primary-light: #FFF2F0;
+            --pink-accent: #FF4D79; /* Warna pink selaras untuk kombinasi */
             --dark: #1A1A1A;
             --gray: #9ca3af;
             --bg: #ffffff;
@@ -52,31 +53,127 @@
             box-shadow: 0 0 30px rgba(0,0,0,0.1);
         }
 
-        /* --- 1. STICKY NAV --- */
-        .top-nav-sticky {
+        /* --- 1. HEADER MODERN (BERANDA) --- */
+        .home-header {
+            background: linear-gradient(135deg, var(--primary), #FF4500);
+            padding: 20px 20px 55px 20px;
+            border-bottom-left-radius: 40px;
+            border-bottom-right-radius: 40px;
+            position: relative;
+            color: white;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(255, 107, 74, 0.3);
+        }
+
+        /* Pola background tipis agar tidak terlalu sepi */
+        .home-header::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: radial-gradient(circle at 80% -20%, rgba(255,255,255,0.2) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+            margin-bottom: 25px;
+        }
+
+        .icon-btn {
+            width: 38px;
+            height: 38px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            transition: transform 0.2s;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .icon-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.3); }
+
+        .location-pill {
+            background: rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(5px);
+            padding: 8px 18px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: background 0.2s;
+        }
+        .location-pill:active { background: rgba(0, 0, 0, 0.4); }
+
+        .header-greeting {
+            position: relative;
+            z-index: 2;
+            max-width: 65%;
+        }
+        .header-greeting h1 {
+            font-size: 22px;
+            font-weight: 800;
+            margin: 0 0 6px 0;
+            line-height: 1.3;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header-greeting p {
+            font-size: 13px;
+            margin: 0;
+            font-weight: 600;
+            opacity: 0.95;
+            line-height: 1.4;
+        }
+
+        .header-illustration {
+            position: absolute;
+            right: -15px;
+            bottom: 25px;
+            width: 170px;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* --- 2. OVERLAPPING SEARCH BAR & QUICK MENU --- */
+        .search-container-wrapper {
             position: -webkit-sticky;
             position: sticky;
-            top: 0;
+            top: -1px;
             z-index: 1002;
-            background: rgba(255, 255, 255, 0.98); 
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            padding: 10px 20px 15px 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+            padding: 0 20px;
+            margin-top: -30px; /* Menarik container ke atas agar menimpa header */
+        }
+        
+        /* Background putih solid di balik menu quick saat discroll */
+        .search-container-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 30px; left: 0; right: 0; bottom: 0;
+            background: var(--bg);
+            z-index: -1;
         }
 
         .sticky-search-bar {
+            background: white;
+            border-radius: 30px;
+            padding: 14px 20px;
+            box-shadow: 0 8px 25px rgba(255, 107, 74, 0.15);
             display: flex;
             align-items: center;
-            background: #f5f5f5;
-            border-radius: 12px;
-            padding: 10px 15px;
-            gap: 10px;
+            gap: 12px;
+            border: 1px solid rgba(0,0,0,0.03);
             cursor: pointer;
-            border: 1px solid #eee;
         }
 
         .sticky-search-bar input {
@@ -85,7 +182,7 @@
             flex-grow: 1;
             outline: none;
             font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 600;
             color: var(--dark);
             cursor: pointer;
@@ -93,16 +190,65 @@
 
         .sticky-search-bar input::placeholder {
             color: #999;
+            font-weight: 500;
         }
 
-        .nav-left { display: flex; align-items: center; gap: 12px; }
-        .brand-logo-img { width: 40px; height: 40px; border-radius: 12px; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; }
-        .brand-logo-img:active { transform: scale(0.9); }
-        .user-loc { font-size: 11px; color: #666; cursor: pointer; line-height: 1.2; padding: 4px; border-radius: 8px; transition: background 0.2s; }
-        .user-loc:active { background: rgba(0,0,0,0.05); }
-        .user-loc b { display: block; font-size: 14px; color: var(--dark); font-weight: 800; margin-top: 2px;}
-        .header-icon { font-size: 24px; color: var(--dark); padding: 8px; background: #f0f0f0; border-radius: 50%; cursor: pointer; transition: 0.2s; }
-        .header-icon:active { transform: scale(0.95); background: #e0e0e0; }
+        /* Menu Cepat ala Referensi (Resto Terdekat, dll) */
+        .quick-service-scroll {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding: 20px 0 10px 0;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+        .quick-service-scroll::-webkit-scrollbar { display: none; }
+        
+        .qs-card {
+            background: white;
+            min-width: 95px;
+            padding: 15px 12px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+            border: 1px solid rgba(0,0,0,0.03);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s;
+            flex-shrink: 0;
+        }
+        .qs-card:active { transform: scale(0.95); }
+        .qs-icon {
+            width: 42px;
+            height: 42px;
+            object-fit: contain;
+            margin-bottom: 8px;
+        }
+        .qs-text {
+            font-size: 11px;
+            color: #666;
+            line-height: 1.3;
+        }
+        .qs-text b {
+            color: var(--dark);
+            font-size: 13px;
+            font-weight: 800;
+        }
+        .qs-badge {
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            background: var(--dark);
+            color: white;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 3px 6px;
+            border-radius: 8px 8px 8px 0;
+            z-index: 2;
+        }
 
         /* --- NEW: FLOATING 3D MENU (LAYANAN) --- */
         .floating-menu-3d {
@@ -241,13 +387,36 @@
         .swipe-hint-icon { font-size: 12px; color: #888; }
         @keyframes pulseHint { 0%, 100% { opacity: 0.6; transform: translateX(0); } 50% { opacity: 1; transform: translateX(3px); } }
 
-        /* KATEGORI */
+        /* KATEGORI MODERN */
+        .section-title-modern {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--dark);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg);
+            margin-bottom: 0;
+        }
+        .btn-lihat-semua {
+            font-size: 12px;
+            color: #2E7D32; 
+            background: #E8F5E9;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-lihat-semua:active { background: #C8E6C9; }
+
         .cat-grid { 
             display: grid; 
             grid-template-rows: repeat(2, 1fr); 
             grid-auto-flow: column; 
-            gap: 15px 20px; 
-            padding: 10px 20px 20px 20px; 
+            gap: 20px 15px; 
+            padding: 10px 20px 25px 20px; 
             background: var(--white); 
             margin: 0; 
             border-radius: 0; 
@@ -262,18 +431,34 @@
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            gap: 6px; 
+            gap: 8px; 
             cursor: pointer; 
-            min-width: 75px; 
+            min-width: 80px; 
             flex-shrink: 0; 
             transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
         }
         .cat-item:active { transform: scale(0.9); }
 
-        .cat-icon-box { width: 60px; height: 60px; background: transparent; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 30px; color: var(--primary); box-shadow: none; border: none; }
-        .cat-icon-box img { width: 50px !important; height: 50px !important; object-fit: contain; }
+        .cat-icon-box { 
+            width: 75px; 
+            height: 75px; 
+            background: #f8f9fa; 
+            border-radius: 50%; /* Bulat sempurna */
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+            border: 1px solid rgba(0,0,0,0.03); 
+            overflow: hidden; 
+        }
+        .cat-icon-box img { 
+            width: 100% !important; 
+            height: 100% !important; 
+            object-fit: cover; 
+            transform: scale(1.1); /* Hides edges of existing SVG boxes */
+        }
         
-        .cat-name { font-size: 12px; font-weight: 700; color: #333; text-align: center; line-height: 1.2; text-transform: capitalize; }
+        .cat-name { font-size: 12px; font-weight: 700; color: #444; text-align: center; line-height: 1.2; text-transform: capitalize; }
 
         /* --- SECTION LAIN --- */
         .promo-section-layout { display: flex; align-items: center; padding: 15px 0 15px 20px; margin-bottom: 0; border-bottom: 8px solid #f9f9f9; overflow-x: auto; position: relative; gap: 12px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
@@ -361,17 +546,19 @@
         .gvh-s-deliv { font-size: 11px; color: #888; font-weight: 400; margin-top: 2px; }
 
         .warung-list { padding: 0; display: flex; flex-direction: column; padding-bottom: 20px; gap: 0; }
-        .warung-list-item { display: flex; gap: 14px; background: transparent; padding: 10px 0; border-radius: 0; margin-bottom: 0; box-shadow: none; border-bottom: 1px solid rgba(0,0,0,0.05); align-items: flex-start; transition: transform 0.2s; cursor: pointer; position: relative; }
+        .warung-list-item { display: flex; flex-direction: column; gap: 12px; background: transparent; padding: 18px 0; border-radius: 0; margin-bottom: 0; box-shadow: none; border-bottom: 1px solid #f0f0f0; transition: transform 0.2s; cursor: pointer; position: relative; }
         .warung-list-item:active { transform: scale(0.99); background: rgba(0,0,0,0.02); }
         .warung-list-item:last-child { border-bottom: none; }
-        .wli-img { width: 110px; height: 110px; border-radius: 16px; object-fit: cover; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: #f0f0f0; }
-        .wli-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-start; overflow: hidden; }
-        .wli-title { font-size: 15px; font-weight: 700; color: var(--dark); margin-bottom: 3px; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
-        .wli-meta { font-size: 11px; color: #666; margin-bottom: 3px; display: flex; align-items: center; gap: 3px; }
-        .wli-price-row { font-size: 11px; margin-bottom: 3px; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
-        .wli-badges { display: flex; gap: 5px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; padding-bottom: 0; margin-top: 4px; width: 100%; -webkit-overflow-scrolling: touch; }
-        .wli-badges::-webkit-scrollbar { display: none; } 
-        .wli-badge-img { height: 65px; width: auto; object-fit: contain; border-radius: 6px; flex-shrink: 0; mix-blend-mode: multiply; }
+        .wli-top { display: flex; gap: 14px; width: 100%; align-items: stretch; }
+        .wli-img { width: 90px; height: 90px; border-radius: 18px; object-fit: cover; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.06); background: #f0f0f0; }
+        .wli-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+        .wli-title { font-size: 16px; font-weight: 800; color: var(--dark); margin-bottom: 4px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+        .wli-meta { font-size: 13px; color: #666; margin-bottom: 4px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+        .wli-price-row { font-size: 13px; margin-bottom: 3px; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; color: #666; }
+        
+        .wli-promo-scroll { display: flex; gap: 10px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; width: 100%; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+        .wli-promo-scroll::-webkit-scrollbar { display: none; }
+        .wli-promo-badge { min-width: 220px; height: 50px; border: 1px solid #e5e5e5; border-radius: 14px; background: #fff; display: flex; align-items: center; padding: 0 12px; gap: 10px; flex-shrink: 0; }
 
         .page { display: none; padding-top: 0; animation: slideIn 0.3s; min-height: 100vh; background: var(--bg); }
         @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
@@ -883,25 +1070,66 @@
         <!-- ===== 1. BERANDA ===== -->
         <div id="page-home">
             
-            <nav class="top-nav-sticky">
-                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                    <div class="nav-left">
-                        <img src="https://i.ibb.co.com/hJ43nXyc/Whats-App-Image-2026-01-29-at-10-12-08.jpg" alt="Logo Projekgo" class="brand-logo-img" onclick="window.location.href='https://projekgo.id'">
-                        <div class="user-loc" onclick="openLocationModal()">
-                            Pilih Lokasi Resto
-                            <b id="loc-text">Sekitar Gombong ▾</b>
-                        </div>
+            <div class="home-header">
+                <div class="top-bar">
+                    <div class="icon-btn" style="background: white; padding: 2px;" onclick="window.location.href='https://projekgo.id'">
+                        <img src="https://i.ibb.co.com/hJ43nXyc/Whats-App-Image-2026-01-29-at-10-12-08.jpg" alt="Logo" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
                     </div>
-                    <i class="ph ph-bell header-icon" onclick="openPage('notifications')"></i>
+                    <div class="location-pill" onclick="openLocationModal()">
+                        <i class="ph-fill ph-map-pin"></i>
+                        <span id="loc-text">Sekitar Gombong</span>
+                        <i class="ph-bold ph-caret-down" style="font-size: 10px;"></i>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <div class="icon-btn" onclick="openPage('favorites')"><i class="ph-bold ph-heart"></i></div>
+                        <div class="icon-btn" onclick="openPage('orders')"><i class="ph-bold ph-receipt"></i></div>
+                    </div>
                 </div>
-                <div class="sticky-search-bar" onclick="openSearchModal()">
-                    <i class="ph ph-magnifying-glass" style="color: var(--primary); font-size: 18px;"></i>
-                    <input type="text" placeholder="Mau makan apa hari ini?" readonly>
+                
+                <div class="header-greeting">
+                    <h1>Laper? Projekgo-in dari resto terenak di kotamu</h1>
+                    <p>Cek resto-resto enak & hemat tanpa biaya aplikasi tambahan.</p>
                 </div>
-            </nav>
+                
+                <div class="header-illustration">
+                    <!-- Ilustrasi generic makanan dengan transparansi tinggi -->
+                    <img src="https://cdn-icons-png.flaticon.com/512/3014/3014491.png" style="width:100%; filter: drop-shadow(0 15px 25px rgba(0,0,0,0.3)) brightness(1.05);" onerror="this.style.display='none'">
+                </div>
+            </div>
 
-            <div class="section-title" style="margin-bottom: 0px; padding-bottom: 5px;">
-                <span>🍽️ Kategori Pilihan</span>
+            <!-- SEARCH & QUICK SERVICES WRAPPER -->
+            <div id="sticky-search-wrapper" class="search-container-wrapper">
+                <div class="sticky-search-bar" onclick="openSearchModal()">
+                    <i class="ph ph-magnifying-glass" style="color: var(--dark); font-size: 20px;"></i>
+                    <input type="text" placeholder="Lagi mau mamam apa?" readonly>
+                    <i class="ph-fill ph-fork-knife" style="color: var(--primary); font-size: 20px;"></i>
+                </div>
+                
+                <!-- Layanan Cepat (Card kotak-kotak putih) -->
+                <div class="quick-service-scroll">
+                    <div class="qs-card" onclick="openCategoryPage('Paling Laris')">
+                        <img src="https://cdn-icons-png.flaticon.com/512/854/854878.png" class="qs-icon">
+                        <div class="qs-text">Resto<br><b>Terdekat</b></div>
+                    </div>
+                    <div class="qs-card" onclick="openCategoryPage('Exclusive')">
+                        <img src="https://cdn-icons-png.flaticon.com/512/2769/2769339.png" class="qs-icon">
+                        <div class="qs-text">Ongkir<br><b>MURAAAH</b></div>
+                    </div>
+                    <div class="qs-card" onclick="openCategoryPage('Terlaris')">
+                        <div class="qs-badge">-30%</div>
+                        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" class="qs-icon">
+                        <div class="qs-text">Group<br><b>Order</b></div>
+                    </div>
+                    <div class="qs-card" onclick="openMoreMenuModal()">
+                        <img src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" class="qs-icon">
+                        <div class="qs-text">Semua<br><b>Layanan</b></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title-modern">
+                <span>Pilihan kuliner favoritmu</span>
+                <div class="btn-lihat-semua" onclick="openCategoryPage('Paling Laris')">Lihat Semua</div>
             </div>
 
             <div class="swipe-hint-box" style="display: none;">
@@ -2790,7 +3018,7 @@
             
             let bestSellerInserted = false;
             let bannerInserted = false;
-            let secondBannerInserted = false; 
+            let topRestoInserted = false; 
             
             const renderBestSeller = () => {
                 if (bestSellerInserted) return;
@@ -2811,18 +3039,102 @@
                 if (bannerInserted) return;
                 const bannerDiv = document.createElement('div');
                 bannerDiv.style.padding = "0 15px 15px 15px";
-                bannerDiv.innerHTML = `<div style="position:relative;"><img src="https://i.ibb.co.com/mr2Ltjzq/Whats-App-Image-2026-02-04-at-20-48-22.jpg" style="width:100%; height:auto; border-radius:15px; box-shadow:var(--shadow-sm); display:block;"><a href="https://projekgo.id" target="_blank" style="position:absolute; bottom:10px; right:10px; background:rgba(255,255,255,0.95); backdrop-filter:blur(4px); color:var(--primary); padding:6px 14px; border-radius:20px; font-size:11px; font-weight:700; text-decoration:none; box-shadow:0 4px 10px rgba(0,0,0,0.15); display:flex; align-items:center; gap:5px; z-index:5; transition:transform 0.2s;"><i class="ph-bold ph-globe"></i> projekgo.id</a></div>`;
+                
+                // BANNER 1 DIUBAH JADI SLIDER
+                bannerDiv.innerHTML = `
+                    <div style="position:relative; border-radius:15px; box-shadow:var(--shadow-sm); overflow:hidden;">
+                        <div id="auto-slider-1" style="display:flex; overflow-x:auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; width: 100%;">
+                            <!-- Gambar 1 -->
+                            <img src="https://i.ibb.co.com/mr2Ltjzq/Whats-App-Image-2026-02-04-at-20-48-22.jpg" style="width:100%; height:auto; flex-shrink:0; scroll-snap-align:start; object-fit:cover; display:block;">
+                            <!-- Gambar 2 (Bisa diganti nanti) -->
+                            <img src="https://i.ibb.co.com/HfPJ54g7/Desain-tanpa-judul-6.png" style="width:100%; height:auto; flex-shrink:0; scroll-snap-align:start; object-fit:cover; display:block;">
+                            <!-- Tambahkan <img> lain di sini jika ingin gambar ke 3, 4, dst -->
+                        </div>
+                        <a href="https://projekgo.id" target="_blank" style="position:absolute; bottom:10px; right:10px; background:rgba(255,255,255,0.95); backdrop-filter:blur(4px); color:var(--primary); padding:6px 14px; border-radius:20px; font-size:11px; font-weight:700; text-decoration:none; box-shadow:0 4px 10px rgba(0,0,0,0.15); display:flex; align-items:center; gap:5px; z-index:5; transition:transform 0.2s;"><i class="ph-bold ph-globe"></i> projekgo.id</a>
+                    </div>
+                `;
                 c.appendChild(bannerDiv);
+                
+                // Logika Auto Slide Setiap 3.5 Detik
+                setInterval(() => {
+                    const slider = document.getElementById('auto-slider-1');
+                    if(slider) {
+                        let nextScroll = slider.scrollLeft + slider.clientWidth;
+                        if (nextScroll >= slider.scrollWidth - 10) nextScroll = 0; // Kembali ke gambar pertama
+                        slider.scrollTo({ left: nextScroll, behavior: 'smooth' });
+                    }
+                }, 3500);
+
                 bannerInserted = true;
             };
 
-            const renderSecondBanner = () => {
-                if (secondBannerInserted) return;
-                const bannerDiv = document.createElement('div');
-                bannerDiv.style.padding = "0 15px 15px 15px";
-                bannerDiv.innerHTML = `<div style="position:relative;"><img src="https://i.ibb.co.com/HfPJ54g7/Desain-tanpa-judul-6.png" style="width:100%; height:auto; border-radius:15px; box-shadow:var(--shadow-sm); display:block;"></div>`;
-                c.appendChild(bannerDiv);
-                secondBannerInserted = true;
+            const renderTopRatedResto = () => {
+                if (topRestoInserted) return;
+                const topVendors = foodVendors.slice(0, 3); // Ambil 3 resto saja
+                if (topVendors.length > 0) {
+                    const sectionDiv = document.createElement('div');
+                    sectionDiv.style.marginBottom = "15px";
+                    sectionDiv.style.marginTop = "10px";
+                    sectionDiv.innerHTML = `
+                        <div class="section-title" style="padding-top: 5px; padding-bottom: 12px; display:flex; flex-direction:column; align-items:flex-start;">
+                            <span style="font-size:16px; font-weight:800; color:var(--dark);">Resto dengan rating jempolan</span>
+                            <span style="font-size:12px; color:#666; font-weight:500; margin-top:4px;">Ad</span>
+                        </div>
+                        <div class="scroll-container" style="padding-bottom: 5px;"></div>
+                    `;
+                    c.appendChild(sectionDiv);
+                    
+                    const scrollContainer = sectionDiv.querySelector('.scroll-container');
+                    topVendors.forEach(v => {
+                        const img = v.shop_photo || FALLBACK_VENDOR_IMG;
+                        const rating = (4.7 + Math.random() * 0.2).toFixed(1);
+                        const card = document.createElement('div');
+                        
+                        // Style card mirip dengan desain "Resto dengan rating jempolan"
+                        card.style.cssText = "min-width: 260px; background: white; border-radius: 16px; border: 1px solid #f0f0f0; box-shadow: var(--shadow-sm); overflow: hidden; flex-shrink: 0; cursor: pointer; display:flex; flex-direction:column;";
+                        card.onclick = () => openVendorPage(v.id);
+                        
+                        card.innerHTML = `
+                            <div style="position:relative; height: 140px;">
+                                <img src="${img}" style="width: 100%; height: 100%; object-fit: cover;">
+                                <div style="position:absolute; bottom:0; left:0; right:0; padding:15px 10px 10px 10px; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); display:flex; gap:6px; align-items:flex-end;">
+                                    <span style="background:#E53935; color:white; font-size:11px; font-weight:800; padding:4px 8px; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.2);">40% off</span>
+                                </div>
+                            </div>
+                            <div style="padding: 12px;">
+                                <div style="font-size: 15px; font-weight: 800; color: var(--dark); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${v.nama_warung || 'Warung Projekgo'}</div>
+                                <div style="font-size: 12px; color: #666; display:flex; align-items:center; gap:4px;">
+                                    <i class="ph-fill ph-star" style="color:#FFC107;"></i> <span style="font-weight:700; color:#333;">${rating}</span> <span style="margin: 0 2px;">•</span> Aneka Makanan
+                                </div>
+                            </div>
+                        `;
+                        scrollContainer.appendChild(card);
+                    });
+                }
+                topRestoInserted = true;
+            };
+
+            // Fungsi baru: Template layout horizontal yang bisa Anda custom sambil jalan
+            const renderCustomPromoScroll = (urutan) => {
+                const promoDiv = document.createElement('div');
+                promoDiv.className = 'promo-section-layout';
+                promoDiv.style.marginBottom = "0"; 
+                promoDiv.style.marginTop = "0";
+                promoDiv.style.background = '#F9FAFB'; // Warna background abu sangat terang
+                promoDiv.innerHTML = `
+                    <div class="promo-info-side">
+                        <div class="promo-icon-circle"><i class="ph-fill ph-star" style="color:var(--primary);"></i></div>
+                        <h3 class="promo-title">Layout Custom ${urutan}</h3>
+                        <p class="promo-subtitle">Ruang untuk menu/promo</p>
+                        <button class="promo-btn" style="background:var(--dark);">Lihat Semua</button>
+                    </div>
+                    <div class="promo-scroll-side">
+                        <!-- Kotak Dummy untuk tempat menu/gambar nanti -->
+                        <div style="min-width:145px; height:200px; background:white; border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#ccc; font-size:12px; border:1px dashed #ddd; box-shadow:var(--shadow-sm);">+ Menu Baru</div>
+                        <div style="min-width:145px; height:200px; background:white; border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#ccc; font-size:12px; border:1px dashed #ddd; box-shadow:var(--shadow-sm);">+ Menu Baru</div>
+                    </div>
+                `;
+                c.appendChild(promoDiv);
             };
             
             if (foodVendors.length === 0) {
@@ -2831,9 +3143,18 @@
             }
 
             foodVendors.forEach((v, index) => {
-                if (index === 5) { renderBestSeller(); }
-                if (index === 9) { renderBanner(); }
-                if (index === 15) { renderSecondBanner(); }
+                // Logika memunculkan layout otomatis setiap 3 baris warung
+                if (index > 0 && index % 3 === 0) {
+                    const urutanLayout = index / 3;
+                    
+                    if (urutanLayout === 1) { renderBestSeller(); }
+                    else if (urutanLayout === 2) { renderBanner(); }
+                    else if (urutanLayout === 3) { renderTopRatedResto(); }
+                    else { 
+                        // Jika ada warung yang lebih panjang (layout ke-4, ke-5 dst) akan pakai template ini
+                        renderCustomPromoScroll(urutanLayout); 
+                    }
+                }
 
                 const vendorProds = allProducts.filter(p => p.vendor_id === v.id && p.is_available !== false);
                 const s = (v.status||'BUKA').toUpperCase()==='BUKA'; 
@@ -2873,7 +3194,7 @@
                 // --------------------------------------
 
                 // Menambahkan Badge Visual "Andalan" khusus untuk yang memiliki is_andalan = true
-                const andalanBadge = v.is_andalan ? '<div class="badge-priority" style="top:5px; left:5px; background:linear-gradient(45deg, #FF6600, #FF9900); color:white; border:1px solid rgba(255,255,255,0.3); box-shadow:0 2px 5px rgba(0,0,0,0.2);"><i class="ph-fill ph-medal"></i> Andalan</div>' : '';
+                const andalanBadge = v.is_andalan ? '<div class="badge-priority" style="top:5px; left:5px; background:linear-gradient(135deg, #FFD700, #F39C12); color:#fff; border:1px solid rgba(255,255,255,0.5); box-shadow:0 4px 12px rgba(243, 156, 18, 0.4); font-size:11px; padding:5px 10px; border-radius:8px; font-weight:800; text-shadow:0 1px 2px rgba(0,0,0,0.2);"><i class="ph-fill ph-medal" style="font-size:14px;"></i> Andalan</div>' : '';
 
                 const div = document.createElement('div');
                 div.className = 'warung-list-item';
@@ -2883,7 +3204,47 @@
                 if (s) { div.onclick = () => openVendorPage(v.id); } 
                 else { div.style.opacity = "0.6"; div.style.filter = "grayscale(100%)"; div.style.cursor = "default"; }
 
-                div.innerHTML = `<div style="position:relative;">${andalanBadge}<img src="${img}" class="wli-img" onerror="this.src='${FALLBACK_VENDOR_IMG}'">${!s ? '<div class="badge-habis-overlay" style="border-radius:12px;"><span class="badge-habis-text">TUTUP</span></div>' : ''}</div><div class="wli-content"><div class="wli-title">${v.nama_warung || 'Warung Projekgo'}${locationInfo}</div><div class="wli-meta" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-bottom: 6px;"><div style="display:flex; align-items:center; gap:3px;"><i class="ph-fill ph-star" style="color:#FFC107;"></i> <b>${rating}</b> <span style="color:#999;">(${reviewCount})</span></div><div style="white-space: normal; line-height: 1.4; color: #666; font-size: 11px;">${menuDesc}</div></div><div class="wli-price-row"><i class="ph-bold ph-tag" style="color:var(--primary);"></i><span style="color:var(--primary); font-weight:700;">Rp${formattedPrice}rb</span><span style="text-decoration:line-through; color:#bbb;">Rp${fakeCoret}rb</span><span style="color:#888;">• ${dist} km</span></div><div style="font-size:10px; color:${statusColor}; margin-bottom:0px; font-weight:700; line-height:1.2;">${statusText}</div>${catatanTokoListHtml}<div class="wli-badges"><img src="https://i.ibb.co.com/Rk6TL6S7/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT.png" class="wli-badge-img"><img src="https://i.ibb.co.com/nqW2c7Jx/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT-1.png" class="wli-badge-img"><img src="https://i.ibb.co.com/9kmr57kn/Harga-makanan-yang-kami-antarkan-tidak-dinaikan-Sesuai-harga-asli-penjual-jadi-lebih-HEMAT-2.png" class="wli-badge-img"></div></div>`;
+                div.innerHTML = `
+                    <div class="wli-top">
+                        <div style="position:relative;">
+                            ${andalanBadge}
+                            <img src="${img}" class="wli-img" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
+                            ${!s ? '<div class="badge-habis-overlay" style="border-radius:18px;"><span class="badge-habis-text">TUTUP</span></div>' : ''}
+                        </div>
+                        <div class="wli-content">
+                            <div class="wli-title">${v.nama_warung || 'Warung Projekgo'}</div>
+                            <div class="wli-meta">
+                                <i class="ph-fill ph-star" style="color:#FFC107; font-size:14px;"></i> 
+                                <span style="font-weight:700; color:#333; margin-left:3px;">${rating}</span> 
+                                <span style="color:#888; margin-left:2px;">(${reviewCount} ratings)</span>
+                                <span style="margin: 0 4px;">•</span> ${menuDesc}
+                            </div>
+                            <div class="wli-price-row">
+                                <span style="color:#00880B; font-weight:700;">Ongkir Rp${formattedPrice}rb</span>
+                                <span style="text-decoration:line-through; color:#aaa; font-weight:400; font-size:12px;">Rp${fakeCoret}rb</span>
+                                <span style="color:#888; font-weight:400; font-size:12px;">• ${dist}0-${dist}5 min</span>
+                            </div>
+                            <div style="font-size:10px; color:${statusColor}; font-weight:700; margin-top:2px;">${statusText}</div>
+                            ${catatanTokoListHtml}
+                        </div>
+                    </div>
+                    <div class="wli-promo-scroll">
+                        <div class="wli-promo-badge">
+                            <img src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" style="width:20px; height:20px; object-fit:contain;">
+                            <div style="display:flex; flex-direction:column; justify-content:center;">
+                                <div style="font-size:12px; font-weight:700; color:#333; margin-bottom:2px;">Diskon ongkir s.d. 1...</div>
+                                <div style="font-size:11px; color:#888;">Min. pembelian 15rb</div>
+                            </div>
+                        </div>
+                        <div class="wli-promo-badge">
+                            <img src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" style="width:20px; height:20px; object-fit:contain;">
+                            <div style="display:flex; flex-direction:column; justify-content:center;">
+                                <div style="font-size:12px; font-weight:700; color:#333; margin-bottom:2px;">Diskon ongkir s.d. ...</div>
+                                <div style="font-size:11px; color:#888;">Min. pembelian 15rb</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
                 c.appendChild(div);
             });
             
