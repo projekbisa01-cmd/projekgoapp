@@ -147,21 +147,22 @@
 
         /* --- 2. OVERLAPPING SEARCH BAR & QUICK MENU --- */
         .search-container-wrapper {
-            position: -webkit-sticky;
+            position: -webkit-sticky; 
             position: sticky;
-            top: -1px;
+            top: 10px; /* Search bar menempel di atas dengan jarak 10px */
             z-index: 1002;
             padding: 0 20px;
             margin-top: -30px; /* Menarik container ke atas agar menimpa header */
+            pointer-events: none; /* Mencegah area pinggir yang kosong menghalangi klik */
+        }
+        
+        .search-container-wrapper > * {
+            pointer-events: auto; /* Mengembalikan interaksi klik ke dalam elemen search */
         }
         
         /* Background putih solid di balik menu quick saat discroll */
         .search-container-wrapper::before {
-            content: '';
-            position: absolute;
-            top: 30px; left: 0; right: 0; bottom: 0;
-            background: var(--bg);
-            z-index: -1;
+            display: none;
         }
 
         .sticky-search-bar {
@@ -176,21 +177,10 @@
             cursor: pointer;
         }
 
-        .sticky-search-bar input {
-            border: none;
-            background: transparent;
-            flex-grow: 1;
-            outline: none;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--dark);
-            cursor: pointer;
-        }
-
-        .sticky-search-bar input::placeholder {
-            color: #999;
-            font-weight: 500;
+        .quick-services-wrapper {
+            padding: 0 20px;
+            position: relative;
+            z-index: 10;
         }
 
         /* Menu Cepat ala Referensi (Resto Terdekat, dll) */
@@ -486,7 +476,7 @@
         #warung-sticky-header {
             position: -webkit-sticky;
             position: sticky;
-            top: var(--nav-height); /* Diubah dari 135px menjadi sejajar dengan tinggi navigasi atas (70px) */
+            top: 60px; /* Disesuaikan agar menempel tepat di bawah search bar tanpa ada space (10px top + 50px tinggi search) */
             z-index: 990;
             background: var(--white);
             margin-top: 0;
@@ -770,6 +760,32 @@
         .nav-center-item { position: relative; top: -25px; }
         .fab-whatsapp { width: 56px; height: 56px; background: #25D366; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 28px; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); border: 4px solid #f5f5f5; text-decoration: none; transition: transform 0.2s; cursor: pointer; }
         .fab-whatsapp:active { transform: scale(0.95); }
+
+        /* --- FLOATING CART BANNER --- */
+        .floating-cart-banner {
+            position: fixed;
+            bottom: 85px; /* Tepat di atas navbar bawah */
+            left: 20px;
+            right: 20px;
+            max-width: calc(var(--max-width) - 40px);
+            margin: 0 auto;
+            background: var(--primary);
+            color: white;
+            padding: 14px 20px;
+            border-radius: 16px;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 999;
+            box-shadow: 0 4px 20px rgba(255, 102, 0, 0.4);
+            cursor: pointer;
+            animation: slideUpBanner 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.1s;
+        }
+        .floating-cart-banner:active { transform: scale(0.97); }
+        @keyframes slideUpBanner { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .fcb-left { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 14px; }
+        .fcb-right { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 14px; }
 
         #admin-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(3px); animation: fadeIn 0.2s; }
         .admin-modal-content { background: white; width: 85%; max-width: 320px; padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.2); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -1104,7 +1120,9 @@
                     <input type="text" placeholder="Lagi mau mamam apa?" readonly>
                     <i class="ph-fill ph-fork-knife" style="color: var(--primary); font-size: 20px;"></i>
                 </div>
-                
+            </div>
+
+            <div class="quick-services-wrapper">
                 <!-- Layanan Cepat (Card kotak-kotak putih) -->
                 <div class="quick-service-scroll">
                     <div class="qs-card" onclick="openCategoryPage('Paling Laris')">
@@ -1352,6 +1370,7 @@
             <div id="cp-items-container" class="cp-items-container"></div>
             <div class="cp-footer">
                 <div class="cp-total-row"><span>Total Estimasi</span><span id="cp-total-price">Rp 0</span></div>
+                <div id="cp-savings-badge" style="display:none; color: #2E7D32; font-size: 12px; font-weight: 700; background: #E8F5E9; padding: 10px; border-radius: 8px; justify-content: center; align-items: center; gap: 6px; margin-bottom: 15px; border: 1px solid #C8E6C9;"></div>
                 <button class="cp-btn-checkout" onclick="proceedToCheckout()">Lanjut Pesan <i class="ph-bold ph-arrow-right"></i></button>
             </div>
         </div>
@@ -1483,6 +1502,18 @@
                 </div>
             </div>
             <button class="ao-btn-close" onclick="closeActiveOrderModal()">Lihat Menu Pesanan Aktif</button>
+        </div>
+    </div>
+
+    <!-- FLOATING CART BANNER (DI ATAS NAVBAR) -->
+    <div id="floating-cart-banner" class="floating-cart-banner" onclick="toggleCartPopup()">
+        <div class="fcb-left">
+            <i class="ph-bold ph-shopping-bag" style="font-size: 18px;"></i>
+            <span id="fcb-qty">1 Pesanan</span>
+        </div>
+        <div class="fcb-right">
+            <span id="fcb-total">Rp 0</span>
+            <i class="ph-bold ph-caret-right"></i>
         </div>
     </div>
 
@@ -2433,13 +2464,28 @@
         
         function updateCartBadge() { 
             const b = document.getElementById('cart-badge'); 
+            const floatingBanner = document.getElementById('floating-cart-banner');
+            
             if(cart.length > 0) { 
                 b.style.display='flex'; 
                 b.innerText = cart.length; 
                 b.classList.add('has-items');
+                
+                // Update Badge Mengambang
+                if(floatingBanner) {
+                    floatingBanner.style.display = 'flex';
+                    const totalHarga = cart.reduce((sum, item) => sum + item.harga, 0);
+                    document.getElementById('fcb-qty').innerText = cart.length + " Pesanan";
+                    document.getElementById('fcb-total').innerText = "Rp " + totalHarga.toLocaleString();
+                }
             } else { 
                 b.style.display='none'; 
                 b.classList.remove('has-items');
+                
+                // Sembunyikan Badge Mengambang
+                if(floatingBanner) {
+                    floatingBanner.style.display = 'none';
+                }
             } 
         }
 
@@ -2519,6 +2565,17 @@
             });
             
             document.getElementById('cp-total-price').innerText = "Rp " + total.toLocaleString();
+
+            const savings = Math.ceil(total * 1.2) - total;
+            const savingsBadge = document.getElementById('cp-savings-badge');
+            if (savingsBadge) {
+                if (savings > 0) {
+                    savingsBadge.innerHTML = `<i class="ph-fill ph-check-circle" style="font-size:16px;"></i> Anda lebih hemat Rp ${savings.toLocaleString()}`;
+                    savingsBadge.style.display = 'flex';
+                } else {
+                    savingsBadge.style.display = 'none';
+                }
+            }
         }
 
         window.updatePopupQty = (key, change) => {
@@ -2563,8 +2620,37 @@
 
         window.proceedToCheckout = () => {
             closeCartPopup();
+            
+            // Hitung total penghematan
+            let subTotal = 0;
+            cart.forEach(item => subTotal += item.harga);
+            const savings = Math.ceil(subTotal * 1.2) - subTotal;
+
             setTimeout(() => {
                 openPage('cart');
+                
+                // Tampilkan popup ringan di atas halaman konfirmasi
+                if (savings > 0) {
+                    const popup = document.createElement('div');
+                    popup.innerHTML = `<i class="ph-fill ph-check-circle" style="font-size:18px;"></i> Anda Lebih hemat Rp ${savings.toLocaleString()}`;
+                    popup.style.cssText = "position:fixed; top:75px; left:50%; transform:translateX(-50%); width:90%; max-width:380px; background:#4CAF50; color:white; padding:12px 20px; border-radius:12px; text-align:center; font-weight:700; font-size:13px; z-index:9999; box-shadow:0 6px 20px rgba(76, 175, 80, 0.4); display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); animation: slideDownCartPopup 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);";
+                    
+                    if (!document.getElementById('dynamic-cart-popup-style')) {
+                        const style = document.createElement('style');
+                        style.id = 'dynamic-cart-popup-style';
+                        style.innerHTML = `@keyframes slideDownCartPopup { from { transform:translate(-50%, -20px); opacity:0; } to { transform:translate(-50%, 0); opacity:1; } }`;
+                        document.head.appendChild(style);
+                    }
+
+                    document.body.appendChild(popup);
+                    
+                    // Hilangkan popup perlahan setelah 3 detik
+                    setTimeout(() => {
+                        popup.style.opacity = '0';
+                        popup.style.transform = 'translate(-50%, -20px)';
+                        setTimeout(() => popup.remove(), 300);
+                    }, 3000);
+                }
             }, 300);
         }
 
@@ -3197,54 +3283,95 @@
                 const andalanBadge = v.is_andalan ? '<div class="badge-priority" style="top:5px; left:5px; background:linear-gradient(135deg, #FFD700, #F39C12); color:#fff; border:1px solid rgba(255,255,255,0.5); box-shadow:0 4px 12px rgba(243, 156, 18, 0.4); font-size:11px; padding:5px 10px; border-radius:8px; font-weight:800; text-shadow:0 1px 2px rgba(0,0,0,0.2);"><i class="ph-fill ph-medal" style="font-size:14px;"></i> Andalan</div>' : '';
 
                 const div = document.createElement('div');
-                div.className = 'warung-list-item';
-                div.style.marginLeft = "15px";
-                div.style.marginRight = "15px";
+                
+                if (index === 10 || index === 11 || index === 12) {
+                    // --- LAYOUT KARTU BESAR (SEPERTI REFERENSI GAMBAR) UNTUK URUTAN 11, 12, 13 ---
+                    div.style.margin = "0 15px 20px 15px";
+                    div.style.cursor = "pointer";
+                    div.style.transition = "transform 0.2s";
+                    if (s) { div.onclick = () => openVendorPage(v.id); } 
+                    else { div.style.opacity = "0.8"; div.style.cursor = "default"; }
 
-                if (s) { div.onclick = () => openVendorPage(v.id); } 
-                else { div.style.opacity = "0.6"; div.style.filter = "grayscale(100%)"; div.style.cursor = "default"; }
+                    div.innerHTML = `
+                        <div style="background: white; border-radius: 16px; box-shadow: 0 6px 20px rgba(0,0,0,0.08); overflow: hidden; display: flex; flex-direction: column; width: 100%; border: 1px solid #f0f0f0; position: relative;">
+                            <div style="position: relative; width: 100%; height: 180px;">
+                                ${andalanBadge}
+                                <img src="${v.cover_photo || img}" style="width: 100%; height: 100%; object-fit: cover; ${!s ? 'filter:grayscale(100%);' : ''}" onerror="this.src='${img}'">
+                                ${!s ? '<div class="badge-habis-overlay"><span class="badge-habis-text">TUTUP</span></div>' : ''}
+                                <div style="position: absolute; bottom: -12px; left: 15px; display: flex; gap: 6px; z-index: 2;">
+                                    <div style="background: #1B5E20; color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 800; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                                        <i class="ph-fill ph-star"></i> ${rating}
+                                    </div>
+                                    <div style="background: white; color: var(--dark); padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #eee;">
+                                        <i class="ph-bold ph-moped"></i> ${dist}0-${dist}5 min
+                                    </div>
+                                    <div style="background: white; color: #666; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #eee;">
+                                        ${dist} km
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="padding: 24px 15px 15px 15px;">
+                                <div style="font-size: 18px; font-weight: 800; color: var(--dark); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${v.nama_warung || 'Warung Projekgo'}</div>
+                                <div style="font-size: 12px; color: #666; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Rp${formattedPrice}rb • ${menuDesc}</div>
+                                <div style="font-size:10px; color:${statusColor}; font-weight:700;">${statusText}</div>
+                                ${catatanTokoListHtml}
+                            </div>
+                            <div style="background: #FFF1F0; padding: 12px 15px; border-top: 1px solid #FFEBEB; display: flex; align-items: center; gap: 8px; color: #D32F2F; font-size: 12px; font-weight: 700;">
+                                <i class="ph-fill ph-percent" style="background:#D32F2F; color:white; border-radius:50%; padding:2px; font-size:12px;"></i> Diskon 20%, maks. 24rb
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // --- LAYOUT NORMAL ---
+                    div.className = 'warung-list-item';
+                    div.style.marginLeft = "15px";
+                    div.style.marginRight = "15px";
 
-                div.innerHTML = `
-                    <div class="wli-top">
-                        <div style="position:relative;">
-                            ${andalanBadge}
-                            <img src="${img}" class="wli-img" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
-                            ${!s ? '<div class="badge-habis-overlay" style="border-radius:18px;"><span class="badge-habis-text">TUTUP</span></div>' : ''}
-                        </div>
-                        <div class="wli-content">
-                            <div class="wli-title">${v.nama_warung || 'Warung Projekgo'}</div>
-                            <div class="wli-meta">
-                                <i class="ph-fill ph-star" style="color:#FFC107; font-size:14px;"></i> 
-                                <span style="font-weight:700; color:#333; margin-left:3px;">${rating}</span> 
-                                <span style="color:#888; margin-left:2px;">(${reviewCount} ratings)</span>
-                                <span style="margin: 0 4px;">•</span> ${menuDesc}
+                    if (s) { div.onclick = () => openVendorPage(v.id); } 
+                    else { div.style.opacity = "0.6"; div.style.filter = "grayscale(100%)"; div.style.cursor = "default"; }
+
+                    div.innerHTML = `
+                        <div class="wli-top">
+                            <div style="position:relative;">
+                                ${andalanBadge}
+                                <img src="${img}" class="wli-img" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
+                                ${!s ? '<div class="badge-habis-overlay" style="border-radius:18px;"><span class="badge-habis-text">TUTUP</span></div>' : ''}
                             </div>
-                            <div class="wli-price-row">
-                                <span style="color:#00880B; font-weight:700;">Ongkir Rp${formattedPrice}rb</span>
-                                <span style="text-decoration:line-through; color:#aaa; font-weight:400; font-size:12px;">Rp${fakeCoret}rb</span>
-                                <span style="color:#888; font-weight:400; font-size:12px;">• ${dist}0-${dist}5 min</span>
-                            </div>
-                            <div style="font-size:10px; color:${statusColor}; font-weight:700; margin-top:2px;">${statusText}</div>
-                            ${catatanTokoListHtml}
-                        </div>
-                    </div>
-                    <div class="wli-promo-scroll">
-                        <div class="wli-promo-badge">
-                            <img src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" style="width:20px; height:20px; object-fit:contain;">
-                            <div style="display:flex; flex-direction:column; justify-content:center;">
-                                <div style="font-size:12px; font-weight:700; color:#333; margin-bottom:2px;">Diskon ongkir s.d. 1...</div>
-                                <div style="font-size:11px; color:#888;">Min. pembelian 15rb</div>
+                            <div class="wli-content">
+                                <div class="wli-title">${v.nama_warung || 'Warung Projekgo'}</div>
+                                <div class="wli-meta">
+                                    <i class="ph-fill ph-star" style="color:#FFC107; font-size:14px;"></i> 
+                                    <span style="font-weight:700; color:#333; margin-left:3px;">${rating}</span> 
+                                    <span style="color:#888; margin-left:2px;">(${reviewCount} ratings)</span>
+                                    <span style="margin: 0 4px;">•</span> ${menuDesc}
+                                </div>
+                                <div class="wli-price-row">
+                                    <span style="color:#00880B; font-weight:700;">Ongkir Rp${formattedPrice}rb</span>
+                                    <span style="text-decoration:line-through; color:#aaa; font-weight:400; font-size:12px;">Rp${fakeCoret}rb</span>
+                                    <span style="color:#888; font-weight:400; font-size:12px;">• ${dist}0-${dist}5 min</span>
+                                </div>
+                                <div style="font-size:10px; color:${statusColor}; font-weight:700; margin-top:2px;">${statusText}</div>
+                                ${catatanTokoListHtml}
                             </div>
                         </div>
-                        <div class="wli-promo-badge">
-                            <img src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" style="width:20px; height:20px; object-fit:contain;">
-                            <div style="display:flex; flex-direction:column; justify-content:center;">
-                                <div style="font-size:12px; font-weight:700; color:#333; margin-bottom:2px;">Diskon ongkir s.d. ...</div>
-                                <div style="font-size:11px; color:#888;">Min. pembelian 15rb</div>
+                        <div class="wli-promo-scroll">
+                            <div class="wli-promo-badge">
+                                <img src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" style="width:20px; height:20px; object-fit:contain;">
+                                <div style="display:flex; flex-direction:column; justify-content:center;">
+                                    <div style="font-size:12px; font-weight:700; color:#333; margin-bottom:2px;">Diskon ongkir s.d. 1...</div>
+                                    <div style="font-size:11px; color:#888;">Min. pembelian 15rb</div>
+                                </div>
+                            </div>
+                            <div class="wli-promo-badge">
+                                <img src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" style="width:20px; height:20px; object-fit:contain;">
+                                <div style="display:flex; flex-direction:column; justify-content:center;">
+                                    <div style="font-size:12px; font-weight:700; color:#333; margin-bottom:2px;">Diskon ongkir s.d. ...</div>
+                                    <div style="font-size:11px; color:#888;">Min. pembelian 15rb</div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                }
                 c.appendChild(div);
             });
             
