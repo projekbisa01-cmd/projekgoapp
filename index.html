@@ -866,6 +866,26 @@
         .cp-total-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 14px; font-weight: 700; }
         .cp-btn-checkout { width: 100%; background: var(--primary); color: white; padding: 14px; border: none; border-radius: 12px; font-weight: 700; font-size: 15px; box-shadow: 0 4px 15px rgba(255, 102, 0, 0.3); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
 
+        /* --- SKELETON LOADING (SHIMMER EFFECT) --- */
+        .skeleton {
+            background: #e2e5e7;
+            background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.6) 50px, rgba(255, 255, 255, 0) 100px);
+            background-size: 200px 100%;
+            background-repeat: no-repeat;
+            animation: shimmer 1.5s infinite linear;
+        }
+        @keyframes shimmer {
+            0% { background-position: -200px 0; }
+            100% { background-position: calc(200px + 100%) 0; }
+        }
+        .skel-card { display: flex; gap: 14px; padding: 18px 15px; border-bottom: 1px solid rgba(0,0,0,0.04); background: white; }
+        .skel-img { width: 90px; height: 90px; border-radius: 18px; flex-shrink: 0; }
+        .skel-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; gap: 10px; }
+        .skel-line { height: 14px; border-radius: 8px; }
+        .skel-cat-wrapper { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 80px; }
+        .skel-cat-icon { width: 75px; height: 75px; border-radius: 50%; }
+        .skel-cat-text { width: 50px; height: 12px; border-radius: 6px; }
+
         #variant-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 2500; align-items: flex-end; justify-content: center; backdrop-filter: blur(2px); opacity: 0; transition: opacity 0.3s; }
         #variant-modal.show { opacity: 1; }
         .variant-sheet { background: white; width: 100%; max-width: 480px; border-top-left-radius: 25px; border-top-right-radius: 25px; padding: 25px; animation: slideUpSheet 0.3s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(100%); transition: transform 0.3s; }
@@ -1530,7 +1550,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, addDoc, query, where, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // 1. TAMBAHKAN enableIndexedDbPersistence DI DAFTAR IMPORT INI
+        import { getFirestore, collection, getDocs, addDoc, query, where, doc, getDoc, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // ====================================================================
         // --- 1. GENERATE MANIFEST & SERVICE WORKER VIRTUAL (INLINE) ---
@@ -1669,6 +1690,15 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+
+        // 2. TAMBAHKAN BARIS INI UNTUK MENGAKTIFKAN OFFLINE PERSISTENCE (CACHE BAWAAN FIREBASE)
+        enableIndexedDbPersistence(db).catch((err) => {
+            if (err.code == 'failed-precondition') {
+                console.warn("Multiple tabs open, persistence can only be enabled in one tab at a a time.");
+            } else if (err.code == 'unimplemented') {
+                console.warn("Browser tidak mendukung mode offline Firebase.");
+            }
+        });
 
         // DATA STORE
         let rawProducts = [], allProducts = [], allVendors = [], allReviews = [], allMainCategories = [], cart = [], favorites = JSON.parse(localStorage.getItem('favs')) || [];
@@ -2352,49 +2382,85 @@
                     if (!grouped[vName].id && item.vendor_id) grouped[vName].id = item.vendor_id;
                 });
 
-                for (const [vendorName, groupData] of Object.entries(grouped)) {
-                    const items = groupData.items;
-                    const prices = items.map(i => parseInt(i.harga)); 
-                    const minPrice = prices.length ? Math.min(...prices) : 0; 
-                    const formattedPrice = (minPrice/1000).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 1 }) + 'rb';
-                    const rating = (4.0 + Math.random()).toFixed(1); 
-                    
-                    let vId = groupData.id;
-                    let vendorObj = null;
-                    let vendorImg = FALLBACK_VENDOR_IMG;
-
-                    if (!vId) { 
-                        vendorObj = currentDisplayVendors.find(v => v.nama_warung === vendorName); 
-                        vId = vendorObj ? vendorObj.id : 'temp'; 
-                    } else {
-                        vendorObj = currentDisplayVendors.find(v => v.id === vId);
-                    }
-                    if (vendorObj && vendorObj.shop_photo) { vendorImg = vendorObj.shop_photo; }
-
-                    const groupDiv = document.createElement('div'); 
-                    groupDiv.className = 'group-vendor-section'; 
-                    
-                    const headerHTML = `
-                        <div class="group-vendor-header-styled" onclick="openVendorPage('${vId}')" style="flex-direction:row; align-items:center; gap:12px; padding-bottom:10px;">
-                            <img src="${vendorImg}" onerror="this.src='${FALLBACK_VENDOR_IMG}'" style="width:50px; height:50px; border-radius:8px; object-fit:cover; border:1px solid #eee;">
-                            <div style="flex:1;">
-                                <div class="gvh-s-name" style="font-size:18px; font-weight:800; margin-bottom:2px;">${vendorName}</div>
-                                <div class="gvh-s-meta"><i class="ph-fill ph-star" style="color:#FFC107;"></i> ${rating} • Aneka Makanan</div>
-                                <div class="gvh-s-deliv" style="font-size:11px; color:#666;">Mulai <span style="color:var(--primary); font-weight:700;">Rp${formattedPrice}</span></div>
-                            </div>
-                            <i class="ph-bold ph-caret-right gvh-arrow"></i>
-                        </div>
-                    `;
-                    const scrollDiv = document.createElement('div'); 
-                    scrollDiv.className = 'scroll-container'; 
-                    items.forEach(item => { renderHorizontalCard(scrollDiv, item); }); 
-                    groupDiv.innerHTML = headerHTML;
-                    groupDiv.appendChild(scrollDiv); 
-                    c.appendChild(groupDiv);
-                }
+                // TAHAP 3: Simpan state kategori untuk Pagination
+                window.currentCategoryGroups = Object.entries(grouped);
+                window.categoryRenderLimit = 5; // Hanya render 5 toko pertama
+                renderCategoryGroups(c);
             }
             document.getElementById('list-title').innerText = cat; 
             openPage('list');
+        }
+
+        window.renderCategoryGroups = (container) => {
+            // Hapus tombol load more sebelumnya jika ada
+            const oldBtn = document.getElementById('btn-load-more-cat');
+            if (oldBtn) oldBtn.remove();
+
+            // Bersihkan kontainer HANYA jika ini render pertama kali
+            if (window.categoryRenderLimit === 5) {
+                container.innerHTML = '';
+            }
+
+            // Mulai render dari batas terakhir agar tidak double
+            const startIndex = window.categoryRenderLimit - 5;
+            const groupsToAppend = window.currentCategoryGroups.slice(startIndex, window.categoryRenderLimit);
+
+            for (const [vendorName, groupData] of groupsToAppend) {
+                const items = groupData.items;
+                const prices = items.map(i => parseInt(i.harga)); 
+                const minPrice = prices.length ? Math.min(...prices) : 0; 
+                const formattedPrice = (minPrice/1000).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 1 }) + 'rb';
+                const rating = (4.0 + Math.random()).toFixed(1); 
+                
+                let vId = groupData.id;
+                let vendorObj = null;
+                let vendorImg = FALLBACK_VENDOR_IMG;
+
+                if (!vId) { 
+                    vendorObj = currentDisplayVendors.find(v => v.nama_warung === vendorName); 
+                    vId = vendorObj ? vendorObj.id : 'temp'; 
+                } else {
+                    vendorObj = currentDisplayVendors.find(v => v.id === vId);
+                }
+                if (vendorObj && vendorObj.shop_photo) { vendorImg = vendorObj.shop_photo; }
+
+                const groupDiv = document.createElement('div'); 
+                groupDiv.className = 'group-vendor-section'; 
+                
+                const headerHTML = `
+                    <div class="group-vendor-header-styled" onclick="openVendorPage('${vId}')" style="flex-direction:row; align-items:center; gap:12px; padding-bottom:10px;">
+                        <img src="${vendorImg}" loading="lazy" onerror="this.src='${FALLBACK_VENDOR_IMG}'" style="width:50px; height:50px; border-radius:8px; object-fit:cover; border:1px solid #eee;">
+                        <div style="flex:1;">
+                            <div class="gvh-s-name" style="font-size:18px; font-weight:800; margin-bottom:2px;">${vendorName}</div>
+                            <div class="gvh-s-meta"><i class="ph-fill ph-star" style="color:#FFC107;"></i> ${rating} • Aneka Makanan</div>
+                            <div class="gvh-s-deliv" style="font-size:11px; color:#666;">Mulai <span style="color:var(--primary); font-weight:700;">Rp${formattedPrice}</span></div>
+                        </div>
+                        <i class="ph-bold ph-caret-right gvh-arrow"></i>
+                    </div>
+                `;
+                const scrollDiv = document.createElement('div'); 
+                scrollDiv.className = 'scroll-container'; 
+                items.forEach(item => { renderHorizontalCard(scrollDiv, item); }); 
+                groupDiv.innerHTML = headerHTML;
+                groupDiv.appendChild(scrollDiv); 
+                container.appendChild(groupDiv);
+            }
+
+            // Jika masih ada sisa toko, tampilkan tombol Load More
+            if (window.categoryRenderLimit < window.currentCategoryGroups.length) {
+                const btnContainer = document.createElement('div');
+                btnContainer.id = 'btn-load-more-cat';
+                btnContainer.style.padding = "20px";
+                btnContainer.style.textAlign = "center";
+                btnContainer.innerHTML = `<button onclick="loadMoreCategoryGroups()" style="background:var(--primary-light); color:var(--primary); font-weight:800; border:none; padding:12px 24px; border-radius:20px; font-size:14px; cursor:pointer; box-shadow: 0 4px 10px rgba(255,102,0,0.1); transition: 0.2s;">Tampilkan Penjual Lainnya <i class="ph-bold ph-caret-down"></i></button>`;
+                container.appendChild(btnContainer);
+            }
+        }
+
+        window.loadMoreCategoryGroups = () => {
+            window.categoryRenderLimit += 5;
+            const c = document.getElementById('list-content');
+            renderCategoryGroups(c);
         }
 
         function renderHorizontalScroll(id, items) {
@@ -2406,7 +2472,7 @@
             const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG; const realPrice = parseInt(item.harga); const fakePrice = Math.ceil(realPrice * 1.2); const vendorName = item.vendor_name || "Warung Projekgo"; const isFav = favorites.includes(item.id) ? 'active' : ''; const exclusiveBadge = item.is_exclusive ? '<div class="badge-exclusive">Exclusive</div>' : ''; const priorityBadge = '<div class="badge-priority"><i class="ph-fill ph-lightning"></i> Prioritas</div>'; const rating = (4.0 + Math.random()).toFixed(1); const sold = Math.floor(Math.random() * 500) + 50;
             const isAvailable = item.is_available !== false; const habisBadge = isAvailable ? '' : '<div class="badge-habis-overlay" style="border-radius:12px;"><span class="badge-habis-text">HABIS</span></div>'; const imgStyle = isAvailable ? '' : 'filter:grayscale(100%); opacity:0.7;'; const addAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, stok habis 🙏')`; const addStyle = isAvailable ? '' : 'background:#ccc; cursor:not-allowed;';
             const div = document.createElement('div'); div.className = 'h-card';
-            div.innerHTML = `<div style="position:relative;">${habisBadge}${priorityBadge}${exclusiveBadge}<div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')"><i class="ph-fill ph-heart"></i></div><img src="${img}" class="h-img" style="${imgStyle}" onerror="this.src='${FALLBACK_MENU_IMG}'" onclick="openProductDetail('${item.id}')"></div><div class="h-info" onclick="openProductDetail('${item.id}')"><div class="h-vendor"><i class="ph-fill ph-storefront"></i> ${vendorName}</div><div class="h-name">${item.nama_menu}</div><div class="h-stats"><i class="ph-fill ph-star"></i> ${rating} • Terjual ${sold}+</div><div class="price-row"><div class="price-box"><div style="display:flex; align-items:center; gap:3px;"><span class="p-label-normal">Normal</span><span class="p-coret">Rp ${fakePrice.toLocaleString()}</span></div><span class="p-real">Rp ${realPrice.toLocaleString()}</span></div><div class="btn-add-mini" style="${addStyle}" onclick="${addAction}"><i class="ph-bold ph-plus" style="color:white;"></i></div></div></div>`;
+            div.innerHTML = `<div style="position:relative;">${habisBadge}${priorityBadge}${exclusiveBadge}<div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')"><i class="ph-fill ph-heart"></i></div><img src="${img}" loading="lazy" class="h-img" style="${imgStyle}" onerror="this.src='${FALLBACK_MENU_IMG}'" onclick="openProductDetail('${item.id}')"></div><div class="h-info" onclick="openProductDetail('${item.id}')"><div class="h-vendor"><i class="ph-fill ph-storefront"></i> ${vendorName}</div><div class="h-name">${item.nama_menu}</div><div class="h-stats"><i class="ph-fill ph-star"></i> ${rating} • Terjual ${sold}+</div><div class="price-row"><div class="price-box"><div style="display:flex; align-items:center; gap:3px;"><span class="p-label-normal">Normal</span><span class="p-coret">Rp ${fakePrice.toLocaleString()}</span></div><span class="p-real">Rp ${realPrice.toLocaleString()}</span></div><div class="btn-add-mini" style="${addStyle}" onclick="${addAction}"><i class="ph-bold ph-plus" style="color:white;"></i></div></div></div>`;
             container.appendChild(div);
         }
 
@@ -2491,9 +2557,9 @@
         window.renderFavoritesPage = () => { const container = document.getElementById('fav-list-content'); container.innerHTML = ''; const favItems = rawProducts.filter(p => favorites.includes(p.id)); if(favItems.length === 0) { container.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:#999;">Belum ada menu favorit.</div>'; return; } favItems.forEach(item => { renderPcard(container, item); }); }
         
         function renderPcard(container, item) {
-            const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG; const realPrice = parseInt(item.harga); const fakePrice = Math.ceil(realPrice * 1.2); const isFav = favorites.includes(item.id) ? 'active' : ''; const exclusiveBadge = item.is_exclusive ? '<div class="badge-exclusive" style="font-size:8px;">Exclusive</div>' : ''; const priorityBadge = '<div class="badge-priority"><i class="ph-fill ph-lightning"></i> Prioritas</div>'; const rating = (4.0 + Math.random()).toFixed(1); const sold = Math.floor(Math.random() * 500) + 50;
+            const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG; const realPrice = parseInt(item.harga); const fakePrice = Math.ceil(realPrice * 1.2); const vendorName = item.vendor_name || "Warung Projekgo"; const isFav = favorites.includes(item.id) ? 'active' : ''; const exclusiveBadge = item.is_exclusive ? '<div class="badge-exclusive" style="font-size:8px;">Exclusive</div>' : ''; const priorityBadge = '<div class="badge-priority"><i class="ph-fill ph-lightning"></i> Prioritas</div>'; const rating = (4.0 + Math.random()).toFixed(1); const sold = Math.floor(Math.random() * 500) + 50;
             const isAvailable = item.is_available !== false; const habisBadge = isAvailable ? '' : '<div class="badge-habis-overlay" style="border-radius:12px;"><span class="badge-habis-text">HABIS</span></div>'; const imgStyle = isAvailable ? '' : 'filter:grayscale(100%); opacity:0.7;'; const addAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, stok habis 🙏')`; const addStyle = isAvailable ? '' : 'background:#ccc; cursor:not-allowed;';
-            const div = document.createElement('div'); div.className = 'p-card'; div.innerHTML = `<div style="position:relative;">${habisBadge}${priorityBadge}${exclusiveBadge}<img src="${img}" style="width:100%; height:120px; object-fit:cover; ${imgStyle}" onerror="this.src='${FALLBACK_MENU_IMG}'" onclick="openProductDetail('${item.id}')"><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}'); if(document.getElementById('page-favorites').style.display==='block') renderFavoritesPage();" style="top:5px; right:5px;"><i class="ph-fill ph-heart"></i></div></div><div class="p-info"><div onclick="openProductDetail('${item.id}')"><div style="font-size:10px; color:#888;">${item.vendor_name || 'Warung'}</div><div style="font-weight:700; font-size:13px; margin-bottom:2px;">${item.nama_menu}</div><div class="h-stats" style="margin-bottom:8px;"><i class="ph-fill ph-star"></i> ${rating} • Terjual ${sold}+</div><div style="display:flex; flex-direction:column;"><span class="p-coret" style="font-size:11px; text-decoration:line-through; color:#999;">Rp ${fakePrice.toLocaleString()}</span><span style="font-weight:800; color:var(--dark);">Rp ${realPrice.toLocaleString()}</span></div></div><button onclick="${addAction}" style="align-self:flex-end; background:var(--primary-light); color:var(--primary); border:none; width:24px; height:24px; border-radius:8px; font-weight:700; ${addStyle}">+</button></div>`; container.appendChild(div);
+            const div = document.createElement('div'); div.className = 'p-card'; div.innerHTML = `<div style="position:relative;">${habisBadge}${priorityBadge}${exclusiveBadge}<img src="${img}" loading="lazy" style="width:100%; height:120px; object-fit:cover; ${imgStyle}" onerror="this.src='${FALLBACK_MENU_IMG}'" onclick="openProductDetail('${item.id}')"><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}'); if(document.getElementById('page-favorites').style.display==='block') renderFavoritesPage();" style="top:5px; right:5px;"><i class="ph-fill ph-heart"></i></div></div><div class="p-info"><div onclick="openProductDetail('${item.id}')"><div style="font-size:10px; color:#888;">${item.vendor_name || 'Warung'}</div><div style="font-weight:700; font-size:13px; margin-bottom:2px;">${item.nama_menu}</div><div class="h-stats" style="margin-bottom:8px;"><i class="ph-fill ph-star"></i> ${rating} • Terjual ${sold}+</div><div style="display:flex; flex-direction:column;"><span class="p-coret" style="font-size:11px; text-decoration:line-through; color:#999;">Rp ${fakePrice.toLocaleString()}</span><span style="font-weight:800; color:var(--dark);">Rp ${realPrice.toLocaleString()}</span></div></div><button onclick="${addAction}" style="align-self:flex-end; background:var(--primary-light); color:var(--primary); border:none; width:24px; height:24px; border-radius:8px; font-weight:700; ${addStyle}">+</button></div>`; container.appendChild(div);
         }
 
         window.toggleCartPopup = () => {
@@ -2846,7 +2912,16 @@
                 if (filtered.length === 0) { 
                     c.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:#999;">Tidak ada hasil di lokasi ini.</div>'; 
                 } else { 
-                    filtered.forEach(item => { renderPcard(c, item); }); 
+                    // TAHAP 3: Batasi hasil pencarian maksimal 30 teratas agar tidak lag
+                    const limitedResults = filtered.slice(0, 30);
+                    limitedResults.forEach(item => { renderPcard(c, item); }); 
+                    
+                    if (filtered.length > 30) {
+                        const infoNode = document.createElement('div');
+                        infoNode.style.cssText = "grid-column:1/-1; text-align:center; padding:15px; color:#888; font-size:12px;";
+                        infoNode.innerText = `Menampilkan 30 hasil teratas dari ${filtered.length} menu ditemukan.`;
+                        c.appendChild(infoNode);
+                    }
                 } 
                 document.getElementById('list-title').innerText = `Hasil: "${keyword}"`; 
                 openPage('list'); 
@@ -2861,34 +2936,13 @@
         }
         window.submitServiceForm = () => { if(!checkOperationalStatus()) return; let inputs = document.querySelectorAll('[id^="svc-"]'); let message = `Halo Admin Projekgo, pesan jasa *${currentServiceType}*:%0A%0A`; let filled = true; inputs.forEach(input => { const label = input.previousElementSibling.innerText; const val = input.value.trim(); if(val === '') filled = false; message += `▪️ ${label}: ${val}%0A`; }); if(!filled) { showToast("Mohon lengkapi data."); return; } window.open(`https://wa.me/${ADMIN_WA}?text=${message}`, '_blank'); }
 
-        // --- OPTIMASI HEMAT KUOTA FIREBASE ---
+        // 3. GANTI KESELURUHAN FUNGSI loadData() LAMA DENGAN YANG BARU INI
+        // --- OPTIMASI HEMAT KUOTA FIREBASE (DENGAN INDEXED DB PERSISTENCE) ---
         async function loadData() {
-            // 1. Cek Data di Memory/Session Storage (Tahan 1 Jam)
-            const cacheTime = sessionStorage.getItem('app_data_time');
-            const now = Date.now();
-            const isCacheValid = cacheTime && (now - parseInt(cacheTime) < 60 * 60 * 1000); 
-
-            if (isCacheValid) {
-                const cachedVendors = sessionStorage.getItem('cache_vendors');
-                const cachedProducts = sessionStorage.getItem('cache_products');
-                const cachedCategories = sessionStorage.getItem('cache_categories');
-
-                if (cachedVendors && cachedProducts && cachedCategories) {
-                    allVendors = JSON.parse(cachedVendors);
-                    rawProducts = JSON.parse(cachedProducts);
-                    allMainCategories = JSON.parse(cachedCategories);
-                    
-                    // Terapkan fix image ke data cache (berjaga-jaga jika cache lama masih pakai i.ibb.co)
-                    allVendors.forEach(v => { v.shop_photo = fixImgUrl(v.shop_photo); v.cover_photo = fixImgUrl(v.cover_photo); });
-                    rawProducts.forEach(p => { p.foto_url = fixImgUrl(p.foto_url); });
-                    allMainCategories.forEach(c => { c.icon_url = fixImgUrl(c.icon_url); });
-
-                    filterAndRenderProducts();
-                    return; // Selesai, data dimuat secara gratis dari memori HP pelanggan
-                }
-            }
-
-            // 2. Jika tidak ada cache, fetch 1x dari Firebase (TIDAK Real-time)
+            // Karena kita sudah mengaktifkan IndexedDbPersistence, kita tidak perlu 
+            // menyimpan ke sessionStorage manual lagi. Firebase otomatis mengambil data
+            // dari penyimpanan internal HP (cache) secepat kilat, lalu menarik (fetch) 
+            // data yang BARU saja dari server di latar belakang jika ada perubahan.
             try {
                 const [venSnap, prodSnap, catSnap] = await Promise.all([
                     getDocs(collection(db, "vendors")),
@@ -2917,12 +2971,6 @@
                     d.icon_url = fixImgUrl(d.icon_url);
                     allMainCategories.push({id: doc.id, ...d});
                 });
-
-                // Simpan ke Cache HP Pelanggan
-                sessionStorage.setItem('cache_vendors', JSON.stringify(allVendors));
-                sessionStorage.setItem('cache_products', JSON.stringify(rawProducts));
-                sessionStorage.setItem('cache_categories', JSON.stringify(allMainCategories));
-                sessionStorage.setItem('app_data_time', now.toString());
 
                 filterAndRenderProducts();
             } catch (error) {
@@ -2959,6 +3007,8 @@
             const exclusiveItems = availableProducts.filter(p => p.is_exclusive === true);
             renderHorizontalScroll('container-exclusive', exclusiveItems);
             
+            // TAHAP 2: Reset limit render warung setiap kali filter berubah
+            window.warungRenderLimit = 6; 
             renderWarungList(currentDisplayVendors);
             
             // 4. Ubah Judul Sticky Warung Header
@@ -3377,7 +3427,10 @@
             if (topRatedContainer) topRatedContainer.innerHTML = '';
             renderTopRatedResto();
 
-            foodVendors.forEach((v, index) => {
+            // TAHAP 2: Batasi warung yang di-render ke layar (UI Pagination)
+            const vendorsToRender = foodVendors.slice(0, window.warungRenderLimit);
+
+            vendorsToRender.forEach((v, index) => {
                 // Logika memunculkan layout otomatis setiap 3 baris warung
                 if (index > 0 && index % 3 === 0) {
                     const urutanLayout = index / 3;
@@ -3537,7 +3590,58 @@
 
             if (!bestSellerInserted) renderBestSeller();
             if (!bannerInserted) renderBanner();
+
+            // TAHAP 2: Tambahkan tombol "Load More" jika masih ada sisa warung
+            if (window.warungRenderLimit < foodVendors.length) {
+                const btnContainer = document.createElement('div');
+                btnContainer.style.padding = "20px";
+                btnContainer.style.textAlign = "center";
+                btnContainer.innerHTML = `<button onclick="loadMoreWarung()" style="background:var(--primary-light); color:var(--primary); font-weight:800; border:none; padding:12px 24px; border-radius:20px; font-size:14px; cursor:pointer; box-shadow: 0 4px 10px rgba(255,102,0,0.1); transition: 0.2s;">Tampilkan Lebih Banyak <i class="ph-bold ph-caret-down"></i></button>`;
+                c.appendChild(btnContainer);
+            }
         }
+
+        // --- FUNGSI SKELETON LOADING ---
+        function showSkeletons() {
+            // Pasang kerangka untuk Kategori
+            const catGrid = document.getElementById('dynamic-cat-grid');
+            if (catGrid) {
+                catGrid.innerHTML = '';
+                for(let i=0; i<6; i++) {
+                    catGrid.innerHTML += `
+                    <div class="skel-cat-wrapper">
+                        <div class="skeleton skel-cat-icon"></div>
+                        <div class="skeleton skel-cat-text"></div>
+                    </div>`;
+                }
+            }
+
+            // Pasang kerangka untuk List Warung
+            const warungList = document.getElementById('container-warung');
+            if (warungList) {
+                warungList.innerHTML = '';
+                for(let i=0; i<5; i++) {
+                    warungList.innerHTML += `
+                    <div class="skel-card">
+                        <div class="skeleton skel-img"></div>
+                        <div class="skel-content">
+                            <div class="skeleton skel-line" style="width: 80%;"></div>
+                            <div class="skeleton skel-line" style="width: 50%;"></div>
+                            <div class="skeleton skel-line" style="width: 60%; margin-top: 5px;"></div>
+                        </div>
+                    </div>`;
+                }
+            }
+        }
+
+        // TAHAP 2: Fungsi untuk menambah limit dan merender ulang
+        window.loadMoreWarung = () => {
+            window.warungRenderLimit += 6; 
+            renderWarungList(currentDisplayVendors); 
+        }
+
+        // Jalankan pemasangan Skeleton terlebih dahulu, baru load data
+        showSkeletons();
         loadData();
 
     </script>
