@@ -176,6 +176,12 @@
         .pwa-overlay.show .pwa-ios-modal { transform: translateY(0); }
         .ios-close { position: absolute; top: 15px; right: 15px; background: #f5f5f5; border: none; width: 28px; height: 28px; border-radius: 50%; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #666; }
         .ios-step { background: #F8F9FB; padding: 12px; border-radius: 12px; border: 1px solid #eee; margin-top: 15px; }
+
+        /* FILTER PILLS STYLES */
+        .filter-container { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        .filter-container::-webkit-scrollbar { display: none; }
+        .filter-pill { padding: 6px 16px; background: white; border: 1px solid #ddd; border-radius: 20px; font-size: 12px; font-weight: 600; color: #555; white-space: nowrap; cursor: pointer; transition: 0.2s; }
+        .filter-pill.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(255,102,0,0.2); }
     </style>
 </head>
 <body>
@@ -373,6 +379,10 @@
                 <h3 style="margin:0;">Daftar Menu</h3>
                 <span style="font-size:12px; color:var(--gray);" id="menu-count">0 Menu</span>
             </div>
+
+            <!-- WADAH FILTER KATEGORI -->
+            <div id="menu-filter-wrapper"></div>
+
             <div id="menu-container"><div style="text-align:center; padding:40px; color:#999;">Memuat data...</div></div>
             <div style="height: 80px;"></div>
             <div class="fab-add" onclick="openModal()"><i class="ph-bold ph-plus"></i></div>
@@ -686,6 +696,10 @@
         let masterCategories = ["Sarapan", "Pernasian", "Minuman", "Ayam", "Berkuah", "Aneka Mie", "Snack", "Legendaris", "Masakan Khas", "Cepat Saji"]; 
         let isEditingCategory = false;
 
+        // VARIABEL GLOBAL UNTUK FILTER MENU
+        let globalMenuGroups = {};
+        let currentMenuFilter = 'Semua';
+
         // --- SISTEM PWA ---
         let deferredPrompt;
         function initPWA() {
@@ -961,42 +975,96 @@
         // --- MENU LOGIC ---
         function loadMenu() {
             onSnapshot(query(collection(db, "products"), where("vendor_id", "==", currentUser.id)), (snapshot) => {
-                const container = document.getElementById('menu-container');
-                container.innerHTML = '';
                 document.getElementById('menu-count').innerText = snapshot.size + " Menu";
                 currentProducts = {};
-                if(snapshot.empty) { container.innerHTML = '<div style="text-align:center; padding:40px; color:#999;">Belum ada menu.</div>'; return; }
-                const groups = {};
+                globalMenuGroups = {}; // Kosongkan grup sebelum memuat baru
+                
+                if(snapshot.empty) { 
+                    document.getElementById('menu-container').innerHTML = '<div style="text-align:center; padding:40px; color:#999;">Belum ada menu.</div>'; 
+                    document.getElementById('menu-filter-wrapper').innerHTML = '';
+                    return; 
+                }
+                
                 snapshot.forEach(docSnap => {
                     const item = docSnap.data();
                     currentProducts[docSnap.id] = item;
                     const groupKey = item.tipe || 'Lainnya';
-                    if(!groups[groupKey]) groups[groupKey] = [];
-                    groups[groupKey].push({ id: docSnap.id, ...item });
+                    if(!globalMenuGroups[groupKey]) globalMenuGroups[groupKey] = [];
+                    globalMenuGroups[groupKey].push({ id: docSnap.id, ...item });
                 });
-                Object.keys(groups).sort().forEach(cat => {
-                    container.innerHTML += `<div class="menu-category-header"><span>${cat}</span><span class="menu-category-count">${groups[cat].length}</span></div>`;
-                    groups[cat].forEach(item => {
-                        container.innerHTML += `
-                            <div class="menu-item">
-                                <img src="${fixImgUrl(item.foto_url) || 'https://cdn-icons-png.flaticon.com/512/1046/1046857.png'}" class="mi-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1046/1046857.png'">
-                                <div class="mi-info">
-                                    <div class="mi-name">${item.nama_menu}</div>
-                                    <div class="mi-price">${item.harga_asli > item.harga ? `<span style="font-size:11px; text-decoration:line-through; color:#999; margin-right:4px;">Rp ${item.harga_asli.toLocaleString()}</span>` : ''} Rp ${item.harga.toLocaleString()}</div>
-                                    <div style="margin-top:5px;">
-                                        ${item.is_exclusive ? '<span style="background:var(--primary);color:white;font-size:9px;padding:2px 5px;border-radius:4px;font-weight:700;">Eksklusif</span>' : ''}
-                                        ${item.is_priority ? '<span style="color:#FFC107;font-size:10px;font-weight:700;"><i class="ph-fill ph-star"></i> Andalan</span>' : ''}
-                                    </div>
+                
+                renderMenuUI();
+            });
+        }
+
+        // FUNGSI RENDER TAMPILAN MENU & FILTER
+        function renderMenuUI() {
+            const container = document.getElementById('menu-container');
+            const filterWrapper = document.getElementById('menu-filter-wrapper');
+            container.innerHTML = '';
+            
+            const categories = Object.keys(globalMenuGroups).sort();
+            
+            // Jika filter aktif kategori dihapus, kembalikan ke 'Semua'
+            if(currentMenuFilter !== 'Semua' && !categories.includes(currentMenuFilter)) {
+                currentMenuFilter = 'Semua';
+            }
+
+            // Buat HTML Tombol Kapsul Filter
+            let filterHTML = `<div class="filter-container">
+                <div class="filter-pill ${currentMenuFilter === 'Semua' ? 'active' : ''}" onclick="setMenuFilter('Semua')">Semua</div>`;
+            categories.forEach(cat => {
+                filterHTML += `<div class="filter-pill ${currentMenuFilter === cat ? 'active' : ''}" onclick="setMenuFilter('${cat}')">${cat}</div>`;
+            });
+            filterHTML += `</div>`;
+            if(filterWrapper) filterWrapper.innerHTML = filterHTML;
+
+            // Render Item Menu Sesuai Filter
+            categories.forEach(cat => {
+                if (currentMenuFilter !== 'Semua' && currentMenuFilter !== cat) return;
+                
+                container.innerHTML += `<div class="menu-category-header"><span>${cat}</span><span class="menu-category-count">${globalMenuGroups[cat].length}</span></div>`;
+                globalMenuGroups[cat].forEach(item => {
+                    const isAvailable = !item.is_sold_out;
+                    const imgStyle = isAvailable ? '' : 'filter: grayscale(100%); opacity: 0.6;';
+                    const badgeHabis = isAvailable ? '' : `<div style="position:absolute; top:4px; left:4px; background:var(--danger); color:white; font-size:9px; font-weight:800; padding:2px 5px; border-radius:4px; z-index:2; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">HABIS</div>`;
+
+                    container.innerHTML += `
+                        <div class="menu-item" style="${!isAvailable ? 'background: #fcfcfc; border-color: #eee;' : ''}">
+                            <div style="position:relative; width: 70px; height: 70px; flex-shrink: 0;">
+                                ${badgeHabis}
+                                <img src="${fixImgUrl(item.foto_url) || 'https://cdn-icons-png.flaticon.com/512/1046/1046857.png'}" class="mi-img" style="width:100%; height:100%; ${imgStyle}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1046/1046857.png'">
+                            </div>
+                            <div class="mi-info">
+                                <div class="mi-name" style="${!isAvailable ? 'color:#888;' : ''}">${item.nama_menu}</div>
+                                <div class="mi-price" style="${!isAvailable ? 'color:#888;' : ''}">${item.harga_asli > item.harga ? `<span style="font-size:11px; text-decoration:line-through; color:#999; margin-right:4px;">Rp ${item.harga_asli.toLocaleString()}</span>` : ''} Rp ${item.harga.toLocaleString()}</div>
+                                <div style="margin-top:5px; display:flex; flex-wrap:wrap; gap:4px; align-items:center;">
+                                    ${item.is_exclusive ? '<span style="background:var(--primary);color:white;font-size:9px;padding:2px 5px;border-radius:4px;font-weight:700;">Eksklusif</span>' : ''}
+                                    ${item.is_priority ? '<span style="color:#FFC107;font-size:10px;font-weight:700;"><i class="ph-fill ph-star"></i> Andalan</span>' : ''}
                                 </div>
-                                <div class="mi-actions">
-                                    <button style="color:#2196F3; background:none; border:none; padding:5px;" onclick="editMenu('${item.id}')"><i class="ph-bold ph-pencil-simple" style="font-size:20px;"></i></button>
-                                    <button style="color:var(--danger); background:none; border:none; padding:5px;" onclick="deleteMenu('${item.id}', '${item.nama_menu}')"><i class="ph-bold ph-trash" style="font-size:20px;"></i></button>
+                                <div style="margin-top:8px; display:flex; align-items:center; gap:5px;">
+                                    <label class="modern-toggle" style="transform: scale(0.65); margin: 0; transform-origin: left center;">
+                                        <input type="checkbox" ${isAvailable ? 'checked' : ''} onchange="toggleAvailableStatus('${item.id}', ${isAvailable})">
+                                        <span class="modern-slider"></span>
+                                    </label>
+                                    <span style="font-size:10px; font-weight:700; color: ${isAvailable ? 'var(--success)' : 'var(--danger)'};">${isAvailable ? 'Tersedia' : 'Habis'}</span>
                                 </div>
-                            </div>`;
-                    });
+                            </div>
+                            <div class="mi-actions">
+                                <button style="color:#25D366; background:none; border:none; padding:5px; margin-right:5px;" onclick="shareMenuToStory('${item.id}')" title="Buat Poster Story WA"><i class="ph-bold ph-share-network" style="font-size:22px;"></i></button>
+                                <button style="color:#2196F3; background:none; border:none; padding:5px;" onclick="editMenu('${item.id}')"><i class="ph-bold ph-pencil-simple" style="font-size:20px;"></i></button>
+                                <button style="color:var(--danger); background:none; border:none; padding:5px;" onclick="deleteMenu('${item.id}', '${item.nama_menu}')"><i class="ph-bold ph-trash" style="font-size:20px;"></i></button>
+                            </div>
+                        </div>`;
                 });
             });
         }
+
+        // FUNGSI SAAT TOMBOL FILTER DIKLIK
+        window.setMenuFilter = (cat) => {
+            currentMenuFilter = cat;
+            renderMenuUI(); // Render ulang tampilan tanpa tarik data internet lagi
+        };
 
         const uploadToFirebaseStorage = async (base64Data, path) => {
             const storageRef = ref(storage, path);
@@ -1081,6 +1149,17 @@
 
         window.deleteMenu = async (id, nama) => { if(confirm(`Hapus "${nama}"?`)) { await deleteDoc(doc(db, "products", id)); showToast("Dihapus."); }};
 
+        window.toggleAvailableStatus = async (id, currentAvailableStatus) => {
+            try {
+                // Jika status saat ini true (tersedia), maka saat diklik dia berubah menjadi habis (is_sold_out: true)
+                const newSoldOutStatus = currentAvailableStatus ? true : false;
+                await updateDoc(doc(db, "products", id), { is_sold_out: newSoldOutStatus });
+                showToast(newSoldOutStatus ? "Menu ditandai Habis!" : "Menu ditandai Tersedia!");
+            } catch(e) { 
+                showToast("Gagal mengubah status stok", false); 
+            }
+        };
+
         window.toggleShopStatus = async () => {
             const isOpen = document.getElementById('shop-toggle').checked;
             await updateDoc(doc(db, "vendors", currentUser.id), { status: isOpen ? "BUKA" : "TUTUP" });
@@ -1128,6 +1207,123 @@
             if(!currentUser || !currentUser.id) return showToast("Data toko belum siap", false);
             const link = `https://katalog.projekgo.id/?warung=${currentUser.id}`;
             window.open(link, '_blank');
+        };
+
+        // --- FUNGSI SHARE STORY WA OTOMATIS ---
+        window.shareMenuToStory = async (id) => {
+            const item = currentProducts[id];
+            if(!item) return;
+            showToast("Menyiapkan poster Story WA...");
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = 1080;
+            canvas.height = 1920;
+            const ctx = canvas.getContext('2d');
+
+            // 1. Gambar Background
+            ctx.fillStyle = '#F8F9FB';
+            ctx.fillRect(0, 0, 1080, 1920);
+
+            // 2. Gambar Header Melengkung
+            ctx.fillStyle = '#FF6600'; 
+            ctx.beginPath();
+            ctx.arc(540, -100, 900, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 3. Teks Header
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 80px "Plus Jakarta Sans", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText("PROJEKGO", 540, 200);
+            ctx.font = 'bold 45px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText("REKOMENDASI MENU", 540, 300);
+            ctx.fillStyle = '#FFF3E0';
+            ctx.fillText(`📍 ${currentUser.name}`, 540, 380);
+
+            // 4. Muat dan Gambar Foto Produk
+            const img = new Image();
+            img.crossOrigin = 'Anonymous'; 
+            img.src = window.fixImgUrl(item.foto_url);
+
+            img.onload = () => {
+                try {
+                    ctx.save();
+                    ctx.beginPath();
+                    // Fallback untuk browser lawas yang tidak mendukung roundRect
+                    if(ctx.roundRect) {
+                        ctx.roundRect(140, 480, 800, 800, 50);
+                    } else {
+                        ctx.rect(140, 480, 800, 800);
+                    }
+                    ctx.clip();
+                    ctx.drawImage(img, 140, 480, 800, 800);
+                    ctx.restore();
+
+                    // Bingkai Foto
+                    ctx.lineWidth = 15;
+                    ctx.strokeStyle = 'white';
+                    if(ctx.roundRect) {
+                        ctx.beginPath();
+                        ctx.roundRect(140, 480, 800, 800, 50);
+                        ctx.stroke();
+                    }
+
+                    // 5. Nama Menu & Harga
+                    ctx.fillStyle = '#1A1A1A';
+                    ctx.font = 'bold 75px "Plus Jakarta Sans", sans-serif';
+                    // Potong teks jika kepanjangan (sederhana)
+                    let namaMenu = item.nama_menu.length > 20 ? item.nama_menu.substring(0, 20) + '...' : item.nama_menu;
+                    ctx.fillText(namaMenu, 540, 1450);
+
+                    ctx.fillStyle = '#FF6600';
+                    ctx.font = 'bold 100px "Plus Jakarta Sans", sans-serif';
+                    ctx.fillText(`Rp ${item.harga.toLocaleString()}`, 540, 1580);
+
+                    // 6. Tombol CTA Bawah
+                    ctx.fillStyle = '#25D366'; 
+                    if(ctx.roundRect) {
+                        ctx.beginPath();
+                        ctx.roundRect(190, 1720, 700, 120, 60);
+                        ctx.fill();
+                    } else {
+                        ctx.fillRect(190, 1720, 700, 120);
+                    }
+                    ctx.fillStyle = 'white';
+                    ctx.font = 'bold 40px "Plus Jakarta Sans", sans-serif';
+                    ctx.fillText("Pesan via WhatsApp Sekarang!", 540, 1800);
+
+                    // 7. Ekspor dan Bagikan
+                    canvas.toBlob(async (blob) => {
+                        if (!blob) throw new Error("Gagal membuat gambar");
+                        const file = new File([blob], 'Story-Projekgo.jpg', { type: 'image/jpeg' });
+                        
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            await navigator.share({
+                                files: [file],
+                                title: 'Menu Spesial',
+                                text: `Yuk pesan ${item.nama_menu} di ${currentUser.name} via Projekgo!`
+                            });
+                        } else {
+                            // Jika fitur share native tidak didukung, otomatis unduh
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `Promo_${item.nama_menu}.jpg`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                            showToast("Gambar berhasil diunduh! Silakan pasang di Story WA.");
+                        }
+                    }, 'image/jpeg', 0.8);
+
+                } catch (err) {
+                    console.error(err);
+                    showToast("Gagal memproses poster.", false);
+                }
+            };
+            
+            img.onerror = () => showToast("Gagal memuat foto untuk poster", false);
         };
 
         // --- FUNGSI PESAN KURIR WA ---
@@ -1194,6 +1390,20 @@
         };
 
         window.togglePromoStatus = async (id, currentStatus) => {
+            // Cek batasan maksimal 2 menu jika ingin mengaktifkan promo
+            if (!currentStatus) {
+                let promoCount = 0;
+                Object.values(currentProducts).forEach(item => {
+                    if (item.is_promo) promoCount++;
+                });
+
+                if (promoCount >= 2) {
+                    showToast("Maksimal hanya 2 menu untuk Promo!", false);
+                    renderPromoList(); // Kembalikan posisi toggle secara visual
+                    return;
+                }
+            }
+
             try {
                 await updateDoc(doc(db, "products", id), { is_promo: !currentStatus });
                 showToast("Status promo disimpan!");
@@ -1203,6 +1413,7 @@
                 renderPromoList(); 
             } catch (e) {
                 showToast("Gagal mengatur promo", false);
+                renderPromoList(); // Kembalikan posisi toggle jika gagal
             }
         };
 
@@ -1249,6 +1460,20 @@
         };
 
         window.toggleFlashSaleStatus = async (id, currentStatus) => {
+            // Cek batasan maksimal 2 menu jika ingin mengaktifkan flash sale
+            if (!currentStatus) {
+                let flashSaleCount = 0;
+                Object.values(currentProducts).forEach(item => {
+                    if (item.is_flash_sale) flashSaleCount++;
+                });
+
+                if (flashSaleCount >= 2) {
+                    showToast("Maksimal hanya 2 menu untuk Flash Sale!", false);
+                    renderFlashSaleList(); // Kembalikan posisi toggle secara visual
+                    return;
+                }
+            }
+
             try {
                 await updateDoc(doc(db, "products", id), { is_flash_sale: !currentStatus });
                 showToast("Status Flash Sale disimpan!");
@@ -1257,6 +1482,7 @@
                 renderFlashSaleList(); 
             } catch (e) {
                 showToast("Gagal mengatur Flash Sale", false);
+                renderFlashSaleList(); // Kembalikan posisi toggle jika gagal
             }
         };
 
