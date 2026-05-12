@@ -1196,19 +1196,8 @@
                 <!-- Data dimuat dari koleksi kategori_utama di Firebase -->
             </div>
 
-            <!-- EXCLUSIVE SECTION -->
-            <div id="wrapper-exclusive" style="background: linear-gradient(180deg, #FFF4E6 0%, #FFFFFF 100%); padding: 15px 0 5px 0; margin-bottom: 0; border-bottom: 8px solid var(--bg);">
-                <div style="background: linear-gradient(90deg, #FFE0B2 0%, transparent 100%); display:flex; justify-content:space-between; align-items:flex-start; padding: 10px 20px; margin-bottom: 12px;">
-                    <div>
-                        <div style="font-size: 16px; font-weight: 800; color: #E65100; display:flex; align-items:center; gap:6px;">
-                            Exclusive di Projekgo <span style="background:#E65100; color:white; font-size:10px; padding:3px 6px; border-radius:4px; font-weight:800; line-height:1;"><i class="ph-fill ph-medal" style="margin-right:2px;"></i>SPESIAL</span>
-                        </div>
-                        <div style="font-size: 12px; color: #888; margin-top: 5px; font-weight: 500;">Hanya ada di Projekgo</div>
-                    </div>
-                    <div onclick="openCategoryPage('Exclusive')" style="font-size: 13px; color: #999; font-weight: 600; cursor: pointer; display:flex; align-items:center; margin-top: 2px;">Lihat Semua <i class="ph-bold ph-caret-right" style="margin-left:2px;"></i></div>
-                </div>
-                <div class="scroll-container" id="container-exclusive" style="padding: 5px 15px 15px 15px; gap: 12px;"></div>
-            </div>
+            <!-- FLASH SALE SECTION (DIPINDAH KE ATAS) -->
+            <div id="container-flash-sale-top"></div>
             
             <!-- CONTAINER RESTO RATING JEMPOLAN -->
             <div id="container-top-rated"></div>
@@ -3063,6 +3052,77 @@
         }
 
         // --- FILTER LOKASI UTAMA ---
+        function renderFlashSaleTop() {
+            const container = document.getElementById('container-flash-sale-top');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            const products = allProducts.filter(p => p.is_available !== false).slice(0, 5);
+            if(products.length === 0) return;
+            
+            const promoDiv = document.createElement('div');
+            // Menghilangkan margin dan border-radius agar menempel penuh kiri-kanan menyesuaikan posisinya di atas
+            promoDiv.style.cssText = "background: linear-gradient(135deg, #FF6B4A 0%, #FF3D00 100%); padding-bottom: 20px; margin-bottom: 0; border-bottom: 8px solid var(--bg); overflow: hidden;";
+            
+            let header = `
+                <div style="background: linear-gradient(90deg, rgba(0,0,0,0.1) 0%, transparent 100%); display:flex; justify-content:space-between; align-items:center; padding: 15px 20px 12px 20px;">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <i class="ph-fill ph-lightning" style="background:#FFD54F; color:#FF3D00; font-size:14px; padding:4px; border-radius:4px;"></i>
+                        <span style="font-size: 16px; font-weight: 800; color: white; font-style:italic; display:flex; align-items:center; letter-spacing: -0.5px;">F<i class="ph-fill ph-lightning" style="margin:0 -1px; color:#FFD54F;"></i>ASH SALE</span>
+                        <div style="display:flex; gap:3px; margin-left:6px;">
+                            <span class="fs-h-val" style="background:white; color:#FF3D00; font-size:11px; font-weight:800; padding:3px 5px; border-radius:4px; line-height:1; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">00</span>
+                            <span style="font-weight:800; font-size:12px; color:white;">:</span>
+                            <span class="fs-m-val" style="background:white; color:#FF3D00; font-size:11px; font-weight:800; padding:3px 5px; border-radius:4px; line-height:1; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">41</span>
+                            <span style="font-weight:800; font-size:12px; color:white;">:</span>
+                            <span class="fs-s-val" style="background:white; color:#FF3D00; font-size:11px; font-weight:800; padding:3px 5px; border-radius:4px; line-height:1; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">01</span>
+                        </div>
+                    </div>
+                    <div onclick="openCategoryPage('Flash Sale')" style="font-size: 13px; color: rgba(255,255,255,0.9); display:flex; align-items:center; font-weight: 600; cursor: pointer;">Lihat Semua <i class="ph-bold ph-caret-right" style="margin-left:2px;"></i></div>
+                </div>
+            `;
+            let cards = `<div class="scroll-container" style="padding: 5px 20px 0 20px; gap: 12px;">`;
+            products.forEach(item => {
+                const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG;
+                const realPrice = parseInt(item.harga);
+                const discountPercent = Math.floor(Math.random() * 30) + 20; 
+                
+                cards += `
+                    <div style="width: 140px; flex-shrink: 0; cursor: pointer; background: white; border-radius: 12px; padding: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" onclick="openProductDetail('${item.id}')">
+                        <div style="position:relative; width:100%; height:120px; border-radius:8px; overflow:hidden;">
+                            <img src="${img}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='${FALLBACK_MENU_IMG}'">
+                            <div style="position:absolute; top:0; right:0; background:#FFD54F; color:#D32F2F; font-size:12px; font-weight:800; padding:4px 6px; border-bottom-left-radius:8px;">
+                                -${discountPercent}%
+                            </div>
+                        </div>
+                        <div style="font-size: 12px; font-weight: 700; color: var(--dark); margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 4px;">${item.nama_menu}</div>
+                        <div style="font-size: 14px; font-weight: 800; color: #FF3D00; margin-top: 2px; padding: 0 4px;">Rp${realPrice.toLocaleString()}</div>
+                        <div style="background:#FFEBEB; border-radius:10px; height:14px; margin: 6px 4px 4px 4px; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+                            <div style="background:linear-gradient(90deg, #FF6B4A, #FF3D00); width:${Math.floor(Math.random()*60)+10}%; height:100%; position:absolute; left:0; border-radius:10px;"></div>
+                            <span style="position:relative; font-size:9px; font-weight:800; color:white; z-index:2; text-shadow: 0 1px 1px rgba(0,0,0,0.3);">STOK TERBATAS</span>
+                        </div>
+                    </div>
+                `;
+            });
+            cards += `</div>`;
+            promoDiv.innerHTML = header + cards;
+            container.appendChild(promoDiv);
+
+            if(!window.fsTimerRunningTop) {
+                window.fsTimerRunningTop = true;
+                let fsTotalSeconds = 41 * 60 + 1;
+                setInterval(() => {
+                    if (fsTotalSeconds <= 0) fsTotalSeconds = 59 * 60 + 59;
+                    fsTotalSeconds--;
+                    const h = Math.floor(fsTotalSeconds / 3600);
+                    const m = Math.floor((fsTotalSeconds % 3600) / 60);
+                    const s = fsTotalSeconds % 60;
+                    document.querySelectorAll('.fs-h-val').forEach(el => el.innerText = h.toString().padStart(2, '0'));
+                    document.querySelectorAll('.fs-m-val').forEach(el => el.innerText = m.toString().padStart(2, '0'));
+                    document.querySelectorAll('.fs-s-val').forEach(el => el.innerText = s.toString().padStart(2, '0'));
+                }, 1000);
+            }
+        }
+
         function filterAndRenderProducts() {
             // 1. Saring warung berdasarkan lokasi yang dipilih ("currentArea")
             currentDisplayVendors = allVendors.filter(v => {
@@ -3086,8 +3146,8 @@
             // 3. Render ulang UI berdasarkan lokasi
             renderCategories();
 
-            const exclusiveItems = availableProducts.filter(p => p.is_exclusive === true);
-            renderHorizontalScroll('container-exclusive', exclusiveItems);
+            // Panggil render Flash Sale di posisi atas (menggantikan posisi Exclusive sebelumnya)
+            renderFlashSaleTop();
             
             // TAHAP 2: Reset limit render warung setiap kali filter berubah
             window.warungRenderLimit = 6; 
@@ -3432,50 +3492,44 @@
                 topRatingImgInserted = true;
             };
 
-            let flashSaleImgInserted = false;
-            const renderFlashSaleImageStyle = () => {
-                if (flashSaleImgInserted) return;
-                const products = allProducts.filter(p => p.is_available !== false).slice(0, 5);
-                if(products.length === 0) return;
+            let exclusiveImgInserted = false;
+            const renderExclusiveStyle = () => {
+                if (exclusiveImgInserted) return;
+                const exclusiveItems = allProducts.filter(p => p.is_available !== false && p.is_exclusive === true).slice(0, 5);
+                if(exclusiveItems.length === 0) return;
                 
                 const promoDiv = document.createElement('div');
-                promoDiv.style.cssText = "background: linear-gradient(135deg, #FF6B4A 0%, #FF3D00 100%); padding-bottom: 20px; border-radius: 16px; margin: 0 15px 20px 15px; box-shadow: 0 8px 20px rgba(255, 61, 0, 0.2); overflow: hidden;";
+                promoDiv.style.cssText = "background: linear-gradient(180deg, #FFF4E6 0%, #FFFFFF 100%); padding-bottom: 20px; border-radius: 16px; margin: 0 15px 20px 15px; box-shadow: 0 8px 20px rgba(255, 102, 0, 0.15); overflow: hidden;";
                 
                 let header = `
-                    <div style="background: linear-gradient(90deg, rgba(0,0,0,0.1) 0%, transparent 100%); display:flex; justify-content:space-between; align-items:center; padding: 15px 15px 12px 15px;">
+                    <div style="background: linear-gradient(90deg, #FFE0B2 0%, transparent 100%); display:flex; justify-content:space-between; align-items:center; padding: 15px 15px 12px 15px;">
                         <div style="display:flex; align-items:center; gap:6px;">
-                            <i class="ph-fill ph-lightning" style="background:#FFD54F; color:#FF3D00; font-size:14px; padding:4px; border-radius:4px;"></i>
-                            <span style="font-size: 16px; font-weight: 800; color: white; font-style:italic; display:flex; align-items:center; letter-spacing: -0.5px;">F<i class="ph-fill ph-lightning" style="margin:0 -1px; color:#FFD54F;"></i>ASH SALE</span>
-                            <div style="display:flex; gap:3px; margin-left:6px;">
-                                <span class="fs-h-val" id="fs-hours" style="background:white; color:#FF3D00; font-size:11px; font-weight:800; padding:3px 5px; border-radius:4px; line-height:1; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">00</span>
-                                <span style="font-weight:800; font-size:12px; color:white;">:</span>
-                                <span class="fs-m-val" id="fs-minutes" style="background:white; color:#FF3D00; font-size:11px; font-weight:800; padding:3px 5px; border-radius:4px; line-height:1; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">41</span>
-                                <span style="font-weight:800; font-size:12px; color:white;">:</span>
-                                <span class="fs-s-val" id="fs-seconds" style="background:white; color:#FF3D00; font-size:11px; font-weight:800; padding:3px 5px; border-radius:4px; line-height:1; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">01</span>
+                            <div style="font-size: 16px; font-weight: 800; color: #E65100; display:flex; align-items:center; gap:6px;">
+                                Exclusive di Projekgo <span style="background:#E65100; color:white; font-size:10px; padding:3px 6px; border-radius:4px; font-weight:800; line-height:1;"><i class="ph-fill ph-medal" style="margin-right:2px;"></i>SPESIAL</span>
                             </div>
                         </div>
-                        <div onclick="openCategoryPage('Flash Sale')" style="font-size: 12px; color: rgba(255,255,255,0.9); display:flex; align-items:center; font-weight: 600; cursor: pointer;">Lihat Semua <i class="ph-bold ph-caret-right" style="margin-left:2px;"></i></div>
+                        <div onclick="openCategoryPage('Exclusive')" style="font-size: 12px; color: #E65100; display:flex; align-items:center; font-weight: 700; cursor: pointer;">Lihat Semua <i class="ph-bold ph-caret-right" style="margin-left:2px;"></i></div>
                     </div>
                 `;
+                
                 let cards = `<div class="scroll-container" style="padding: 0 15px; gap: 12px;">`;
-                products.forEach(item => {
+                exclusiveItems.forEach(item => {
                     const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG;
                     const realPrice = parseInt(item.harga);
-                    const discountPercent = Math.floor(Math.random() * 30) + 20; 
+                    const fakePrice = Math.ceil(realPrice * 1.2);
                     
                     cards += `
-                        <div style="width: 140px; flex-shrink: 0; cursor: pointer; background: white; border-radius: 12px; padding: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" onclick="openProductDetail('${item.id}')">
+                        <div style="width: 140px; flex-shrink: 0; cursor: pointer; background: white; border-radius: 12px; padding: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.03);" onclick="openProductDetail('${item.id}')">
                             <div style="position:relative; width:100%; height:120px; border-radius:8px; overflow:hidden;">
                                 <img src="${img}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='${FALLBACK_MENU_IMG}'">
-                                <div style="position:absolute; top:0; right:0; background:#FFD54F; color:#D32F2F; font-size:12px; font-weight:800; padding:4px 6px; border-bottom-left-radius:8px;">
-                                    -${discountPercent}%
+                                <div style="position:absolute; bottom:0; right:0; background: linear-gradient(45deg, #FF6600, #FF9900); color: white; font-size:9px; padding:4px 8px; border-top-left-radius:8px; font-weight:800;">
+                                    EXCLUSIVE
                                 </div>
                             </div>
                             <div style="font-size: 12px; font-weight: 700; color: var(--dark); margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 4px;">${item.nama_menu}</div>
-                            <div style="font-size: 14px; font-weight: 800; color: #FF3D00; margin-top: 2px; padding: 0 4px;">Rp${realPrice.toLocaleString()}</div>
-                            <div style="background:#FFEBEB; border-radius:10px; height:14px; margin: 6px 4px 4px 4px; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;">
-                                <div style="background:linear-gradient(90deg, #FF6B4A, #FF3D00); width:${Math.floor(Math.random()*60)+10}%; height:100%; position:absolute; left:0; border-radius:10px;"></div>
-                                <span style="position:relative; font-size:9px; font-weight:800; color:white; z-index:2; text-shadow: 0 1px 1px rgba(0,0,0,0.3);">STOK TERBATAS</span>
+                            <div style="display:flex; flex-direction:column; padding: 0 4px; margin-top: 2px;">
+                                <span style="font-size:11px; text-decoration:line-through; color:#999;">Rp${fakePrice.toLocaleString()}</span>
+                                <span style="font-size: 14px; font-weight: 800; color: var(--primary);">Rp${realPrice.toLocaleString()}</span>
                             </div>
                         </div>
                     `;
@@ -3483,28 +3537,7 @@
                 cards += `</div>`;
                 promoDiv.innerHTML = header + cards;
                 c.appendChild(promoDiv);
-                
-                // Tambahkan logika timer dummy flash sale berjalan mundur
-                let fsTotalSeconds = 41 * 60 + 1; // 41 menit 1 detik (sesuai gambar awal)
-                setInterval(() => {
-                    if (fsTotalSeconds <= 0) fsTotalSeconds = 59 * 60 + 59; // Reset jika habis (dummy)
-                    fsTotalSeconds--;
-                    
-                    const h = Math.floor(fsTotalSeconds / 3600);
-                    const m = Math.floor((fsTotalSeconds % 3600) / 60);
-                    const s = fsTotalSeconds % 60;
-                    
-                    const hStr = h.toString().padStart(2, '0');
-                    const mStr = m.toString().padStart(2, '0');
-                    const sStr = s.toString().padStart(2, '0');
-                    
-                    // Menggunakan querySelectorAll agar timer tersinkronisasi di banyak tempat sekaligus (Beranda & Halaman List)
-                    document.querySelectorAll('.fs-h-val').forEach(el => el.innerText = hStr);
-                    document.querySelectorAll('.fs-m-val').forEach(el => el.innerText = mStr);
-                    document.querySelectorAll('.fs-s-val').forEach(el => el.innerText = sStr);
-                }, 1000);
-
-                flashSaleImgInserted = true;
+                exclusiveImgInserted = true;
             };
             
             if (foodVendors.length === 0) {
@@ -3532,10 +3565,10 @@
                     }
                 }
 
-                // NEW: Sisipkan Resto Top Rating & Flash Sale tepat setelah penjual ke-5 (index === 5)
+                // NEW: Sisipkan Resto Top Rating & Exclusive tepat setelah penjual ke-5 (index === 5)
                 if (index === 5) {
                     renderRestoTopRatingImageStyle();
-                    renderFlashSaleImageStyle();
+                    renderExclusiveStyle();
                 }
 
                 const vendorProds = allProducts.filter(p => p.vendor_id === v.id && p.is_available !== false);
@@ -3679,7 +3712,7 @@
             // Jaga-jaga jika daftar warung kurang dari atau sama dengan 5, widget tetap dimunculkan di akhir list
             if (foodVendors.length > 0 && foodVendors.length <= 5) {
                 renderRestoTopRatingImageStyle();
-                renderFlashSaleImageStyle();
+                renderExclusiveStyle();
             }
 
             if (!bestSellerInserted) renderBestSeller();
