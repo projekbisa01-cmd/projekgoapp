@@ -13,6 +13,7 @@
     <title>Mitra Projekgo - Kelola Warung</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
         :root {
@@ -327,9 +328,9 @@
                         <div class="service-icon"><i class="ph-fill ph-lightning" style="color:#FF9800;"></i></div>
                         <span>Flash Sale</span>
                     </div>
-                    <div class="service-item disabled">
+                    <div class="service-item" onclick="openQRModal()">
                         <div class="service-icon"><i class="ph-fill ph-qr-code" style="color:#00BCD4;"></i></div>
-                        <span>Cetak QRIS</span>
+                        <span>QR Meja</span>
                     </div>
                     
                     <div class="service-item" onclick="openKurirModal()">
@@ -341,9 +342,9 @@
                         <span>Bantuan</span>
                     </div>
                     
-                    <div class="service-item disabled">
-                        <div class="service-icon"><i class="ph-fill ph-users" style="color:#D81B60;"></i></div>
-                        <span>Karyawan</span>
+                    <div class="service-item" onclick="openTagihanModal()">
+                        <div class="service-icon"><i class="ph-fill ph-receipt" style="color:#D81B60;"></i></div>
+                        <span>Tagihan</span>
                     </div>
                     <div class="service-item" onclick="openPromoModal()">
                         <div class="service-icon"><i class="ph-fill ph-ticket" style="color:#E53935;"></i></div>
@@ -656,6 +657,70 @@
                     <i class="ph-bold ph-whatsapp-logo" style="font-size: 18px;"></i> Admin II (0812-9280-2623)
                 </button>
             </a>
+        </div>
+    </div>
+
+    <!-- MODAL QR MEJA DINE-IN -->
+    <div id="modal-qr-meja" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: flex-end;">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin:0;">Cetak QR Meja (Dine-in)</h3>
+                <button style="background:none; border:none; font-size:20px; cursor:pointer; color: #666;" onclick="closeQRModal()"><i class="ph-bold ph-x"></i></button>
+            </div>
+            
+            <div style="background: #E0F7FA; border: 1px solid #B2EBF2; padding: 12px; border-radius: 10px; margin-bottom: 10px; display: flex; gap: 10px; align-items: flex-start;">
+                <i class="ph-fill ph-info" style="color: #00BCD4; font-size: 18px; margin-top: 2px;"></i>
+                <div style="font-size: 11px; color: #00838F; line-height: 1.5;">
+                    Cetak dan tempel stiker QR ini di meja warung. Saat pelanggan *scan*, mereka bisa memesan langsung ke WhatsApp Anda tanpa lewat Admin.
+                </div>
+            </div>
+
+            <div style="background: #FFF3E0; border: 1px solid #FFE0B2; padding: 12px; border-radius: 10px; margin-bottom: 15px; display: flex; gap: 10px; align-items: flex-start;">
+                <i class="ph-fill ph-coin" style="color: #FF8F00; font-size: 18px; margin-top: 2px;"></i>
+                <div style="font-size: 11px; color: #b5651d; line-height: 1.5;">
+                    <strong style="color: #E65100;">Info Biaya Layanan:</strong> Sistem otomatis akan menambahkan biaya layanan platform <strong>Rp 1.000</strong> ke struk pelanggan untuk setiap transaksi via QR ini.
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Nomor / Nama Meja (Opsional)</label>
+                <input type="text" id="inp-qr-meja" class="form-input" placeholder="Contoh: 1, 2, atau VIP">
+            </div>
+
+            <div id="qr-result-box" style="display:none; text-align:center; margin-bottom:15px; margin-top:20px;">
+                <div id="qr-code-container" style="display:inline-block; padding:15px; background:white; border-radius:10px; border:2px dashed #ddd; width:200px; height:200px; overflow:hidden;"></div>
+                <div style="font-size:14px; font-weight:800; color:var(--dark); margin-top:10px;">Meja: <span id="qr-meja-label">-</span></div>
+            </div>
+
+            <button class="btn-submit" id="btn-generate-qr" onclick="generateQRMeja()">Buat QR Code</button>
+            <button class="btn-submit" id="btn-download-qr" onclick="downloadQRMeja()" style="display:none; background:#4CAF50; justify-content: center; align-items: center; gap: 8px;"><i class="ph-bold ph-download-simple" style="font-size:18px;"></i> Simpan / Download QR</button>
+        </div>
+    </div>
+
+    <!-- MODAL TAGIHAN -->
+    <div id="modal-tagihan" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: flex-end;">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin:0;">Tagihan Sistem</h3>
+                <button style="background:none; border:none; font-size:20px; cursor:pointer; color: #666;" onclick="closeTagihanModal()"><i class="ph-bold ph-x"></i></button>
+            </div>
+            
+            <div style="background: #E8EAF6; border: 1px solid #C5CAE9; padding: 12px; border-radius: 10px; margin-bottom: 15px; display: flex; gap: 10px; align-items: flex-start;">
+                <i class="ph-fill ph-info" style="color: #3F51B5; font-size: 18px; margin-top: 2px;"></i>
+                <div style="font-size: 11px; color: #303F9F; line-height: 1.5;">
+                    <strong>Informasi Transparansi:</strong> Tagihan ini berasal dari biaya layanan aplikasi (contoh: Rp 1.000 per transaksi QR Meja). Dana ini sepenuhnya kami gunakan untuk biaya operasional server, pengembangan aplikasi, dan investasi data agar Projekgo tetap hidup dan bebas komisi 0% untuk makanan Anda.
+                </div>
+            </div>
+
+            <div style="background: white; border: 1px solid #ddd; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+                <div style="font-size: 13px; color: var(--gray); font-weight: 600; margin-bottom: 5px;">Total Tagihan Belum Dibayar</div>
+                <div style="font-size: 28px; font-weight: 800; color: var(--danger);">Rp 0</div>
+                <div style="font-size: 11px; color: #888; margin-top: 5px;">*Tagihan direkap secara berkala oleh Admin Projekgo.</div>
+            </div>
+
+            <button class="btn-submit" onclick="konfirmasiTagihan()" style="background: var(--dark); display: flex; justify-content: center; align-items: center; gap: 8px;">
+                <i class="ph-bold ph-whatsapp-logo" style="font-size: 18px;"></i> Konfirmasi Tagihan via Admin
+            </button>
         </div>
     </div>
 
@@ -1493,6 +1558,87 @@
 
         window.closeBantuanModal = () => {
             document.getElementById('modal-bantuan').style.display = 'none';
+        };
+
+        // --- FUNGSI TAGIHAN ---
+        window.openTagihanModal = () => {
+            document.getElementById('modal-tagihan').style.display = 'flex';
+        };
+
+        window.closeTagihanModal = () => {
+            document.getElementById('modal-tagihan').style.display = 'none';
+        };
+
+        window.konfirmasiTagihan = () => {
+            const text = `Halo Admin Projekgo,\n\nSaya dari warung *${currentUser.name}* ingin mengecek/mengonfirmasi pembayaran tagihan biaya layanan sistem.\n\nMohon info detail tagihan dan cara pembayarannya. Terima kasih!`;
+            const waUrl = `https://wa.me/62882008667068?text=${encodeURIComponent(text)}`;
+            window.open(waUrl, '_blank');
+            closeTagihanModal();
+        };
+
+        // --- FUNGSI QR MEJA ---
+        window.openQRModal = () => {
+            document.getElementById('inp-qr-meja').value = '';
+            document.getElementById('qr-result-box').style.display = 'none';
+            document.getElementById('qr-code-container').innerHTML = ''; // Kosongkan
+            document.getElementById('btn-generate-qr').style.display = 'block';
+            document.getElementById('btn-download-qr').style.display = 'none';
+            document.getElementById('modal-qr-meja').style.display = 'flex';
+        };
+
+        window.closeQRModal = () => {
+            document.getElementById('modal-qr-meja').style.display = 'none';
+        };
+
+        window.generateQRMeja = () => {
+            const mejaInput = document.getElementById('inp-qr-meja').value.trim();
+            // Buat URL rahasia mode Dine In
+            const url = `https://katalog.projekgo.id/?warung=${currentUser.id}&mode=dine_in${mejaInput ? '&meja=' + encodeURIComponent(mejaInput) : ''}`;
+            
+            const qrContainer = document.getElementById('qr-code-container');
+            qrContainer.innerHTML = ''; // Bersihkan sebelumnya jika ada
+
+            // Proses Generate QR Code
+            new QRCode(qrContainer, {
+                text: url,
+                width: 170, // Ukuran pas untuk layar HP
+                height: 170,
+                colorDark : "#1A1A1A",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+
+            document.getElementById('qr-meja-label').innerText = mejaInput ? mejaInput : "Tanpa Nomor";
+            document.getElementById('qr-result-box').style.display = 'block';
+            document.getElementById('btn-download-qr').style.display = 'flex';
+            document.getElementById('btn-generate-qr').style.display = 'none';
+        };
+
+        window.downloadQRMeja = () => {
+            const qrContainer = document.getElementById('qr-code-container');
+            // QRCode.js membuat <canvas> dan <img>. Kita ambil gambarnya.
+            const canvas = qrContainer.querySelector('canvas');
+            const img = qrContainer.querySelector('img');
+
+            let imageSrc = '';
+            if (canvas && canvas.toDataURL) {
+                imageSrc = canvas.toDataURL("image/png");
+            } else if (img && img.src) {
+                imageSrc = img.src;
+            }
+
+            if(imageSrc) {
+                const a = document.createElement('a');
+                a.href = imageSrc;
+                const mejaLabel = document.getElementById('qr-meja-label').innerText;
+                a.download = `QR_Projekgo_${currentUser.name}_Meja_${mejaLabel}.png`.replace(/\s+/g, '_');
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                showToast("Gambar QR Code berhasil diunduh!");
+            } else {
+                showToast("Gagal mengunduh QR Code", false);
+            }
         };
 
         window.handleShopPhoto = (e) => {
