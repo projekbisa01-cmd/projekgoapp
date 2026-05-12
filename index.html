@@ -19,8 +19,8 @@
     <style>
         /* --- TEMA & VARIABEL --- */
         :root {
-            --primary: #FF6B4A; /* Soft Orange-Pink (Coral) yang selaras dan lembut */
-            --primary-light: #FFF2F0;
+            --primary: #FF6600; /* Warna orange asli untuk tombol & banner */
+            --primary-light: #FFF0E5; /* Penyesuaian latar agar serasi */
             --pink-accent: #FF4D79; /* Warna pink selaras untuk kombinasi */
             --dark: #1C1C1E; /* Diperbarui: Warna gelap ala iOS */
             --gray: #9ca3af;
@@ -57,7 +57,7 @@
 
         /* --- 1. HEADER MODERN (BERANDA) --- */
         .home-header {
-            background: linear-gradient(135deg, var(--primary), #FF4500);
+            background: var(--primary);
             padding: 20px 20px 55px 20px;
             border-bottom-left-radius: 32px; /* Dibuat lebih natural */
             border-bottom-right-radius: 32px;
@@ -435,15 +435,14 @@
         .btn-lihat-semua:active { background: #C8E6C9; }
 
         .cat-grid { 
-            display: grid; 
-            grid-template-rows: repeat(2, 1fr); 
-            grid-auto-flow: column; 
-            gap: 20px 15px; 
+            display: flex; 
+            flex-direction: row; 
+            gap: 15px; 
             padding: 10px 20px 25px 20px; 
             background: var(--white); 
             margin: 0; 
             border-radius: 0; 
-            border-bottom: 8px solid var(--bg); /* Diganti pakai warna bg agar memisah natural */
+            border-bottom: 8px solid var(--bg);
             overflow-x: auto; 
             scrollbar-width: none; 
             -webkit-overflow-scrolling: touch; 
@@ -937,6 +936,17 @@
         .loc-option:active { transform: scale(0.98); }
         .loc-option i { font-size: 22px; }
 
+        /* --- STYLES UNTUK CATEGORY MODAL --- */
+        #category-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 2500; align-items: flex-end; justify-content: center; backdrop-filter: blur(2px); opacity: 0; transition: opacity 0.3s; }
+        #category-modal.show { opacity: 1; }
+        #category-modal.show .category-sheet { transform: translateY(0); }
+        .category-sheet { background: white; width: 100%; max-width: 480px; border-top-left-radius: 25px; border-top-right-radius: 25px; padding: 25px 20px; animation: slideUpSheet 0.3s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(100%); transition: transform 0.3s; display: flex; flex-direction: column; max-height: 80vh; }
+        .cat-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px; }
+        .cat-modal-title { font-size: 18px; font-weight: 800; color: var(--dark); }
+        .cat-modal-close { font-size: 24px; color: #ccc; cursor: pointer; padding: 5px; }
+        .cat-modal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px 10px; overflow-y: auto; padding-bottom: 20px; scrollbar-width: none; }
+        .cat-modal-grid::-webkit-scrollbar { display: none; }
+
         /* --- STYLES UNTUK MORE MENU MODAL --- */
         #more-menu-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 2500; align-items: flex-end; justify-content: center; backdrop-filter: blur(2px); opacity: 0; transition: opacity 0.3s; }
         #more-menu-modal.show { opacity: 1; }
@@ -1057,7 +1067,7 @@
         #active-order-modal.show { opacity: 1; }
         .active-order-content { background: white; width: 100%; max-width: 380px; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.3); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; flex-direction: column; max-height: 85vh; }
         #active-order-modal.show .active-order-content { transform: scale(1); }
-        .active-order-header { background: linear-gradient(135deg, var(--primary), #FF9900); padding: 30px 20px 20px; text-align: center; color: white; position: relative; }
+        .active-order-header { background: var(--primary); padding: 30px 20px 20px; text-align: center; color: white; position: relative; }
         .pulse-icon { width: 64px; height: 64px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto; box-shadow: 0 0 0 0 rgba(255,255,255,0.5); animation: whitePulse 1.5s infinite; }
         @keyframes whitePulse { 0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.7); } 70% { box-shadow: 0 0 0 15px rgba(255,255,255,0); } 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); } }
         .ao-title { font-size: 20px; font-weight: 800; letter-spacing: 0.5px; }
@@ -1071,6 +1081,13 @@
         .ao-detail-content { font-size: 12px; color: #444; line-height: 1.6; background: white; padding: 15px; border-radius: 12px; border: 1px solid #eee; }
         .ao-btn-close { background: white; color: var(--primary); font-weight: 800; font-size: 15px; padding: 16px; border: none; border-top: 1px solid #eee; cursor: pointer; transition: background 0.2s; width: 100%; text-align: center; }
         .ao-btn-close:active { background: #f5f5f5; }
+
+        /* --- ANIMASI PROSES PESANAN --- */
+        .process-anim-box { background: #FFF8E1; border: 1px dashed #FFC107; border-radius: 10px; padding: 12px; margin: 10px 0; display: flex; gap: 12px; align-items: center; animation: pulseSoft 2s infinite; }
+        .process-anim-icon { font-size: 28px; color: #FF9800; animation: bounceIcon 1s infinite alternate; }
+        @keyframes pulseSoft { 0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.3); } 70% { box-shadow: 0 0 0 8px rgba(255, 193, 7, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); } }
+        @keyframes bounceIcon { from { transform: translateY(0); } to { transform: translateY(-4px); } }
+        .process-anim-text { font-size: 11px; color: #D84315; line-height: 1.5; font-weight: 600; }
 
     </style>
 </head>
@@ -1336,7 +1353,7 @@
 
             <div class="section-title-modern">
                 <span>Pilihan kuliner favoritmu</span>
-                <div class="btn-lihat-semua" onclick="openCategoryPage('Paling Laris')">Lihat Semua</div>
+                <div class="btn-lihat-semua" onclick="openAllCategoriesModal()">Lihat Semua</div>
             </div>
 
             <div class="swipe-hint-box" style="display: none;">
@@ -1574,6 +1591,19 @@
                 <div class="loc-option" onclick="selectLocation('Kebumen Kota')" id="opt-Kebumen Kota">
                     <i class="ph-fill ph-city"></i> Kebumen Kota
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL SEMUA KATEGORI KULINER -->
+    <div id="category-modal" onclick="if(event.target===this) closeAllCategoriesModal()">
+        <div class="category-sheet">
+            <div class="cat-modal-header">
+                <div class="cat-modal-title">Semua Pilihan Kuliner</div>
+                <div class="cat-modal-close" onclick="closeAllCategoriesModal()">&times;</div>
+            </div>
+            <div class="cat-modal-grid" id="category-modal-grid">
+                <!-- Dinamis via JS -->
             </div>
         </div>
     </div>
@@ -1960,19 +1990,48 @@
             setTimeout(() => {
                 regScreen.style.display = 'none';
                 showToast("Selamat Datang, " + name + "!");
+                
+                // Cek jam operasional setelah pendaftaran selesai
+                if (!checkOperationalStatus(false)) { // false = jangan blokir, cuma tampilkan modal
+                     showClosedModalInfo();
+                }
             }, 500);
         }
         // ----------------------------------------
 
-        window.checkOperationalStatus = () => {
+        // FUNGSI CEK JAM OPERASIONAL YANG DIPERBARUI
+        window.checkOperationalStatus = (isAction = true) => {
             const now = new Date();
             const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
             const wibDate = new Date(utc + (3600000 * 7));
             const hours = wibDate.getHours();
             const minutes = wibDate.getMinutes();
             const totalMinutes = (hours * 60) + minutes;
-            if (totalMinutes >= 390 && totalMinutes <= 1260) return true;
-            showClosedModal(); return false;
+            
+            // Jam Buka: 06:30 (390) sampai 21:00 (1260)
+            const isOpen = totalMinutes >= 390 && totalMinutes <= 1260;
+            
+            if (!isOpen && isAction) {
+                // Hapus logika pemblokiran, biarkan return true agar action berlanjut
+                // showClosedModal(); 
+                // return false; 
+                return true; 
+            }
+            return isOpen;
+        }
+
+        // FUNGSI BARU UNTUK MENAMPILKAN POPUP INFO TUTUP (TIDAK MEMBLOKIR)
+        window.showClosedModalInfo = () => { 
+            const modal = document.getElementById('closed-modal');
+            const content = modal.querySelector('.closed-content');
+            
+            content.innerHTML = `
+                <i class="ph-fill ph-moon-stars closed-icon"></i>
+                <div class="closed-title">Kami Sudah Tutup</div>
+                <div class="closed-text" style="font-size: 14px;">Operasional Projekgo saat ini:<br><b style="font-size: 16px;">06:30 - 21:00 WIB</b><br><br>Silakan lihat-lihat menu terlebih dahulu.<br>Kami siap melayani Anda besok pagi! 😊</div>
+                <button onclick="closeClosedModal()" style="width: 100%; background: var(--primary); color: white; padding: 12px; border: none; border-radius: 12px; font-weight: 700; font-size: 15px; margin-top: 10px;">Lihat Menu Saja</button>
+            `;
+            modal.style.display = 'flex'; 
         }
 
         window.showClosedModal = () => { document.getElementById('closed-modal').style.display = 'flex'; }
@@ -2007,6 +2066,20 @@
 
         window.closeLocationModal = () => {
             const modal = document.getElementById('location-modal');
+            modal.classList.remove('show');
+            setTimeout(() => { modal.style.display = 'none'; }, 300);
+        }
+
+        // --- LOGIKA MODAL SEMUA KATEGORI ---
+        window.openAllCategoriesModal = () => {
+            const modal = document.getElementById('category-modal');
+            modal.style.display = 'flex';
+            modal.offsetHeight; 
+            modal.classList.add('show');
+        }
+
+        window.closeAllCategoriesModal = () => {
+            const modal = document.getElementById('category-modal');
             modal.classList.remove('show');
             setTimeout(() => { modal.style.display = 'none'; }, 300);
         }
@@ -2074,6 +2147,11 @@
             const splash = document.getElementById('splash-screen');
             if(splash && !splash.classList.contains('hidden')) {
                 splash.classList.add('hidden');
+                
+                // Cek jam operasional setelah splash screen selesai
+                if (!checkOperationalStatus(false) && hasRegisteredProfile) {
+                     showClosedModalInfo();
+                }
             }
         };
 
@@ -2151,7 +2229,13 @@
                 if (displayStatus === 'MENUNGGU KONFIRMASI' && diffMinutes > 5) displayStatus = 'TERIMAKASIH';
                 if (displayStatus === 'MENUNGGU KONFIRMASI') { statusColor = "#FFF3E0"; statusTextColor = "#E65100"; }
                 let reviewButtonHtml = !order.isReviewed ? `<button class="btn-review-action" onclick="openReviewModal('${order.vendor}', ${order.id})">⭐ Beri Ulasan</button>` : `<span style="font-size:11px; color:#aaa; font-style:italic; padding:8px;">Ulasan Terkirim</span>`;
-                const html = `<div class="order-card" style="background:white; padding:15px; border-radius:12px; box-shadow:var(--shadow-sm); margin-bottom:15px; border:1px solid rgba(0,0,0,0.03);"><div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:11px; color:#888;"><span>${order.date}</span><span style="background:${statusColor}; color:${statusTextColor}; padding:3px 8px; border-radius:4px; font-weight:700; font-size:10px;">${displayStatus}</span></div><div style="font-weight:700; font-size:14px; margin-bottom:4px;">${order.vendor}</div><div style="font-size:12px; color:#555; margin-bottom:8px; line-height:1.4;">${order.items}</div><div style="font-size:14px; font-weight:800; color:var(--primary); padding-bottom:10px; border-bottom:1px dashed #eee;">Total: Rp ${order.total.toLocaleString()}</div><div style="margin-top:10px; text-align:right; display:flex; justify-content:flex-end; align-items:center; gap:8px;">${reviewButtonHtml}<button class="btn-reorder-action" onclick="reorder('${reorderData}')">Pesan Lagi ↻</button></div></div>`;
+                
+                let processHtml = '';
+                if (displayStatus === 'MENUNGGU KONFIRMASI') {
+                    processHtml = `<div class="process-anim-box"><i class="ph-fill ph-moped process-anim-icon"></i><div class="process-anim-text">Pesananmu akan dipesankan admin langsung ke penjual. Selagi makanan dibuat, admin mencari rider terdekat agar penanganan tidak lama. Ditunggu ya kak, rider akan menghubungi untuk konfirmasi pesanan, menotalkan, dan mengantar dengan cepat, selamat & tepat! 🛵💨</div></div>`;
+                }
+                
+                const html = `<div class="order-card" style="background:white; padding:15px; border-radius:12px; box-shadow:var(--shadow-sm); margin-bottom:15px; border:1px solid rgba(0,0,0,0.03);"><div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:11px; color:#888;"><span>${order.date}</span><span style="background:${statusColor}; color:${statusTextColor}; padding:3px 8px; border-radius:4px; font-weight:700; font-size:10px;">${displayStatus}</span></div><div style="font-weight:700; font-size:14px; margin-bottom:4px;">${order.vendor}</div><div style="font-size:12px; color:#555; margin-bottom:8px; line-height:1.4;">${order.items}</div><div style="font-size:14px; font-weight:800; color:var(--primary); padding-bottom:10px; border-bottom:1px dashed #eee;">Total: Rp ${order.total.toLocaleString()}</div>${processHtml}<div style="margin-top:10px; text-align:right; display:flex; justify-content:flex-end; align-items:center; gap:8px;">${reviewButtonHtml}<button class="btn-reorder-action" onclick="reorder('${reorderData}')">Pesan Lagi ↻</button></div></div>`;
                 container.innerHTML += html;
             });
         }
@@ -2284,7 +2368,7 @@
                 const fakePrice = Math.ceil(realPrice * 1.2); 
                 const isFav = favorites.includes(item.id) ? 'active' : '';
                 
-                const isAvailable = item.is_available !== false; 
+                const isAvailable = item.is_available !== false && item.is_sold_out !== true; 
                 const grayscaleClass = isAvailable ? '' : 'filter:grayscale(100%);'; 
                 const opacityClass = isAvailable ? '' : 'opacity:0.6;'; 
                 const habisBadge = isAvailable ? '' : '<div class="badge-habis-overlay"><span class="badge-habis-text">HABIS</span></div>'; 
@@ -2320,7 +2404,7 @@
                     const realPrice = parseInt(item.harga); 
                     const fakePrice = Math.ceil(realPrice * 1.2); 
                     const isFav = favorites.includes(item.id) ? 'active' : '';
-                    const isAvailable = item.is_available !== false; 
+                    const isAvailable = item.is_available !== false && item.is_sold_out !== true; 
                     const grayscaleClass = isAvailable ? '' : 'filter:grayscale(100%);'; 
                     const opacityClass = isAvailable ? '' : 'opacity:0.6;'; 
                     const habisBadge = isAvailable ? '' : '<div class="badge-habis-overlay"><span class="badge-habis-text">HABIS</span></div>'; 
@@ -2369,7 +2453,7 @@
                         const fakePrice = Math.ceil(realPrice * 1.2); 
                         const isFav = favorites.includes(item.id) ? 'active' : ''; 
                         const desc = item.deskripsi || "Menu spesial warung ini, dijamin enak.";
-                        const isAvailable = item.is_available !== false; 
+                        const isAvailable = item.is_available !== false && item.is_sold_out !== true; 
                         const grayscaleClass = isAvailable ? '' : 'filter:grayscale(100%);'; 
                         const opacityClass = isAvailable ? '' : 'opacity:0.6;'; 
                         const habisBadge = isAvailable ? '' : '<div class="badge-habis-overlay"><span class="badge-habis-text">HABIS</span></div>'; 
@@ -2585,8 +2669,8 @@
                     c.parentNode.insertBefore(bannerWrapper, c); // Menyelipkan banner tepat di atas grid produk
                 }
 
-                if (cat === 'Flash Sale') {
-                    // Khusus Flash Sale: Tampilkan langsung kartu produknya tanpa di grup per warung
+                if (cat === 'Flash Sale' || cat === 'Exclusive' || cat === 'Sedang Promo') {
+                    // Khusus Flash Sale, Exclusive, dan Sedang Promo: Tampilkan langsung kartu produknya tanpa di grup per warung
                     c.classList.add('product-list-grid');
                     filteredItems.forEach(item => {
                         renderPcard(c, item);
@@ -2690,7 +2774,7 @@
 
         function renderHorizontalCard(container, item) {
             const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG; const realPrice = parseInt(item.harga); const fakePrice = Math.ceil(realPrice * 1.2); const vendorName = item.vendor_name || "Warung Projekgo"; const isFav = favorites.includes(item.id) ? 'active' : ''; const exclusiveBadge = item.is_exclusive ? '<div class="badge-exclusive">Exclusive</div>' : ''; const priorityBadge = '<div class="badge-priority"><i class="ph-fill ph-lightning"></i> Prioritas</div>'; const rating = (4.0 + Math.random()).toFixed(1); const sold = Math.floor(Math.random() * 500) + 50;
-            const isAvailable = item.is_available !== false; const habisBadge = isAvailable ? '' : '<div class="badge-habis-overlay" style="border-radius:12px;"><span class="badge-habis-text">HABIS</span></div>'; const imgStyle = isAvailable ? '' : 'filter:grayscale(100%); opacity:0.7;'; const addAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, stok habis 🙏')`; const addStyle = isAvailable ? '' : 'background:#ccc; cursor:not-allowed;';
+            const isAvailable = item.is_available !== false && item.is_sold_out !== true; const habisBadge = isAvailable ? '' : '<div class="badge-habis-overlay" style="border-radius:12px;"><span class="badge-habis-text">HABIS</span></div>'; const imgStyle = isAvailable ? '' : 'filter:grayscale(100%); opacity:0.7;'; const addAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, stok habis 🙏')`; const addStyle = isAvailable ? '' : 'background:#ccc; cursor:not-allowed;';
             const div = document.createElement('div'); div.className = 'h-card';
             div.innerHTML = `<div style="position:relative;">${habisBadge}${priorityBadge}${exclusiveBadge}<div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')"><i class="ph-fill ph-heart"></i></div><img src="${img}" loading="lazy" class="h-img" style="${imgStyle}" onerror="this.src='${FALLBACK_MENU_IMG}'" onclick="openProductDetail('${item.id}')"></div><div class="h-info" onclick="openProductDetail('${item.id}')"><div class="h-vendor"><i class="ph-fill ph-storefront"></i> ${vendorName}</div><div class="h-name">${item.nama_menu}</div><div class="h-stats"><i class="ph-fill ph-star"></i> ${rating} • Terjual ${sold}+</div><div class="price-row"><div class="price-box"><div style="display:flex; align-items:center; gap:3px;"><span class="p-label-normal">Normal</span><span class="p-coret">Rp ${fakePrice.toLocaleString()}</span></div><span class="p-real">Rp ${realPrice.toLocaleString()}</span></div><div class="btn-add-mini" style="${addStyle}" onclick="${addAction}"><i class="ph-bold ph-plus" style="color:white;"></i></div></div></div>`;
             container.appendChild(div);
@@ -2730,19 +2814,19 @@
             document.getElementById('pd-desc').innerText = desc;
             
             const btn = document.getElementById('pd-add-btn'); const btnText = document.getElementById('pd-add-text');
-            if(item.is_available === false) { btn.style.background = "#ccc"; btn.style.cursor = "not-allowed"; btn.onclick = () => showToast('Maaf, stok habis 🙏'); btnText.innerText = "Stok Habis"; } else { btn.style.background = "var(--primary)"; btn.style.cursor = "pointer"; btn.onclick = () => addToCartFromDetail(); btnText.innerText = "Tambah ke Keranjang"; }
+            if(item.is_available === false || item.is_sold_out === true) { btn.style.background = "#ccc"; btn.style.cursor = "not-allowed"; btn.onclick = () => showToast('Maaf, stok habis 🙏'); btnText.innerText = "Stok Habis"; } else { btn.style.background = "var(--primary)"; btn.style.cursor = "pointer"; btn.onclick = () => addToCartFromDetail(); btnText.innerText = "Tambah ke Keranjang"; }
             const varBox = document.getElementById('variant-section'); const varOpts = document.getElementById('pd-var-options'); varOpts.innerHTML = ''; 
             if (item.variant_options && item.variant_options.length > 0) { varBox.style.display = 'block'; document.getElementById('pd-var-title').innerText = "Pilih " + (item.variant_title || "Varian"); item.variant_options.forEach((opt, idx) => { const checked = ''; varOpts.innerHTML += `<input type="radio" name="variant" id="var-${idx}" class="radio-input" value="${opt}" ${checked}><label for="var-${idx}" class="radio-label">${opt}</label>`; }); } else { varBox.style.display = 'none'; }
             document.getElementById('pd-note').value = ""; openPage('product-detail');
         }
 
-        window.quickAdd = (e, id) => { e.stopPropagation(); if(!checkOperationalStatus()) return; const item = rawProducts.find(p => p.id === id); if(item.is_available === false) { showToast("Maaf, stok habis 🙏"); return; } if (item.variant_options && item.variant_options.length > 0) { openVariantModal(item); } else { addToCartDirect(item, "-", ""); } }
+        window.quickAdd = (e, id) => { e.stopPropagation(); const item = rawProducts.find(p => p.id === id); if(item.is_available === false || item.is_sold_out === true) { showToast("Maaf, stok habis 🙏"); return; } if (item.variant_options && item.variant_options.length > 0) { openVariantModal(item); } else { addToCartDirect(item, "-", ""); } }
         window.openVariantModal = (item) => { pendingVariantItem = item; selectedVariantValue = null; const modal = document.getElementById('variant-modal'); const container = document.getElementById('vm-options-container'); document.getElementById('vm-item-name').innerText = item.nama_menu; document.getElementById('vm-price-display').innerText = parseInt(item.harga).toLocaleString(); container.innerHTML = ''; item.variant_options.forEach((opt, idx) => { const isSelected = ''; container.innerHTML += `<div class="vm-radio-item ${isSelected}" onclick="selectVariantOption(this, '${opt}')"><span>${opt}</span><div class="vm-radio-circle"></div></div>`; }); modal.style.display = 'flex'; modal.offsetHeight; modal.classList.add('show'); }
         window.selectVariantOption = (el, val) => { document.querySelectorAll('.vm-radio-item').forEach(x => x.classList.remove('selected')); el.classList.add('selected'); selectedVariantValue = val; }
         window.closeVariantModal = () => { const modal = document.getElementById('variant-modal'); modal.classList.remove('show'); setTimeout(() => { modal.style.display = 'none'; }, 300); pendingVariantItem = null; }
-        window.confirmVariantAdd = () => { if(!checkOperationalStatus()) return; if (pendingVariantItem && selectedVariantValue) { addToCartDirect(pendingVariantItem, selectedVariantValue, ""); closeVariantModal(); } else { showToast("⚠️ Pilih varian dulu ya!"); } }
+        window.confirmVariantAdd = () => { if (pendingVariantItem && selectedVariantValue) { addToCartDirect(pendingVariantItem, selectedVariantValue, ""); closeVariantModal(); } else { showToast("⚠️ Pilih varian dulu ya!"); } }
         function addToCartDirect(item, variant, note) { cart.push({ id: item.id, nama: item.nama_menu, harga: parseInt(item.harga), vendor: item.vendor_name || "Warung Projekgo", variant: variant, note: note }); updateCartBadge(); if(navigator.vibrate) navigator.vibrate(50); showToast("Berhasil ditambahkan!"); }
-        window.addToCartFromDetail = () => { if(!checkOperationalStatus()) return; if(!currentDetailProduct) return; if(currentDetailProduct.is_available === false) { showToast("Maaf, stok habis 🙏"); return; } let variant = "-"; if(document.getElementById('variant-section').style.display !== 'none') { const selectedVar = document.querySelector('input[name="variant"]:checked'); if(!selectedVar) { showToast("⚠️ Harap pilih varian dulu!"); document.getElementById('variant-section').scrollIntoView({behavior: 'smooth', block: 'center'}); const title = document.getElementById('pd-var-title'); title.style.color = 'red'; setTimeout(() => title.style.color = '#333', 1000); return; } variant = selectedVar.value; } const note = document.getElementById('pd-note').value; addToCartDirect(currentDetailProduct, variant, note); goBack(); }
+        window.addToCartFromDetail = () => { if(!currentDetailProduct) return; if(currentDetailProduct.is_available === false || currentDetailProduct.is_sold_out === true) { showToast("Maaf, stok habis 🙏"); return; } let variant = "-"; if(document.getElementById('variant-section').style.display !== 'none') { const selectedVar = document.querySelector('input[name="variant"]:checked'); if(!selectedVar) { showToast("⚠️ Harap pilih varian dulu!"); document.getElementById('variant-section').scrollIntoView({behavior: 'smooth', block: 'center'}); const title = document.getElementById('pd-var-title'); title.style.color = 'red'; setTimeout(() => title.style.color = '#333', 1000); return; } variant = selectedVar.value; } const note = document.getElementById('pd-note').value; addToCartDirect(currentDetailProduct, variant, note); goBack(); }
         
         function updateCartBadge(pageOverride = null) { 
             const b = document.getElementById('cart-badge'); 
@@ -2783,7 +2867,7 @@
         
         function renderPcard(container, item) {
             const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG; const realPrice = parseInt(item.harga); const fakePrice = Math.ceil(realPrice * 1.2); const vendorName = item.vendor_name || "Warung Projekgo"; const isFav = favorites.includes(item.id) ? 'active' : ''; const exclusiveBadge = item.is_exclusive ? '<div class="badge-exclusive" style="font-size:8px;">Exclusive</div>' : ''; const priorityBadge = '<div class="badge-priority"><i class="ph-fill ph-lightning"></i> Prioritas</div>'; const rating = (4.0 + Math.random()).toFixed(1); const sold = Math.floor(Math.random() * 500) + 50;
-            const isAvailable = item.is_available !== false; const habisBadge = isAvailable ? '' : '<div class="badge-habis-overlay" style="border-radius:12px;"><span class="badge-habis-text">HABIS</span></div>'; const imgStyle = isAvailable ? '' : 'filter:grayscale(100%); opacity:0.7;'; const addAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, stok habis 🙏')`; const addStyle = isAvailable ? '' : 'background:#ccc; cursor:not-allowed;';
+            const isAvailable = item.is_available !== false && item.is_sold_out !== true; const habisBadge = isAvailable ? '' : '<div class="badge-habis-overlay" style="border-radius:12px;"><span class="badge-habis-text">HABIS</span></div>'; const imgStyle = isAvailable ? '' : 'filter:grayscale(100%); opacity:0.7;'; const addAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, stok habis 🙏')`; const addStyle = isAvailable ? '' : 'background:#ccc; cursor:not-allowed;';
             const div = document.createElement('div'); div.className = 'p-card'; div.innerHTML = `<div style="position:relative;">${habisBadge}${priorityBadge}${exclusiveBadge}<img src="${img}" loading="lazy" style="width:100%; height:120px; object-fit:cover; ${imgStyle}" onerror="this.src='${FALLBACK_MENU_IMG}'" onclick="openProductDetail('${item.id}')"><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}'); if(document.getElementById('page-favorites').style.display==='block') renderFavoritesPage();" style="top:5px; right:5px;"><i class="ph-fill ph-heart"></i></div></div><div class="p-info"><div onclick="openProductDetail('${item.id}')"><div style="font-size:10px; color:#888;">${item.vendor_name || 'Warung'}</div><div style="font-weight:700; font-size:13px; margin-bottom:2px;">${item.nama_menu}</div><div class="h-stats" style="margin-bottom:8px;"><i class="ph-fill ph-star"></i> ${rating} • Terjual ${sold}+</div><div style="display:flex; flex-direction:column;"><span class="p-coret" style="font-size:11px; text-decoration:line-through; color:#999;">Rp ${fakePrice.toLocaleString()}</span><span style="font-weight:800; color:var(--dark);">Rp ${realPrice.toLocaleString()}</span></div></div><button onclick="${addAction}" style="align-self:flex-end; background:var(--primary-light); color:var(--primary); border:none; width:24px; height:24px; border-radius:8px; font-weight:700; ${addStyle}">+</button></div>`; container.appendChild(div);
         }
 
@@ -3159,7 +3243,7 @@
             if (svc === 'Ngojek' || svc === 'Mobil') { html += `<div class="form-group"><label class="form-label">Lokasi Jemput</label><input type="text" id="svc-jemput" class="form-input"></div><div class="form-group"><label class="form-label">Tujuan</label><input type="text" id="svc-tujuan" class="form-input"></div><div class="form-group"><label class="form-label">Jam</label><input type="text" id="svc-jam" class="form-input" placeholder="Sekarang"></div>`; } else if (svc === 'Kirim Paket') { html += `<div class="form-group"><label class="form-label">Jenis Paket</label><input type="text" id="svc-paket" class="form-input"></div><div class="form-group"><label class="form-label">Alamat Ambil</label><input type="text" id="svc-jemput" class="form-input"></div><div class="form-group"><label class="form-label">Alamat Tujuan</label><input type="text" id="svc-tujuan" class="form-input"></div><div class="form-group"><label class="form-label">Penerima</label><input type="text" id="svc-penerima" class="form-input"></div>`; } else { html += `<div class="form-group"><label class="form-label">Detail Pesanan</label><input type="text" id="svc-detail" class="form-input" placeholder="Apa yang bisa kami bantu?"></div><div class="form-group"><label class="form-label">Alamat / Lokasi</label><input type="text" id="svc-lokasi" class="form-input"></div>`; }
             container.innerHTML = html; openPage('service-form');
         }
-        window.submitServiceForm = () => { if(!checkOperationalStatus()) return; let inputs = document.querySelectorAll('[id^="svc-"]'); let message = `Halo Admin Projekgo, pesan jasa *${currentServiceType}*:%0A%0A`; let filled = true; inputs.forEach(input => { const label = input.previousElementSibling.innerText; const val = input.value.trim(); if(val === '') filled = false; message += `▪️ ${label}: ${val}%0A`; }); if(!filled) { showToast("Mohon lengkapi data."); return; } window.open(`https://wa.me/${ADMIN_WA}?text=${message}`, '_blank'); }
+        window.submitServiceForm = () => { let inputs = document.querySelectorAll('[id^="svc-"]'); let message = `Halo Admin Projekgo, pesan jasa *${currentServiceType}*:%0A%0A`; let filled = true; inputs.forEach(input => { const label = input.previousElementSibling.innerText; const val = input.value.trim(); if(val === '') filled = false; message += `▪️ ${label}: ${val}%0A`; }); if(!filled) { showToast("Mohon lengkapi data."); return; } window.open(`https://wa.me/${ADMIN_WA}?text=${message}`, '_blank'); }
 
         // 3. GANTI KESELURUHAN FUNGSI loadData() LAMA DENGAN YANG BARU INI
         // --- OPTIMASI HEMAT KUOTA FIREBASE (DENGAN INDEXED DB PERSISTENCE) ---
@@ -3386,8 +3470,10 @@
 
         function renderCategories() {
             const catGrid = document.getElementById('dynamic-cat-grid');
+            const catModalGrid = document.getElementById('category-modal-grid');
             if(!catGrid) return;
             catGrid.innerHTML = '';
+            if(catModalGrid) catModalGrid.innerHTML = '';
             
             const baseCategories = ['Sarapan', 'Pernasian', 'Minuman', 'Ayam', 'Berkuah', 'Aneka Mie', 'Snack', 'Legendaris', 'Cepat Saji'];
             
@@ -3440,25 +3526,22 @@
 
                 div.innerHTML = `<div class="cat-icon-box">${iconHtml}</div><div class="cat-name">${cat.name}</div>`;
                 catGrid.appendChild(div);
+
+                // Untuk modal popup semua kategori
+                if (catModalGrid) {
+                    const modalDiv = document.createElement('div');
+                    modalDiv.className = 'cat-item';
+                    modalDiv.onclick = () => {
+                        closeAllCategoriesModal();
+                        openCategoryPage(cat.name);
+                    };
+                    modalDiv.innerHTML = `<div class="cat-icon-box" style="width:60px; height:60px;">${iconHtml}</div><div class="cat-name" style="font-size:10px;">${cat.name}</div>`;
+                    catModalGrid.appendChild(modalDiv);
+                }
             });
 
-            if (finalCategories.length > 3) {
-                const items = Array.from(catGrid.children);
-                items.forEach(item => { 
-                    const clone = item.cloneNode(true); 
-                    clone.onclick = () => openCategoryPage(item.querySelector('.cat-name').innerText);
-                    catGrid.appendChild(clone); 
-                });
-                
-                catGrid.onscroll = () => { 
-                    const maxScrollLeft = catGrid.scrollWidth / 2; 
-                    if (catGrid.scrollLeft >= maxScrollLeft - 5) { 
-                        catGrid.scrollLeft -= maxScrollLeft; 
-                    } 
-                };
-            } else {
-                catGrid.onscroll = null; 
-            }
+            // Cloning dihapus karena kita pakai 1 baris scroll natural
+            catGrid.onscroll = null; 
         }
         
         function renderWarungList(vends) {
@@ -3492,6 +3575,7 @@
             let bestSellerInserted = false;
             let bannerInserted = false;
             let topRestoInserted = false; 
+            let customPromoInserted = false;
             
             const renderBestSeller = () => {
                 if (bestSellerInserted) return;
@@ -3595,6 +3679,7 @@
 
             // Fungsi baru: Template layout horizontal yang bisa Anda custom sambil jalan
             const renderCustomPromoScroll = (urutan) => {
+                if (customPromoInserted) return;
                 const promoItems = allProducts.filter(p => p.is_available !== false && (p.is_promo === true || parseInt(p.harga_coret) > parseInt(p.harga))).slice(0, 6);
                 
                 if (promoItems.length === 0) return;
@@ -3652,6 +3737,7 @@
 
                 promoDiv.innerHTML = headerHtml + cardsHtml;
                 c.appendChild(promoDiv);
+                customPromoInserted = true;
             };
 
             let topRatingImgInserted = false;
