@@ -164,11 +164,19 @@
         
         /* Background putih solid di balik menu quick saat discroll */
         .search-container-wrapper::before {
-            display: none;
+            content: '';
+            display: block;
+            position: absolute;
+            top: 20px; /* Mulai dari bawah lekukan header orange agar tidak menutupi visual */
+            bottom: -5px; /* Menutup celah kecil dengan elemen sticky warung di bawahnya */
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            z-index: -1;
         }
 
         .sticky-search-bar {
-            background: rgba(255, 255, 255, 0.95);
+            background: #ffffff;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border-radius: 30px;
@@ -177,11 +185,30 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            border: 1px solid rgba(255,255,255,0.4);
+            border: 1px solid rgba(0, 0, 0, 0.1);
             cursor: pointer;
             transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         .sticky-search-bar:active { transform: scale(0.97); }
+
+        .sticky-search-bar input {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            padding: 0;
+            margin: 0;
+            font-size: 14px;
+            font-family: inherit;
+            font-weight: 600;
+            color: var(--dark);
+            cursor: pointer;
+            -webkit-appearance: none;
+        }
+        .sticky-search-bar input::placeholder {
+            color: #888;
+            font-weight: 500;
+        }
 
         .quick-services-wrapper {
             padding: 0 20px;
@@ -360,7 +387,7 @@
         .search-modal-input {
             flex-grow: 1; border: none; background: rgba(255, 102, 0, 0.1);
             padding: 12px 18px; border-radius: 15px; font-size: 14px; outline: none;
-            font-weight: 600; color: var(--dark);
+            font-weight: 600; color: var(--dark); margin: 0; -webkit-appearance: none;
         }
         .search-modal-input::placeholder { color: #d97736; }
         .close-search-btn { font-size: 24px; color: #888; cursor: pointer; padding: 5px; }
@@ -1170,14 +1197,17 @@
             </div>
 
             <!-- EXCLUSIVE SECTION -->
-            <div class="promo-section-layout" id="wrapper-exclusive">
-                <div class="promo-info-side">
-                    <img src="https://i.ibb.co.com/WpxhwSzm/exclusive-offer-golden-medal-icon-seal-sign-isolated-on-white-background-illustration-free-vector-re.png" style="width:110px; height:110px; object-fit:contain; margin-bottom:10px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.1));">
-                    <h3 class="promo-title">Exclusive di Projekgo</h3>
-                    <p class="promo-subtitle">Hanya ada di Projekgo</p>
-                    <button class="promo-btn" onclick="openCategoryPage('Exclusive')">Lihat Semua</button>
+            <div id="wrapper-exclusive" style="background: linear-gradient(180deg, #FFF4E6 0%, #FFFFFF 100%); padding: 15px 0 5px 0; margin-bottom: 0; border-bottom: 8px solid var(--bg);">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; padding: 0 20px; margin-bottom: 12px;">
+                    <div>
+                        <div style="font-size: 16px; font-weight: 800; color: #E65100; display:flex; align-items:center; gap:6px;">
+                            Exclusive di Projekgo <span style="background:#E65100; color:white; font-size:10px; padding:3px 6px; border-radius:4px; font-weight:800; line-height:1;"><i class="ph-fill ph-medal" style="margin-right:2px;"></i>SPESIAL</span>
+                        </div>
+                        <div style="font-size: 12px; color: #888; margin-top: 5px; font-weight: 500;">Hanya ada di Projekgo</div>
+                    </div>
+                    <div onclick="openCategoryPage('Exclusive')" style="font-size: 13px; color: #999; font-weight: 600; cursor: pointer; display:flex; align-items:center;">Lihat Semua <i class="ph-bold ph-caret-right" style="margin-left:2px;"></i></div>
                 </div>
-                <div class="promo-scroll-side" id="container-exclusive"></div>
+                <div class="scroll-container" id="container-exclusive" style="padding: 5px 15px 15px 15px; gap: 12px;"></div>
             </div>
             
             <!-- CONTAINER RESTO RATING JEMPOLAN -->
@@ -1935,8 +1965,8 @@
         window.goBack = () => { window.history.back(); }
         window.onpopstate = (e) => { 
             const dest = e.state ? e.state.page : 'home';
-            renderPage(dest, true); 
             currentPage = dest;
+            renderPage(dest, true); 
         };
 
         function renderPage(name, restoreScroll = false) {
@@ -1949,6 +1979,9 @@
             if(name==='profile') document.getElementById('nav-profile')?.classList.add('active');
             if(name==='cart') { document.getElementById('nav-cart')?.classList.add('active'); renderCartPage(); }
             if(name==='favorites') renderFavoritesPage();
+            
+            updateCartBadge(name);
+
             if (restoreScroll && pageScrolls[name] !== undefined) setTimeout(() => window.scrollTo(0, pageScrolls[name]), 10);
             else window.scrollTo(0,0);
         }
@@ -2524,9 +2557,10 @@
         function addToCartDirect(item, variant, note) { cart.push({ id: item.id, nama: item.nama_menu, harga: parseInt(item.harga), vendor: item.vendor_name || "Warung Projekgo", variant: variant, note: note }); updateCartBadge(); if(navigator.vibrate) navigator.vibrate(50); showToast("Berhasil ditambahkan!"); }
         window.addToCartFromDetail = () => { if(!checkOperationalStatus()) return; if(!currentDetailProduct) return; if(currentDetailProduct.is_available === false) { showToast("Maaf, stok habis 🙏"); return; } let variant = "-"; if(document.getElementById('variant-section').style.display !== 'none') { const selectedVar = document.querySelector('input[name="variant"]:checked'); if(!selectedVar) { showToast("⚠️ Harap pilih varian dulu!"); document.getElementById('variant-section').scrollIntoView({behavior: 'smooth', block: 'center'}); const title = document.getElementById('pd-var-title'); title.style.color = 'red'; setTimeout(() => title.style.color = '#333', 1000); return; } variant = selectedVar.value; } const note = document.getElementById('pd-note').value; addToCartDirect(currentDetailProduct, variant, note); goBack(); }
         
-        function updateCartBadge() { 
+        function updateCartBadge(pageOverride = null) { 
             const b = document.getElementById('cart-badge'); 
             const floatingBanner = document.getElementById('floating-cart-banner');
+            const activePage = pageOverride || currentPage;
             
             if(cart.length > 0) { 
                 b.style.display='flex'; 
@@ -2535,10 +2569,14 @@
                 
                 // Update Badge Mengambang
                 if(floatingBanner) {
-                    floatingBanner.style.display = 'flex';
-                    const totalHarga = cart.reduce((sum, item) => sum + item.harga, 0);
-                    document.getElementById('fcb-qty').innerText = cart.length + " Pesanan";
-                    document.getElementById('fcb-total').innerText = "Rp " + totalHarga.toLocaleString();
+                    if (activePage === 'cart') {
+                        floatingBanner.style.display = 'none';
+                    } else {
+                        floatingBanner.style.display = 'flex';
+                        const totalHarga = cart.reduce((sum, item) => sum + item.harga, 0);
+                        document.getElementById('fcb-qty').innerText = cart.length + " Pesanan";
+                        document.getElementById('fcb-total').innerText = "Rp " + totalHarga.toLocaleString();
+                    }
                 }
             } else { 
                 b.style.display='none'; 
@@ -2728,7 +2766,7 @@
                 items.forEach(item => { const key = item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase(); const existing = consolidatedItems.find(i => i._key === key); if (existing) { existing.qty++; existing.totalItemPrice += item.harga; } else { consolidatedItems.push({ ...item, _key: key, qty: 1, totalItemPrice: item.harga }); } });
                 html += `<div class="cart-section"><div class="cart-vendor-group"><div class="cv-title"><i class="ph-fill ph-storefront"></i> ${vendor}</div>${consolidatedItems.map((item) => { let metaText = ""; if(item.variant && item.variant !== '-') { metaText += item.variant; } if(item.note) { metaText += (metaText ? ` (${item.note})` : `Catatan: ${item.note}`); } return `<div class="cart-item"><div style="flex:1;"><div class="ci-name"><span class="ci-qty-badge">${item.qty}x</span> ${item.nama}</div>${metaText ? `<div class="ci-var">${metaText}</div>` : ''} </div><div class="ci-price">Rp ${item.totalItemPrice.toLocaleString()}</div></div>`; }).join('')}</div></div>`;
             }
-            html += `<div class="cart-section" style="border-top:10px solid #f0f0f0;"><div class="cv-title">📍 Alamat Pengantaran</div><div class="addr-box" id="addr-box-container"><textarea id="checkout-addr" class="addr-input" rows="2" placeholder="Alamat lengkap (Wajib diisi)..."></textarea></div><div style="font-size:11px; color:#888; margin-top:5px; margin-bottom:15px; text-align:right;">*Alamat tersimpan otomatis dimuat</div><div style="margin-bottom:20px;"><button id="btn-titik-maps" onclick="getCurrentLocationForMaps()" style="width:100%; background:var(--primary-light); color:var(--primary); border:1px dashed var(--primary); padding:14px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:0.3s;"><i class="ph-bold ph-map-pin" style="font-size:18px;"></i> Tentukan Titik Maps (Opsional)</button><div id="maps-status-text" style="font-size:10px; color:#2E7D32; text-align:center; margin-top:6px; font-weight:700; display:none;">✅ Titik lokasi diamankan! Rider lebih cepat sampai.</div></div><div class="cv-title">📝 Catatan Pesanan</div><input type="text" id="checkout-note" class="form-input" placeholder="Cth: Jangan dibanting..."></div><div class="cart-section" style="border-top:10px solid #f0f0f0;"><div class="cv-title">Rincian Pembayaran</div><div class="cost-row"><span>Projekgo tidak menaikan harga (Normal)</span><span style="text-decoration:line-through;">Rp ${fakeOriginalTotal.toLocaleString()}</span></div><div class="cost-row"><span>Biaya Aplikasi</span><span style="color:green;">Gratis (Rp 0)</span></div><div class="cost-row total"><span>Total Harga Makanan</span><span>Rp ${subTotal.toLocaleString()}</span></div><div class="cost-row saved"><i class="ph-fill ph-check-circle"></i> &nbsp; Anda lebih hemat Rp ${savings.toLocaleString()}</div><div style="background:#FFF3E0; color:#E65100; font-size:11px; padding:10px; margin-top:15px; border-radius:8px;">untuk ongkir nanti diinfo oleh admin yah (pengantaran prioritas ongkirnya hemat).</div><button onclick="processCheckout()" style="width:100%; background:#25D366; color:white; padding:15px; border:none; border-radius:12px; margin-top:20px; font-weight:700; font-size:16px;">Pesan ke Admin <i class="ph-fill ph-whatsapp-logo"></i></button></div>`;
+            html += `<div class="cart-section" style="border-top:10px solid #f0f0f0;"><div class="cv-title">📍 Alamat Pengantaran</div><div class="addr-box" id="addr-box-container"><textarea id="checkout-addr" class="addr-input" rows="2" placeholder="Alamat lengkap (Wajib diisi)..."></textarea></div><div style="font-size:11px; color:#888; margin-top:5px; margin-bottom:15px; text-align:right;">*Alamat tersimpan otomatis dimuat</div><div style="margin-bottom:20px;"><button id="btn-titik-maps" onclick="getCurrentLocationForMaps()" style="width:100%; background:var(--primary-light); color:var(--primary); border:1px dashed var(--primary); padding:14px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:0.3s;"><i class="ph-bold ph-map-pin" style="font-size:18px;"></i> KLIK DISINI Jika tujuan pengantaran sama dengan posisi anda saat ini, |AGAR AKURAT ketika rider mengantar </button><div id="maps-status-text" style="font-size:10px; color:#2E7D32; text-align:center; margin-top:6px; font-weight:700; display:none;">✅ Titik lokasi diamankan! Rider lebih cepat sampai.</div></div><div class="cv-title">📝 Catatan Pesanan</div><input type="text" id="checkout-note" class="form-input" placeholder="Cth: Jangan dibanting..."></div><div class="cart-section" style="border-top:10px solid #f0f0f0;"><div class="cv-title">Rincian Pembayaran</div><div class="cost-row"><span>Projekgo tidak menaikan harga (Normal)</span><span style="text-decoration:line-through;">Rp ${fakeOriginalTotal.toLocaleString()}</span></div><div class="cost-row"><span>Biaya Aplikasi</span><span style="color:green;">Gratis (Rp 0)</span></div><div class="cost-row total"><span>Total Harga Makanan</span><span>Rp ${subTotal.toLocaleString()}</span></div><div class="cost-row saved"><i class="ph-fill ph-check-circle"></i> &nbsp; Anda lebih hemat Rp ${savings.toLocaleString()}</div><div style="background:#FFF3E0; color:#E65100; font-size:11px; padding:10px; margin-top:15px; border-radius:8px;">untuk ongkir nanti diinfo oleh admin yah (pengantaran prioritas ongkirnya hemat).</div><button onclick="processCheckout()" style="width:100%; background:#25D366; color:white; padding:15px; border:none; border-radius:12px; margin-top:20px; font-weight:700; font-size:16px;">Pesan ke Admin <i class="ph-fill ph-whatsapp-logo"></i></button></div>`;
             container.innerHTML = html; 
             const savedAddr = localStorage.getItem('user_address'); if(savedAddr) document.getElementById('checkout-addr').value = savedAddr;
             const savedMaps = localStorage.getItem('user_maps'); 
@@ -3524,7 +3562,7 @@
                                 ${catatanTokoListHtml}
                             </div>
                             <div style="background: #FFF1F0; padding: 12px 15px; border-top: 1px solid #FFEBEB; display: flex; align-items: center; gap: 8px; color: #D32F2F; font-size: 12px; font-weight: 700;">
-                                <i class="ph-fill ph-percent" style="background:#D32F2F; color:white; border-radius:50%; padding:2px; font-size:12px;"></i> Diskon 20%, maks. 24rb
+                                <i class="ph-fill ph-wallet" style="background:#D32F2F; color:white; border-radius:50%; padding:3px; font-size:12px;"></i> Harga Asli Penjual (Lebih Hemat 20%)
                             </div>
                         </div>
                     `;
@@ -3563,17 +3601,24 @@
                         </div>
                         <div class="wli-promo-scroll">
                             <div class="wli-promo-badge">
-                                <img src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" style="width:20px; height:20px; object-fit:contain;">
+                                <i class="ph-fill ph-wallet" style="font-size:22px; color:var(--primary);"></i>
                                 <div style="display:flex; flex-direction:column; justify-content:center;">
-                                    <div style="font-size:12px; font-weight:700; color:#333; margin-bottom:2px;">Diskon ongkir s.d. 1...</div>
-                                    <div style="font-size:11px; color:#888;">Min. pembelian 15rb</div>
+                                    <div style="font-size:12px; font-weight:700; color:#333; margin-bottom:2px;">Harga Asli Penjual</div>
+                                    <div style="font-size:11px; color:#888;">Lebih hemat 20% - 30%</div>
                                 </div>
                             </div>
                             <div class="wli-promo-badge">
-                                <img src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" style="width:20px; height:20px; object-fit:contain;">
+                                <i class="ph-fill ph-moped" style="font-size:22px; color:#2E7D32;"></i>
                                 <div style="display:flex; flex-direction:column; justify-content:center;">
-                                    <div style="font-size:12px; font-weight:700; color:#333; margin-bottom:2px;">Diskon ongkir s.d. ...</div>
-                                    <div style="font-size:11px; color:#888;">Min. pembelian 15rb</div>
+                                    <div style="font-size:12px; font-weight:700; color:#333; margin-bottom:2px;">Pengantaran Prioritas</div>
+                                    <div style="font-size:11px; color:#888;">1 Rider khusus untukmu</div>
+                                </div>
+                            </div>
+                            <div class="wli-promo-badge">
+                                <i class="ph-fill ph-handshake" style="font-size:22px; color:#1565C0;"></i>
+                                <div style="display:flex; flex-direction:column; justify-content:center;">
+                                    <div style="font-size:12px; font-weight:700; color:#333; margin-bottom:2px;">Ekonomi Lokal</div>
+                                    <div style="font-size:11px; color:#888;">100% Dukung UMKM</div>
                                 </div>
                             </div>
                         </div>
