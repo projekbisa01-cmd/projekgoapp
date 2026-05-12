@@ -419,7 +419,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: var(--white);
+            background: linear-gradient(90deg, #FFF2F0 0%, transparent 100%);
             margin-bottom: 0;
         }
         .btn-lihat-semua {
@@ -501,7 +501,7 @@
         .promo-scroll-side .h-card { background: white; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
 
         .section-group { background: var(--white); margin-bottom: 0; border-bottom: 8px solid var(--bg); padding-bottom: 15px; }
-        .section-title { padding: 15px 15px 10px 15px; font-size: 16px; font-weight: 800; color: var(--dark); display: flex; justify-content: space-between; align-items: center; background: var(--white); }
+        .section-title { padding: 15px 15px 10px 15px; font-size: 16px; font-weight: 800; color: var(--dark); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, #FFF2F0 0%, transparent 100%); }
         
         /* --- STICKY WARUNG HEADER --- */
         #warung-sticky-header {
@@ -509,7 +509,7 @@
             position: sticky;
             top: 60px; 
             z-index: 990;
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 242, 240, 0.95);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             margin-top: 0;
@@ -543,7 +543,7 @@
         .vendor-menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 15px; margin-bottom: 15px; }
         .vendor-menu-list { padding: 0 15px; display: flex; flex-direction: column; gap: 10px; }
         
-        .menu-category-header { font-size: 16px; font-weight: 800; color: var(--dark); margin: 25px 5px 10px 5px; padding-bottom: 8px; border-bottom: 2px solid rgba(0,0,0,0.04); display: flex; justify-content: space-between; align-items: center; text-transform: capitalize; }
+        .menu-category-header { font-size: 16px; font-weight: 800; color: var(--dark); margin: 20px 0 10px 0; padding: 10px 15px; border-radius: 10px; background: linear-gradient(90deg, #FFF2F0 0%, transparent 100%); display: flex; justify-content: space-between; align-items: center; text-transform: capitalize; }
         
         .menu-grid-item { background: white; border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-sm); position: relative; border: 1px solid rgba(0,0,0,0.03); transition: transform 0.2s; }
         .menu-grid-item:active { transform: scale(0.97); }
@@ -567,7 +567,7 @@
         .p-info { padding: 10px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
         
         .group-vendor-section { margin-bottom: 0; background: white; padding-bottom: 15px; border-bottom: 8px solid var(--bg); }
-        .group-vendor-header-styled { padding: 15px 20px 5px 20px; display: flex; flex-direction: column; gap: 4px; cursor: pointer; transition: opacity 0.2s; }
+        .group-vendor-header-styled { padding: 15px 20px 15px 20px; display: flex; flex-direction: column; gap: 4px; cursor: pointer; transition: opacity 0.2s; background: linear-gradient(90deg, #FFF2F0 0%, transparent 100%); }
         .group-vendor-header-styled:active { opacity: 0.7; }
         .gvh-s-name { font-size: 18px; font-weight: 800; color: var(--dark); line-height: 1.2; }
         .gvh-s-meta { font-size: 12px; color: #666; display: flex; align-items: center; gap: 5px; font-weight: 500; }
@@ -1198,14 +1198,14 @@
 
             <!-- EXCLUSIVE SECTION -->
             <div id="wrapper-exclusive" style="background: linear-gradient(180deg, #FFF4E6 0%, #FFFFFF 100%); padding: 15px 0 5px 0; margin-bottom: 0; border-bottom: 8px solid var(--bg);">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; padding: 0 20px; margin-bottom: 12px;">
+                <div style="background: linear-gradient(90deg, #FFE0B2 0%, transparent 100%); display:flex; justify-content:space-between; align-items:flex-start; padding: 10px 20px; margin-bottom: 12px;">
                     <div>
                         <div style="font-size: 16px; font-weight: 800; color: #E65100; display:flex; align-items:center; gap:6px;">
                             Exclusive di Projekgo <span style="background:#E65100; color:white; font-size:10px; padding:3px 6px; border-radius:4px; font-weight:800; line-height:1;"><i class="ph-fill ph-medal" style="margin-right:2px;"></i>SPESIAL</span>
                         </div>
                         <div style="font-size: 12px; color: #888; margin-top: 5px; font-weight: 500;">Hanya ada di Projekgo</div>
                     </div>
-                    <div onclick="openCategoryPage('Exclusive')" style="font-size: 13px; color: #999; font-weight: 600; cursor: pointer; display:flex; align-items:center;">Lihat Semua <i class="ph-bold ph-caret-right" style="margin-left:2px;"></i></div>
+                    <div onclick="openCategoryPage('Exclusive')" style="font-size: 13px; color: #999; font-weight: 600; cursor: pointer; display:flex; align-items:center; margin-top: 2px;">Lihat Semua <i class="ph-bold ph-caret-right" style="margin-left:2px;"></i></div>
                 </div>
                 <div class="scroll-container" id="container-exclusive" style="padding: 5px 15px 15px 15px; gap: 12px;"></div>
             </div>
@@ -2390,11 +2390,22 @@
             c.innerHTML = ''; 
             c.classList.remove('product-list-grid'); 
             
+            // Bersihkan banner flash sale jika sebelumnya ada (agar tidak muncul di kategori lain)
+            const existingBanner = document.getElementById('dynamic-fs-banner');
+            if (existingBanner) existingBanner.remove();
+
             let filteredItems = [];
             if (cat === 'Exclusive') { 
                 filteredItems = allProducts.filter(p => p.is_exclusive === true); 
             } else if (cat === 'Paling Laris') { 
                 filteredItems = allProducts.slice(0, 15); 
+            } else if (cat === 'Sedang Promo') {
+                filteredItems = allProducts.filter(p => p.is_available !== false && (p.is_promo === true || parseInt(p.harga_coret) > parseInt(p.harga))).slice(0, 30);
+            } else if (cat === 'Flash Sale') {
+                filteredItems = allProducts.filter(p => p.is_available !== false).slice(0, 30);
+            } else if (cat === 'Top Rating') {
+                const topVendorsIds = currentDisplayVendors.slice(0, 10).map(v => v.id);
+                filteredItems = allProducts.filter(p => topVendorsIds.includes(p.vendor_id));
             } else { 
                 const targetCat = (cat || '').toLowerCase().trim();
                 const matchingVendors = currentDisplayVendors.filter(v => {
@@ -2407,18 +2418,51 @@
             if (filteredItems.length === 0) { 
                 c.innerHTML = '<div style="text-align:center; padding:50px; color:#999; width:100%;">Menu tidak ditemukan untuk kategori ini.</div>'; 
             } else {
-                const grouped = {};
-                filteredItems.forEach(item => { 
-                    const vName = item.vendor_name || "Warung Projekgo"; 
-                    if(!grouped[vName]) grouped[vName] = { items: [], id: item.vendor_id }; 
-                    grouped[vName].items.push(item);
-                    if (!grouped[vName].id && item.vendor_id) grouped[vName].id = item.vendor_id;
-                });
+                // Tambahkan Banner Flash Sale khusus di bagian atas list
+                if (cat === 'Flash Sale') {
+                    const bannerHTML = `
+                        <div style="background: linear-gradient(135deg, #FF6B4A 0%, #FF3D00 100%); padding: 15px; border-radius: 12px; display:flex; justify-content:space-between; align-items:center; box-shadow: 0 6px 15px rgba(255, 61, 0, 0.2); margin-bottom: 5px;">
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <i class="ph-fill ph-lightning" style="background:#FFD54F; color:#FF3D00; font-size:16px; padding:5px; border-radius:6px;"></i>
+                                <span style="font-size: 18px; font-weight: 800; color: white; font-style:italic; letter-spacing: -0.5px;">F<i class="ph-fill ph-lightning" style="margin:0 -1px; color:#FFD54F;"></i>ASH SALE</span>
+                            </div>
+                            <div style="display:flex; gap:4px;">
+                                <span class="fs-h-val" style="background:white; color:#FF3D00; font-size:13px; font-weight:800; padding:4px 6px; border-radius:6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">00</span>
+                                <span style="font-weight:800; font-size:14px; color:white;">:</span>
+                                <span class="fs-m-val" style="background:white; color:#FF3D00; font-size:13px; font-weight:800; padding:4px 6px; border-radius:6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">41</span>
+                                <span style="font-weight:800; font-size:14px; color:white;">:</span>
+                                <span class="fs-s-val" style="background:white; color:#FF3D00; font-size:13px; font-weight:800; padding:4px 6px; border-radius:6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">01</span>
+                            </div>
+                        </div>
+                    `;
+                    const bannerWrapper = document.createElement('div');
+                    bannerWrapper.id = 'dynamic-fs-banner';
+                    bannerWrapper.style.padding = '15px 15px 0 15px';
+                    bannerWrapper.innerHTML = bannerHTML;
+                    c.parentNode.insertBefore(bannerWrapper, c); // Menyelipkan banner tepat di atas grid produk
+                }
 
-                // TAHAP 3: Simpan state kategori untuk Pagination
-                window.currentCategoryGroups = Object.entries(grouped);
-                window.categoryRenderLimit = 5; // Hanya render 5 toko pertama
-                renderCategoryGroups(c);
+                if (cat === 'Flash Sale') {
+                    // Khusus Flash Sale: Tampilkan langsung kartu produknya tanpa di grup per warung
+                    c.classList.add('product-list-grid');
+                    filteredItems.forEach(item => {
+                        renderPcard(c, item);
+                    });
+                } else {
+                    // Kategori Lain: Dikelompokkan per warung
+                    const grouped = {};
+                    filteredItems.forEach(item => { 
+                        const vName = item.vendor_name || "Warung Projekgo"; 
+                        if(!grouped[vName]) grouped[vName] = { items: [], id: item.vendor_id }; 
+                        grouped[vName].items.push(item);
+                        if (!grouped[vName].id && item.vendor_id) grouped[vName].id = item.vendor_id;
+                    });
+
+                    // TAHAP 3: Simpan state kategori untuk Pagination
+                    window.currentCategoryGroups = Object.entries(grouped);
+                    window.categoryRenderLimit = 5; // Hanya render 5 toko pertama
+                    renderCategoryGroups(c);
+                }
             }
             document.getElementById('list-title').innerText = cat; 
             openPage('list');
@@ -3246,7 +3290,7 @@
                     sectionDiv.style.marginBottom = "15px";
                     sectionDiv.style.marginTop = "10px";
                     sectionDiv.innerHTML = `
-                        <div class="section-title" style="padding-top: 5px; padding-bottom: 12px; display:flex; flex-direction:column; align-items:flex-start;">
+                        <div class="section-title" style="padding-top: 10px; padding-bottom: 12px; display:flex; flex-direction:column; align-items:flex-start;">
                             <span style="font-size:16px; font-weight:800; color:var(--dark);">Resto dengan rating jempolan</span>
                             <span style="font-size:12px; color:#666; font-weight:500; margin-top:4px;">Ad</span>
                         </div>
@@ -3292,20 +3336,22 @@
 
             // Fungsi baru: Template layout horizontal yang bisa Anda custom sambil jalan
             const renderCustomPromoScroll = (urutan) => {
-                const promoItems = allProducts.filter(p => p.is_available !== false).slice(0, 6);
+                const promoItems = allProducts.filter(p => p.is_available !== false && (p.is_promo === true || parseInt(p.harga_coret) > parseInt(p.harga))).slice(0, 6);
                 
+                if (promoItems.length === 0) return;
+
                 const promoDiv = document.createElement('div');
                 promoDiv.style.cssText = "background: linear-gradient(180deg, #FFEBE5 0%, #FFFFFF 100%); padding: 15px 0 5px 0; margin-bottom: 0; border-bottom: 8px solid #f9f9f9;";
                 
                 const headerHtml = `
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; padding: 0 15px; margin-bottom: 12px;">
+                    <div style="background: linear-gradient(90deg, rgba(255,107,74,0.1) 0%, transparent 100%); display:flex; justify-content:space-between; align-items:flex-start; padding: 10px 15px; margin-bottom: 12px;">
                         <div>
                             <div style="font-size: 16px; font-weight: 800; color: #E53935; display:flex; align-items:center; gap:6px;">
                                 Sedang Promo <span style="background:#E53935; color:white; font-size:10px; padding:3px 6px; border-radius:4px; font-weight:800; line-height:1;"><i class="ph-bold ph-percent" style="margin-right:2px;"></i>DEALS</span>
                             </div>
                             <div style="font-size: 12px; color: #888; margin-top: 5px; font-weight: 500;">Voucher Menu Diskon s/d 70%</div>
                         </div>
-                        <div style="font-size: 13px; color: #999; font-weight: 600; cursor: pointer; display:flex; align-items:center;">Lihat Semua <i class="ph-bold ph-caret-right" style="margin-left:2px;"></i></div>
+                        <div onclick="openCategoryPage('Sedang Promo')" style="font-size: 13px; color: #999; font-weight: 600; cursor: pointer; display:flex; align-items:center;">Lihat Semua <i class="ph-bold ph-caret-right" style="margin-left:2px;"></i></div>
                     </div>
                 `;
 
@@ -3314,8 +3360,12 @@
                 promoItems.forEach(item => {
                     const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG;
                     const realPrice = parseInt(item.harga);
-                    const fakePrice = Math.ceil(realPrice * 1.5); // Buat harga seolah-olah diskon besar
-                    const discountPercent = Math.round(((fakePrice - realPrice) / fakePrice) * 100);
+                    
+                    // Logika baru: Tambahan harga coret = 30% dari harga asli, ATAU minimal 3000
+                    const tambahanCoret = Math.max(Math.ceil(realPrice * 0.3), 3000); 
+                    const originalPrice = realPrice + tambahanCoret;
+                    
+                    const discountPercent = Math.round(((originalPrice - realPrice) / originalPrice) * 100);
                     const soldCount = Math.floor(Math.random() * 50) + 10; 
                     
                     cardsHtml += `
@@ -3333,7 +3383,7 @@
                                 <div style="font-size:11px; color:#888; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.vendor_name || 'Warung Projekgo'}</div>
                                 <div style="font-size:13px; font-weight:700; color:var(--dark); margin:2px 0 4px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.nama_menu}</div>
                                 <div style="font-size:14px; font-weight:800; color:#E53935; line-height:1.2;">Rp${realPrice.toLocaleString()}</div>
-                                <div style="font-size:11px; text-decoration:line-through; color:#aaa; margin-top:2px;">Rp${fakePrice.toLocaleString()}</div>
+                                <div style="font-size:11px; text-decoration:line-through; color:#aaa; margin-top:2px;">Rp${originalPrice.toLocaleString()}</div>
                             </div>
                         </div>
                     `;
@@ -3355,11 +3405,11 @@
                 promoDiv.style.cssText = "background: #fff; padding-bottom: 15px; border-top: 8px solid var(--bg); border-bottom: 8px solid var(--bg);";
                 
                 let header = `
-                    <div style="display:flex; justify-content:space-between; align-items:center; padding: 15px 15px 12px 15px;">
+                    <div style="background: linear-gradient(90deg, #FFF2F0 0%, transparent 100%); display:flex; justify-content:space-between; align-items:center; padding: 15px 15px 12px 15px;">
                         <div style="font-size: 16px; font-weight: 500; color: #E53935; display:flex; align-items:center; gap:5px;">
                             Resto Top Rating <i class="ph-fill ph-star" style="color:#FFC107;"></i>
                         </div>
-                        <div style="font-size: 12px; color: #999; display:flex; align-items:center; font-weight: 500;">Lihat Semua <i class="ph-bold ph-caret-right" style="margin-left:2px;"></i></div>
+                        <div onclick="openCategoryPage('Top Rating')" style="font-size: 12px; color: #999; display:flex; align-items:center; font-weight: 500; cursor: pointer;">Lihat Semua <i class="ph-bold ph-caret-right" style="margin-left:2px;"></i></div>
                     </div>
                 `;
                 let cards = `<div class="scroll-container" style="padding: 0 15px 5px 15px; gap: 12px;">`;
@@ -3389,20 +3439,22 @@
                 if(products.length === 0) return;
                 
                 const promoDiv = document.createElement('div');
-                promoDiv.style.cssText = "background: #fff; padding-bottom: 15px; border-radius: 12px; border-bottom: 8px solid var(--bg); margin: 0 15px 15px 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.03);";
+                promoDiv.style.cssText = "background: linear-gradient(135deg, #FF6B4A 0%, #FF3D00 100%); padding-bottom: 20px; border-radius: 16px; margin: 0 15px 20px 15px; box-shadow: 0 8px 20px rgba(255, 61, 0, 0.2); overflow: hidden;";
                 
                 let header = `
-                    <div style="display:flex; justify-content:space-between; align-items:center; padding: 15px 15px 12px 15px;">
+                    <div style="background: linear-gradient(90deg, rgba(0,0,0,0.1) 0%, transparent 100%); display:flex; justify-content:space-between; align-items:center; padding: 15px 15px 12px 15px;">
                         <div style="display:flex; align-items:center; gap:6px;">
-                            <i class="ph-fill ph-fork-knife" style="background:#E53935; color:white; font-size:14px; padding:4px; border-radius:4px;"></i>
-                            <span style="font-size: 16px; font-weight: 800; color: #E53935; font-style:italic; display:flex; align-items:center; letter-spacing: -0.5px;">F<i class="ph-fill ph-lightning" style="margin:0 -1px;"></i>ASH SALE</span>
-                            <div style="display:flex; gap:2px; margin-left:4px;">
-                                <span id="fs-hours" style="background:#222; color:white; font-size:11px; font-weight:700; padding:2px 4px; border-radius:4px; line-height:1;">00</span><span style="font-weight:700; font-size:11px;">:</span>
-                                <span id="fs-minutes" style="background:#222; color:white; font-size:11px; font-weight:700; padding:2px 4px; border-radius:4px; line-height:1;">41</span><span style="font-weight:700; font-size:11px;">:</span>
-                                <span id="fs-seconds" style="background:#222; color:white; font-size:11px; font-weight:700; padding:2px 4px; border-radius:4px; line-height:1;">01</span>
+                            <i class="ph-fill ph-lightning" style="background:#FFD54F; color:#FF3D00; font-size:14px; padding:4px; border-radius:4px;"></i>
+                            <span style="font-size: 16px; font-weight: 800; color: white; font-style:italic; display:flex; align-items:center; letter-spacing: -0.5px;">F<i class="ph-fill ph-lightning" style="margin:0 -1px; color:#FFD54F;"></i>ASH SALE</span>
+                            <div style="display:flex; gap:3px; margin-left:6px;">
+                                <span class="fs-h-val" id="fs-hours" style="background:white; color:#FF3D00; font-size:11px; font-weight:800; padding:3px 5px; border-radius:4px; line-height:1; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">00</span>
+                                <span style="font-weight:800; font-size:12px; color:white;">:</span>
+                                <span class="fs-m-val" id="fs-minutes" style="background:white; color:#FF3D00; font-size:11px; font-weight:800; padding:3px 5px; border-radius:4px; line-height:1; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">41</span>
+                                <span style="font-weight:800; font-size:12px; color:white;">:</span>
+                                <span class="fs-s-val" id="fs-seconds" style="background:white; color:#FF3D00; font-size:11px; font-weight:800; padding:3px 5px; border-radius:4px; line-height:1; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">01</span>
                             </div>
                         </div>
-                        <div style="font-size: 12px; color: #999; display:flex; align-items:center; font-weight: 500;">Lihat Semua <i class="ph-bold ph-caret-right" style="margin-left:2px;"></i></div>
+                        <div onclick="openCategoryPage('Flash Sale')" style="font-size: 12px; color: rgba(255,255,255,0.9); display:flex; align-items:center; font-weight: 600; cursor: pointer;">Lihat Semua <i class="ph-bold ph-caret-right" style="margin-left:2px;"></i></div>
                     </div>
                 `;
                 let cards = `<div class="scroll-container" style="padding: 0 15px; gap: 12px;">`;
@@ -3412,18 +3464,18 @@
                     const discountPercent = Math.floor(Math.random() * 30) + 20; 
                     
                     cards += `
-                        <div style="width: 130px; flex-shrink: 0; cursor: pointer;" onclick="openProductDetail('${item.id}')">
-                            <div style="position:relative; width:100%; height:130px; border-radius:8px; overflow:hidden;">
+                        <div style="width: 140px; flex-shrink: 0; cursor: pointer; background: white; border-radius: 12px; padding: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" onclick="openProductDetail('${item.id}')">
+                            <div style="position:relative; width:100%; height:120px; border-radius:8px; overflow:hidden;">
                                 <img src="${img}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='${FALLBACK_MENU_IMG}'">
                                 <div style="position:absolute; top:0; right:0; background:#FFD54F; color:#D32F2F; font-size:12px; font-weight:800; padding:4px 6px; border-bottom-left-radius:8px;">
                                     -${discountPercent}%
                                 </div>
                             </div>
-                            <div style="font-size: 12px; color: var(--dark); text-align: center; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 2px;">${item.nama_menu}</div>
-                            <div style="font-size: 14px; font-weight: 800; color: #D32F2F; text-align: center; margin-top: 2px;">Rp${realPrice.toLocaleString()}</div>
-                            <div style="background:#ffcdd2; border-radius:10px; height:14px; margin-top:6px; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;">
-                                <div style="background:#e53935; width:${Math.floor(Math.random()*60)+10}%; height:100%; position:absolute; left:0; border-radius:10px;"></div>
-                                <span style="position:relative; font-size:9px; font-weight:800; color:white; z-index:2; text-shadow: 0 1px 1px rgba(0,0,0,0.2);">STOK TERBATAS</span>
+                            <div style="font-size: 12px; font-weight: 700; color: var(--dark); margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 4px;">${item.nama_menu}</div>
+                            <div style="font-size: 14px; font-weight: 800; color: #FF3D00; margin-top: 2px; padding: 0 4px;">Rp${realPrice.toLocaleString()}</div>
+                            <div style="background:#FFEBEB; border-radius:10px; height:14px; margin: 6px 4px 4px 4px; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+                                <div style="background:linear-gradient(90deg, #FF6B4A, #FF3D00); width:${Math.floor(Math.random()*60)+10}%; height:100%; position:absolute; left:0; border-radius:10px;"></div>
+                                <span style="position:relative; font-size:9px; font-weight:800; color:white; z-index:2; text-shadow: 0 1px 1px rgba(0,0,0,0.3);">STOK TERBATAS</span>
                             </div>
                         </div>
                     `;
@@ -3438,19 +3490,18 @@
                     if (fsTotalSeconds <= 0) fsTotalSeconds = 59 * 60 + 59; // Reset jika habis (dummy)
                     fsTotalSeconds--;
                     
-                    const elH = document.getElementById('fs-hours');
-                    const elM = document.getElementById('fs-minutes');
-                    const elS = document.getElementById('fs-seconds');
+                    const h = Math.floor(fsTotalSeconds / 3600);
+                    const m = Math.floor((fsTotalSeconds % 3600) / 60);
+                    const s = fsTotalSeconds % 60;
                     
-                    if (elH && elM && elS) {
-                        const h = Math.floor(fsTotalSeconds / 3600);
-                        const m = Math.floor((fsTotalSeconds % 3600) / 60);
-                        const s = fsTotalSeconds % 60;
-                        
-                        elH.innerText = h.toString().padStart(2, '0');
-                        elM.innerText = m.toString().padStart(2, '0');
-                        elS.innerText = s.toString().padStart(2, '0');
-                    }
+                    const hStr = h.toString().padStart(2, '0');
+                    const mStr = m.toString().padStart(2, '0');
+                    const sStr = s.toString().padStart(2, '0');
+                    
+                    // Menggunakan querySelectorAll agar timer tersinkronisasi di banyak tempat sekaligus (Beranda & Halaman List)
+                    document.querySelectorAll('.fs-h-val').forEach(el => el.innerText = hStr);
+                    document.querySelectorAll('.fs-m-val').forEach(el => el.innerText = mStr);
+                    document.querySelectorAll('.fs-s-val').forEach(el => el.innerText = sStr);
                 }, 1000);
 
                 flashSaleImgInserted = true;
@@ -3525,7 +3576,7 @@
                 // --------------------------------------
 
                 // Menambahkan Badge Visual "Andalan" khusus untuk yang memiliki is_andalan = true
-                const andalanBadge = v.is_andalan ? '<div class="badge-priority" style="top:5px; left:5px; background:linear-gradient(135deg, #FFD700, #F39C12); color:#fff; border:1px solid rgba(255,255,255,0.5); box-shadow:0 4px 12px rgba(243, 156, 18, 0.4); font-size:11px; padding:5px 10px; border-radius:8px; font-weight:800; text-shadow:0 1px 2px rgba(0,0,0,0.2);"><i class="ph-fill ph-medal" style="font-size:14px;"></i> Andalan</div>' : '';
+                const andalanBadge = v.is_andalan ? '<span style="display:inline-flex; align-items:center; gap:3px; background:#E8F5E9; color:#2E7D32; font-size:10px; font-weight:800; padding:2px 6px; border-radius:12px; margin-left:4px; vertical-align:middle; border:1px solid #C8E6C9;"><i class="ph-fill ph-check-circle" style="font-size:12px;"></i>Andalan</span>' : '';
 
                 const div = document.createElement('div');
                 
@@ -3540,7 +3591,6 @@
                     div.innerHTML = `
                         <div style="background: white; border-radius: 16px; box-shadow: 0 6px 20px rgba(0,0,0,0.08); overflow: hidden; display: flex; flex-direction: column; width: 100%; border: 1px solid #f0f0f0; position: relative;">
                             <div style="position: relative; width: 100%; height: 180px;">
-                                ${andalanBadge}
                                 <img src="${v.cover_photo || img}" style="width: 100%; height: 100%; object-fit: cover; ${!s ? 'filter:grayscale(100%);' : ''}" onerror="this.src='${img}'">
                                 ${!s ? '<div class="badge-habis-overlay"><span class="badge-habis-text">TUTUP</span></div>' : ''}
                                 <div style="position: absolute; bottom: -12px; left: 15px; display: flex; gap: 6px; z-index: 2;">
@@ -3556,7 +3606,7 @@
                                 </div>
                             </div>
                             <div style="padding: 24px 15px 15px 15px;">
-                                <div style="font-size: 18px; font-weight: 800; color: var(--dark); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${v.nama_warung || 'Warung Projekgo'}</div>
+                                <div style="font-size: 18px; font-weight: 800; color: var(--dark); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${v.nama_warung || 'Warung Projekgo'} ${andalanBadge}</div>
                                 <div style="font-size: 12px; color: #666; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Rp${formattedPrice}rb • ${menuDesc}</div>
                                 <div style="font-size:10px; color:${statusColor}; font-weight:700;">${statusText}</div>
                                 ${catatanTokoListHtml}
@@ -3578,12 +3628,11 @@
                     div.innerHTML = `
                         <div class="wli-top">
                             <div style="position:relative;">
-                                ${andalanBadge}
                                 <img src="${img}" class="wli-img" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
                                 ${!s ? '<div class="badge-habis-overlay" style="border-radius:18px;"><span class="badge-habis-text">TUTUP</span></div>' : ''}
                             </div>
                             <div class="wli-content">
-                                <div class="wli-title">${v.nama_warung || 'Warung Projekgo'}</div>
+                                <div class="wli-title">${v.nama_warung || 'Warung Projekgo'} ${andalanBadge}</div>
                                 <div class="wli-meta">
                                     <i class="ph-fill ph-star" style="color:#FFC107; font-size:14px;"></i> 
                                     <span style="font-weight:700; color:#333; margin-left:3px;">${rating}</span> 
@@ -3591,9 +3640,9 @@
                                     <span style="margin: 0 4px;">•</span> ${menuDesc}
                                 </div>
                                 <div class="wli-price-row">
-                                    <span style="color:#00880B; font-weight:700;">Ongkir Rp${formattedPrice}rb</span>
-                                    <span style="text-decoration:line-through; color:#aaa; font-weight:400; font-size:12px;">Rp${fakeCoret}rb</span>
-                                    <span style="color:#888; font-weight:400; font-size:12px;">• ${dist}0-${dist}5 min</span>
+                                    <span style="color:#00880B; font-weight:800;">Ongkir Hemat</span>
+                                    <span style="color:#E65100; font-weight:700; font-size:10px; background:#FFF3E0; padding:2px 6px; border-radius:4px; margin-left:4px;">Pengantaran Prioritas</span>
+                                    <span style="color:#888; font-weight:500; font-size:11px; white-space:nowrap; margin-left:4px;">• Estimasi 10 - 30 mnt</span>
                                 </div>
                                 <div style="font-size:10px; color:${statusColor}; font-weight:700; margin-top:2px;">${statusText}</div>
                                 ${catatanTokoListHtml}
