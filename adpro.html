@@ -108,20 +108,20 @@
         .data-card { background: white; border-radius: 20px; border: 1px solid #f0f0f0; overflow: hidden; margin-bottom: 20px; }
         .card-header { padding: 18px 20px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 16px; }
         
-        /* TABLES (Responsive & No-Scroll Mobile) */
+        /* TABLES */
         .table-responsive { width: 100%; }
         table { width: 100%; border-collapse: collapse; }
         th { background: #f8fafc; padding: 12px 20px; text-align: left; font-size: 11px; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; }
         td { padding: 16px 20px; border-bottom: 1px solid #f8fafc; font-size: 14px; }
 
-        /* MOBILE OPTIMIZED TABLE (Tampilan Kartu di HP) */
+        /* MOBILE OPTIMIZED TABLE */
         @media screen and (max-width: 768px) {
             .table-responsive { overflow-x: visible; }
             table, thead, tbody, th, td, tr { display: block; }
-            thead { display: none; } /* Sembunyikan header tabel di HP */
+            thead { display: none; }
             
             tr { 
-                border-bottom: 8px solid #F8F9FB; /* Jarak antar item */
+                border-bottom: 8px solid #F8F9FB;
                 padding: 15px;
             }
             
@@ -144,7 +144,6 @@
                 margin-right: 15px;
             }
 
-            /* Kolom pertama (Nama) dibuat menonjol */
             td:first-child { 
                 display: block; 
                 text-align: left; 
@@ -157,24 +156,21 @@
         }
 
         /* BUTTONS */
-        .btn-add-float { position: fixed; bottom: 90px; right: 20px; width: 56px; height: 56px; border-radius: 18px; background: var(--primary); color: white; border: none; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 10px 25px rgba(255, 102, 0, 0.3); z-index: 800; }
+        .btn-add-float { position: fixed; bottom: 90px; right: 20px; width: 56px; height: 56px; border-radius: 18px; background: var(--primary); color: white; border: none; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 10px 25px rgba(255, 102, 0, 0.3); z-index: 800; cursor: pointer;}
         .btn-status { padding: 6px 12px; border-radius: 10px; font-weight: 700; font-size: 11px; border: none; cursor: pointer; }
         .btn-status.open { background: #ecfdf5; color: var(--success); }
         .btn-status.closed { background: #fef2f2; color: var(--danger); }
+        .btn-status.warning { background: #fffbeb; color: var(--warning); }
         .action-btn { width: 36px; height: 36px; border-radius: 8px; border: none; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
         .action-btn:active { transform: scale(0.9); }
         .btn-delete { background: #fef2f2; color: var(--danger); }
         .btn-view { background: #eff6ff; color: #2563eb; }
         .btn-edit-pin { background: #e0f2fe; color: #0284c7; }
+        .btn-success { background: #ecfdf5; color: #10b981; }
         
-        /* FEATURED BUTTON STYLE */
         .btn-feature { background: #f8fafc; color: #cbd5e1; }
         .btn-feature.active { background: #fff7ed; color: #f59e0b; border: 1px solid #ffedd5; }
-
-        /* Tombol Edit Info Baru */
         .btn-edit-info { background: #f3e8ff; color: #9333ea; }
-        
-        /* Style baru untuk tombol Exclusive */
         .btn-exclusive { background: #f3f4f6; color: #9ca3af; }
         .btn-exclusive.active { background: #ede9fe; color: #7c3aed; }
 
@@ -293,7 +289,6 @@
                 <p class="page-subtitle">Kelola status & Mitra Andalan</p>
             </div>
             
-            <!-- Tambahan Search Bar Mitra -->
             <div style="position: relative; margin-bottom: 20px;">
                 <i class="ph ph-magnifying-glass" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray); font-size: 20px;"></i>
                 <input type="text" id="search-vendors" class="form-input" style="padding-left: 45px;" placeholder="Cari nama warung, kategori, atau lokasi..." oninput="renderVendorsList()">
@@ -318,6 +313,41 @@
             <button class="btn-add-float" onclick="openAddModal()"><i class="ph-bold ph-plus"></i></button>
         </div>
 
+        <!-- TAGIHAN PAGE -->
+        <div id="page-tagihan" class="page-content">
+            <div class="page-header">
+                <h1 class="page-title">Tagihan Seller</h1>
+                <p class="page-subtitle">Kelola tagihan dan status pembayaran mitra</p>
+            </div>
+            
+            <div style="position: relative; margin-bottom: 20px;">
+                <i class="ph ph-magnifying-glass" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray); font-size: 20px;"></i>
+                <input type="text" id="search-tagihan" class="form-input" style="padding-left: 45px;" placeholder="Cari nama mitra..." oninput="renderTagihanList()">
+            </div>
+
+            <div class="data-card">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Mitra & Akses</th>
+                                <th>Total Tagihan</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tagihan-list-body">
+                            <tr>
+                                <td colspan="4" style="text-align:center; padding:30px; color:#999;">
+                                    Belum ada data tagihan.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <!-- PRODUCTS PAGE -->
         <div id="page-products" class="page-content">
             <div class="page-header">
@@ -326,7 +356,6 @@
             </div>
             
             <div id="menu-vendor-list-view">
-                <!-- Tambahan Search Bar List Vendor -->
                 <div style="position: relative; margin-bottom: 20px;">
                     <i class="ph ph-magnifying-glass" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray); font-size: 20px;"></i>
                     <input type="text" id="search-menu-vendors" class="form-input" style="padding-left: 45px;" placeholder="Cari nama mitra..." oninput="renderVendorMenuOverview()">
@@ -348,7 +377,6 @@
                 </button>
                 <h3 id="detail-vendor-name" style="margin-bottom:15px;"></h3>
                 
-                <!-- Tambahan Search Bar Detail Menu -->
                 <div style="position: relative; margin-bottom: 20px;">
                     <i class="ph ph-magnifying-glass" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray); font-size: 20px;"></i>
                     <input type="text" id="search-menu-detail" class="form-input" style="padding-left: 45px;" placeholder="Cari nama menu atau kategori..." oninput="renderDetailProducts(currentVendorView)">
@@ -410,7 +438,6 @@
                 <p class="page-subtitle">Kirim pesan massal ke pengguna</p>
             </div>
             
-            <!-- Formulir Kirim -->
             <div class="data-card" style="padding:20px; margin-bottom: 25px;">
                 <div class="form-group">
                     <label class="form-label">Judul</label>
@@ -423,12 +450,10 @@
                 <button id="btn-broadcast-submit" class="btn-login" style="background:var(--primary);" onclick="kirimBroadcast()">Siarkan Sekarang</button>
             </div>
 
-            <!-- Riwayat Siaran -->
             <div class="page-header">
                 <h2 class="page-title" style="font-size: 18px;">Riwayat Siaran</h2>
             </div>
             <div id="broadcast-history-list">
-                <!-- List Item Akan Dirender Di Sini -->
                 <div style="text-align:center; padding:30px; color:#999;">Memuat riwayat...</div>
             </div>
         </div>
@@ -444,6 +469,10 @@
         <div class="nav-item" onclick="showPage('vendors', this)">
             <i class="ph ph-storefront"></i>
             <span>Mitra</span>
+        </div>
+        <div class="nav-item" onclick="showPage('tagihan', this)">
+            <i class="ph ph-receipt"></i>
+            <span>Tagihan</span>
         </div>
         <div class="nav-item" onclick="showPage('products', this)">
             <i class="ph ph-bowl-food"></i>
@@ -510,7 +539,7 @@
         </div>
     </div>
 
-    <!-- MODAL EDIT INFO MITRA (DENGAN KATEGORI) -->
+    <!-- MODAL EDIT INFO MITRA -->
     <div id="edit-vendor-info-modal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-title">Edit Info Mitra</div>
@@ -525,13 +554,10 @@
                 <input type="text" id="evi-name" class="form-input">
             </div>
             
-            <!-- INPUT KATEGORI UTAMA BARU -->
             <div class="form-group">
                 <label class="form-label">Kategori Utama (Bisa pilih lebih dari satu)</label>
                 <div id="evi-kategori-container" class="checkbox-grid">
-                    <!-- Akan diisi otomatis oleh JavaScript berupa checkbox -->
                 </div>
-                <!-- Field input text ini muncul hanya jika memilih "Tambah kategori lain..." -->
                 <input type="text" id="evi-kategori-custom" class="form-input" placeholder="Ketik kategori baru (pisahkan dgn koma jika banyak)..." style="display:none; margin-top: 15px; border-color: var(--primary);">
             </div>
             
@@ -586,30 +612,38 @@
         </div>
     </div>
 
+    <!-- MODAL EDIT TAGIHAN -->
+    <div id="edit-tagihan-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title">Edit Tagihan Manual</div>
+            <p style="color:var(--gray); font-size:13px; margin-bottom:15px;">Sesuaikan tagihan untuk <b id="et-name">...</b></p>
+            <input type="hidden" id="et-id">
+            <div class="form-group">
+                <label class="form-label">Total Tagihan (Rp)</label>
+                <input type="number" id="et-amount" class="form-input" placeholder="Contoh: 15000">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal" style="background:#f1f5f9;" onclick="closeModal('edit-tagihan-modal')">Batal</button>
+                <button class="btn-modal" style="background:var(--primary); color:white;" onclick="saveTagihanUpdate()">Simpan Tagihan</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        // Mengganti onSnapshot dengan getDocs, query, limit, dan orderBy untuk hemat kuota
         import { getFirestore, collection, getDocs, query, limit, orderBy, deleteDoc, doc, setDoc, updateDoc, addDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getStorage, ref, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         // --- PENTING: GANTI DENGAN API KEY BARU KAMU ---
         const firebaseConfig = {
-
-  apiKey: "AIzaSyAc4ZnBU6xAil7Un4Y53Jxncj_B6eURHBo",
-
-  authDomain: "projekgo-app.firebaseapp.com",
-
-  projectId: "projekgo-app",
-
-  storageBucket: "projekgo-app.firebasestorage.app",
-
-  messagingSenderId: "910691523179",
-
-  appId: "1:910691523179:web:2c78d27de6a02cec952f2e"
-
-};
-
+            apiKey: "AIzaSyAc4ZnBU6xAil7Un4Y53Jxncj_B6eURHBo",
+            authDomain: "projekgo-app.firebaseapp.com",
+            projectId: "projekgo-app",
+            storageBucket: "projekgo-app.firebasestorage.app",
+            messagingSenderId: "910691523179",
+            appId: "1:910691523179:web:2c78d27de6a02cec952f2e"
+        };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -619,18 +653,15 @@
         let adminAllProducts = []; 
         let adminAllVendors = [];
         let adminAllReviews = [];
-        let adminAllKategori = []; // Simpan data kategori utama
+        let adminAllKategori = []; 
         let currentVendorView = null; 
         let deleteTarget = null; 
 
         // --- PWA VIRTUAL LOGIC ---
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Mencegah Chrome lama menampilkan prompt secara otomatis
             e.preventDefault();
-            // Simpan event agar bisa dipicu nanti
             deferredPrompt = e;
-            // Tampilkan tombol Install App
             const installBtn = document.getElementById('btn-install-pwa');
             if(installBtn) installBtn.style.display = 'flex';
         });
@@ -640,13 +671,9 @@
             if(installBtn) {
                 installBtn.addEventListener('click', async () => {
                     if (deferredPrompt) {
-                        // Tampilkan prompt instalasi PWA
                         deferredPrompt.prompt();
-                        // Tunggu respon pengguna (menerima atau menolak)
                         const { outcome } = await deferredPrompt.userChoice;
-                        // Hapus prompt karena hanya bisa digunakan sekali
                         deferredPrompt = null;
-                        // Sembunyikan tombol kembali
                         installBtn.style.display = 'none';
                     }
                 });
@@ -674,23 +701,20 @@
             
             if (pageId === 'products') showMenuVendorList();
             if (pageId === 'reviews') showReviewList();
+            if (pageId === 'tagihan') renderTagihanList();
         }
 
         // --- RENDER KATEGORI OPTIONS ---
         window.renderKategoriOptions = () => {
             const container = document.getElementById('evi-kategori-container');
-            
-            // Daftar kategori utama default / bawaan
             const defaultCategories = ["Sarapan", "Pernasian", "Minuman", "Ayam", "Berkuah", "aneka mie", "Snack"];
             
-            // Ambil kategori custom dari Firebase yang belum ada di daftar default
             const dbCategories = adminAllKategori
                 .map(k => k.nama || k.name || k.kategori_utama || k.id)
                 .filter(catName => {
                     return !defaultCategories.some(d => d.toLowerCase() === (catName || '').toLowerCase());
                 });
 
-            // Gabungkan default list dengan custom list dari DB
             const allCategories = [...defaultCategories, ...dbCategories];
             
             let html = '';
@@ -704,7 +728,6 @@
                 }
             });
             
-            // Tambahkan opsi custom di akhir list
             html += `
             <label class="checkbox-label" style="font-weight:bold; color:var(--primary);">
                 <input type="checkbox" id="cb-lainnya" onchange="checkCustomKategori()">
@@ -956,6 +979,113 @@
             vendorBody.innerHTML = hMain;
         }
 
+        // --- LOGIKA TAGIHAN ---
+        window.renderTagihanList = () => {
+            const tbody = document.getElementById('tagihan-list-body');
+            if(!tbody) return;
+            const searchKeyword = (document.getElementById('search-tagihan')?.value || '').toLowerCase();
+            
+            // Urutkan: Yang punya tagihan paling besar di atas
+            const sortedVendors = [...adminAllVendors].sort((a, b) => {
+                const tagihanA = a.total_tagihan_sistem || 0;
+                const tagihanB = b.total_tagihan_sistem || 0;
+                return tagihanB - tagihanA; 
+            });
+
+            const filteredVendors = sortedVendors.filter(v => {
+                const name = (v.nama_warung || '').toLowerCase();
+                return name.includes(searchKeyword);
+            });
+
+            if (filteredVendors.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px; color:#999;">Tidak ada data mitra ditemukan.</td></tr>';
+                return;
+            }
+
+            let html = '';
+            filteredVendors.forEach(v => {
+                const tagihan = v.total_tagihan_sistem || 0;
+                const safeName = (v.nama_warung || '').replace(/'/g, "\\'");
+                
+                let statusBadge = '';
+                if (tagihan > 0) {
+                    statusBadge = `<span class="btn-status closed" style="font-size:10px;">Belum Lunas</span>`;
+                } else {
+                    statusBadge = `<span class="btn-status open" style="font-size:10px;">Lunas</span>`;
+                }
+
+                html += `
+                    <tr>
+                        <td data-label="Mitra & Akses">
+                            <div style="font-weight:700; font-size:14px; color:var(--dark);">${v.nama_warung}</div>
+                            <div style="font-size:11px; color:#888;">ID: ${v.id}</div>
+                        </td>
+                        <td data-label="Total Tagihan">
+                            <div style="font-weight:800; font-size:15px; color:${tagihan > 0 ? 'var(--danger)' : 'var(--success)'};">
+                                Rp ${tagihan.toLocaleString()}
+                            </div>
+                        </td>
+                        <td data-label="Status">${statusBadge}</td>
+                        <td data-label="Aksi">
+                            <div style="display:flex; gap:5px; justify-content: flex-end;">
+                                <button class="action-btn btn-view" title="Edit Manual" onclick="openEditTagihan('${v.id}', '${safeName}', ${tagihan})">
+                                    <i class="ph-bold ph-pencil-simple"></i>
+                                </button>
+                                <button class="action-btn btn-success" title="Tandai Lunas" onclick="markTagihanLunas('${v.id}', '${safeName}')" ${tagihan === 0 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
+                                    <i class="ph-bold ph-check"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        };
+
+        window.openEditTagihan = (id, name, currentTotal) => {
+            document.getElementById('et-id').value = id;
+            document.getElementById('et-name').innerText = name;
+            document.getElementById('et-amount').value = currentTotal;
+            document.getElementById('edit-tagihan-modal').style.display = 'flex';
+        };
+
+        window.saveTagihanUpdate = async () => {
+            const id = document.getElementById('et-id').value;
+            const amountInput = document.getElementById('et-amount').value;
+            const newAmount = parseInt(amountInput) || 0;
+
+            try {
+                // Update Firestore
+                await updateDoc(doc(db, "vendors", id), { total_tagihan_sistem: newAmount });
+                
+                // Update Lokal (Agar tidak perlu narik data ulang/hemat kuota read)
+                const idx = adminAllVendors.findIndex(v => v.id === id);
+                if(idx !== -1) adminAllVendors[idx].total_tagihan_sistem = newAmount;
+                
+                closeModal('edit-tagihan-modal');
+                alert("Tagihan berhasil diperbarui!");
+                window.renderTagihanList(); 
+            } catch(e) {
+                alert("Gagal update tagihan: " + e.message);
+            }
+        };
+
+        window.markTagihanLunas = async (id, name) => {
+            if(!confirm(`Tandai seluruh tagihan untuk mitra "${name}" LUNAS (Rp 0)?`)) return;
+
+            try {
+                await updateDoc(doc(db, "vendors", id), { total_tagihan_sistem: 0 });
+                
+                const idx = adminAllVendors.findIndex(v => v.id === id);
+                if(idx !== -1) adminAllVendors[idx].total_tagihan_sistem = 0;
+                
+                alert("Berhasil! Tagihan telah direset menjadi 0.");
+                window.renderTagihanList();
+            } catch(e) {
+                alert("Gagal memproses pelunasan: " + e.message);
+            }
+        };
+
         // --- BROADCAST LOGIC ---
         window.kirimBroadcast = async () => {
             const btn = document.getElementById('btn-broadcast-submit');
@@ -979,7 +1109,6 @@
                     alert("Siaran berhasil dikirim!");
                     document.getElementById('broadcast-title').value = "";
                     document.getElementById('broadcast-body').value = "";
-                    // Refresh history secara lokal
                     await window.fetchBroadcasts();
                 } catch(e) {
                     alert("Gagal mengirim: " + e.message);
@@ -1027,7 +1156,7 @@
                 await setDoc(docRef, { 
                     id, 
                     nama_warung: nama, 
-                    kategori_utama: [], // Diubah menjadi default array kosong
+                    kategori_utama: [], 
                     alamat_warung: alamat || '-', 
                     pin: pin,
                     status: 'BUKA', 
@@ -1038,16 +1167,13 @@
                 
                 closeModal('add-modal');
                 alert(`Mitra Berhasil Didaftarkan!\n\nID Login: ${id}\nPIN Akses: ${pin}`);
-                // Perbarui daftar lokal
                 await window.fetchVendors();
             } catch(e) { 
                 alert("Gagal menyimpan: " + e.message); 
             }
         }
 
-        // EDIT VENDOR INFO (NAMA, ALAMAT & KATEGORI)
         window.openEditVendorInfo = (id) => {
-            // Ambil data utuh dari array adminAllVendors berdasarkan ID
             const vendor = adminAllVendors.find(v => v.id === id);
             if(!vendor) return;
 
@@ -1056,13 +1182,11 @@
             document.getElementById('evi-name').value = vendor.nama_warung;
             document.getElementById('evi-location').value = vendor.alamat_warung || vendor.lokasi || ''; 
             
-            // Setup array kategori bawaan (backward compatibility jika datanya string lawas)
             let currentKategori = vendor.kategori_utama || [];
             if(!Array.isArray(currentKategori)) {
                 currentKategori = currentKategori.split(',').map(s=>s.trim()).filter(s=>s);
             }
 
-            // Uncheck semua checkbox terlebih dahulu
             const checkboxes = document.querySelectorAll('input[name="kategori_cb"]');
             const cbLainnya = document.getElementById('cb-lainnya');
             const customInput = document.getElementById('evi-kategori-custom');
@@ -1074,17 +1198,15 @@
             customInput.style.display = 'none';
             customInput.value = '';
 
-            // Centang box yang cocok dengan data kategori mitra ini
             currentKategori.forEach(cat => {
                 const cb = Array.from(checkboxes).find(c => c.value.toLowerCase() === cat.toLowerCase());
                 if(cb) {
-                    cb.checked = true; // Jika ada di daftar, centang
+                    cb.checked = true;
                 } else if (cat) {
-                    customCats.push(cat); // Jika tidak ada, tampung sebagai custom
+                    customCats.push(cat);
                 }
             });
 
-            // Tampilkan custom list jika mitra memiliki kategori yang tidak ada di standard box
             if(customCats.length > 0) {
                 if(cbLainnya) cbLainnya.checked = true;
                 customInput.style.display = 'block';
@@ -1103,21 +1225,17 @@
 
             let finalKategori = [];
             
-            // 1. Ambil dari checkbox standar yang dicentang
             const checkboxes = document.querySelectorAll('input[name="kategori_cb"]:checked');
             checkboxes.forEach(cb => finalKategori.push(cb.value));
 
-            // 2. Ambil dari opsi Custom (Lainnya)
             const cbLainnya = document.getElementById('cb-lainnya');
             if(cbLainnya && cbLainnya.checked) {
                 const customVal = document.getElementById('evi-kategori-custom').value.trim();
                 if(customVal) {
-                    // Pecah by koma jika user ketik banyak "Snack Manis, Jus"
                     const customArr = customVal.split(',').map(s=>s.trim()).filter(s=>s);
                     customArr.forEach(async (newCat) => {
                         finalKategori.push(newCat);
                         
-                        // Validasi & Masukkan ke koleksi utama jika belum ada
                         const exists = adminAllKategori.find(k => {
                             const kName = k.nama || k.name || k.kategori_utama || "";
                             return kName.toLowerCase() === newCat.toLowerCase();
@@ -1133,7 +1251,6 @@
             }
 
             try {
-                // Simpan ke Firebase (kategori_utama sekarang format array [])
                 await updateDoc(doc(db, "vendors", id), { 
                     nama_warung: newName,
                     alamat_warung: newAddress,
@@ -1148,7 +1265,6 @@
             }
         }
 
-        // EDIT PRODUCT
         window.openEditProduct = (id, name, price, category) => {
             document.getElementById('eprod-id').value = id;
             document.getElementById('eprod-name').value = name;
@@ -1179,7 +1295,6 @@
             }
         }
 
-        // GANTI PIN
         window.openChangePinModal = (id, name) => {
             document.getElementById('ep-id').value = id;
             document.getElementById('ep-name').innerText = name;
@@ -1207,12 +1322,10 @@
             }
         }
 
-        // --- OPTIMASI KUOTA: UPDATE ARRAY LOKAL PADA FITUR TOGGLE ---
         window.toggleStatus = async (id, currentStatus) => {
             const newStatus = (currentStatus === 'BUKA') ? 'TUTUP' : 'BUKA';
             await updateDoc(doc(db, "vendors", id), { status: newStatus });
             
-            // Mengubah state secara lokal agar UI update tanpa Fetch (0 reads)
             const idx = adminAllVendors.findIndex(v => v.id === id);
             if(idx !== -1) adminAllVendors[idx].status = newStatus;
             window.renderVendorsList();
@@ -1223,19 +1336,16 @@
             try {
                 const newVal = !currentVal;
                 
-                // 1. Optimistic UI Update: Ubah state lokal & render tampilan secara INSTAN
                 const idx = adminAllVendors.findIndex(v => v.id === id);
                 if(idx !== -1) adminAllVendors[idx].is_andalan = newVal;
                 adminAllVendors.sort((a, b) => (b.is_andalan === true) - (a.is_andalan === true));
                 window.renderVendorsList();
 
-                // 2. Kirim update ke database di background (tanpa membuat layar terhenti menunggu)
                 await updateDoc(doc(db, "vendors", id), { is_andalan: newVal });
             } catch(e) { 
                 console.error("Gagal toggle andalan:", e);
                 alert("Gagal memperbarui status andalan: " + e.message);
                 
-                // Rollback UI (kembalikan ke semula) jika tiba-tiba database gagal diupdate
                 const idx = adminAllVendors.findIndex(v => v.id === id);
                 if(idx !== -1) adminAllVendors[idx].is_andalan = currentVal;
                 adminAllVendors.sort((a, b) => (b.is_andalan === true) - (a.is_andalan === true));
@@ -1271,7 +1381,6 @@
             btn.innerText = "Menghapus...";
 
             try {
-                // --- FUNGSI BARU: Hapus File Gambar di Firebase Storage sebelum hapus data ---
                 const docRef = doc(db, deleteTarget.coll, deleteTarget.id);
                 const docSnap = await getDoc(docRef);
                 
@@ -1279,7 +1388,6 @@
                     const data = docSnap.data();
                     const urlsToDelete = [];
                     
-                    // Kumpulkan URL gambar yang akan dihapus
                     if (deleteTarget.coll === 'products' && data.foto_url) {
                         urlsToDelete.push(data.foto_url);
                     } else if (deleteTarget.coll === 'vendors') {
@@ -1287,9 +1395,7 @@
                         if (data.cover_photo) urlsToDelete.push(data.cover_photo);
                     }
                     
-                    // Eksekusi penghapusan file di Firebase Storage
                     for (const url of urlsToDelete) {
-                        // Pastikan URL tersebut memang berasal dari Firebase Storage kita
                         if (url && url.includes('firebasestorage.googleapis.com')) {
                             try {
                                 const fileRef = ref(storage, url);
@@ -1302,13 +1408,9 @@
                     }
                 }
                 
-                // -------------------------------------------------------------------------
-                
-                // Hapus data teks dari database Firestore
                 await deleteDoc(docRef);
                 closeModal('delete-modal');
                 
-                // Fetch ulang hanya koleksi yang baru saja dihapus datanya
                 if (deleteTarget.coll === 'vendors') await window.fetchVendors();
                 if (deleteTarget.coll === 'products') await window.fetchProducts();
                 if (deleteTarget.coll === 'broadcasts') await window.fetchBroadcasts();
@@ -1319,7 +1421,6 @@
             }
         });
 
-        // Ekstraksi Render UI untuk digunakan ulang
         window.updateRecentVendorsTable = () => {
             const recentBody = document.getElementById('recent-vendors-table');
             if(!recentBody) return;
@@ -1331,7 +1432,7 @@
             recentBody.innerHTML = hRecent;
         }
 
-        // --- DATA SYNC HEMAT KUOTA (GETDOCS) ---
+        // --- DATA SYNC HEMAT KUOTA ---
         window.fetchKategori = async () => {
             const snap = await getDocs(collection(db, "kategori_utama"));
             adminAllKategori = [];
@@ -1350,6 +1451,7 @@
             window.updateRecentVendorsTable();
             window.renderVendorMenuOverview();
             renderReviewVendors();
+            window.renderTagihanList(); // Render Tagihan di sini
         }
 
         window.fetchProducts = async () => {
@@ -1378,7 +1480,6 @@
         }
 
         window.fetchBroadcasts = async () => {
-            // Optimasi Ekstra: Dibatasi 30 siaran terbaru
             const q = query(collection(db, "broadcasts"), orderBy("created_at", "desc"), limit(30));
             const snap = await getDocs(q);
             const container = document.getElementById('broadcast-history-list');
@@ -1411,17 +1512,14 @@
         }
 
         async function initData() {
-            // Validasi API Key sebelum memanggil database
             if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "MASUKKAN_KEY_BARU_DISINI") {
                 alert("KONEKSI GAGAL: Anda belum memasukkan API Key Firebase. Silakan edit kode HTML dan ganti 'MASUKKAN_KEY_BARU_DISINI' dengan API Key Anda yang sebenarnya.");
                 return;
             }
 
             try {
-                // Melakukan autentikasi anonim agar diizinkan oleh aturan Firebase yang mewajibkan login
                 await signInAnonymously(auth);
 
-                // Semua fungsi fetch dipanggil dan ditunggu (await) untuk menangkap error jika gagal
                 await window.fetchKategori();
                 await window.fetchVendors();
                 await window.fetchProducts();
@@ -1430,7 +1528,6 @@
             } catch (error) {
                 console.error("Kesalahan koneksi Firebase:", error);
                 
-                // Deteksi khusus jika error masih terkait izin (Permissions)
                 if (error.code === 'permission-denied' || error.message.includes('permissions')) {
                     alert("IZIN DITOLAK (Permission Denied): Firebase memblokir akses.\n\nSOLUSI: Buka Firebase Console > Firestore Database > tab 'Rules' (Aturan), lalu ubah kodenya menjadi:\n\nmatch /{document=**} {\n  allow read, write: if true;\n}\n\nLalu klik Publish/Terbitkan.");
                 } else {
