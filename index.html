@@ -423,6 +423,7 @@
             margin-bottom: 0;
         }
         .btn-lihat-semua {
+            display: none; /* Disembunyikan karena semua kategori langsung ditampilkan di grid */
             font-size: 12px;
             color: #2E7D32; 
             background: #E8F5E9;
@@ -435,34 +436,29 @@
         .btn-lihat-semua:active { background: #C8E6C9; }
 
         .cat-grid { 
-            display: flex; 
-            flex-direction: row; 
-            gap: 15px; 
-            padding: 10px 20px 25px 20px; 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 15px 5px; 
+            padding: 15px 10px 25px 10px; 
             background: var(--white); 
             margin: 0; 
             border-radius: 0; 
             border-bottom: 8px solid var(--bg);
-            overflow-x: auto; 
-            scrollbar-width: none; 
-            -webkit-overflow-scrolling: touch; 
         }
         .cat-item { 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            gap: 8px; 
+            gap: 6px; 
             cursor: pointer; 
-            min-width: 80px; 
-            flex-shrink: 0; 
             transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
         }
         .cat-item:active { transform: scale(0.9); }
 
         .cat-icon-box { 
-            width: 75px; 
-            height: 75px; 
-            background: #f8f9fa; 
+            width: 55px; 
+            height: 55px; 
+            background: #ffffff; /* Diubah ke putih agar blob orange lebih menonjol */
             border-radius: 50%; /* Bulat sempurna */
             display: flex; 
             align-items: center; 
@@ -478,7 +474,7 @@
             transform: scale(1.1); /* Hides edges of existing SVG boxes */
         }
         
-        .cat-name { font-size: 12px; font-weight: 700; color: #444; text-align: center; line-height: 1.2; text-transform: capitalize; }
+        .cat-name { font-size: 10px; font-weight: 700; color: #444; text-align: center; line-height: 1.2; text-transform: capitalize; }
 
         /* --- SECTION LAIN --- */
         .promo-section-layout { display: flex; align-items: center; padding: 15px 0 15px 20px; margin-bottom: 0; border-bottom: 8px solid var(--bg); overflow-x: auto; position: relative; gap: 12px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
@@ -908,9 +904,9 @@
         .skel-img { width: 90px; height: 90px; border-radius: 18px; flex-shrink: 0; }
         .skel-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; gap: 10px; }
         .skel-line { height: 14px; border-radius: 8px; }
-        .skel-cat-wrapper { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 80px; }
-        .skel-cat-icon { width: 75px; height: 75px; border-radius: 50%; }
-        .skel-cat-text { width: 50px; height: 12px; border-radius: 6px; }
+        .skel-cat-wrapper { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .skel-cat-icon { width: 55px; height: 55px; border-radius: 50%; }
+        .skel-cat-text { width: 45px; height: 10px; border-radius: 6px; }
 
         #variant-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 2500; align-items: flex-end; justify-content: center; backdrop-filter: blur(2px); opacity: 0; transition: opacity 0.3s; }
         #variant-modal.show { opacity: 1; }
@@ -1009,6 +1005,51 @@
         .splash-btn-next:active { transform: scale(0.96); }
         .splash-loader-mini { display: none; width: 18px; height: 18px; border: 3px solid rgba(255,255,255,0.3); border-top: 3px solid white; border-radius: 50%; animation: spin 1s linear infinite; }
 
+        /* --- FINAL SPLASH SCREEN LOGO --- */
+        #final-splash-screen {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ffffff;
+            z-index: 99998; /* Berada tepat di bawah splash screen slide */
+            display: none;
+            flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.5s ease-out;
+        }
+        .fs-logo {
+            width: 110px; height: 110px; border-radius: 30px;
+            box-shadow: 0 15px 35px rgba(255, 102, 0, 0.2);
+            animation: zoomInBounce 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            opacity: 0; transform: scale(0.5);
+        }
+        .fs-title {
+            font-size: 36px; font-weight: 800; color: var(--primary);
+            margin-top: 25px;
+            background: linear-gradient(90deg, #FF6600, #FFB347);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: trackingInExpand 0.8s cubic-bezier(0.215, 0.610, 0.355, 1.000) 0.3s forwards;
+            opacity: 0;
+        }
+        .fs-subtitle {
+            font-size: 13px; font-weight: 600; color: #666;
+            margin-top: 8px; font-style: italic; text-align: center;
+            animation: fadeInUp 0.8s ease-out 0.9s forwards;
+            opacity: 0; transform: translateY(10px);
+        }
+
+        @keyframes zoomInBounce {
+            0% { opacity: 0; transform: scale(0.5); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes trackingInExpand {
+            0% { letter-spacing: -0.5em; opacity: 0; }
+            40% { opacity: 0.6; }
+            100% { opacity: 1; letter-spacing: 2px; }
+        }
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
         /* --- PWA MODAL STYLES --- */
         #pwa-install-modal {
             display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -1093,12 +1134,12 @@
 </head>
 <body>
 
-    <!-- KUMPULAN SVG SPRITE SHEET UNTUK IKON KATEGORI -->
+    <!-- KUMPULAN SVG SPRITE SHEET UNTUK IKON KATEGORI DENGAN TEMA ORANGE -->
     <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
         <defs>
-            <path id="blob-bg" fill="#FFF1C5" d="M42.7,-73.4C55.9,-67.8,67.6,-57.4,76.5,-44.6C85.4,-31.8,91.4,-15.9,90.5,-0.5C89.6,14.9,81.7,29.8,72.4,42.8C63.1,55.8,52.4,66.9,39.6,74.5C26.8,82.1,13.4,86.2,-0.1,86.3C-13.6,86.4,-27.2,82.5,-39.1,74.4C-51,66.3,-61.2,54,-68.8,40.1C-76.4,26.2,-81.4,10.7,-80.7,-4.3C-80,-19.3,-73.6,-33.8,-63.9,-44.5C-54.2,-55.2,-41.2,-62,-28.3,-68.4C-15.4,-74.8,-2.6,-80.8,11,-82C24.6,-83.2,38.5,-79.6,42.7,-73.4Z" />
-            <path id="sparkle-d" d="M 10 0 C 10 5, 15 10, 20 10 C 15 10, 10 15, 10 20 C 10 15, 5 10, 0 10 C 5 10, 10 5, 10 0 Z" fill="#132522" />
-            <path id="sparkle-l" d="M 8 0 C 8 4, 12 8, 16 8 C 12 8, 8 12, 8 16 C 8 12, 4 8, 0 8 C 4 8, 8 4, 8 0 Z" fill="#FFC107" />
+            <path id="blob-bg" fill="#FFF0E5" d="M42.7,-73.4C55.9,-67.8,67.6,-57.4,76.5,-44.6C85.4,-31.8,91.4,-15.9,90.5,-0.5C89.6,14.9,81.7,29.8,72.4,42.8C63.1,55.8,52.4,66.9,39.6,74.5C26.8,82.1,13.4,86.2,-0.1,86.3C-13.6,86.4,-27.2,82.5,-39.1,74.4C-51,66.3,-61.2,54,-68.8,40.1C-76.4,26.2,-81.4,10.7,-80.7,-4.3C-80,-19.3,-73.6,-33.8,-63.9,-44.5C-54.2,-55.2,-41.2,-62,-28.3,-68.4C-15.4,-74.8,-2.6,-80.8,11,-82C24.6,-83.2,38.5,-79.6,42.7,-73.4Z" />
+            <path id="sparkle-d" d="M 10 0 C 10 5, 15 10, 20 10 C 15 10, 10 15, 10 20 C 10 15, 5 10, 0 10 C 5 10, 10 5, 10 0 Z" fill="#993D00" />
+            <path id="sparkle-l" d="M 8 0 C 8 4, 12 8, 16 8 C 12 8, 8 12, 8 16 C 8 12, 4 8, 0 8 C 4 8, 8 4, 8 0 Z" fill="#FF6600" />
         </defs>
 
         <!-- 1. Sarapan -->
@@ -1107,10 +1148,10 @@
             <use href="#sparkle-d" x="30" y="40" />
             <use href="#sparkle-l" x="150" y="50" />
             <use href="#sparkle-d" x="160" y="130" />
-            <path d="M 60 80 C 60 50, 140 50, 140 80 L 140 150 C 140 160, 130 170, 120 170 L 80 170 C 70 170, 60 160, 60 150 Z" fill="#FFC107" stroke="#132522" stroke-width="6" stroke-linejoin="round"/>
-            <path d="M 68 85 C 68 65, 132 65, 132 85 L 132 145 C 132 150, 128 155, 120 155 L 80 155 C 72 155, 68 150, 68 145 Z" fill="#f5cbba"/>
-            <path d="M 80 100 Q 100 80 120 90 T 130 120 T 110 140 T 80 130 T 70 110 Z" fill="#ffffff" stroke="#132522" stroke-width="6" stroke-linejoin="round"/>
-            <circle cx="100" cy="115" r="14" fill="#FFC107" stroke="#132522" stroke-width="6"/>
+            <path d="M 60 80 C 60 50, 140 50, 140 80 L 140 150 C 140 160, 130 170, 120 170 L 80 170 C 70 170, 60 160, 60 150 Z" fill="#FF6600" stroke="#993D00" stroke-width="6" stroke-linejoin="round"/>
+            <path d="M 68 85 C 68 65, 132 65, 132 85 L 132 145 C 132 150, 128 155, 120 155 L 80 155 C 72 155, 68 150, 68 145 Z" fill="#FFB380"/>
+            <path d="M 80 100 Q 100 80 120 90 T 130 120 T 110 140 T 80 130 T 70 110 Z" fill="#ffffff" stroke="#993D00" stroke-width="6" stroke-linejoin="round"/>
+            <circle cx="100" cy="115" r="14" fill="#FF6600" stroke="#993D00" stroke-width="6"/>
         </symbol>
 
         <!-- 2. Minuman -->
@@ -1119,10 +1160,10 @@
             <use href="#sparkle-l" x="40" y="50" />
             <use href="#sparkle-d" x="140" y="30" />
             <use href="#sparkle-d" x="35" y="140" />
-            <path d="M 70 80 L 130 80 L 120 160 C 118 165, 110 170, 100 170 C 90 170, 82 165, 80 160 Z" fill="#4caf50" stroke="#132522" stroke-width="6" stroke-linejoin="round"/>
-            <path d="M 76 110 L 124 110 L 122 130 L 78 130 Z" fill="#FFC107" stroke="#132522" stroke-width="6" stroke-linejoin="round"/>
-            <path d="M 65 80 C 65 40, 135 40, 135 80 Z" fill="#ffffff" stroke="#132522" stroke-width="6" stroke-linejoin="round"/>
-            <line x1="100" y1="25" x2="100" y2="80" stroke="#132522" stroke-width="8" stroke-linecap="round"/>
+            <path d="M 70 80 L 130 80 L 120 160 C 118 165, 110 170, 100 170 C 90 170, 82 165, 80 160 Z" fill="#FF8533" stroke="#993D00" stroke-width="6" stroke-linejoin="round"/>
+            <path d="M 76 110 L 124 110 L 122 130 L 78 130 Z" fill="#FF6600" stroke="#993D00" stroke-width="6" stroke-linejoin="round"/>
+            <path d="M 65 80 C 65 40, 135 40, 135 80 Z" fill="#ffffff" stroke="#993D00" stroke-width="6" stroke-linejoin="round"/>
+            <line x1="100" y1="25" x2="100" y2="80" stroke="#993D00" stroke-width="8" stroke-linecap="round"/>
         </symbol>
 
         <!-- 3. Berkuah -->
@@ -1131,13 +1172,13 @@
             <use href="#sparkle-d" x="50" y="30" />
             <use href="#sparkle-l" x="160" y="80" />
             <use href="#sparkle-d" x="30" y="120" />
-            <line x1="140" y1="120" x2="140" y2="40" stroke="#132522" stroke-width="6" stroke-linecap="round"/>
-            <ellipse cx="140" cy="40" rx="12" ry="18" fill="#ffffff" stroke="#132522" stroke-width="6"/>
-            <path d="M 40 110 C 40 170, 160 170, 160 110 Z" fill="#FFC107" stroke="#132522" stroke-width="6" stroke-linejoin="round"/>
-            <path d="M 80 155 L 120 155 L 115 170 L 85 170 Z" fill="#FFC107" stroke="#132522" stroke-width="6" stroke-linejoin="round"/>
-            <ellipse cx="100" cy="110" rx="60" ry="15" fill="#f5cbba" stroke="#132522" stroke-width="6"/>
-            <path d="M 75 80 Q 60 60 80 40 T 70 15" fill="none" stroke="#132522" stroke-width="6" stroke-linecap="round"/>
-            <path d="M 110 85 Q 95 65 115 45 T 105 20" fill="none" stroke="#132522" stroke-width="6" stroke-linecap="round"/>
+            <line x1="140" y1="120" x2="140" y2="40" stroke="#993D00" stroke-width="6" stroke-linecap="round"/>
+            <ellipse cx="140" cy="40" rx="12" ry="18" fill="#ffffff" stroke="#993D00" stroke-width="6"/>
+            <path d="M 40 110 C 40 170, 160 170, 160 110 Z" fill="#FF6600" stroke="#993D00" stroke-width="6" stroke-linejoin="round"/>
+            <path d="M 80 155 L 120 155 L 115 170 L 85 170 Z" fill="#FF6600" stroke="#993D00" stroke-width="6" stroke-linejoin="round"/>
+            <ellipse cx="100" cy="110" rx="60" ry="15" fill="#FFB380" stroke="#993D00" stroke-width="6"/>
+            <path d="M 75 80 Q 60 60 80 40 T 70 15" fill="none" stroke="#993D00" stroke-width="6" stroke-linecap="round"/>
+            <path d="M 110 85 Q 95 65 115 45 T 105 20" fill="none" stroke="#993D00" stroke-width="6" stroke-linecap="round"/>
         </symbol>
 
         <!-- 4. Snack -->
@@ -1146,14 +1187,14 @@
             <use href="#sparkle-l" x="30" y="50" />
             <use href="#sparkle-d" x="150" y="40" />
             <use href="#sparkle-d" x="160" y="140" />
-            <circle cx="70" cy="120" r="45" fill="#FFC107" stroke="#132522" stroke-width="6"/>
-            <circle cx="55" cy="105" r="5" fill="#132522"/>
-            <circle cx="85" cy="95" r="5" fill="#132522"/>
-            <circle cx="60" cy="140" r="5" fill="#132522"/>
-            <circle cx="90" cy="130" r="5" fill="#132522"/>
-            <circle cx="130" cy="85" r="40" fill="#f5cbba" stroke="#132522" stroke-width="6"/>
-            <path d="M 90 85 C 90 55, 170 55, 170 85 C 170 95, 155 105, 130 100 C 105 95, 90 105, 90 85 Z" fill="#4caf50" stroke="#132522" stroke-width="6" stroke-linejoin="round"/>
-            <circle cx="130" cy="85" r="12" fill="#FFF1C5" stroke="#132522" stroke-width="6"/>
+            <circle cx="70" cy="120" r="45" fill="#FF6600" stroke="#993D00" stroke-width="6"/>
+            <circle cx="55" cy="105" r="5" fill="#993D00"/>
+            <circle cx="85" cy="95" r="5" fill="#993D00"/>
+            <circle cx="60" cy="140" r="5" fill="#993D00"/>
+            <circle cx="90" cy="130" r="5" fill="#993D00"/>
+            <circle cx="130" cy="85" r="40" fill="#FFB380" stroke="#993D00" stroke-width="6"/>
+            <path d="M 90 85 C 90 55, 170 55, 170 85 C 170 95, 155 105, 130 100 C 105 95, 90 105, 90 85 Z" fill="#FF8533" stroke="#993D00" stroke-width="6" stroke-linejoin="round"/>
+            <circle cx="130" cy="85" r="12" fill="#FFF0E5" stroke="#993D00" stroke-width="6"/>
         </symbol>
 
         <!-- 5. Pernasian -->
@@ -1162,13 +1203,13 @@
             <use href="#sparkle-d" x="40" y="40" />
             <use href="#sparkle-l" x="150" y="60" />
             <use href="#sparkle-d" x="30" y="130" />
-            <path d="M 55 130 C 55 60, 145 60, 145 130 Z" fill="#ffffff" stroke="#132522" stroke-width="6" stroke-linejoin="round"/>
-            <line x1="80" y1="100" x2="85" y2="100" stroke="#132522" stroke-width="5" stroke-linecap="round"/>
-            <line x1="110" y1="85" x2="115" y2="85" stroke="#132522" stroke-width="5" stroke-linecap="round"/>
-            <line x1="120" y1="115" x2="125" y2="115" stroke="#132522" stroke-width="5" stroke-linecap="round"/>
-            <line x1="70" y1="115" x2="75" y2="115" stroke="#132522" stroke-width="5" stroke-linecap="round"/>
-            <path d="M 110 65 Q 130 45 140 65 Q 120 85 110 65 Z" fill="#4caf50" stroke="#132522" stroke-width="6" stroke-linejoin="round"/>
-            <path d="M 45 130 C 45 180, 155 180, 155 130 Z" fill="#4caf50" stroke="#132522" stroke-width="6" stroke-linejoin="round"/>
+            <path d="M 55 130 C 55 60, 145 60, 145 130 Z" fill="#ffffff" stroke="#993D00" stroke-width="6" stroke-linejoin="round"/>
+            <line x1="80" y1="100" x2="85" y2="100" stroke="#993D00" stroke-width="5" stroke-linecap="round"/>
+            <line x1="110" y1="85" x2="115" y2="85" stroke="#993D00" stroke-width="5" stroke-linecap="round"/>
+            <line x1="120" y1="115" x2="125" y2="115" stroke="#993D00" stroke-width="5" stroke-linecap="round"/>
+            <line x1="70" y1="115" x2="75" y2="115" stroke="#993D00" stroke-width="5" stroke-linecap="round"/>
+            <path d="M 110 65 Q 130 45 140 65 Q 120 85 110 65 Z" fill="#FF8533" stroke="#993D00" stroke-width="6" stroke-linejoin="round"/>
+            <path d="M 45 130 C 45 180, 155 180, 155 130 Z" fill="#FF8533" stroke="#993D00" stroke-width="6" stroke-linejoin="round"/>
         </symbol>
 
         <!-- 6. Ayam -->
@@ -1178,12 +1219,12 @@
             <use href="#sparkle-d" x="160" y="50" />
             <use href="#sparkle-d" x="150" y="150" />
             <g transform="rotate(-35 100 100)">
-                <rect x="40" y="90" width="60" height="20" fill="#ffffff" stroke="#132522" stroke-width="6" rx="4"/>
-                <circle cx="45" cy="85" r="14" fill="#ffffff" stroke="#132522" stroke-width="6"/>
-                <circle cx="45" cy="115" r="14" fill="#ffffff" stroke="#132522" stroke-width="6"/>
-                <path d="M 80 65 C 140 20, 190 40, 175 100 C 160 160, 120 180, 80 135 Z" fill="#FFC107" stroke="#132522" stroke-width="6" stroke-linejoin="round"/>
-                <path d="M 125 75 Q 145 85 135 110" fill="none" stroke="#132522" stroke-width="6" stroke-linecap="round"/>
-                <path d="M 100 130 Q 110 140 120 130" fill="none" stroke="#132522" stroke-width="6" stroke-linecap="round"/>
+                <rect x="40" y="90" width="60" height="20" fill="#ffffff" stroke="#993D00" stroke-width="6" rx="4"/>
+                <circle cx="45" cy="85" r="14" fill="#ffffff" stroke="#993D00" stroke-width="6"/>
+                <circle cx="45" cy="115" r="14" fill="#ffffff" stroke="#993D00" stroke-width="6"/>
+                <path d="M 80 65 C 140 20, 190 40, 175 100 C 160 160, 120 180, 80 135 Z" fill="#FF6600" stroke="#993D00" stroke-width="6" stroke-linejoin="round"/>
+                <path d="M 125 75 Q 145 85 135 110" fill="none" stroke="#993D00" stroke-width="6" stroke-linecap="round"/>
+                <path d="M 100 130 Q 110 140 120 130" fill="none" stroke="#993D00" stroke-width="6" stroke-linecap="round"/>
             </g>
         </symbol>
 
@@ -1193,14 +1234,14 @@
             <use href="#sparkle-d" x="130" y="40" />
             <use href="#sparkle-l" x="40" y="120" />
             <use href="#sparkle-d" x="160" y="130" />
-            <line x1="30" y1="40" x2="110" y2="90" stroke="#132522" stroke-width="7" stroke-linecap="round"/>
-            <path d="M 60 120 C 50 60, 100 60, 90 120" fill="none" stroke="#FFC107" stroke-width="7" stroke-linecap="round"/>
-            <path d="M 80 120 C 70 40, 140 40, 120 120" fill="none" stroke="#FFC107" stroke-width="7" stroke-linecap="round"/>
-            <path d="M 100 120 C 110 80, 150 80, 140 120" fill="none" stroke="#FFC107" stroke-width="7" stroke-linecap="round"/>
-            <line x1="20" y1="60" x2="100" y2="110" stroke="#132522" stroke-width="7" stroke-linecap="round"/>
-            <path d="M 40 120 C 40 175, 160 175, 160 120 Z" fill="#4caf50" stroke="#132522" stroke-width="6" stroke-linejoin="round"/>
-            <ellipse cx="130" cy="115" rx="18" ry="12" fill="#ffffff" stroke="#132522" stroke-width="6"/>
-            <circle cx="130" cy="115" r="6" fill="#FFC107"/>
+            <line x1="30" y1="40" x2="110" y2="90" stroke="#993D00" stroke-width="7" stroke-linecap="round"/>
+            <path d="M 60 120 C 50 60, 100 60, 90 120" fill="none" stroke="#FF6600" stroke-width="7" stroke-linecap="round"/>
+            <path d="M 80 120 C 70 40, 140 40, 120 120" fill="none" stroke="#FF6600" stroke-width="7" stroke-linecap="round"/>
+            <path d="M 100 120 C 110 80, 150 80, 140 120" fill="none" stroke="#FF6600" stroke-width="7" stroke-linecap="round"/>
+            <line x1="20" y1="60" x2="100" y2="110" stroke="#993D00" stroke-width="7" stroke-linecap="round"/>
+            <path d="M 40 120 C 40 175, 160 175, 160 120 Z" fill="#FF8533" stroke="#993D00" stroke-width="6" stroke-linejoin="round"/>
+            <ellipse cx="130" cy="115" rx="18" ry="12" fill="#ffffff" stroke="#993D00" stroke-width="6"/>
+            <circle cx="130" cy="115" r="6" fill="#FF6600"/>
         </symbol>
 
         <!-- 8. Legendaris -->
@@ -1211,9 +1252,9 @@
             <use href="#sparkle-d" x="40" y="60" />
             <use href="#sparkle-d" x="150" y="100" />
             <use href="#sparkle-l" x="30" y="140" />
-            <ellipse cx="100" cy="145" rx="70" ry="15" fill="#ffffff" stroke="#132522" stroke-width="6"/>
-            <path d="M 40 140 C 40 65, 160 65, 160 140 Z" fill="#FFC107" stroke="#132522" stroke-width="6" stroke-linejoin="round"/>
-            <circle cx="100" cy="70" r="14" fill="#4caf50" stroke="#132522" stroke-width="6"/>
+            <ellipse cx="100" cy="145" rx="70" ry="15" fill="#ffffff" stroke="#993D00" stroke-width="6"/>
+            <path d="M 40 140 C 40 65, 160 65, 160 140 Z" fill="#FF6600" stroke="#993D00" stroke-width="6" stroke-linejoin="round"/>
+            <circle cx="100" cy="70" r="14" fill="#FF8533" stroke="#993D00" stroke-width="6"/>
         </symbol>
 
         <!-- 9. Cepat Saji -->
@@ -1222,10 +1263,10 @@
             <use href="#sparkle-d" x="30" y="50" />
             <use href="#sparkle-l" x="160" y="60" />
             <use href="#sparkle-d" x="150" y="150" />
-            <path d="M 50 140 C 50 160, 150 160, 150 140 Z" fill="#FFC107" stroke="#132522" stroke-width="6" stroke-linejoin="round"/>
-            <rect x="45" y="115" width="110" height="22" rx="8" fill="#132522" />
-            <path d="M 40 115 Q 60 95 80 115 T 120 115 T 160 115" fill="none" stroke="#4caf50" stroke-width="12" stroke-linecap="round"/>
-            <path d="M 50 95 C 50 40, 150 40, 150 95 Z" fill="#FFC107" stroke="#132522" stroke-width="6" stroke-linejoin="round"/>
+            <path d="M 50 140 C 50 160, 150 160, 150 140 Z" fill="#FF6600" stroke="#993D00" stroke-width="6" stroke-linejoin="round"/>
+            <rect x="45" y="115" width="110" height="22" rx="8" fill="#993D00" />
+            <path d="M 40 115 Q 60 95 80 115 T 120 115 T 160 115" fill="none" stroke="#FF8533" stroke-width="12" stroke-linecap="round"/>
+            <path d="M 50 95 C 50 40, 150 40, 150 95 Z" fill="#FF6600" stroke="#993D00" stroke-width="6" stroke-linejoin="round"/>
             <circle cx="80" cy="70" r="4" fill="#ffffff"/>
             <circle cx="100" cy="60" r="4" fill="#ffffff"/>
             <circle cx="120" cy="75" r="4" fill="#ffffff"/>
@@ -1239,10 +1280,10 @@
             <use href="#sparkle-l" x="40" y="40" />
             <use href="#sparkle-d" x="150" y="50" />
             <use href="#sparkle-d" x="30" y="130" />
-            <ellipse cx="100" cy="140" rx="60" ry="18" fill="#ffffff" stroke="#132522" stroke-width="6"/>
-            <ellipse cx="100" cy="130" rx="40" ry="10" fill="#FFC107" stroke="#132522" stroke-width="4"/>
-            <path d="M 100 40 C 75 40, 55 60, 55 85 C 55 115, 100 150, 100 150 C 100 150, 145 115, 145 85 C 145 60, 125 40, 100 40 Z" fill="#4caf50" stroke="#132522" stroke-width="6" stroke-linejoin="round"/>
-            <circle cx="100" cy="80" r="16" fill="#ffffff" stroke="#132522" stroke-width="6"/>
+            <ellipse cx="100" cy="140" rx="60" ry="18" fill="#ffffff" stroke="#993D00" stroke-width="6"/>
+            <ellipse cx="100" cy="130" rx="40" ry="10" fill="#FF6600" stroke="#993D00" stroke-width="4"/>
+            <path d="M 100 40 C 75 40, 55 60, 55 85 C 55 115, 100 150, 100 150 C 100 150, 145 115, 145 85 C 145 60, 125 40, 100 40 Z" fill="#FF8533" stroke="#993D00" stroke-width="6" stroke-linejoin="round"/>
+            <circle cx="100" cy="80" r="16" fill="#ffffff" stroke="#993D00" stroke-width="6"/>
         </symbol>
     </svg>
 
@@ -1308,6 +1349,13 @@
         <button class="splash-btn-next" onclick="nextSplash()" id="btn-splash-next">
             Lanjut <i class="ph-bold ph-arrow-right"></i>
         </button>
+    </div>
+
+    <!-- FINAL SPLASH SCREEN LOGO -->
+    <div id="final-splash-screen">
+        <img src="https://i.ibb.co.com/84PCGFDm/Whats-App-Image-2026-01-29-at-10-12-08.jpg" alt="Logo Projekgo" class="fs-logo">
+        <div class="fs-title">PROJEKGO</div>
+        <div class="fs-subtitle">Delivery lokal Gombong juga bisa keren</div>
     </div>
 
     <div class="app-container">
@@ -1973,18 +2021,53 @@
             'Legendaris': "#icon-legendaris",
             'Cepat Saji': "#icon-cepat-saji",
             'Makanan Khas': "#icon-makanan-khas",
-            'Default': "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23F5F5F5'/%3E%3Cpath d='M40 20 L 40 50 A 10 10 0 0 0 50 60 L 50 80 M 60 20 L 60 80' stroke='%239E9E9E' stroke-width='6' stroke-linecap='round' fill='none'/%3E%3Cpath d='M35 20 L 45 20 M 35 30 L 45 30' stroke='%239E9E9E' stroke-width='4'/%3E%3C/svg%3E"
+            'Default': "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23FFF0E5'/%3E%3Cpath d='M40 20 L 40 50 A 10 10 0 0 0 50 60 L 50 80 M 60 20 L 60 80' stroke='%23FF6600' stroke-width='6' stroke-linecap='round' fill='none'/%3E%3Cpath d='M35 20 L 45 20 M 35 30 L 45 30' stroke='%23FF6600' stroke-width='4'/%3E%3C/svg%3E"
         };
 
         const savedProfile = JSON.parse(localStorage.getItem('user_profile')) || {name: 'User Projekgo', phone: '0812-XXXX-XXXX'};
         document.getElementById('profile-name').innerText = savedProfile.name;
         document.getElementById('profile-phone').innerText = savedProfile.phone;
 
-        // --- LOGIKA HALAMAN PENDAFTARAN AWAL ---
+        // --- LOGIKA HALAMAN PENDAFTARAN AWAL & SPLASH PENGGUNA LAMA ---
         const hasRegisteredProfile = localStorage.getItem('user_profile');
+        
         if (!hasRegisteredProfile) {
-            // Jika belum ada data profil di localStorage, tampilkan halaman pendaftaran
+            // Jika PENGGUNA BARU: tampilkan halaman pendaftaran (Onboarding akan jalan setelah ini)
             document.getElementById('registration-screen').style.display = 'flex';
+        } else {
+            // Jika PENGGUNA LAMA: Bypass onboarding & langsung ke Final Splash
+            const onboardingSplash = document.getElementById('splash-screen');
+            if (onboardingSplash) {
+                onboardingSplash.style.display = 'none';
+                onboardingSplash.classList.add('hidden'); // Memastikan dianggap tersembunyi
+            }
+            
+            const finalSplash = document.getElementById('final-splash-screen');
+            if (finalSplash) {
+                finalSplash.style.display = 'flex';
+                
+                // Beri waktu animasi berjalan (4 detik) DAN tunggu data dari Firebase selesai dimuat
+                const minSplashTime = new Promise(resolve => setTimeout(resolve, 4000));
+                
+                const checkData = setInterval(() => {
+                    // isDataReady bernilai true jika data warung/menu selesai ditarik (atau lewat batas timeout)
+                    if (typeof isDataReady !== 'undefined' && isDataReady) {
+                        clearInterval(checkData);
+                        
+                        minSplashTime.then(() => {
+                            finalSplash.style.opacity = '0';
+                            setTimeout(() => {
+                                finalSplash.style.display = 'none';
+                                
+                                // Cek jam operasional setelah animasi selesai
+                                if (!checkOperationalStatus(false)) {
+                                    showClosedModalInfo();
+                                }
+                            }, 500);
+                        });
+                    }
+                }, 300);
+            }
         }
 
         window.submitRegistration = () => {
@@ -2170,9 +2253,29 @@
             if(splash && !splash.classList.contains('hidden')) {
                 splash.classList.add('hidden');
                 
-                // Cek jam operasional setelah splash screen selesai
-                if (!checkOperationalStatus(false) && hasRegisteredProfile) {
-                     showClosedModalInfo();
+                // --- TAMPILKAN FINAL SPLASH ANIMASI ---
+                const finalSplash = document.getElementById('final-splash-screen');
+                if (finalSplash) {
+                    finalSplash.style.display = 'flex';
+                    
+                    // Tunggu 4 detik (agak dinaikkan) lalu sembunyikan final splash
+                    setTimeout(() => {
+                        finalSplash.style.opacity = '0';
+                        setTimeout(() => {
+                            finalSplash.style.display = 'none';
+                            
+                            // Cek jam operasional setelah semua animasi selesai
+                            if (!checkOperationalStatus(false) && hasRegisteredProfile) {
+                                 showClosedModalInfo();
+                            }
+                        }, 500); // durasi transisi opacity fade out
+                    }, 4000); // Lama tampilan animasi berjalan (Dinaikkan ke 4 detik)
+                    
+                } else {
+                    // Fallback jika elemen tidak ditemukan
+                    if (!checkOperationalStatus(false) && hasRegisteredProfile) {
+                         showClosedModalInfo();
+                    }
                 }
             }
         };
@@ -3456,11 +3559,11 @@
             if(products.length === 0) return;
             
             const promoDiv = document.createElement('div');
-            // Menghilangkan margin dan border-radius agar menempel penuh kiri-kanan menyesuaikan posisinya di atas
-            promoDiv.style.cssText = "background: linear-gradient(135deg, #FF6B4A 0%, #FF3D00 100%); padding-bottom: 20px; margin-bottom: 0; border-bottom: 8px solid var(--bg); overflow: hidden;";
+            // Background putih untuk area menu, judul orange dipisah di header
+            promoDiv.style.cssText = "background: #ffffff; padding-bottom: 20px; margin-bottom: 0; border-bottom: 8px solid var(--bg); overflow: hidden;";
             
             let header = `
-                <div style="background: linear-gradient(90deg, rgba(0,0,0,0.1) 0%, transparent 100%); display:flex; justify-content:space-between; align-items:center; padding: 15px 20px 12px 20px;">
+                <div style="background: linear-gradient(135deg, #FF6B4A 0%, #FF3D00 100%); display:flex; justify-content:space-between; align-items:center; padding: 15px 20px 15px 20px; box-shadow: 0 4px 10px rgba(255, 61, 0, 0.15);">
                     <div style="display:flex; align-items:center; gap:6px;">
                         <i class="ph-fill ph-lightning" style="background:#FFD54F; color:#FF3D00; font-size:14px; padding:4px; border-radius:4px;"></i>
                         <span style="font-size: 16px; font-weight: 800; color: white; font-style:italic; display:flex; align-items:center; letter-spacing: -0.5px;">F<i class="ph-fill ph-lightning" style="margin:0 -1px; color:#FFD54F;"></i>ASH SALE</span>
@@ -3472,17 +3575,17 @@
                             <span class="fs-s-val" style="background:white; color:#FF3D00; font-size:11px; font-weight:800; padding:3px 5px; border-radius:4px; line-height:1; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">01</span>
                         </div>
                     </div>
-                    <div onclick="openCategoryPage('Flash Sale')" style="font-size: 13px; color: rgba(255,255,255,0.9); display:flex; align-items:center; font-weight: 600; cursor: pointer;">Lihat Semua <i class="ph-bold ph-caret-right" style="margin-left:2px;"></i></div>
+                    <div onclick="openCategoryPage('Flash Sale')" style="font-size: 13px; color: white; display:flex; align-items:center; font-weight: 700; cursor: pointer;">Lihat Semua <i class="ph-bold ph-caret-right" style="margin-left:2px;"></i></div>
                 </div>
             `;
-            let cards = `<div class="scroll-container" style="padding: 5px 20px 0 20px; gap: 12px;">`;
+            let cards = `<div class="scroll-container" style="padding: 15px 20px 0 20px; gap: 12px;">`;
             products.forEach(item => {
                 const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG;
                 const realPrice = parseInt(item.harga);
                 const discountPercent = Math.floor(Math.random() * 30) + 20; 
                 
                 cards += `
-                    <div style="width: 140px; flex-shrink: 0; cursor: pointer; background: white; border-radius: 12px; padding: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" onclick="openProductDetail('${item.id}')">
+                    <div style="width: 140px; flex-shrink: 0; cursor: pointer; background: white; border-radius: 12px; padding: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.04);" onclick="openProductDetail('${item.id}')">
                         <div style="position:relative; width:100%; height:120px; border-radius:8px; overflow:hidden;">
                             <img src="${img}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='${FALLBACK_MENU_IMG}'">
                             <div style="position:absolute; top:0; right:0; background:#FFD54F; color:#D32F2F; font-size:12px; font-weight:800; padding:4px 6px; border-bottom-left-radius:8px;">
