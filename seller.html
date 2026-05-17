@@ -40,13 +40,45 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .loading-text { font-size: 14px; color: var(--gray); font-weight: 600; }
 
-        /* LOGIN SCREEN */
-        #login-page { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; }
-        .login-logo { font-size: 40px; font-weight: 800; color: var(--primary); margin-bottom: 10px; }
-        .login-desc { color: var(--gray); text-align: center; margin-bottom: 30px; font-size: 14px; }
-        .login-input { width: 100%; padding: 15px; border: 1px solid #ddd; border-radius: 12px; margin-bottom: 15px; font-size: 16px; outline: none; transition: 0.3s; text-align: center; }
-        .login-input:focus { border-color: var(--primary); }
-        .btn-login { width: 100%; background: var(--primary); color: white; padding: 15px; border: none; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer; }
+        /* --- LOGIN PAGE --- */
+        #login-page { 
+            position: fixed; 
+            top: 0; left: 0; right: 0; bottom: 0; 
+            background: linear-gradient(135deg, #FF5722 0%, #FF9800 100%); 
+            z-index: 9999; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            padding: 30px; 
+        }
+        
+        .login-container {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .login-logo { font-size: 40px; font-weight: 800; color: var(--primary); margin-bottom: 5px; }
+        .login-desc { color: #555; text-align: center; margin-bottom: 30px; font-size: 14px; }
+        .login-input { 
+            width: 100%; 
+            padding: 15px; 
+            border: 2px solid #eee; 
+            border-radius: 12px; 
+            margin-bottom: 15px; 
+            font-size: 16px; 
+            outline: none; 
+            transition: 0.3s; 
+            text-align: center; 
+            background: #fafafa;
+        }
+        .login-input:focus { border-color: var(--primary); background: white; }
+        .btn-login { width: 100%; background: var(--primary); color: white; padding: 15px; border: none; border-radius: 12px; font-weight: 800; font-size: 16px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(255, 102, 0, 0.3); }
+        .btn-login:active { transform: scale(0.98); }
 
         /* DASHBOARD HEADER */
         .header { background: var(--bg); color: var(--dark); padding: 20px 20px 10px 20px; }
@@ -183,9 +215,77 @@
         .filter-container::-webkit-scrollbar { display: none; }
         .filter-pill { padding: 6px 16px; background: white; border: 1px solid #ddd; border-radius: 20px; font-size: 12px; font-weight: 600; color: #555; white-space: nowrap; cursor: pointer; transition: 0.2s; }
         .filter-pill.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(255,102,0,0.2); }
+
+        /* --- STYLES UNTUK SPLASH SCREEN --- */
+        #splash-screen {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ffffff;
+            z-index: 99999; 
+            display: flex;
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center;
+            transition: opacity 0.5s ease-out; 
+        }
+
+        .fs-logo {
+            width: 110px; 
+            height: 110px; 
+            border-radius: 30px;
+            box-shadow: 0 15px 35px rgba(255, 102, 0, 0.2);
+            animation: zoomInBounce 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            opacity: 0; 
+            transform: scale(0.5);
+        }
+
+        .fs-title {
+            font-size: 36px; 
+            font-weight: 800; 
+            margin-top: 25px;
+            background: linear-gradient(90deg, #FF6600, #FFB347);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: trackingInExpand 0.8s cubic-bezier(0.215, 0.610, 0.355, 1.000) 0.3s forwards;
+            opacity: 0;
+        }
+
+        .fs-subtitle {
+            font-size: 13px; 
+            font-weight: 600; 
+            color: #666;
+            margin-top: 8px; 
+            font-style: italic; 
+            text-align: center;
+            animation: fadeInUp 0.8s ease-out 0.9s forwards;
+            opacity: 0; 
+            transform: translateY(10px);
+        }
+
+        /* --- KUMPULAN KEYFRAMES ANIMASI --- */
+        @keyframes zoomInBounce {
+            0% { opacity: 0; transform: scale(0.5); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes trackingInExpand {
+            0% { letter-spacing: -0.5em; opacity: 0; }
+            40% { opacity: 0.6; }
+            100% { opacity: 1; letter-spacing: 2px; }
+        }
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
+
+    <!-- KONTEN SPLASH SCREEN -->
+    <div id="splash-screen">
+        <img src="https://i.ibb.co.com/84PCGFDm/Whats-App-Image-2026-01-29-at-10-12-08.jpg" alt="Logo Projekgo" class="fs-logo">
+        <div class="fs-title">PROJEKGO</div>
+        <div class="fs-subtitle">Delivery Lokal Gombong, Juga Bisa KEREN</div>
+    </div>
 
     <!-- OVERLAY SYARAT DAN KETENTUAN (TNC) -->
     <div id="tnc-overlay">
@@ -253,12 +353,20 @@
     </div>
 
     <div id="login-page">
-        <div class="login-logo">Projekgo</div>
-        <div style="font-weight:700; margin-bottom:5px;">Aplikasi Mitra Penjual</div>
-        <p class="login-desc">Masuk untuk mengelola warung Anda.</p>
-        <input type="text" id="login-id" class="login-input" placeholder="ID Warung">
-        <input type="password" id="login-pin" class="login-input" placeholder="PIN Keamanan">
-        <button class="btn-login" onclick="login()">Masuk ke Dashboard</button>
+        <div class="login-container">
+            <div class="login-logo">Projekgo</div>
+            <div style="font-weight:800; margin-bottom:5px; color: var(--dark); font-size: 18px;">Aplikasi Mitra Penjual</div>
+            <p class="login-desc">Masuk untuk mengelola warung Anda.</p>
+            
+            <input type="text" id="login-id" class="login-input" placeholder="ID Warung">
+            <input type="password" id="login-pin" class="login-input" placeholder="PIN Keamanan">
+            
+            <button class="btn-login" onclick="login()">Masuk ke Dashboard</button>
+            
+            <!-- TOMBOL DAFTAR MERCHANT -->
+            <div style="margin-top: 30px; font-size: 13px; color: #888; font-weight: 600;">Belum mendaftar sebagai mitra?</div>
+            <button class="btn-cancel" style="color: var(--primary); font-weight: 800; margin-top: 10px; background: #FFF3E0; border-radius: 12px; padding: 12px; width: 100%;" onclick="openRegisterModal()">Daftar Menjadi Merchant</button>
+        </div>
     </div>
 
     <div id="dashboard" style="display:none;">
@@ -721,6 +829,42 @@
             <button class="btn-submit" onclick="konfirmasiTagihan()" style="background: var(--dark); display: flex; justify-content: center; align-items: center; gap: 8px;">
                 <i class="ph-bold ph-whatsapp-logo" style="font-size: 18px;"></i> Konfirmasi Tagihan via Admin
             </button>
+        </div>
+    </div>
+
+    <!-- MODAL PENDAFTARAN MERCHANT -->
+    <div id="modal-register" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 10000; align-items: flex-end;">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin:0;">Pendaftaran Merchant</h3>
+                <button style="background:none; border:none; font-size:20px; cursor:pointer; color: #666;" onclick="closeRegisterModal()"><i class="ph-bold ph-x"></i></button>
+            </div>
+            
+            <div style="background: #FFF3E0; border: 1px solid #FFE0B2; padding: 12px; border-radius: 10px; margin-bottom: 15px; display: flex; gap: 10px; align-items: flex-start;">
+                <i class="ph-fill ph-storefront" style="color: #FF8F00; font-size: 18px; margin-top: 2px;"></i>
+                <div style="font-size: 11px; color: #b5651d; line-height: 1.5;">
+                    Isi formulir pengajuan di bawah ini. Tim kami akan meninjau dan segera merespon pendaftaran Anda.
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Nama Lengkap Pemilik</label>
+                <input type="text" id="reg-pemilik" class="form-input" placeholder="Contoh: Budi Santoso">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Nama Warung / Usaha</label>
+                <input type="text" id="reg-warung" class="form-input" placeholder="Contoh: Warung Nasi Barokah">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Nomor WhatsApp Aktif</label>
+                <input type="number" id="reg-wa" class="form-input" placeholder="Contoh: 62812345678">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Alamat Lengkap Warung</label>
+                <textarea id="reg-alamat" class="form-textarea" placeholder="Detail alamat jalan, RT/RW, dan patokan..." style="min-height: 80px;"></textarea>
+            </div>
+            
+            <button class="btn-submit" id="btn-submit-register" onclick="submitRegistration()" style="margin-top: 10px;">Selesai & Kirim Pengajuan</button>
         </div>
     </div>
 
@@ -1576,6 +1720,65 @@
             closeTagihanModal();
         };
 
+        // --- FUNGSI PENDAFTARAN MERCHANT ---
+        window.openRegisterModal = () => {
+            document.getElementById('modal-register').style.display = 'flex';
+        };
+
+        window.closeRegisterModal = () => {
+            document.getElementById('modal-register').style.display = 'none';
+        };
+
+        window.submitRegistration = async () => {
+            const pemilik = document.getElementById('reg-pemilik').value.trim();
+            const warung = document.getElementById('reg-warung').value.trim();
+            let wa = document.getElementById('reg-wa').value.trim();
+            const alamat = document.getElementById('reg-alamat').value.trim();
+
+            if (!pemilik || !warung || !wa || !alamat) {
+                return showToast("Harap isi semua formulir pendaftaran!", false);
+            }
+
+            if(wa.startsWith('0')) wa = '62' + wa.substring(1);
+
+            const btn = document.getElementById('btn-submit-register');
+            btn.innerHTML = "Menyimpan Data...";
+            btn.disabled = true;
+
+            try {
+                // Simpan data pendaftaran ke collection baru "pengajuan_mitra"
+                await addDoc(collection(db, "pengajuan_mitra"), {
+                    nama_pemilik: pemilik,
+                    nama_warung: warung,
+                    no_wa: wa,
+                    alamat: alamat,
+                    tanggal_pengajuan: new Date().toISOString(),
+                    status: "Menunggu Tinjauan"
+                });
+
+                showToast("Pendaftaran berhasil dikirim!");
+                
+                // Reset form
+                document.getElementById('reg-pemilik').value = '';
+                document.getElementById('reg-warung').value = '';
+                document.getElementById('reg-wa').value = '';
+                document.getElementById('reg-alamat').value = '';
+                closeRegisterModal();
+
+                // Arahkan ke WhatsApp Admin dengan pesan otomatis
+                const text = "halo admin saya sudah mengisi form pendaftaran sebagai mitra merchat,tolong ditinjau yah";
+                const waUrl = `https://wa.me/62882008667068?text=${encodeURIComponent(text)}`;
+                window.open(waUrl, '_blank');
+
+            } catch (error) {
+                console.error(error);
+                showToast("Terjadi kesalahan, gagal mengirim pendaftaran.", false);
+            } finally {
+                btn.innerHTML = "Selesai & Kirim Pengajuan";
+                btn.disabled = false;
+            }
+        };
+
         // --- FUNGSI QR MEJA ---
         window.openQRModal = () => {
             document.getElementById('inp-qr-meja').value = '';
@@ -1676,6 +1879,33 @@
         const saved = localStorage.getItem('vendor_user');
         if(saved) { currentUser = JSON.parse(saved); initDashboard(); }
         else { document.getElementById('login-page').style.display = 'flex'; document.getElementById('loading-screen').style.display = 'none'; }
+
+        // --- LOGIKA SPLASH SCREEN ---
+        document.addEventListener("DOMContentLoaded", function() {
+            const splashScreen = document.getElementById('splash-screen');
+
+            // ==========================================
+            // PENGATURAN WAKTU TAMPIL SPLASH SCREEN
+            // ==========================================
+            const waktuTampil = 3000; // 3000 = 3 detik
+
+            if(splashScreen) {
+                setTimeout(() => {
+                    // 1. Memulai efek transisi memudar (fade out)
+                    splashScreen.style.opacity = '0';
+                    
+                    // 2. Menunggu efek memudar selesai (0.5 detik), baru dihilangkan dari HTML
+                    setTimeout(() => {
+                        splashScreen.style.display = 'none';
+                        
+                        // Opsional: aktifkan scroll kembali jika sebelumnya body diberi overflow: hidden
+                        document.body.style.overflow = 'auto'; 
+                    }, 500); 
+
+                }, waktuTampil);
+            }
+        });
+
     </script>
 </body>
 </html>
