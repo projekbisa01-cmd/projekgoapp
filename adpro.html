@@ -181,6 +181,12 @@
         .review-date { font-size: 11px; color: var(--gray); font-weight: 400; }
         .review-stars { color: var(--warning); font-size: 12px; margin-bottom: 8px; }
         .review-comment { font-size: 14px; line-height: 1.5; color: #4b5563; }
+        
+        /* CAPSULE TABS */
+        .capsule-tabs { display: flex; gap: 10px; margin-bottom: 20px; background: white; padding: 5px; border-radius: 12px; border: 1px solid #eee; overflow-x: auto; scrollbar-width: none; }
+        .capsule-tabs::-webkit-scrollbar { display: none; }
+        .capsule-tab { padding: 10px 15px; border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--gray); cursor: pointer; transition: 0.2s; white-space: nowrap; flex: 1; text-align: center; }
+        .capsule-tab.active { background: var(--primary); color: white; }
 
         /* MODAL */
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 10002; align-items: flex-end; justify-content: center; }
@@ -230,7 +236,8 @@
             <i class="ph-fill ph-rocket" style="font-size: 48px; color: var(--primary);"></i>
             <h2 style="margin: 15px 0 5px;">Admin Pusat</h2>
             <p style="color:var(--gray); font-size:14px;">Dashboard Manajemen Projekgo</p>
-            <input type="password" id="admin-pass" class="login-input" placeholder="Masukkan Password">
+            <input type="email" id="admin-email" class="login-input" placeholder="Email Admin" style="margin-bottom: 5px;">
+            <input type="password" id="admin-pass" class="login-input" placeholder="Masukkan Password" style="margin-top: 5px;">
             <button class="btn-login" onclick="checkLogin()">Masuk Sekarang</button>
         </div>
     </div>
@@ -396,36 +403,62 @@
         <!-- REVIEWS PAGE -->
         <div id="page-reviews" class="page-content">
             <div class="page-header">
-                <h1 class="page-title">Ulasan Mitra</h1>
+                <h1 class="page-title">Ulasan</h1>
                 <p class="page-subtitle">Pantau feedback dari pelanggan</p>
             </div>
             
-            <div id="review-vendor-list">
-                <div class="data-card">
-                    <div class="table-responsive">
-                        <table>
-                            <thead><tr><th>Mitra</th><th>Rating</th><th>Aksi</th></tr></thead>
-                            <tbody id="review-vendor-body"></tbody>
-                        </table>
+            <!-- CAPSULE TABS -->
+            <div class="capsule-tabs">
+                <div class="capsule-tab active" onclick="switchReviewTab('mitra', this)">Ulasan Mitra</div>
+                <div class="capsule-tab" onclick="switchReviewTab('projekgo', this)">Ulasan Projekgo</div>
+            </div>
+
+            <!-- TAB CONTENT: MITRA -->
+            <div id="tab-review-mitra">
+                <div id="review-vendor-list">
+                    <div class="data-card">
+                        <div class="table-responsive">
+                            <table>
+                                <thead><tr><th>Mitra</th><th>Rating</th><th>Aksi</th></tr></thead>
+                                <tbody id="review-vendor-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="review-detail-view" style="display:none;">
+                    <button class="btn-status" style="margin-bottom:15px; background:#eee; color:#555;" onclick="showReviewList()">
+                        <i class="ph ph-arrow-left"></i> Kembali
+                    </button>
+                    <div class="stat-card" style="margin-bottom: 20px;">
+                        <div id="rev-detail-icon" class="stat-icon" style="background:#fffbeb; color:#d97706;"><i class="ph-fill ph-star"></i></div>
+                        <div class="stat-info">
+                            <div id="rev-detail-vendor-name" style="font-weight:700; color:var(--dark);">Nama Warung</div>
+                            <span id="rev-detail-avg-rating">0.0</span> <small style="color:var(--gray); font-weight:400;">/ 5.0</small>
+                        </div>
+                    </div>
+                    <div class="data-card">
+                        <div class="card-header">Komentar Terbaru</div>
+                        <div id="review-items-container">
+                            <!-- Ulasan per user akan muncul di sini -->
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div id="review-detail-view" style="display:none;">
-                <button class="btn-status" style="margin-bottom:15px; background:#eee; color:#555;" onclick="showReviewList()">
-                    <i class="ph ph-arrow-left"></i> Kembali
-                </button>
+            <!-- TAB CONTENT: PROJEKGO -->
+            <div id="tab-review-projekgo" style="display:none;">
                 <div class="stat-card" style="margin-bottom: 20px;">
-                    <div id="rev-detail-icon" class="stat-icon" style="background:#fffbeb; color:#d97706;"><i class="ph-fill ph-star"></i></div>
+                    <div class="stat-icon" style="background:#eff6ff; color:#2563eb;"><i class="ph-fill ph-rocket"></i></div>
                     <div class="stat-info">
-                        <div id="rev-detail-vendor-name" style="font-weight:700; color:var(--dark);">Nama Warung</div>
-                        <span id="rev-detail-avg-rating">0.0</span> <small style="color:var(--gray); font-weight:400;">/ 5.0</small>
+                        <div style="font-weight:700; color:var(--dark);">Aplikasi Projekgo</div>
+                        <span id="rev-projekgo-avg-rating">0.0</span> <small style="color:var(--gray); font-weight:400;">/ 5.0</small>
                     </div>
                 </div>
                 <div class="data-card">
-                    <div class="card-header">Komentar Terbaru</div>
-                    <div id="review-items-container">
-                        <!-- Ulasan per user akan muncul di sini -->
+                    <div class="card-header">Komentar Pengguna</div>
+                    <div id="projekgo-reviews-container">
+                        <!-- Ulasan Projekgo akan muncul di sini -->
                     </div>
                 </div>
             </div>
@@ -629,11 +662,11 @@
         </div>
     </div>
 
-    <script type="module">
+        <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, getDocs, query, limit, orderBy, deleteDoc, doc, setDoc, updateDoc, addDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getStorage, ref, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         // --- PENTING: GANTI DENGAN API KEY BARU KAMU ---
         const firebaseConfig = {
@@ -681,14 +714,29 @@
         });
 
         // --- AUTH ---
-        window.checkLogin = () => {
+        window.checkLogin = async () => {
+            const email = document.getElementById('admin-email').value.trim();
             const pass = document.getElementById('admin-pass').value;
-            if(pass === 'admin123') { 
+            const btn = document.querySelector('.btn-login');
+            
+            if(!email || !pass) return alert('Mohon isi email dan password!');
+            
+            btn.innerText = "Mengecek Akses...";
+            
+            try {
+                // Melakukan otentikasi login resmi ke Firebase
+                await signInWithEmailAndPassword(auth, email, pass);
                 document.getElementById('login-overlay').style.display = 'none';
                 initData();
-            } else { alert('Password salah!'); }
+            } catch (error) {
+                btn.innerText = "Masuk Sekarang";
+                alert('Gagal Login! Email atau Password salah, atau Anda tidak punya akses.\nDetail: ' + error.message);
+            }
         }
-        window.logout = () => { location.reload(); }
+        window.logout = async () => { 
+            await signOut(auth); // Hapus sesi login Firebase
+            location.reload(); 
+        }
 
         // --- NAVIGASI ---
         window.showPage = (pageId, el) => {
@@ -700,7 +748,11 @@
             window.scrollTo(0,0);
             
             if (pageId === 'products') showMenuVendorList();
-            if (pageId === 'reviews') showReviewList();
+            if (pageId === 'reviews') {
+                // Reset ke tab mitra setiap kali membuka halaman ulasan
+                const mitraTab = document.querySelector('.capsule-tab');
+                if(mitraTab) switchReviewTab('mitra', mitraTab);
+            }
             if (pageId === 'tagihan') renderTagihanList();
         }
 
@@ -750,6 +802,23 @@
         }
 
         // --- REVIEW PAGE LOGIC ---
+        window.switchReviewTab = (tabName, element) => {
+            // Update active state di kapsul
+            document.querySelectorAll('.capsule-tab').forEach(t => t.classList.remove('active'));
+            element.classList.add('active');
+
+            // Tampilkan/Sembunyikan konten tab
+            if (tabName === 'mitra') {
+                document.getElementById('tab-review-mitra').style.display = 'block';
+                document.getElementById('tab-review-projekgo').style.display = 'none';
+                showReviewList(); // Kembali ke daftar list mitra
+            } else if (tabName === 'projekgo') {
+                document.getElementById('tab-review-mitra').style.display = 'none';
+                document.getElementById('tab-review-projekgo').style.display = 'block';
+                window.renderReviewProjekgo();
+            }
+        }
+
         window.showReviewList = () => {
             document.getElementById('review-vendor-list').style.display = 'block';
             document.getElementById('review-detail-view').style.display = 'none';
@@ -1477,6 +1546,58 @@
                 document.getElementById('global-rating').innerText = (totalRating / snap.size).toFixed(1);
             }
             renderReviewVendors();
+            window.renderReviewProjekgo();
+        }
+
+        window.renderReviewProjekgo = () => {
+            const container = document.getElementById('projekgo-reviews-container');
+            const avgDisplay = document.getElementById('rev-projekgo-avg-rating');
+            if(!container) return;
+
+            // Saring ulasan khusus Projekgo
+            const projekgoReviews = adminAllReviews.filter(r => r.vendor_name === "Aplikasi Projekgo");
+
+            container.innerHTML = '';
+
+            if (projekgoReviews.length === 0) {
+                container.innerHTML = '<div style="padding:40px; text-align:center; color:#999;">Belum ada ulasan untuk Aplikasi Projekgo.</div>';
+                if(avgDisplay) avgDisplay.innerText = "0.0";
+            } else {
+                let totalRating = 0;
+                projekgoReviews.forEach(r => {
+                    const ratingVal = parseFloat(r.rating || 0);
+                    totalRating += ratingVal;
+                    const stars = '★'.repeat(Math.floor(ratingVal)) + '☆'.repeat(5 - Math.floor(ratingVal));
+                    
+                    let formattedDate = '-';
+                    if (r.timestamp) {
+                        // Cek apakah timestamp dalam format string ISO atau Firestore Timestamp
+                        if(r.timestamp.toDate) {
+                            formattedDate = r.timestamp.toDate().toLocaleDateString('id-ID');
+                        } else {
+                            formattedDate = new Date(r.timestamp).toLocaleDateString('id-ID');
+                        }
+                    }
+                    else if (r.date) formattedDate = r.date;
+                    
+                    const userName = r.user || r.user_name || 'Pengguna Projekgo';
+                    
+                    // MENGGUNAKAN FIELD 'text' SESUAI STRUKTUR DATABASE ANDA
+                    const comment = r.text || 'Tidak ada komentar.';
+
+                    container.innerHTML += `
+                        <div class="review-item">
+                            <div class="review-user">
+                                <span>${userName}</span>
+                                <span class="review-date">${formattedDate}</span>
+                            </div>
+                            <div class="review-stars">${stars}</div>
+                            <div class="review-comment">${comment}</div>
+                        </div>
+                    `;
+                });
+                if(avgDisplay) avgDisplay.innerText = (totalRating / projekgoReviews.length).toFixed(1);
+            }
         }
 
         window.fetchBroadcasts = async () => {
@@ -1518,8 +1639,7 @@
             }
 
             try {
-                await signInAnonymously(auth);
-
+                // Kita tidak lagi memanggil signInAnonymously karena sudah login via form
                 await window.fetchKategori();
                 await window.fetchVendors();
                 await window.fetchProducts();
@@ -1530,8 +1650,10 @@
                 
                 if (error.code === 'permission-denied' || error.message.includes('permissions')) {
                     alert("IZIN DITOLAK (Permission Denied): Firebase memblokir akses.\n\nSOLUSI: Buka Firebase Console > Firestore Database > tab 'Rules' (Aturan), lalu ubah kodenya menjadi:\n\nmatch /{document=**} {\n  allow read, write: if true;\n}\n\nLalu klik Publish/Terbitkan.");
+                } else if (error.message.includes('requests-from-referer') || error.message.includes('blocked')) {
+                    alert("DOMAIN DIBLOKIR: API Key Firebase Anda memiliki batasan domain (HTTP referrers).\n\nSOLUSI UNTUK PENGUJIAN:\n1. Buka Google Cloud Console (console.cloud.google.com)\n2. Pilih project 'projekgo-app'\n3. Ke menu APIs & Services > Credentials\n4. Klik API Key Anda, pada bagian 'Application restrictions', tambahkan `*.scf.usercontent.goog/*` ke daftar Website, atau ubah sementara menjadi 'None' (Jangan lupa kembalikan ke semula saat rilis ke publik).");
                 } else {
-                    alert("Gagal terhubung ke database Cloud Firestore (Timeout).\n\nPastikan:\n1. Internet Anda stabil.\n2. API Key Firebase di kode sudah benar.\n3. Rules Firestore mengizinkan akses.\n\nDetail: " + error.message);
+                    alert("Gagal terhubung ke database Cloud Firestore.\n\nPastikan:\n1. Internet Anda stabil.\n2. API Key Firebase di kode sudah benar.\n3. Rules Firestore mengizinkan akses.\n\nDetail: " + error.message);
                 }
             }
         }
