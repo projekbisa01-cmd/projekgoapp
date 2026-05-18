@@ -1741,7 +1741,10 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         // 1. TAMBAHKAN enableIndexedDbPersistence DI DAFTAR IMPORT INI
-        import { getFirestore, collection, getDocs, addDoc, query, where, doc, getDoc, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, addDoc, query, where, doc, getDoc, setDoc, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        
+        // --- IMPORT FIREBASE AUTH (UNTUK SISTEM LOGIN) ---
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         // ====================================================================
         // --- 1. GENERATE MANIFEST & SERVICE WORKER VIRTUAL (INLINE) ---
@@ -1880,6 +1883,23 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app); // Inisialisasi Auth
+
+        // VARIABEL GLOBAL UNTUK MENYIMPAN ID LOGIN USER
+        let currentUserUid = null;
+
+        // FUNGSI LOGIN OTOMATIS DI BELAKANG LAYAR (SEKALI LOGIN UNTUK SELAMANYA)
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Jika sudah login, ambil ID-nya
+                currentUserUid = user.uid;
+            } else {
+                // Jika belum, buatkan ID login baru secara diam-diam (anonim)
+                signInAnonymously(auth).catch((error) => {
+                    console.error("Gagal membuat login anonim:", error);
+                });
+            }
+        });
 
         // 2. TAMBAHKAN BARIS INI UNTUK MENGAKTIFKAN OFFLINE PERSISTENCE (CACHE BAWAAN FIREBASE)
         enableIndexedDbPersistence(db).catch((err) => {
@@ -1999,18 +2019,18 @@
                             setTimeout(() => {
                                 finalSplash.style.display = 'none';
                                 
-                                // Cek jam operasional setelah animasi selesai
+                                // Cek jam operasional setelah semua animasi selesai
                                 if (!checkOperationalStatus(false)) {
-                                    showClosedModalInfo();
+                                     showClosedModalInfo();
                                 }
                             }, 500);
                         });
                     }
-                }, 300);
+                }, 100);
             }
         }
 
-        window.submitRegistration = () => {
+        window.submitRegistration = async () => {
             const name = document.getElementById('reg-name').value.trim();
             const phone = document.getElementById('reg-phone').value.trim();
 
@@ -2019,7 +2039,7 @@
                 return;
             }
 
-            // Simpan profil baru
+            // Simpan profil baru di browser
             const newProfile = { name: name, phone: phone };
             localStorage.setItem('user_profile', JSON.stringify(newProfile));
 
@@ -2028,6 +2048,20 @@
             savedProfile.phone = phone;
             document.getElementById('profile-name').innerText = name;
             document.getElementById('profile-phone').innerText = phone;
+
+            // --- SIMPAN PROFIL KE DATABASE FIREBASE (Diikat dengan ID Login) ---
+            if (currentUserUid) {
+                try {
+                    await setDoc(doc(db, "users", currentUserUid), {
+                        name: name,
+                        phone: phone,
+                        joinedAt: Date.now()
+                    });
+                } catch (e) {
+                    console.error("Gagal mem-backup profil ke database", e);
+                }
+            }
+            // -------------------------------------------------------------------
 
             // Sembunyikan layar pendaftaran dengan efek memudar
             const regScreen = document.getElementById('registration-screen');
@@ -2276,10 +2310,40 @@
 
         window.openReviewModal = (vendorName, orderId) => { currentReviewOrderId = orderId; document.getElementById('review-vendor-name').innerText = vendorName; document.getElementById('review-modal').style.display = 'flex'; document.getElementById('review-text').value = ''; setRating(5); }
         window.setRating = (n) => { document.querySelectorAll('.star-rating').forEach((s, i) => { if (i < n) s.classList.add('active'); else s.classList.remove('active'); }); }
+        
         window.submitReview = async () => {
-            const text = document.getElementById('review-text').value; const stars = document.querySelectorAll('.star-rating.active').length; const vendorName = document.getElementById('review-vendor-name').innerText; const user = savedProfile.name;
-            try { await addDoc(collection(db, "reviews"), { vendor_name: vendorName, user: user, rating: stars, text: text, timestamp: Date.now(), order_id: currentReviewOrderId }); const history = JSON.parse(localStorage.getItem('order_history')) || []; const updatedHistory = history.map(order => { if (order.id === currentReviewOrderId) { return { ...order, isReviewed: true }; } return order; }); localStorage.setItem('order_history', JSON.stringify(updatedHistory)); showToast("Ulasan terkirim!"); document.getElementById('review-modal').style.display = 'none'; renderOrderHistory(); } catch (error) { showToast("Gagal mengirim ulasan."); }
+            const text = document.getElementById('review-text').value; 
+            const stars = document.querySelectorAll('.star-rating.active').length; 
+            const vendorName = document.getElementById('review-vendor-name').innerText; 
+            const user = savedProfile.name;
+            
+            try { 
+                await addDoc(collection(db, "reviews"), { 
+                    vendor_name: vendorName, 
+                    user: user, 
+                    rating: stars, 
+                    text: text, 
+                    timestamp: Date.now(), 
+                    order_id: currentReviewOrderId,
+                    uid: currentUserUid // Sisipkan ID Login ke ulasan agar tahu siapa pengirimnya
+                }); 
+                
+                const history = JSON.parse(localStorage.getItem('order_history')) || []; 
+                const updatedHistory = history.map(order => { 
+                    if (order.id === currentReviewOrderId) { return { ...order, isReviewed: true }; } 
+                    return order; 
+                }); 
+                localStorage.setItem('order_history', JSON.stringify(updatedHistory)); 
+                
+                showToast("Ulasan terkirim!"); 
+                document.getElementById('review-modal').style.display = 'none'; 
+                renderOrderHistory(); 
+            } catch (error) { 
+                console.error(error);
+                showToast("Gagal mengirim ulasan."); 
+            }
         }
+
         window.reorder = (itemsJson) => { const itemsToReorder = JSON.parse(decodeURIComponent(itemsJson)); itemsToReorder.forEach(item => { cart.push(item); }); updateCartBadge(); showToast("Pesanan masuk keranjang!"); openPage('cart'); }
         window.showToast = (message) => { const toast = document.getElementById('toast-notification'); toast.querySelector('.toast-msg').innerText = message; toast.classList.add('show'); setTimeout(() => { toast.classList.remove('show'); }, 2000); }
 
