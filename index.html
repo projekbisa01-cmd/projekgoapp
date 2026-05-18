@@ -2319,13 +2319,13 @@
             
             try { 
                 await addDoc(collection(db, "reviews"), { 
-                    vendor_name: vendorName, 
-                    user: user, 
-                    rating: stars, 
-                    text: text, 
+                    vendor_name: vendorName || "Warung", 
+                    user: user || "Pelanggan", 
+                    rating: stars || 5, 
+                    text: text || "", 
                     timestamp: Date.now(), 
-                    order_id: currentReviewOrderId,
-                    uid: currentUserUid // Sisipkan ID Login ke ulasan agar tahu siapa pengirimnya
+                    order_id: currentReviewOrderId || 0,
+                    uid: currentUserUid || "anonim" 
                 }); 
                 
                 const history = JSON.parse(localStorage.getItem('order_history')) || []; 
@@ -2339,7 +2339,8 @@
                 document.getElementById('review-modal').style.display = 'none'; 
                 renderOrderHistory(); 
             } catch (error) { 
-                console.error(error);
+                console.error("Detail Error:", error);
+                alert("INFO ERROR DARI FIREBASE:\n" + error.message); // Ini akan memunculkan popup error asli
                 showToast("Gagal mengirim ulasan."); 
             }
         }
