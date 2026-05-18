@@ -91,6 +91,11 @@
         .orange-card.closed { background: linear-gradient(135deg, #9E9E9E, #616161); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); }
         .orange-card::before { content: ''; position: absolute; top: -50%; right: -10%; width: 200px; height: 200px; background: rgba(255,255,255,0.08); border-radius: 50%; pointer-events: none; }
         
+        /* NEW STYLES FOR INFO BADGE ON HOME CARD */
+        .home-status-info { background: rgba(0, 0, 0, 0.2); padding: 8px 12px; border-radius: 12px; font-size: 11px; margin-top: 15px; display: flex; align-items: flex-start; gap: 8px; line-height: 1.4; border: 1px solid rgba(255, 255, 255, 0.2); transition: opacity 0.3s, max-height 0.3s; overflow: hidden; }
+        .home-status-info i { color: #25D366; font-size: 16px; margin-top: 1px; }
+        .home-status-info.hidden { opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; margin-top: 0; border: none; }
+
         .status-icon-box { background: rgba(255,255,255,0.2); width: 50px; height: 50px; border-radius: 16px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.3); }
 
         .modern-toggle { position: relative; display: inline-block; width: 64px; height: 36px; }
@@ -447,6 +452,11 @@
                         <input type="checkbox" id="home-shop-toggle" onchange="toggleHomeShopStatus()">
                         <span class="modern-slider"></span>
                     </label>
+                </div>
+                <!-- PESAN INFO AKAN MUNCUL SAAT BUKA -->
+                <div id="home-status-info-badge" class="home-status-info hidden">
+                    <i class="ph-fill ph-whatsapp-logo"></i>
+                    <div>Jika ada pesanan, Admin Projekgo akan memesan melalui <b>WHATSAPP</b> Anda.</div>
                 </div>
             </div>
 
@@ -1203,6 +1213,16 @@
                     const homeText = document.getElementById('home-status-text');
                     if(homeText) homeText.innerText = isOpen ? "Buka" : "Tutup";
 
+                    // Update visibilitas badge info WA pada card home
+                    const homeInfoBadge = document.getElementById('home-status-info-badge');
+                    if (homeInfoBadge) {
+                        if (isOpen) {
+                            homeInfoBadge.classList.remove('hidden');
+                        } else {
+                            homeInfoBadge.classList.add('hidden');
+                        }
+                    }
+
                     document.getElementById('inp-jam-buka').value = data.jam_buka || "";
                     document.getElementById('inp-jam-tutup').value = data.jam_tutup || "";
                     document.getElementById('inp-shop-name').value = data.nama_warung || currentUser.name;
@@ -1903,7 +1923,20 @@
                 let tr = 0; let c = 0;
                 snap.forEach(d => {
                     const r = d.data(); c++; tr += parseFloat(r.rating || 0);
-                    container.innerHTML += `<div style="background:white;padding:15px;border-radius:12px;margin-bottom:10px;"><div style="display:flex;justify-content:space-between;font-size:12px;"><strong>${r.user_name}</strong><span style="color:#FFC107;">★ ${r.rating}</span></div><div style="font-size:13px;color:#555;">${r.text || ''}</div></div>`;
+                    
+                    // Logika untuk mengubah nama "undefined" menjadi tanggal
+                    let displayName = r.user_name;
+                    if (!displayName || displayName === 'undefined') {
+                        if (r.created_at) {
+                            const dateObj = new Date(r.created_at);
+                            // Format: Senin, 18 Mei 2026
+                            displayName = dateObj.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                        } else {
+                            displayName = "Pelanggan";
+                        }
+                    }
+
+                    container.innerHTML += `<div style="background:white;padding:15px;border-radius:12px;margin-bottom:10px;"><div style="display:flex;justify-content:space-between;font-size:12px;"><strong>${displayName}</strong><span style="color:#FFC107;">★ ${r.rating}</span></div><div style="font-size:13px;color:#555;margin-top:4px;">${r.text || ''}</div></div>`;
                 });
                 document.getElementById('stat-orders').innerText = c;
                 document.getElementById('stat-rating').innerText = c > 0 ? (tr/c).toFixed(1) : "0.0";
