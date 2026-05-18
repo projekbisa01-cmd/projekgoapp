@@ -1365,12 +1365,26 @@
 
         window.closeModal = () => document.getElementById('modal-form').style.display = 'none';
 
-        window.handleFileSelect = (e) => {
+        window.handleFileSelect = async (e) => {
             const file = e.target.files[0]; if(!file) return;
             const placeholder = document.querySelector('.upload-placeholder');
             placeholder.innerHTML = 'Memproses...';
             
             try {
+                // PENGECEKAN KEAMANAN (FORCE LOGIN)
+                // Memastikan ulang bahwa sesi Firebase Authentication aktif.
+                // Jika tidak aktif, paksa login ulang secara anonim.
+                const auth = getAuth();
+                if (!auth.currentUser) {
+                     placeholder.innerHTML = `<div style="color:orange; font-size:10px; padding:5px;">Sedang menghubungkan koneksi ke server...</div>`;
+                     try {
+                         await signInAnonymously(auth);
+                     } catch(authErr) {
+                         placeholder.innerHTML = `<div style="color:red; font-size:10px; padding:5px; word-break:break-all; text-align:left;"><b>Err Koneksi:</b><br>Tidak bisa terhubung ke server Firebase. Cek koneksi Anda.</div>`;
+                         return;
+                     }
+                }
+
                 const reader = new FileReader();
                 
                 reader.onerror = () => { 
