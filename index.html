@@ -789,8 +789,8 @@
 
         #review-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(2px); }
         .modal-content { background: white; width: 100%; max-width: 400px; padding: 30px 25px; border-radius: 25px; animation: slideUp 0.3s; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
-        .star-rating { font-size: 32px; color: #eee; cursor: pointer; transition: 0.2s; }
-        .star-rating.active { color: #FFC107; transform: scale(1.1); }
+        .star-rating, .app-star-rating { font-size: 32px; color: #eee; cursor: pointer; transition: 0.2s; }
+        .star-rating.active, .app-star-rating.active { color: #FFC107; transform: scale(1.1); }
 
         #closed-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
         .closed-content { background: white; padding: 30px 20px; border-radius: 20px; text-align: center; max-width: 350px; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -1518,6 +1518,29 @@
             <div style="display:flex; gap:10px; margin-top:20px;">
                 <button onclick="document.getElementById('review-modal').style.display='none'" style="flex:1; background:#f0f0f0; color:#333; border:none; padding:12px; border-radius:10px; font-weight:700;">Batal</button>
                 <button onclick="submitReview()" style="flex:1; background:var(--primary); color:white; border:none; padding:12px; border-radius:10px; font-weight:700;">Kirim</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ULASAN APLIKASI PROJEKGO -->
+    <div id="app-review-modal" onclick="if(event.target===this) closeAppReviewModal()" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 99999; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px);">
+        <div class="modal-content" style="text-align:center; max-width: 340px; padding: 35px 25px;">
+            <div style="width:70px; height:70px; background:#FFF0E5; border-radius:50%; display:flex; align-items:center; justify-content:center; margin: 0 auto 15px auto; box-shadow: 0 4px 15px rgba(255, 102, 0, 0.2);">
+                <img src="https://i.ibb.co.com/84PCGFDm/Whats-App-Image-2026-01-29-at-10-12-08.jpg" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+            </div>
+            <h3 style="margin-top:0; color:var(--dark); font-weight:800; font-size:18px;">Bagaimana Aplikasi Kami?</h3>
+            <p style="font-size:12px; color:#666; margin-bottom:20px; line-height:1.5;">Bantu kami terus berkembang dengan memberikan bintang & ulasan jujurmu tentang aplikasi Projekgo ini ya! 🥰</p>
+            <div style="display:flex; justify-content:center; gap:10px; margin-bottom:20px;">
+                <i class="ph-fill ph-star app-star-rating active" onclick="setAppRating(1)"></i>
+                <i class="ph-fill ph-star app-star-rating active" onclick="setAppRating(2)"></i>
+                <i class="ph-fill ph-star app-star-rating active" onclick="setAppRating(3)"></i>
+                <i class="ph-fill ph-star app-star-rating active" onclick="setAppRating(4)"></i>
+                <i class="ph-fill ph-star app-star-rating active" onclick="setAppRating(5)"></i>
+            </div>
+            <textarea id="app-review-text" class="form-input" rows="3" placeholder="Suka dengan fiturnya? Atau ada saran tambahan?" style="resize:none; background:#f9f9f9;"></textarea>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-top:20px;">
+                <button onclick="submitAppReview()" style="width:100%; background:var(--primary); color:white; border:none; padding:14px; border-radius:14px; font-weight:800; font-size:14px; box-shadow: 0 4px 15px rgba(255,102,0,0.3); transition:transform 0.2s;">Kirim Ulasan & Bintang</button>
+                <button onclick="closeAppReviewModal()" style="width:100%; background:transparent; color:#999; border:none; padding:10px; font-weight:700; font-size:13px;">Nanti Saja</button>
             </div>
         </div>
     </div>
@@ -2311,6 +2334,38 @@
         window.openReviewModal = (vendorName, orderId) => { currentReviewOrderId = orderId; document.getElementById('review-vendor-name').innerText = vendorName; document.getElementById('review-modal').style.display = 'flex'; document.getElementById('review-text').value = ''; setRating(5); }
         window.setRating = (n) => { document.querySelectorAll('.star-rating').forEach((s, i) => { if (i < n) s.classList.add('active'); else s.classList.remove('active'); }); }
         
+        // --- LOGIKA ULASAN APLIKASI PROJEKGO ---
+        let currentAppRatingValue = 5;
+        window.openAppReviewModal = () => { document.getElementById('app-review-modal').style.display = 'flex'; document.getElementById('app-review-text').value = ''; setAppRating(5); }
+        window.closeAppReviewModal = () => { document.getElementById('app-review-modal').style.display = 'none'; }
+        window.setAppRating = (n) => { currentAppRatingValue = n; document.querySelectorAll('.app-star-rating').forEach((s, i) => { if (i < n) s.classList.add('active'); else s.classList.remove('active'); }); }
+        
+        window.submitAppReview = async () => {
+            const text = document.getElementById('app-review-text').value;
+            const user = savedProfile.name;
+            try {
+                // Simpan ke database dengan nama vendor khusus "Aplikasi Projekgo"
+                await addDoc(collection(db, "reviews"), {
+                    vendor_name: "Aplikasi Projekgo", 
+                    user: user || "Pelanggan",
+                    rating: currentAppRatingValue,
+                    text: text || "",
+                    timestamp: Date.now(),
+                    order_id: "APP_FEEDBACK",
+                    uid: currentUserUid || "anonim"
+                });
+                
+                // Tandai di memori HP bahwa pengguna sudah memberikan ulasan aplikasi
+                localStorage.setItem('app_reviewed', 'true');
+                showToast("Terima kasih atas masukannya! ❤️");
+                closeAppReviewModal();
+            } catch (error) {
+                console.error(error);
+                showToast("Gagal mengirim ulasan.");
+            }
+        }
+        // ---------------------------------------
+
         window.submitReview = async () => {
             const text = document.getElementById('review-text').value; 
             const stars = document.querySelectorAll('.star-rating.active').length; 
@@ -2330,7 +2385,9 @@
                 
                 const history = JSON.parse(localStorage.getItem('order_history')) || []; 
                 const updatedHistory = history.map(order => { 
-                    if (order.id === currentReviewOrderId) { return { ...order, isReviewed: true }; } 
+                    if (order.id === currentReviewOrderId) { 
+                        return { ...order, isReviewed: true, reviewText: text, reviewRating: stars }; 
+                    } 
                     return order; 
                 }); 
                 localStorage.setItem('order_history', JSON.stringify(updatedHistory)); 
@@ -2358,14 +2415,32 @@
                 let displayStatus = order.status; let statusColor = "#E8F5E9"; let statusTextColor = "#2E7D32";
                 if (displayStatus === 'MENUNGGU KONFIRMASI' && diffMinutes > 5) displayStatus = 'TERIMAKASIH';
                 if (displayStatus === 'MENUNGGU KONFIRMASI') { statusColor = "#FFF3E0"; statusTextColor = "#E65100"; }
-                let reviewButtonHtml = !order.isReviewed ? `<button class="btn-review-action" onclick="openReviewModal('${order.vendor}', ${order.id})">⭐ Beri Ulasan</button>` : `<span style="font-size:11px; color:#aaa; font-style:italic; padding:8px;">Ulasan Terkirim</span>`;
+                
+                let reviewButtonHtml = !order.isReviewed ? `<button class="btn-review-action" onclick="openReviewModal('${order.vendor}', ${order.id})">⭐ Beri Ulasan</button>` : '';
                 
                 let processHtml = '';
                 if (displayStatus === 'MENUNGGU KONFIRMASI') {
                     processHtml = `<div class="process-anim-box"><i class="ph-fill ph-moped process-anim-icon"></i><div class="process-anim-text">Pesananmu akan dipesankan admin langsung ke penjual. Selagi makanan dibuat, admin mencari rider terdekat agar penanganan tidak lama. Ditunggu ya kak, rider akan menghubungi untuk konfirmasi pesanan, menotalkan, dan mengantar dengan cepat, selamat & tepat! 🛵💨</div></div>`;
                 }
+
+                let reviewDisplayHtml = '';
+                if (order.isReviewed) {
+                    let starsHtml = '';
+                    const rating = order.reviewRating || 5;
+                    for(let i=0; i<5; i++) { starsHtml += i < rating ? '<i class="ph-fill ph-star" style="color:#FFC107;"></i>' : '<i class="ph ph-star" style="color:#ddd;"></i>'; }
+                    const rText = order.reviewText ? `"${order.reviewText}"` : "Terima kasih atas ulasan Anda!";
+                    
+                    reviewDisplayHtml = `
+                    <div style="background:#f9f9f9; padding:12px; border-radius:10px; margin-top:12px; border:1px solid #eee;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                            <span style="font-size:11px; font-weight:700; color:#666; display:flex; align-items:center; gap:4px;"><i class="ph-fill ph-check-circle" style="color:#4CAF50; font-size:14px;"></i> Ulasanmu</span>
+                            <div style="display:flex; font-size:12px; gap:2px;">${starsHtml}</div>
+                        </div>
+                        <div style="font-size:12px; color:#444; font-style:italic; line-height:1.4;">${rText}</div>
+                    </div>`;
+                }
                 
-                const html = `<div class="order-card" style="background:white; padding:15px; border-radius:12px; box-shadow:var(--shadow-sm); margin-bottom:15px; border:1px solid rgba(0,0,0,0.03);"><div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:11px; color:#888;"><span>${order.date}</span><span style="background:${statusColor}; color:${statusTextColor}; padding:3px 8px; border-radius:4px; font-weight:700; font-size:10px;">${displayStatus}</span></div><div style="font-weight:700; font-size:14px; margin-bottom:4px;">${order.vendor}</div><div style="font-size:12px; color:#555; margin-bottom:8px; line-height:1.4;">${order.items}</div><div style="font-size:14px; font-weight:800; color:var(--primary); padding-bottom:10px; border-bottom:1px dashed #eee;">Total: Rp ${order.total.toLocaleString()}</div>${processHtml}<div style="margin-top:10px; text-align:right; display:flex; justify-content:flex-end; align-items:center; gap:8px;">${reviewButtonHtml}<button class="btn-reorder-action" onclick="reorder('${reorderData}')">Pesan Lagi ↻</button></div></div>`;
+                const html = `<div class="order-card" style="background:white; padding:15px; border-radius:12px; box-shadow:var(--shadow-sm); margin-bottom:15px; border:1px solid rgba(0,0,0,0.03);"><div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:11px; color:#888;"><span>${order.date}</span><span style="background:${statusColor}; color:${statusTextColor}; padding:3px 8px; border-radius:4px; font-weight:700; font-size:10px;">${displayStatus}</span></div><div style="font-weight:700; font-size:14px; margin-bottom:4px;">${order.vendor}</div><div style="font-size:12px; color:#555; margin-bottom:8px; line-height:1.4;">${order.items}</div><div style="font-size:14px; font-weight:800; color:var(--primary); padding-bottom:10px; border-bottom:1px dashed #eee;">Total: Rp ${order.total.toLocaleString()}</div>${processHtml}${reviewDisplayHtml}<div style="margin-top:10px; text-align:right; display:flex; justify-content:flex-end; align-items:center; gap:8px;">${reviewButtonHtml}<button class="btn-reorder-action" onclick="reorder('${reorderData}')">Pesan Lagi ↻</button></div></div>`;
                 container.innerHTML += html;
             });
         }
@@ -3466,6 +3541,19 @@
             setTimeout(() => {
                 activeModal.style.display = 'none';
                 openPage('orders'); // Langsung arahkan ke Riwayat Pesanan
+                
+                // --- PEMERIKSAAN KELAYAKAN POP-UP ULASAN APLIKASI ---
+                const history = JSON.parse(localStorage.getItem('order_history')) || [];
+                const hasReviewedApp = localStorage.getItem('app_reviewed');
+                
+                // Munculkan popup jika pelanggan sudah pernah order minimal 2 kali dan belum pernah mereview
+                if (!hasReviewedApp && history.length >= 2) {
+                    setTimeout(() => {
+                        window.openAppReviewModal();
+                    }, 1500); // Beri jeda 1.5 detik setelah halaman riwayat terbuka agar tidak kaget
+                }
+                // ----------------------------------------------------
+                
             }, 300);
         }
 
