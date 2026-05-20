@@ -397,7 +397,7 @@
             <div style="font-weight:800; margin-bottom:5px; color: var(--dark); font-size: 18px;">Aplikasi Mitra Penjual</div>
             <p class="login-desc">Masuk untuk mengelola warung Anda.</p>
             
-            <input type="text" id="login-id" class="login-input" placeholder="ID Warung">
+            <input type="text" id="login-id" class="login-input" placeholder="Alamat Email">
             <input type="password" id="login-pin" class="login-input" placeholder="PIN Keamanan">
             
             <button class="btn-login" onclick="login()">Masuk ke Dashboard</button>
@@ -1026,22 +1026,66 @@
         };
 
         window.login = async () => {
-            const idInput = document.getElementById('login-id').value.trim().toLowerCase(); 
+            // Mengambil input dari form HTML
+            const emailInput = document.getElementById('login-id').value.trim().toLowerCase(); 
             const pinInput = document.getElementById('login-pin').value.trim();
-            if(!idInput || !pinInput) return showToast("Lengkapi data login!", false);
+            
+            if(!emailInput || !pinInput) return showToast("Lengkapi Email dan PIN!", false);
+            
             const btn = document.querySelector('.btn-login');
             btn.innerHTML = "Memeriksa..."; btn.disabled = true;
+            
             try {
-                const docSnap = await getDoc(doc(db, "vendors", idInput));
-                if (docSnap.exists() && docSnap.data().pin === pinInput) {
-                    currentUser = { id: docSnap.id, name: docSnap.data().nama_warung };
-                    localStorage.setItem('vendor_user', JSON.stringify(currentUser));
-                    initDashboard();
-                } else {
-                    showToast("ID atau PIN salah!", false);
+                // 1. Mencari data vendor berdasarkan field "email" menggunakan query
+                const q = query(collection(db, "vendors"), where("email", "==", emailInput));
+                
+                // Menggunakan onSnapshot sebagai trik pengganti getDocs agar Anda tidak perlu ubah import
+                const unsub = onSnapshot(q, async (querySnapshot) => {
+                    unsub(); // Langsung matikan pendengar agar data hanya diambil 1 kali (hemat kuota Firebase)
+                    
+                    if (!querySnapshot.empty) {
+                        let loginSuccess = false;
+                        
+                        querySnapshot.forEach((docSnap) => {
+                            // 2. Cek apakah PIN cocok
+                            if (docSnap.data().pin === pinInput) {
+                                currentUser = { id: docSnap.id, name: docSnap.data().nama_warung };
+                                localStorage.setItem('vendor_user', JSON.stringify(currentUser));
+                                loginSuccess = true;
+                            }
+                        });
+                        
+                        if (loginSuccess) {
+                            initDashboard();
+                        } else {
+                            showToast("PIN salah!", false);
+                            btn.innerHTML = "Masuk ke Dashboard"; btn.disabled = false;
+                        }
+                    } else {
+                        // 3. FALLBACK: Jika tidak ketemu di field email, coba cari berdasarkan ID Dokumen
+                        try {
+                            const docSnap = await getDoc(doc(db, "vendors", emailInput));
+                            if (docSnap.exists() && docSnap.data().pin === pinInput) {
+                                currentUser = { id: docSnap.id, name: docSnap.data().nama_warung };
+                                localStorage.setItem('vendor_user', JSON.stringify(currentUser));
+                                initDashboard();
+                            } else {
+                                showToast("Email tidak terdaftar atau PIN salah!", false);
+                                btn.innerHTML = "Masuk ke Dashboard"; btn.disabled = false;
+                            }
+                        } catch(err) {
+                            showToast("Terjadi kesalahan sistem", false);
+                            btn.innerHTML = "Masuk ke Dashboard"; btn.disabled = false;
+                        }
+                    }
+                }, (error) => {
+                    showToast("Gagal terhubung ke server", false);
                     btn.innerHTML = "Masuk ke Dashboard"; btn.disabled = false;
-                }
-            } catch (e) { showToast("Gagal Login", false); btn.disabled = false; }
+                });
+            } catch (e) { 
+                showToast("Gagal Login", false); 
+                btn.innerHTML = "Masuk ke Dashboard"; btn.disabled = false; 
+            }
         };
 
         window.logout = () => { if(confirm("Keluar dari aplikasi?")) { localStorage.removeItem('vendor_user'); location.reload(); }};
@@ -2030,4 +2074,4 @@
 
     </script>
 </body>
-</html> 
+</html>
