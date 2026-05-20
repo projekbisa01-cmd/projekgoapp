@@ -464,42 +464,6 @@
             </div>
         </div>
 
-        <!-- WARUNG ADMIN PAGE (Dulu Siaran) -->
-        <div id="page-warung-admin" class="page-content">
-            <div class="page-header">
-                <h1 class="page-title">Warung Admin</h1>
-                <p class="page-subtitle">Kelola warung khusus yang ditangani oleh Admin (Penjual Gaptek & Tua)</p>
-            </div>
-            
-            <div style="position: relative; margin-bottom: 20px;">
-                <i class="ph ph-magnifying-glass" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray); font-size: 20px;"></i>
-                <input type="text" id="search-warung-admin" class="form-input" style="padding-left: 45px;" placeholder="Cari nama warung admin..." oninput="window.renderWarungAdminList()">
-            </div>
-
-            <div class="data-card">
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Nama Warung & ID</th>
-                                <th>Kategori & Lokasi</th>
-                                <th>Status</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="warung-admin-list-body">
-                            <tr>
-                                <td colspan="4" style="text-align:center; padding:30px; color:#999;">
-                                    Belum ada data Warung Admin.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <button class="btn-add-float" onclick="window.openAddWarungAdminModal()"><i class="ph-bold ph-plus"></i></button>
-        </div>
-
     </div>
 
     <!-- BOTTOM NAV -->
@@ -523,10 +487,6 @@
         <div class="nav-item" onclick="showPage('reviews', this)">
             <i class="ph ph-star"></i>
             <span>Ulasan</span>
-        </div>
-        <div class="nav-item" onclick="showPage('warung-admin', this)">
-            <i class="ph ph-storefront"></i>
-            <span>Warung Admin</span>
         </div>
     </div>
 
@@ -738,7 +698,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, query, limit, orderBy, deleteDoc, doc, setDoc, updateDoc, addDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, query, limit, orderBy, deleteDoc, doc, setDoc, updateDoc, addDoc, getDoc, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getStorage, ref, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
         import { getAuth, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -801,7 +761,23 @@
             btn.innerText = "Mengecek Akses...";
             
             try {
-                await signInWithEmailAndPassword(auth, email, pass);
+                // 1. Login menggunakan Firebase Auth
+                const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+                const user = userCredential.user;
+
+                // 2. Verifikasi apakah email terdaftar di collection 'admins'
+                const adminsRef = collection(db, "admins");
+                const q = query(adminsRef, where("email", "==", user.email));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    // Jika tidak ditemukan di collection admins, tolak dan paksa logout
+                    await signOut(auth);
+                    btn.innerText = "Masuk Sekarang";
+                    return alert("Akses Ditolak! Akun ini bukan Admin.");
+                }
+
+                // 3. Jika valid sebagai admin, izinkan masuk
                 document.getElementById('login-overlay').style.display = 'none';
                 initData();
             } catch (error) {
