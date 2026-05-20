@@ -1342,25 +1342,29 @@
                                 ${badgeHabis}
                                 <img src="${fixImgUrl(item.foto_url) || 'https://cdn-icons-png.flaticon.com/512/1046/1046857.png'}" class="mi-img" style="width:100%; height:100%; ${imgStyle}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1046/1046857.png'">
                             </div>
-                            <div class="mi-info">
-                                <div class="mi-name" style="${!isAvailable ? 'color:#888;' : ''}">${item.nama_menu}</div>
+                            <div class="mi-info" style="width: calc(100% - 85px);">
+                                <div class="mi-name" style="${!isAvailable ? 'color:#888;' : ''} line-height: 1.3; margin-bottom: 4px; word-break: break-word;">${item.nama_menu}</div>
                                 <div class="mi-price" style="${!isAvailable ? 'color:#888;' : ''}">${item.harga_asli > item.harga ? `<span style="font-size:11px; text-decoration:line-through; color:#999; margin-right:4px;">Rp ${item.harga_asli.toLocaleString()}</span>` : ''} Rp ${item.harga.toLocaleString()}</div>
                                 <div style="margin-top:5px; display:flex; flex-wrap:wrap; gap:4px; align-items:center;">
                                     ${item.is_exclusive ? '<span style="background:var(--primary);color:white;font-size:9px;padding:2px 5px;border-radius:4px;font-weight:700;">Eksklusif</span>' : ''}
                                     ${item.is_priority ? '<span style="color:#FFC107;font-size:10px;font-weight:700;"><i class="ph-fill ph-star"></i> Andalan</span>' : ''}
                                 </div>
-                                <div style="margin-top:8px; display:flex; align-items:center; gap:5px;">
-                                    <label class="modern-toggle" style="transform: scale(0.65); margin: 0; transform-origin: left center;">
-                                        <input type="checkbox" ${isAvailable ? 'checked' : ''} onchange="toggleAvailableStatus('${item.id}', ${isAvailable})">
-                                        <span class="modern-slider"></span>
-                                    </label>
-                                    <span style="font-size:10px; font-weight:700; color: ${isAvailable ? 'var(--success)' : 'var(--danger)'};">${isAvailable ? 'Tersedia' : 'Habis'}</span>
+                                
+                                <!-- Bagian Bawah: Toggle dan Icon disejajarkan agar tidak nabrak teks -->
+                                <div style="margin-top:12px; padding-top:10px; border-top:1px dashed #eee; display:flex; align-items:center; justify-content:space-between;">
+                                    <div style="display:flex; align-items:center; gap:5px;">
+                                        <label class="modern-toggle" style="transform: scale(0.65); margin: 0; transform-origin: left center;">
+                                            <input type="checkbox" ${isAvailable ? 'checked' : ''} onchange="toggleAvailableStatus('${item.id}', ${isAvailable})">
+                                            <span class="modern-slider"></span>
+                                        </label>
+                                        <span style="font-size:10px; font-weight:700; color: ${isAvailable ? 'var(--success)' : 'var(--danger)'};">${isAvailable ? 'Tersedia' : 'Habis'}</span>
+                                    </div>
+                                    <div style="display:flex; gap:12px; align-items:center;">
+                                        <button style="color:#25D366; background:none; border:none; padding:0; cursor:pointer;" onclick="shareMenuToStory('${item.id}')" title="Share"><i class="ph-bold ph-share-network" style="font-size:22px;"></i></button>
+                                        <button style="color:#2196F3; background:none; border:none; padding:0; cursor:pointer;" onclick="editMenu('${item.id}')" title="Edit"><i class="ph-bold ph-pencil-simple" style="font-size:20px;"></i></button>
+                                        <button style="color:var(--danger); background:none; border:none; padding:0; cursor:pointer;" onclick="deleteMenu('${item.id}', '${item.nama_menu}')" title="Hapus"><i class="ph-bold ph-trash" style="font-size:20px;"></i></button>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="mi-actions">
-                                <button style="color:#25D366; background:none; border:none; padding:5px; margin-right:5px;" onclick="shareMenuToStory('${item.id}')" title="Buat Poster Story WA"><i class="ph-bold ph-share-network" style="font-size:22px;"></i></button>
-                                <button style="color:#2196F3; background:none; border:none; padding:5px;" onclick="editMenu('${item.id}')"><i class="ph-bold ph-pencil-simple" style="font-size:20px;"></i></button>
-                                <button style="color:var(--danger); background:none; border:none; padding:5px;" onclick="deleteMenu('${item.id}', '${item.nama_menu}')"><i class="ph-bold ph-trash" style="font-size:20px;"></i></button>
                             </div>
                         </div>`;
                 });
