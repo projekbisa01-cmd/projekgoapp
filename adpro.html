@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <!-- PWA Meta Tags & Virtual Manifest -->
     <meta name="theme-color" content="#FF6600">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -173,6 +172,7 @@
         .btn-edit-info { background: #f3e8ff; color: #9333ea; }
         .btn-exclusive { background: #f3f4f6; color: #9ca3af; }
         .btn-exclusive.active { background: #ede9fe; color: #7c3aed; }
+        .btn-migrate { background: #f3e8ff; color: #9333ea; }
 
         /* REVIEW COMPONENTS */
         .rating-badge { display: inline-flex; align-items: center; gap: 4px; background: #fffbeb; color: #d97706; padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 13px; }
@@ -464,31 +464,40 @@
             </div>
         </div>
 
-        <!-- BROADCAST PAGE -->
-        <div id="page-broadcast" class="page-content">
+        <!-- WARUNG ADMIN PAGE (Dulu Siaran) -->
+        <div id="page-warung-admin" class="page-content">
             <div class="page-header">
-                <h1 class="page-title">Siaran Siaga</h1>
-                <p class="page-subtitle">Kirim pesan massal ke pengguna</p>
+                <h1 class="page-title">Warung Admin</h1>
+                <p class="page-subtitle">Kelola warung khusus yang ditangani oleh Admin (Penjual Gaptek & Tua)</p>
             </div>
             
-            <div class="data-card" style="padding:20px; margin-bottom: 25px;">
-                <div class="form-group">
-                    <label class="form-label">Judul</label>
-                    <input type="text" id="broadcast-title" class="form-input" placeholder="Info penting...">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Isi Pesan</label>
-                    <textarea id="broadcast-body" rows="4" class="form-input" placeholder="Tulis pengumuman..."></textarea>
-                </div>
-                <button id="btn-broadcast-submit" class="btn-login" style="background:var(--primary);" onclick="kirimBroadcast()">Siarkan Sekarang</button>
+            <div style="position: relative; margin-bottom: 20px;">
+                <i class="ph ph-magnifying-glass" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray); font-size: 20px;"></i>
+                <input type="text" id="search-warung-admin" class="form-input" style="padding-left: 45px;" placeholder="Cari nama warung admin..." oninput="window.renderWarungAdminList()">
             </div>
 
-            <div class="page-header">
-                <h2 class="page-title" style="font-size: 18px;">Riwayat Siaran</h2>
+            <div class="data-card">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nama Warung & ID</th>
+                                <th>Kategori & Lokasi</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="warung-admin-list-body">
+                            <tr>
+                                <td colspan="4" style="text-align:center; padding:30px; color:#999;">
+                                    Belum ada data Warung Admin.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <div id="broadcast-history-list">
-                <div style="text-align:center; padding:30px; color:#999;">Memuat riwayat...</div>
-            </div>
+            <button class="btn-add-float" onclick="window.openAddWarungAdminModal()"><i class="ph-bold ph-plus"></i></button>
         </div>
 
     </div>
@@ -515,9 +524,9 @@
             <i class="ph ph-star"></i>
             <span>Ulasan</span>
         </div>
-        <div class="nav-item" onclick="showPage('broadcast', this)">
-            <i class="ph ph-megaphone"></i>
-            <span>Siaran</span>
+        <div class="nav-item" onclick="showPage('warung-admin', this)">
+            <i class="ph ph-storefront"></i>
+            <span>Warung Admin</span>
         </div>
     </div>
 
@@ -662,13 +671,77 @@
         </div>
     </div>
 
-        <script type="module">
+    <!-- MODAL MIGRASI EMAIL -->
+    <div id="migrate-vendor-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title">Migrasi Mitra ke Email</div>
+            <p style="color:var(--gray); font-size:13px; margin-bottom:15px;">Buat akses Email & Password baru untuk mitra lama: <b id="mig-name">...</b></p>
+            <input type="hidden" id="mig-id">
+            
+            <div class="form-group" style="background: #e0f2fe; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
+                <p style="font-size: 12px; color: #0284c7; margin: 0; line-height: 1.4;">
+                    <i class="ph-fill ph-info"></i> <b>Penting:</b> Proses ini akan membuatkan akun Auth baru untuk mitra tanpa menghapus data menu mereka. 
+                </p>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email Baru untuk Mitra</label>
+                <input type="email" id="mig-email" class="form-input" placeholder="Contoh: warungbudi@gmail.com">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password Sementara</label>
+                <input type="text" id="mig-pass" class="form-input" value="123456">
+                <div style="font-size: 11px; color: var(--gray); margin-top: 4px;">Berikan password ini ke mitra untuk login pertama kali.</div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="btn-modal" style="background:#f1f5f9;" onclick="closeModal('migrate-vendor-modal')">Batal</button>
+                <button id="btn-submit-migrate" class="btn-modal" style="background:#9333ea; color:white;" onclick="confirmMigration()">Migrasi Sekarang</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL TAMBAH WARUNG ADMIN -->
+    <div id="add-warung-admin-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title">Buat Warung Admin Baru</div>
+            <div class="form-group" style="background: #fff7ed; padding: 12px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #ffedd5;">
+                <p style="font-size: 12px; color: #c2410c; margin: 0; line-height: 1.4;">
+                    <i class="ph-fill ph-info"></i> <b>Catatan:</b> Warung ini dikelola penuh oleh Admin untuk memfasilitasi penjual yang gaptek/tua. Data disimpan di koleksi yang sama agar otomatis muncul di aplikasi pelanggan.
+                </p>
+            </div>
+            <div class="form-group">
+                <label class="form-label">ID Unik Warung (Sistem)</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="wa-id" class="form-input" placeholder="contoh: warung_mie_sari" oninput="this.value = this.value.toLowerCase().replace(/\s+/g, '_')">
+                    <button type="button" onclick="window.generateRandomWaId()" class="btn-modal" style="background: var(--warning); color: white; width: auto; white-space: nowrap; padding: 0 15px; font-size: 12px;">Acak ID</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Nama Warung</label>
+                <input type="text" id="wa-name" class="form-input" placeholder="Contoh: Warung Mie Mbok Sari">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Lokasi / Alamat Lengkap</label>
+                <input type="text" id="wa-location" class="form-input" placeholder="Contoh: Depan Stasiun Gombong">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Kategori Utama</label>
+                <input type="text" id="wa-category" class="form-input" placeholder="Contoh: Sarapan, Pernasian (pisahkan dengan koma)">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal" style="background:#f1f5f9;" onclick="window.closeModal('add-warung-admin-modal')">Batal</button>
+                <button class="btn-modal" style="background:var(--primary); color:white;" onclick="window.saveWarungAdmin()">Simpan Warung</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, getDocs, query, limit, orderBy, deleteDoc, doc, setDoc, updateDoc, addDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getStorage, ref, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
-        import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // --- PENTING: GANTI DENGAN API KEY BARU KAMU ---
         const firebaseConfig = {
             apiKey: "AIzaSyAc4ZnBU6xAil7Un4Y53Jxncj_B6eURHBo",
             authDomain: "projekgo-app.firebaseapp.com",
@@ -682,6 +755,10 @@
         const db = getFirestore(app);
         const storage = getStorage(app);
         const auth = getAuth(app);
+
+        // Inisialisasi Secondary App untuk membuat user tanpa me-logout Admin
+        const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp");
+        const secondaryAuth = getAuth(secondaryApp);
 
         let adminAllProducts = []; 
         let adminAllVendors = [];
@@ -724,17 +801,17 @@
             btn.innerText = "Mengecek Akses...";
             
             try {
-                // Melakukan otentikasi login resmi ke Firebase
                 await signInWithEmailAndPassword(auth, email, pass);
                 document.getElementById('login-overlay').style.display = 'none';
                 initData();
             } catch (error) {
                 btn.innerText = "Masuk Sekarang";
-                alert('Gagal Login! Email atau Password salah, atau Anda tidak punya akses.\nDetail: ' + error.message);
+                alert('Gagal Login! Email atau Password salah.\nDetail: ' + error.message);
             }
         }
+        
         window.logout = async () => { 
-            await signOut(auth); // Hapus sesi login Firebase
+            await signOut(auth); 
             location.reload(); 
         }
 
@@ -747,13 +824,13 @@
             el.classList.add('active');
             window.scrollTo(0,0);
             
-            if (pageId === 'products') showMenuVendorList();
+            if (pageId === 'products') window.showMenuVendorList();
             if (pageId === 'reviews') {
-                // Reset ke tab mitra setiap kali membuka halaman ulasan
                 const mitraTab = document.querySelector('.capsule-tab');
-                if(mitraTab) switchReviewTab('mitra', mitraTab);
+                if(mitraTab) window.switchReviewTab('mitra', mitraTab);
             }
-            if (pageId === 'tagihan') renderTagihanList();
+            if (pageId === 'tagihan') window.renderTagihanList();
+            if (pageId === 'warung-admin') window.renderWarungAdminList();
         }
 
         // --- RENDER KATEGORI OPTIONS ---
@@ -782,7 +859,7 @@
             
             html += `
             <label class="checkbox-label" style="font-weight:bold; color:var(--primary);">
-                <input type="checkbox" id="cb-lainnya" onchange="checkCustomKategori()">
+                <input type="checkbox" id="cb-lainnya" onchange="window.checkCustomKategori()">
                 + Lainnya...
             </label>`;
             
@@ -803,15 +880,13 @@
 
         // --- REVIEW PAGE LOGIC ---
         window.switchReviewTab = (tabName, element) => {
-            // Update active state di kapsul
             document.querySelectorAll('.capsule-tab').forEach(t => t.classList.remove('active'));
             element.classList.add('active');
 
-            // Tampilkan/Sembunyikan konten tab
             if (tabName === 'mitra') {
                 document.getElementById('tab-review-mitra').style.display = 'block';
                 document.getElementById('tab-review-projekgo').style.display = 'none';
-                showReviewList(); // Kembali ke daftar list mitra
+                window.showReviewList();
             } else if (tabName === 'projekgo') {
                 document.getElementById('tab-review-mitra').style.display = 'none';
                 document.getElementById('tab-review-projekgo').style.display = 'block';
@@ -822,7 +897,7 @@
         window.showReviewList = () => {
             document.getElementById('review-vendor-list').style.display = 'block';
             document.getElementById('review-detail-view').style.display = 'none';
-            renderReviewVendors();
+            window.renderReviewVendors();
         }
 
         window.openReviewDetail = (vendorId, vendorName) => {
@@ -851,7 +926,10 @@
                     const stars = '★'.repeat(Math.floor(ratingVal)) + '☆'.repeat(5 - Math.floor(ratingVal));
                     
                     let formattedDate = '-';
-                    if (r.timestamp) formattedDate = new Date(r.timestamp).toLocaleDateString('id-ID');
+                    if (r.timestamp) {
+                        if(r.timestamp.toDate) formattedDate = r.timestamp.toDate().toLocaleDateString('id-ID');
+                        else formattedDate = new Date(r.timestamp).toLocaleDateString('id-ID');
+                    }
                     else if (r.date) formattedDate = r.date;
                     
                     const userName = r.user || r.user_name || 'Anonim';
@@ -872,7 +950,7 @@
             }
         }
 
-        function renderReviewVendors() {
+        window.renderReviewVendors = () => {
             const body = document.getElementById('review-vendor-body');
             body.innerHTML = '';
             
@@ -896,7 +974,7 @@
                             </div>
                         </td>
                         <td data-label="Aksi">
-                            <button class="action-btn btn-view" onclick="openReviewDetail('${v.id}', '${v.nama_warung}')">
+                            <button class="action-btn btn-view" onclick="window.openReviewDetail('${v.id}', '${v.nama_warung}')">
                                 <i class="ph-bold ph-caret-right"></i>
                             </button>
                         </td>
@@ -911,6 +989,7 @@
             document.getElementById('menu-vendor-list-view').style.display = 'block';
             document.getElementById('menu-detail-view').style.display = 'none';
         }
+        
         window.openVendorMenu = (vendorName) => {
             currentVendorView = vendorName;
             document.getElementById('menu-vendor-list-view').style.display = 'none';
@@ -948,16 +1027,16 @@
                                 </div>
                             </td>
                             <td data-label="Harga">${parseInt(p.harga).toLocaleString()}</td>
-                            <td data-label="Stok"><button class="btn-status ${isAvail ? 'open' : 'closed'}" onclick="toggleProductStock('${p.id}', ${isAvail})">${isAvail ? 'Ada' : 'Habis'}</button></td>
+                            <td data-label="Stok"><button class="btn-status ${isAvail ? 'open' : 'closed'}" onclick="window.toggleProductStock('${p.id}', ${isAvail})">${isAvail ? 'Ada' : 'Habis'}</button></td>
                             <td data-label="Aksi">
                                 <div style="display:flex; gap:5px; justify-content: flex-end;">
-                                    <button class="action-btn btn-view" title="Edit Menu" onclick="openEditProduct('${p.id}', '${safeName}', '${p.harga}', '${safeCat}')">
+                                    <button class="action-btn btn-view" title="Edit Menu" onclick="window.openEditProduct('${p.id}', '${safeName}', '${p.harga}', '${safeCat}')">
                                         <i class="ph-bold ph-pencil-simple"></i>
                                     </button>
-                                    <button class="action-btn btn-exclusive ${isExclusive ? 'active' : ''}" title="${isExclusive ? 'Hapus dari Exclusive' : 'Jadikan Exclusive'}" onclick="toggleExclusive('${p.id}', ${isExclusive})">
+                                    <button class="action-btn btn-exclusive ${isExclusive ? 'active' : ''}" title="${isExclusive ? 'Hapus dari Exclusive' : 'Jadikan Exclusive'}" onclick="window.toggleExclusive('${p.id}', ${isExclusive})">
                                         <i class="ph-fill ph-diamond"></i>
                                     </button>
-                                    <button class="action-btn btn-delete" onclick="askDelete('products', '${p.id}')">
+                                    <button class="action-btn btn-delete" onclick="window.askDelete('products', '${p.id}')">
                                         <i class="ph-bold ph-trash"></i>
                                     </button>
                                 </div>
@@ -979,7 +1058,7 @@
             
             for (const [vName, count] of Object.entries(grouped)) {
                 if (vName.toLowerCase().includes(searchKeyword)) {
-                    container.innerHTML += `<tr><td data-label="Mitra" style="font-weight:700;">${vName}</td><td data-label="Menu">${count} Menu</td><td data-label="Aksi"><button class="action-btn btn-view" onclick="openVendorMenu('${vName}')"><i class="ph-bold ph-caret-right"></i></button></td></tr>`;
+                    container.innerHTML += `<tr><td data-label="Mitra" style="font-weight:700;">${vName}</td><td data-label="Menu">${count} Menu</td><td data-label="Aksi"><button class="action-btn btn-view" onclick="window.openVendorMenu('${vName}')"><i class="ph-bold ph-caret-right"></i></button></td></tr>`;
                 }
             }
         }
@@ -1009,12 +1088,23 @@
                 let kategoriDataRaw = v.kategori_utama || [];
                 let kategoriStr = Array.isArray(kategoriDataRaw) ? kategoriDataRaw.join(', ') : kategoriDataRaw;
                 
+                const isMigrated = !!v.email;
+                const isAdminManaged = v.is_admin_managed === true;
+                let accessInfo = '';
+                if (isAdminManaged) {
+                    accessInfo = `<div style="font-size:11px; color:#7c3aed; font-weight:700;"><i class="ph-fill ph-shield-star"></i> DIKELOLA ADMIN</div>`;
+                } else if (isMigrated) {
+                    accessInfo = `<div style="font-size:11px; color:#10b981;">Email: <b>${v.email}</b></div>`;
+                } else {
+                    accessInfo = `<div style="font-size:11px; color:#ef4444;">Auth Lama | PIN: <b>${v.pin || '-'}</b></div>`;
+                }
+                
                 hMain += `
                     <tr>
                         <td data-label="Warung & Akses">
                             <div style="font-weight:700; font-size:16px; color:var(--primary);">${v.nama_warung}</div>
                             <div class="unique-badge">ID: ${v.id}</div>
-                            <div style="font-size:11px; color:#666;">PIN: <b>${v.pin || '-'}</b></div>
+                            ${accessInfo}
                         </td>
                         <td data-label="Kategori & Lokasi">
                             <div style="font-size:12px; font-weight:700; color:var(--info); margin-bottom: 4px;">
@@ -1025,20 +1115,27 @@
                             </div>
                         </td>
                         <td data-label="Andalan">
-                            <button class="action-btn btn-feature ${isFeatured ? 'active' : ''}" title="Jadikan Andalan" onclick="toggleFeatured('${v.id}', ${isFeatured})">
+                            <button class="action-btn btn-feature ${isFeatured ? 'active' : ''}" title="Jadikan Andalan" onclick="window.toggleFeatured('${v.id}', ${isFeatured})">
                                 <i class="${isFeatured ? 'ph-fill' : 'ph-bold'} ph-star"></i>
                             </button>
                         </td>
-                        <td data-label="Status"><button class="btn-status ${isOpen ? 'open' : 'closed'}" onclick="toggleStatus('${v.id}', '${v.status}')">${v.status}</button></td>
+                        <td data-label="Status"><button class="btn-status ${isOpen ? 'open' : 'closed'}" onclick="window.toggleStatus('${v.id}', '${v.status}')">${v.status}</button></td>
                         <td data-label="Aksi">
                             <div style="display:flex; gap:5px; justify-content: flex-end;">
-                                <button class="action-btn btn-edit-info" title="Edit Info Warung" onclick="openEditVendorInfo('${v.id}')">
+                                <button class="action-btn btn-edit-info" title="Edit Info Warung" onclick="window.openEditVendorInfo('${v.id}')">
                                     <i class="ph-bold ph-pencil-simple"></i>
                                 </button>
-                                <button class="action-btn btn-edit-pin" title="Ganti PIN" onclick="openChangePinModal('${v.id}', '${safeName}')">
+                                ${(!isMigrated && !isAdminManaged) ? `
+                                <button class="action-btn btn-migrate" title="Migrasi ke Email" onclick="window.openMigrateModal('${v.id}', '${safeName}')">
+                                    <i class="ph-bold ph-envelope"></i>
+                                </button>
+                                ` : ''}
+                                ${!isAdminManaged ? `
+                                <button class="action-btn btn-edit-pin" title="Ganti PIN" onclick="window.openChangePinModal('${v.id}', '${safeName}')">
                                     <i class="ph-bold ph-key"></i>
                                 </button>
-                                <button class="action-btn btn-delete" onclick="askDelete('vendors', '${v.id}')">
+                                ` : ''}
+                                <button class="action-btn btn-delete" onclick="window.askDelete('vendors', '${v.id}')">
                                     <i class="ph-bold ph-trash"></i>
                                 </button>
                             </div>
@@ -1048,13 +1145,54 @@
             vendorBody.innerHTML = hMain;
         }
 
+        window.openMigrateModal = (id, name) => {
+            document.getElementById('mig-id').value = id;
+            document.getElementById('mig-name').innerText = name;
+            document.getElementById('mig-email').value = "";
+            document.getElementById('mig-pass').value = "123456"; 
+            document.getElementById('migrate-vendor-modal').style.display = 'flex';
+        }
+
+        window.confirmMigration = async () => {
+            const id = document.getElementById('mig-id').value;
+            const email = document.getElementById('mig-email').value.trim();
+            const pass = document.getElementById('mig-pass').value.trim();
+            const btn = document.getElementById('btn-submit-migrate');
+
+            if(!email || pass.length < 6) return alert("Email harus diisi dan Password minimal 6 karakter!");
+
+            btn.innerText = "Memproses...";
+            btn.disabled = true;
+
+            try {
+                // Buat akun di Auth Secondary agar Admin tidak terlogout
+                await createUserWithEmailAndPassword(secondaryAuth, email, pass);
+                await updateDoc(doc(db, "vendors", id), {
+                    email: email,
+                    is_approved: true
+                });
+
+                window.closeModal('migrate-vendor-modal');
+                alert(`Migrasi Berhasil!\n\nEmail: ${email}\nPassword: ${pass}\nSilakan berikan ini ke mitra.`);
+                await window.fetchVendors(); 
+            } catch (error) {
+                if (error.code === 'auth/email-already-in-use') {
+                    alert("Gagal: Email ini sudah terdaftar. Gunakan email lain.");
+                } else {
+                    alert("Kesalahan: " + error.message);
+                }
+            } finally {
+                btn.innerText = "Migrasi Sekarang";
+                btn.disabled = false;
+            }
+        }
+
         // --- LOGIKA TAGIHAN ---
         window.renderTagihanList = () => {
             const tbody = document.getElementById('tagihan-list-body');
             if(!tbody) return;
             const searchKeyword = (document.getElementById('search-tagihan')?.value || '').toLowerCase();
             
-            // Urutkan: Yang punya tagihan paling besar di atas
             const sortedVendors = [...adminAllVendors].sort((a, b) => {
                 const tagihanA = a.total_tagihan_sistem || 0;
                 const tagihanB = b.total_tagihan_sistem || 0;
@@ -1097,10 +1235,10 @@
                         <td data-label="Status">${statusBadge}</td>
                         <td data-label="Aksi">
                             <div style="display:flex; gap:5px; justify-content: flex-end;">
-                                <button class="action-btn btn-view" title="Edit Manual" onclick="openEditTagihan('${v.id}', '${safeName}', ${tagihan})">
+                                <button class="action-btn btn-view" title="Edit Manual" onclick="window.openEditTagihan('${v.id}', '${safeName}', ${tagihan})">
                                     <i class="ph-bold ph-pencil-simple"></i>
                                 </button>
-                                <button class="action-btn btn-success" title="Tandai Lunas" onclick="markTagihanLunas('${v.id}', '${safeName}')" ${tagihan === 0 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
+                                <button class="action-btn btn-success" title="Tandai Lunas" onclick="window.markTagihanLunas('${v.id}', '${safeName}')" ${tagihan === 0 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
                                     <i class="ph-bold ph-check"></i>
                                 </button>
                             </div>
@@ -1124,14 +1262,12 @@
             const newAmount = parseInt(amountInput) || 0;
 
             try {
-                // Update Firestore
                 await updateDoc(doc(db, "vendors", id), { total_tagihan_sistem: newAmount });
                 
-                // Update Lokal (Agar tidak perlu narik data ulang/hemat kuota read)
                 const idx = adminAllVendors.findIndex(v => v.id === id);
                 if(idx !== -1) adminAllVendors[idx].total_tagihan_sistem = newAmount;
                 
-                closeModal('edit-tagihan-modal');
+                window.closeModal('edit-tagihan-modal');
                 alert("Tagihan berhasil diperbarui!");
                 window.renderTagihanList(); 
             } catch(e) {
@@ -1196,6 +1332,7 @@
             document.getElementById('new-vendor-location').value = "";
             document.getElementById('add-modal').style.display = 'flex'; 
         }
+        
         window.closeModal = (id) => { document.getElementById(id).style.display = 'none'; }
         
         window.generateRandomPin = () => {
@@ -1234,7 +1371,7 @@
                     created_at: new Date().toISOString() 
                 });
                 
-                closeModal('add-modal');
+                window.closeModal('add-modal');
                 alert(`Mitra Berhasil Didaftarkan!\n\nID Login: ${id}\nPIN Akses: ${pin}`);
                 await window.fetchVendors();
             } catch(e) { 
@@ -1326,7 +1463,7 @@
                     kategori_utama: finalKategori
                 });
                 
-                closeModal('edit-vendor-info-modal');
+                window.closeModal('edit-vendor-info-modal');
                 alert("Info Mitra Berhasil Diupdate!");
                 await window.fetchVendors();
             } catch(e) {
@@ -1356,7 +1493,7 @@
                     harga: price,
                     category: category
                 });
-                closeModal('edit-product-modal');
+                window.closeModal('edit-product-modal');
                 alert("Menu berhasil direvisi!");
                 await window.fetchProducts();
             } catch(e) {
@@ -1383,7 +1520,7 @@
             
             try {
                 await updateDoc(doc(db, "vendors", id), { pin: newPin });
-                closeModal('edit-pin-modal');
+                window.closeModal('edit-pin-modal');
                 alert("PIN berhasil diubah!");
                 await window.fetchVendors();
             } catch(e) {
@@ -1398,6 +1535,7 @@
             const idx = adminAllVendors.findIndex(v => v.id === id);
             if(idx !== -1) adminAllVendors[idx].status = newStatus;
             window.renderVendorsList();
+            window.renderWarungAdminList();
             window.updateRecentVendorsTable();
         }
         
@@ -1443,6 +1581,142 @@
             document.getElementById('delete-modal').style.display = 'flex';
         }
 
+        window.openAddWarungAdminModal = () => {
+            document.getElementById('wa-id').value = "";
+            document.getElementById('wa-name').value = "";
+            document.getElementById('wa-location').value = "";
+            document.getElementById('wa-category').value = "";
+            document.getElementById('add-warung-admin-modal').style.display = 'flex';
+        }
+
+        window.generateRandomWaId = () => {
+            const rand = Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('wa-id').value = `wa_gombong_${rand}`;
+        }
+
+        window.saveWarungAdmin = async () => {
+            let rawId = document.getElementById('wa-id').value.trim();
+            const id = rawId.toLowerCase().replace(/\s+/g, '_');
+            const nama = document.getElementById('wa-name').value.trim();
+            const alamat = document.getElementById('wa-location').value.trim();
+            const kategoriRaw = document.getElementById('wa-category').value.trim();
+
+            if(!id || !nama) return alert("Mohon lengkapi ID dan Nama Warung!");
+
+            let kategoriArr = [];
+            if(kategoriRaw) {
+                kategoriArr = kategoriRaw.split(',').map(s => s.trim()).filter(s => s);
+            }
+
+            try {
+                const docRef = doc(db, "vendors", id);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    alert(`ID "${id}" sudah digunakan.`);
+                    return;
+                }
+
+                await setDoc(docRef, {
+                    id: id,
+                    nama_warung: nama,
+                    kategori_utama: kategoriArr,
+                    alamat_warung: alamat || '-',
+                    pin: 'ADMIN_MANAGED',
+                    status: 'BUKA',
+                    is_andalan: false,
+                    role: 'vendor',
+                    is_admin_managed: true,
+                    created_at: new Date().toISOString()
+                });
+
+                for (const cat of kategoriArr) {
+                    const exists = adminAllKategori.find(k => {
+                        const kName = k.nama || k.name || k.kategori_utama || "";
+                        return kName.toLowerCase() === cat.toLowerCase();
+                    });
+                    if(!exists) {
+                        try {
+                            await addDoc(collection(db, "kategori_utama"), { nama: cat });
+                        } catch(e) { console.error("Error menambah master kategori:", e); }
+                    }
+                }
+
+                window.closeModal('add-warung-admin-modal');
+                alert(`Warung Admin "${nama}" berhasil didaftarkan!`);
+                await window.fetchVendors();
+                await window.fetchKategori();
+            } catch(e) {
+                alert("Gagal menyimpan Warung Admin: " + e.message);
+            }
+        }
+
+        window.renderWarungAdminList = () => {
+            const tbody = document.getElementById('warung-admin-list-body');
+            if(!tbody) return;
+            const searchKeyword = (document.getElementById('search-warung-admin')?.value || '').toLowerCase();
+            tbody.innerHTML = '';
+            
+            const warungAdminList = adminAllVendors.filter(v => 
+                v.is_admin_managed === true &&
+                ((v.nama_warung || '').toLowerCase().includes(searchKeyword) || (v.id || '').toLowerCase().includes(searchKeyword))
+            );
+
+            if (warungAdminList.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" style="text-align:center; padding:30px; color:#999;">
+                            Tidak ada Warung Admin ditemukan. Klik tombol tambah di bawah untuk membuat baru.
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            let html = '';
+            warungAdminList.forEach(v => {
+                const isOpen = v.status === 'BUKA';
+                const safeName = (v.nama_warung || '').replace(/'/g, "\\'");
+                
+                let kategoriDataRaw = v.kategori_utama || [];
+                let kategoriStr = Array.isArray(kategoriDataRaw) ? kategoriDataRaw.join(', ') : kategoriDataRaw;
+
+                html += `
+                    <tr>
+                        <td data-label="Nama Warung & ID">
+                            <div style="font-weight:700; font-size:16px; color:#7c3aed;">${v.nama_warung}</div>
+                            <div class="unique-badge" style="background:#f3e8ff; color:#7c3aed;">ID: ${v.id}</div>
+                        </td>
+                        <td data-label="Kategori & Lokasi">
+                            <div style="font-size:12px; font-weight:700; color:var(--info); margin-bottom: 4px;">
+                                <i class="ph-fill ph-tag"></i> ${kategoriStr || 'Belum ada kategori'}
+                            </div>
+                            <div style="font-size:13px; color:var(--dark); max-width: 150px; line-height:1.4;">
+                                ${v.alamat_warung || v.lokasi || '-'}
+                            </div>
+                        </td>
+                        <td data-label="Status">
+                            <button class="btn-status ${isOpen ? 'open' : 'closed'}" onclick="window.toggleStatus('${v.id}', '${v.status}')">
+                                ${v.status}
+                            </button>
+                        </td>
+                        <td data-label="Aksi">
+                            <div style="display:flex; gap:5px; justify-content: flex-end;">
+                                <button class="action-btn btn-edit-info" title="Edit Info Warung" onclick="window.openEditVendorInfo('${v.id}')">
+                                    <i class="ph-bold ph-pencil-simple"></i>
+                                </button>
+                                <button class="action-btn btn-view" title="Kelola Menu" onclick="window.showPage('products', document.querySelector('.nav-item:nth-child(4)')); window.openVendorMenu('${safeName}');">
+                                    <i class="ph-bold ph-bowl-food"></i>
+                                </button>
+                                <button class="action-btn btn-delete" onclick="window.askDelete('vendors', '${v.id}')">
+                                    <i class="ph-bold ph-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
         document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
             if(!deleteTarget) return;
             const btn = document.getElementById('confirm-delete-btn');
@@ -1469,7 +1743,6 @@
                             try {
                                 const fileRef = ref(storage, url);
                                 await deleteObject(fileRef);
-                                console.log("File gambar sampah berhasil dihapus dari storage!");
                             } catch (err) {
                                 console.warn("Gambar tidak ditemukan atau sudah terhapus di storage", err);
                             }
@@ -1478,7 +1751,7 @@
                 }
                 
                 await deleteDoc(docRef);
-                closeModal('delete-modal');
+                window.closeModal('delete-modal');
                 
                 if (deleteTarget.coll === 'vendors') await window.fetchVendors();
                 if (deleteTarget.coll === 'products') await window.fetchProducts();
@@ -1506,7 +1779,7 @@
             const snap = await getDocs(collection(db, "kategori_utama"));
             adminAllKategori = [];
             snap.forEach(d => adminAllKategori.push({id: d.id, ...d.data()}));
-            renderKategoriOptions(); 
+            window.renderKategoriOptions(); 
         }
 
         window.fetchVendors = async () => {
@@ -1517,10 +1790,11 @@
             
             adminAllVendors.sort((a, b) => (b.is_andalan === true) - (a.is_andalan === true));
             window.renderVendorsList();
+            window.renderWarungAdminList();
             window.updateRecentVendorsTable();
             window.renderVendorMenuOverview();
-            renderReviewVendors();
-            window.renderTagihanList(); // Render Tagihan di sini
+            window.renderReviewVendors();
+            window.renderTagihanList(); 
         }
 
         window.fetchProducts = async () => {
@@ -1545,7 +1819,7 @@
             if(snap.size > 0) {
                 document.getElementById('global-rating').innerText = (totalRating / snap.size).toFixed(1);
             }
-            renderReviewVendors();
+            window.renderReviewVendors();
             window.renderReviewProjekgo();
         }
 
@@ -1554,7 +1828,6 @@
             const avgDisplay = document.getElementById('rev-projekgo-avg-rating');
             if(!container) return;
 
-            // Saring ulasan khusus Projekgo
             const projekgoReviews = adminAllReviews.filter(r => r.vendor_name === "Aplikasi Projekgo");
 
             container.innerHTML = '';
@@ -1571,7 +1844,6 @@
                     
                     let formattedDate = '-';
                     if (r.timestamp) {
-                        // Cek apakah timestamp dalam format string ISO atau Firestore Timestamp
                         if(r.timestamp.toDate) {
                             formattedDate = r.timestamp.toDate().toLocaleDateString('id-ID');
                         } else {
@@ -1581,8 +1853,6 @@
                     else if (r.date) formattedDate = r.date;
                     
                     const userName = r.user || r.user_name || 'Pengguna Projekgo';
-                    
-                    // MENGGUNAKAN FIELD 'text' SESUAI STRUKTUR DATABASE ANDA
                     const comment = r.text || 'Tidak ada komentar.';
 
                     container.innerHTML += `
@@ -1624,7 +1894,7 @@
                             <div style="font-size:13px; color:#555; margin-bottom:8px;">${b.message}</div>
                             <div style="font-size:11px; color:#999;"><i class="ph ph-clock"></i> ${date}</div>
                         </div>
-                        <button class="action-btn btn-delete" onclick="askDelete('broadcasts', '${b.id}')">
+                        <button class="action-btn btn-delete" onclick="window.askDelete('broadcasts', '${b.id}')">
                             <i class="ph-bold ph-trash"></i>
                         </button>
                     </div>
@@ -1634,12 +1904,11 @@
 
         async function initData() {
             if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "MASUKKAN_KEY_BARU_DISINI") {
-                alert("KONEKSI GAGAL: Anda belum memasukkan API Key Firebase. Silakan edit kode HTML dan ganti 'MASUKKAN_KEY_BARU_DISINI' dengan API Key Anda yang sebenarnya.");
+                alert("KONEKSI GAGAL: Anda belum memasukkan API Key Firebase.");
                 return;
             }
 
             try {
-                // Kita tidak lagi memanggil signInAnonymously karena sudah login via form
                 await window.fetchKategori();
                 await window.fetchVendors();
                 await window.fetchProducts();
@@ -1647,13 +1916,10 @@
                 await window.fetchBroadcasts();
             } catch (error) {
                 console.error("Kesalahan koneksi Firebase:", error);
-                
-                if (error.code === 'permission-denied' || error.message.includes('permissions')) {
-                    alert("IZIN DITOLAK (Permission Denied): Firebase memblokir akses.\n\nSOLUSI: Buka Firebase Console > Firestore Database > tab 'Rules' (Aturan), lalu ubah kodenya menjadi:\n\nmatch /{document=**} {\n  allow read, write: if true;\n}\n\nLalu klik Publish/Terbitkan.");
-                } else if (error.message.includes('requests-from-referer') || error.message.includes('blocked')) {
-                    alert("DOMAIN DIBLOKIR: API Key Firebase Anda memiliki batasan domain (HTTP referrers).\n\nSOLUSI UNTUK PENGUJIAN:\n1. Buka Google Cloud Console (console.cloud.google.com)\n2. Pilih project 'projekgo-app'\n3. Ke menu APIs & Services > Credentials\n4. Klik API Key Anda, pada bagian 'Application restrictions', tambahkan `*.scf.usercontent.goog/*` ke daftar Website, atau ubah sementara menjadi 'None' (Jangan lupa kembalikan ke semula saat rilis ke publik).");
+                if (error.code === 'permission-denied') {
+                    alert("IZIN DITOLAK (Permission Denied): Firebase memblokir akses.");
                 } else {
-                    alert("Gagal terhubung ke database Cloud Firestore.\n\nPastikan:\n1. Internet Anda stabil.\n2. API Key Firebase di kode sudah benar.\n3. Rules Firestore mengizinkan akses.\n\nDetail: " + error.message);
+                    alert("Gagal terhubung ke database. Detail: " + error.message);
                 }
             }
         }
