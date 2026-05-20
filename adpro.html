@@ -910,19 +910,39 @@
                     
                     const userName = r.user || r.user_name || 'Anonim';
                     const comment = r.text || r.comment || 'Tidak ada komentar.';
+                    const safeVendorName = (vendorName || '').replace(/'/g, "\\'"); // Mengamankan tanda petik
 
                     container.innerHTML += `
-                        <div class="review-item">
+                        <div class="review-item" style="position: relative; padding-right: 50px;">
                             <div class="review-user">
                                 <span>${userName}</span>
                                 <span class="review-date">${formattedDate}</span>
                             </div>
                             <div class="review-stars">${stars}</div>
                             <div class="review-comment">${comment}</div>
+                            <button class="action-btn btn-delete" style="position: absolute; top: 15px; right: 15px; width: 32px; height: 32px;" onclick="window.deleteReviewMitra('${r.id}', '${vendorId}', '${safeVendorName}')" title="Hapus Ulasan">
+                                <i class="ph-bold ph-trash"></i>
+                            </button>
                         </div>
                     `;
                 });
                 avgDisplay.innerText = (totalRating / vendorReviews.length).toFixed(1);
+            }
+        }
+
+        // Fungsi baru untuk mengeksekusi hapus ulasan
+        window.deleteReviewMitra = async (reviewId, vendorId, vendorName) => {
+            if (confirm("Yakin ingin menghapus ulasan ini secara permanen?")) {
+                try {
+                    // Hapus dari database firebase
+                    await deleteDoc(doc(db, "reviews", reviewId));
+                    // Update data lokal dengan menarik ulang data
+                    await window.fetchReviews();
+                    // Render ulang tampilan detail ulasan agar ulasan yang dihapus langsung hilang
+                    window.openReviewDetail(vendorId, vendorName);
+                } catch (error) {
+                    alert("Gagal menghapus ulasan: " + error.message);
+                }
             }
         }
 
