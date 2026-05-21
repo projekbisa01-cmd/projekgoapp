@@ -442,19 +442,13 @@
         .section-group { background: var(--white); margin-bottom: 0; border-bottom: 8px solid var(--bg); padding-bottom: 15px; }
         .section-title { padding: 15px 15px 10px 15px; font-size: 16px; font-weight: 800; color: var(--dark); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, #FFF2F0 0%, transparent 100%); }
         
-        /* --- STICKY WARUNG HEADER --- */
+        /* --- STICKY WARUNG HEADER (DIUBAH AGAR BISA DI SCROLL) --- */
         #warung-sticky-header {
-            position: -webkit-sticky;
-            position: sticky;
-            top: 60px; 
-            z-index: 990;
-            background: rgba(255, 242, 240, 0.95);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            position: relative; /* Diubah dari sticky ke relative agar ikut ter-scroll */
             margin-top: 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-            border-bottom: 1px solid rgba(0,0,0,0.02);
-            transition: top 0.3s;
+            background: linear-gradient(90deg, #FFF2F0 0%, transparent 100%); /* Disamakan dengan background judul lainnya */
+            box-shadow: none; /* Bayangan dihilangkan agar lebih bersih */
+            border-bottom: none;
         }
 
         /* CARD STYLE */
@@ -1368,7 +1362,7 @@
 
         <!-- ===== 2. DETAIL PRODUK (POPUP/PAGE) ===== -->
         <div id="page-product-detail" class="page" style="z-index:200;">
-            <div class="sub-header" style="position:fixed; width:100%; max-width:480px; background:transparent; box-shadow:none;">
+            <div class="sub-header" style="position:fixed; width:100%; max-width:480px; background:transparent; box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none; border-bottom:none;">
                 <div onclick="goBack()" style="background:white; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 15px rgba(0,0,0,0.1); cursor:pointer;">
                     <i class="ph ph-arrow-left" style="font-size:20px;"></i>
                 </div>
@@ -1763,8 +1757,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        // 1. TAMBAHKAN enableIndexedDbPersistence DI DAFTAR IMPORT INI
-        import { getFirestore, collection, getDocs, addDoc, query, where, doc, getDoc, setDoc, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // 1. TAMBAHKAN enableIndexedDbPersistence & onSnapshot DI DAFTAR IMPORT INI
+        import { getFirestore, collection, getDocs, addDoc, query, where, doc, getDoc, setDoc, enableIndexedDbPersistence, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         
         // --- IMPORT FIREBASE AUTH (UNTUK SISTEM LOGIN) ---
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -2486,6 +2480,12 @@
             
             currentVendorIdForReviews = vendor.id;
             
+            /* --- MODIFIKASI: CEK RESTO BUKA/TUTUP --- */
+            const isOpen = (vendor.status || 'BUKA').toUpperCase() === 'BUKA';
+            const pageGrayscale = isOpen ? '' : 'filter: grayscale(100%);';
+            const tutupOverlay = !isOpen ? `<div style="position:absolute; inset:0; background:rgba(0,0,0,0.5); z-index:4; display:flex; align-items:center; justify-content:center;"><span style="background:#D32F2F; color:white; font-weight:800; padding:8px 16px; border-radius:8px; font-size:18px; letter-spacing:1px; box-shadow:0 4px 10px rgba(0,0,0,0.3);">RESTO TUTUP</span></div>` : '';
+            /* ---------------------------------------- */
+
             const img = vendor.shop_photo || FALLBACK_VENDOR_IMG;
             const bgImg = vendor.cover_photo || img; // Menggunakan shop_photo sebagai cover jika tidak ada cover_photo
             const fullAddress = vendor.alamat_warung || vendor.lokasi || vendor.alamat || "Detail alamat belum tersedia";
@@ -2509,18 +2509,19 @@
             }
 
             document.getElementById('vendor-header-content').innerHTML = `
-                <div class="vh-wrapper">
+                <div class="vh-wrapper" style="${pageGrayscale}">
                     <div class="vh-cover">
                         <img src="${bgImg}" class="vh-cover-img" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
                         <div class="vh-cover-overlay"></div>
-                        <div class="vh-btn-back" onclick="goBack()"><i class="ph-bold ph-caret-left"></i></div>
+                        ${tutupOverlay}
+                        <div class="vh-btn-back" onclick="goBack()" style="z-index:10;"><i class="ph-bold ph-caret-left"></i></div>
                     </div>
-                    <div class="vh-card">
+                    <div class="vh-card" style="${!isOpen ? 'background: #666; box-shadow: none;' : ''}">
                         <div class="vh-logo">
                             <img src="${img}" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
                         </div>
                         <div class="vh-btn-fav" onclick="showToast('Disimpan ke Favorit ❤️')">
-                            <i class="ph-fill ph-bookmark-simple"></i>
+                            <i class="ph-fill ph-bookmark-simple" style="${!isOpen ? 'color:#666;' : ''}"></i>
                         </div>
                         
                         <div class="vh-name">${vendor.nama_warung}</div>
@@ -2530,7 +2531,7 @@
                         
                         <div class="vh-stats-row">
                             <div class="vh-stat-item"><i class="ph-fill ph-star" style="color:#FFC107;"></i> ${ratingMock}</div>
-                            <div class="vh-stat-item"><i class="ph-fill ph-clock" style="color:#FF6600;"></i> 20-30 Min</div>
+                            <div class="vh-stat-item"><i class="ph-fill ph-clock" style="${!isOpen ? 'color:#ccc;' : 'color:#FF6600;'}"></i> 20-30 Min</div>
                             <div class="vh-stat-item"><i class="ph-fill ph-moped" style="color:#4CAF50;"></i> Pengantaran</div>
                         </div>
                         
@@ -2573,12 +2574,16 @@
                 const fakePrice = Math.ceil(realPrice * 1.2); 
                 const isFav = favorites.includes(item.id) ? 'active' : '';
                 
-                const isAvailable = item.is_available !== false && item.is_sold_out !== true; 
+                /* --- MODIFIKASI: Matikan fungsi menu jika toko tutup --- */
+                const isAvailable = item.is_available !== false && item.is_sold_out !== true && isOpen; 
                 const grayscaleClass = isAvailable ? '' : 'filter:grayscale(100%);'; 
                 const opacityClass = isAvailable ? '' : 'opacity:0.6;'; 
-                const habisBadge = isAvailable ? '' : '<div class="badge-habis-overlay"><span class="badge-habis-text">HABIS</span></div>'; 
-                const addBtnAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, stok habis 🙏')`; 
+                
+                const badgeText = !isOpen ? 'TUTUP' : 'HABIS';
+                const habisBadge = isAvailable ? '' : `<div class="badge-habis-overlay"><span class="badge-habis-text">${badgeText}</span></div>`; 
+                const addBtnAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, ${!isOpen ? 'Resto Sedang Tutup' : 'stok habis'} 🙏')`; 
                 const addBtnStyle = isAvailable ? '' : 'background:#ccc; cursor:not-allowed;';
+                /* -------------------------------------------------------- */
 
                 const div = document.createElement('div'); 
                 div.className = 'menu-grid-item'; 
@@ -2609,12 +2614,17 @@
                     const realPrice = parseInt(item.harga); 
                     const fakePrice = Math.ceil(realPrice * 1.2); 
                     const isFav = favorites.includes(item.id) ? 'active' : '';
-                    const isAvailable = item.is_available !== false && item.is_sold_out !== true; 
+                    
+                    /* --- MODIFIKASI: Matikan fungsi menu jika toko tutup --- */
+                    const isAvailable = item.is_available !== false && item.is_sold_out !== true && isOpen; 
                     const grayscaleClass = isAvailable ? '' : 'filter:grayscale(100%);'; 
                     const opacityClass = isAvailable ? '' : 'opacity:0.6;'; 
-                    const habisBadge = isAvailable ? '' : '<div class="badge-habis-overlay"><span class="badge-habis-text">HABIS</span></div>'; 
-                    const addBtnAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, stok habis 🙏')`; 
+                    const badgeText = !isOpen ? 'TUTUP' : 'HABIS';
+                    const habisBadge = isAvailable ? '' : `<div class="badge-habis-overlay"><span class="badge-habis-text">${badgeText}</span></div>`; 
+                    const addBtnAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, ${!isOpen ? 'Resto Sedang Tutup' : 'stok habis'} 🙏')`; 
                     const addBtnStyle = isAvailable ? '' : 'background:#ccc; cursor:not-allowed;';
+                    /* -------------------------------------------------------- */
+                    
                     const badgeLabel = item.is_priority ? "⭐ Unggulan" : "🔥 Rekomendasi";
 
                     const div = document.createElement('div'); 
@@ -2641,7 +2651,6 @@
             if(sortedKeys.length === 0) { 
                 listContainer.innerHTML = '<div style="text-align:center; padding:30px; color:#999;">Belum ada menu tersedia.</div>'; 
             } else {
-                // MENGGUNAKAN DOCUMENT FRAGMENT AGAR RENDER JAUH LEBIH CEPAT DAN MULUS
                 const fragment = document.createDocumentFragment();
                 
                 sortedKeys.forEach(key => {
@@ -2658,22 +2667,24 @@
                         const fakePrice = Math.ceil(realPrice * 1.2); 
                         const isFav = favorites.includes(item.id) ? 'active' : ''; 
                         const desc = item.deskripsi || "Menu spesial warung ini, dijamin enak.";
-                        const isAvailable = item.is_available !== false && item.is_sold_out !== true; 
+                        
+                        /* --- MODIFIKASI: Matikan fungsi menu jika toko tutup --- */
+                        const isAvailable = item.is_available !== false && item.is_sold_out !== true && isOpen; 
                         const grayscaleClass = isAvailable ? '' : 'filter:grayscale(100%);'; 
                         const opacityClass = isAvailable ? '' : 'opacity:0.6;'; 
-                        const habisBadge = isAvailable ? '' : '<div class="badge-habis-overlay"><span class="badge-habis-text">HABIS</span></div>'; 
-                        const addBtnAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, stok habis 🙏')`; 
+                        const badgeText = !isOpen ? 'TUTUP' : 'HABIS';
+                        const habisBadge = isAvailable ? '' : `<div class="badge-habis-overlay"><span class="badge-habis-text">${badgeText}</span></div>`; 
+                        const addBtnAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, ${!isOpen ? 'Resto Sedang Tutup' : 'stok habis'} 🙏')`; 
                         const addBtnStyle = isAvailable ? '' : 'background:#ccc; cursor:not-allowed;';
+                        /* -------------------------------------------------------- */
 
                         const div = document.createElement('div'); 
                         div.className = 'menu-list-item'; 
-                        // MENAMBAHKAN loading="lazy" PADA TAG IMG AGAR GAMBAR TIDAK DIMUAT SEMUA SEKALIGUS
                         div.innerHTML = `<div style="position:relative;">${habisBadge}<img src="${imgItem}" class="mli-img" style="${grayscaleClass}; cursor:zoom-in;" loading="lazy" onerror="this.src='${FALLBACK_MENU_IMG}'" onclick="openImageViewer('${imgItem}')"><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')" style="width:24px; height:24px; font-size:12px; top:4px; right:4px;"><i class="ph-fill ph-heart"></i></div></div><div class="mli-info" style="${opacityClass}"><div onclick="openProductDetail('${item.id}')"><div class="mli-title">${item.nama_menu}</div><div class="mli-desc">${desc}</div></div><div class="mli-action"><div class="mli-price-box"><span class="mli-coret">Rp ${fakePrice.toLocaleString()}</span><span class="mli-price">Rp ${realPrice.toLocaleString()}</span></div><button class="mli-btn" style="${addBtnStyle}" onclick="${addBtnAction}">Tambah +</button></div></div>`; 
                         fragment.appendChild(div);
                     });
                 });
                 
-                // Menempelkan semuanya sekaligus dalam 1 waktu (Mencegah Lag)
                 listContainer.appendChild(fragment);
             }
             
@@ -2690,7 +2701,6 @@
                     let vendorReviews = [];
                     snapshot.forEach(doc => vendorReviews.push({id: doc.id, ...doc.data()}));
                     
-                    // Update cache review global agar bisa diakses di halaman "Semua Ulasan"
                     allReviews = allReviews.filter(r => r.vendor_name !== vendor.nama_warung).concat(vendorReviews);
 
                     const avgRating = vendorReviews.length > 0 ? (vendorReviews.reduce((acc, curr) => acc + curr.rating, 0) / vendorReviews.length).toFixed(1) : "New";
@@ -3600,53 +3610,84 @@
         }
         window.submitServiceForm = () => { let inputs = document.querySelectorAll('[id^="svc-"]'); let message = `Halo Admin Projekgo, pesan jasa *${currentServiceType}*:%0A%0A`; let filled = true; inputs.forEach(input => { const label = input.previousElementSibling.innerText; const val = input.value.trim(); if(val === '') filled = false; message += `▪️ ${label}: ${val}%0A`; }); if(!filled) { showToast("Mohon lengkapi data."); return; } window.open(`https://wa.me/${ADMIN_WA}?text=${message}`, '_blank'); }
 
-        // 3. GANTI KESELURUHAN FUNGSI loadData() LAMA DENGAN YANG BARU INI
-        // --- OPTIMASI HEMAT KUOTA FIREBASE (DENGAN INDEXED DB PERSISTENCE) ---
-        async function loadData() {
-            try {
-                // Tambahkan timeout 4 detik agar aplikasi tidak hang jika Firebase offline/diblokir
-                const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout Firebase")), 4000));
-                
-                const fetchTask = Promise.all([
-                    getDocs(collection(db, "vendors")),
-                    getDocs(collection(db, "products")),
-                    getDocs(collection(db, "kategori_utama"))
-                ]);
+        // --- VARIABEL PENANDA LOADING REALTIME ---
+        let isVendorsReady = false;
+        let isProductsReady = false;
+        let isCategoriesReady = false;
 
-                // Race condition: Jika fetchTask lebih dari 4 detik, masuk ke error (catch)
-                const [venSnap, prodSnap, catSnap] = await Promise.race([fetchTask, timeout]);
-
-                allVendors = [];
-                venSnap.forEach(doc => {
-                    let d = doc.data();
-                    d.shop_photo = fixImgUrl(d.shop_photo);
-                    d.cover_photo = fixImgUrl(d.cover_photo);
-                    allVendors.push({id: doc.id, ...d});
-                });
-
-                rawProducts = [];
-                prodSnap.forEach(doc => {
-                    let d = doc.data();
-                    d.foto_url = fixImgUrl(d.foto_url);
-                    rawProducts.push({id: doc.id, ...d});
-                });
-
-                allMainCategories = [];
-                catSnap.forEach(doc => {
-                    let d = doc.data();
-                    d.icon_url = fixImgUrl(d.icon_url);
-                    allMainCategories.push({id: doc.id, ...d});
-                });
-
-                if (allVendors.length === 0 && rawProducts.length === 0) {
-                    throw new Error("Database kosong");
-                }
-
+        // FUNGSI CEK & RENDER: Akan memicu render layar jika ketiga data sudah masuk
+        function checkAndRenderAll() {
+            if (isVendorsReady && isProductsReady && isCategoriesReady) {
                 filterAndRenderProducts();
+            }
+        }
+
+        // 3. GANTI KESELURUHAN FUNGSI loadData() LAMA DENGAN METODE REALTIME (ONSNAPSHOT)
+        // --- OPTIMASI HEMAT KUOTA FIREBASE + UPDATE REALTIME ---
+        function loadData() {
+            try {
+                // 1. Pantau Perubahan (Realtime) Koleksi Warung / Vendors
+                onSnapshot(collection(db, "vendors"), (snapshot) => {
+                    allVendors = [];
+                    snapshot.forEach(doc => {
+                        let d = doc.data();
+                        d.shop_photo = fixImgUrl(d.shop_photo);
+                        d.cover_photo = fixImgUrl(d.cover_photo);
+                        allVendors.push({id: doc.id, ...d});
+                    });
+                    
+                    isVendorsReady = true;
+                    checkAndRenderAll(); // Langsung ubah UI jika ada warung buka/tutup
+                }, (error) => {
+                    console.warn("Gagal memantau warung:", error);
+                    loadMockData(); // Tampilkan data cadangan jika error
+                });
+
+                // 2. Pantau Perubahan (Realtime) Koleksi Produk / Menu
+                onSnapshot(collection(db, "products"), (snapshot) => {
+                    rawProducts = [];
+                    snapshot.forEach(doc => {
+                        let d = doc.data();
+                        d.foto_url = fixImgUrl(d.foto_url);
+                        rawProducts.push({id: doc.id, ...d});
+                    });
+                    
+                    isProductsReady = true;
+                    checkAndRenderAll(); // Langsung ubah UI jika ada harga berubah/menu habis
+                }, (error) => {
+                    console.warn("Gagal memantau produk:", error);
+                    loadMockData();
+                });
+
+                // 3. Pantau Perubahan (Realtime) Koleksi Kategori Utama
+                onSnapshot(collection(db, "kategori_utama"), (snapshot) => {
+                    allMainCategories = [];
+                    snapshot.forEach(doc => {
+                        let d = doc.data();
+                        d.icon_url = fixImgUrl(d.icon_url);
+                        allMainCategories.push({id: doc.id, ...d});
+                    });
+                    
+                    isCategoriesReady = true;
+                    checkAndRenderAll(); // Langsung ubah UI jika ada promo kategori baru
+                }, (error) => {
+                    console.warn("Gagal memantau kategori:", error);
+                    loadMockData();
+                });
+
+                // Timeout darurat jika internet pengguna super lemot (8 detik)
+                setTimeout(() => {
+                    if (!isVendorsReady || !isProductsReady) {
+                        console.warn("Koneksi Firebase lambat, beralih ke Data Dummy");
+                        loadMockData();
+                        window.initSplashScreen();
+                    }
+                }, 8000);
+
             } catch (error) {
-                console.warn("Koneksi Firebase terhambat, beralih ke Data Dummy:", error.message);
-                loadMockData(); // Muat data cadangan agar UI tetap bisa di-tes
-                window.initSplashScreen(); // Pastikan layar loading hilang
+                console.warn("Koneksi Firebase terhambat:", error.message);
+                loadMockData(); 
+                window.initSplashScreen(); 
             }
         }
 
@@ -3765,10 +3806,17 @@
                 }
             });
 
-            const validVendorIds = currentDisplayVendors.map(v => v.id);
+            /* --- MODIFIKASI: HANYA AMBIL ID WARUNG YANG BUKA UNTUK BERANDA --- */
+            const openVendorIds = currentDisplayVendors
+                .filter(v => (v.status || 'BUKA').toUpperCase() === 'BUKA')
+                .map(v => v.id);
             
-            // 2. Tampilkan HANYA produk dari warung yang sesuai lokasi
-            allProducts = rawProducts.filter(p => { return p.vendor_id && validVendorIds.includes(p.vendor_id); });
+            // 2. Tampilkan HANYA produk dari warung yang BUKA dan sesuai lokasi (Beranda, Flash Sale, Kategori, Promo)
+            allProducts = rawProducts.filter(p => { 
+                return p.vendor_id && openVendorIds.includes(p.vendor_id); 
+            });
+            /* ----------------------------------------------------------------- */
+            
             const availableProducts = allProducts.filter(p => p.is_available !== false);
             
             // 3. Render ulang UI berdasarkan lokasi
@@ -3779,7 +3827,7 @@
             
             // TAHAP 2: Reset limit render warung setiap kali filter berubah
             window.warungRenderLimit = 6; 
-            renderWarungList(currentDisplayVendors);
+            renderWarungList(currentDisplayVendors); // Warung tutup tetap masuk ke list beranda, difilter di dalam fungsinya sendiri
             
             // 4. Ubah Judul Sticky Warung Header
             const warungTitle = document.querySelector('#warung-sticky-header span');
@@ -4365,6 +4413,16 @@
                 btnContainer.style.textAlign = "center";
                 btnContainer.innerHTML = `<button onclick="loadMoreWarung()" style="background:var(--primary-light); color:var(--primary); font-weight:800; border:none; padding:12px 24px; border-radius:20px; font-size:14px; cursor:pointer; box-shadow: 0 4px 10px rgba(255,102,0,0.1); transition: 0.2s;">Tampilkan Lebih Banyak <i class="ph-bold ph-caret-down"></i></button>`;
                 c.appendChild(btnContainer);
+            } else if (foodVendors.length > 0) {
+                // PESAN KETIKA SUDAH MENTOK BAWAH
+                const endContainer = document.createElement('div');
+                endContainer.style.padding = "20px 15px 40px 15px";
+                endContainer.style.textAlign = "center";
+                endContainer.style.color = "#555555"; /* Warna abu-abu kehitaman */
+                endContainer.style.fontSize = "13px";
+                endContainer.style.fontWeight = "700";
+                endContainer.innerHTML = "Sementara Baru Ini Dulu Ya 🙏";
+                c.appendChild(endContainer);
             }
         }
 
@@ -4413,4 +4471,4 @@
 
     </script>
 </body>
-</html>
+</html> 
