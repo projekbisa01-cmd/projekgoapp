@@ -495,7 +495,8 @@
                         <span>Bantuan</span>
                     </div>
                     
-                    <div class="service-item" onclick="openTagihanModal()">
+                    <!-- Tombol Tagihan Disembunyikan Sementara -->
+                    <div class="service-item" onclick="openTagihanModal()" style="display: none;">
                         <div class="service-icon"><i class="ph-fill ph-receipt" style="color:#D81B60;"></i></div>
                         <span>Tagihan</span>
                     </div>
@@ -688,13 +689,14 @@
             <div class="form-group"><label class="form-label">Nama Menu</label><input type="text" id="inp-nama" class="form-input"></div>
             
             <div style="display:flex; gap:10px; margin-bottom:15px;">
-                <div style="flex:1;">
+                <!-- Field Harga Coret disembunyikan dengan display:none; untuk menghemat ruang -->
+                <div style="flex:1; display:none;">
                     <label class="form-label" style="color:#FF6600;">Harga Coret</label>
                     <input type="number" id="inp-harga-asli" class="form-input" placeholder="Opsional">
                 </div>
                 <div style="flex:1;">
                     <label class="form-label">Harga Jual (Rp)</label>
-                    <input type="number" id="inp-harga" class="form-input">
+                    <input type="text" id="inp-harga" class="form-input" inputmode="numeric" oninput="formatRibuan(this)" placeholder="Contoh: 15.000">
                 </div>
             </div>
 
@@ -1378,6 +1380,16 @@
             renderMenuUI(); // Render ulang tampilan tanpa tarik data internet lagi
         };
 
+        // FUNGSI FORMAT NOMINAL RIBUAN
+        window.formatRibuan = (input) => {
+            let val = input.value.replace(/\D/g, ''); // Hapus semua karakter selain angka
+            if (val) {
+                input.value = parseInt(val, 10).toLocaleString('id-ID'); // Format ke Rupiah
+            } else {
+                input.value = '';
+            }
+        };
+
         const uploadToFirebaseStorage = async (base64Data, path) => {
             const storageRef = ref(storage, path);
             await uploadString(storageRef, base64Data, 'data_url');
@@ -1399,7 +1411,8 @@
             document.getElementById('modal-title').innerText = "Edit Menu";
             document.getElementById('menu-id').value = id;
             document.getElementById('inp-nama').value = item.nama_menu;
-            document.getElementById('inp-harga').value = item.harga;
+            // Tampilkan harga ke dalam form dengan format titik ribuan
+            document.getElementById('inp-harga').value = item.harga ? item.harga.toLocaleString('id-ID') : "";
             document.getElementById('inp-harga-asli').value = item.harga_asli || "";
             document.getElementById('inp-tipe').value = item.tipe || "";
             document.getElementById('inp-desc').value = item.deskripsi || "";
@@ -1486,15 +1499,28 @@
         window.saveMenu = async () => {
             const id = document.getElementById('menu-id').value;
             const nama = document.getElementById('inp-nama').value.trim();
-            const harga = document.getElementById('inp-harga').value;
-            if(!nama || !harga || !uploadedImageUrl) return showToast("Lengkapi data!", false);
+            
+            // Ambil input harga, dan hilangkan titiknya agar menjadi angka utuh sebelum masuk ke database
+            let hargaRaw = document.getElementById('inp-harga').value.replace(/\./g, '');
+            let hargaAsliRaw = document.getElementById('inp-harga-asli').value.replace(/\./g, '');
+            
+            if(!nama || !hargaRaw || !uploadedImageUrl) return showToast("Lengkapi data!", false);
             const btn = document.querySelector('.btn-submit'); btn.disabled = true;
+            
             const data = {
-                nama_menu: nama, harga: parseInt(harga), harga_asli: parseInt(document.getElementById('inp-harga-asli').value) || 0,
-                tipe: document.getElementById('inp-tipe').value.trim() || 'Lainnya', deskripsi: document.getElementById('inp-desc').value || "", 
-                is_exclusive: document.getElementById('inp-exclusive').checked, is_priority: document.getElementById('inp-priority').checked, 
-                vendor_id: currentUser.id, vendor_name: currentUser.name, foto_url: uploadedImageUrl, updated_at: new Date().toISOString()
+                nama_menu: nama, 
+                harga: parseInt(hargaRaw), 
+                harga_asli: parseInt(hargaAsliRaw) || 0,
+                tipe: document.getElementById('inp-tipe').value.trim() || 'Lainnya', 
+                deskripsi: document.getElementById('inp-desc').value || "", 
+                is_exclusive: document.getElementById('inp-exclusive').checked, 
+                is_priority: document.getElementById('inp-priority').checked, 
+                vendor_id: currentUser.id, 
+                vendor_name: currentUser.name, 
+                foto_url: uploadedImageUrl, 
+                updated_at: new Date().toISOString()
             };
+            
             try {
                 if(id) await updateDoc(doc(db, "products", id), data);
                 else { data.created_at = new Date().toISOString(); await addDoc(collection(db, "products"), data); }
@@ -1508,7 +1534,17 @@
             try {
                 // Jika status saat ini true (tersedia), maka saat diklik dia berubah menjadi habis (is_sold_out: true)
                 const newSoldOutStatus = currentAvailableStatus ? true : false;
-                await updateDoc(doc(db, "products", id), { is_sold_out: newSoldOutStatus });
+                
+                // Siapkan data update
+                let updateData = { is_sold_out: newSoldOutStatus };
+
+                // LOGIKA BARU: Jika stok ditandai HABIS, otomatis matikan Flash Sale & Promo di database
+                if (newSoldOutStatus === true) {
+                    updateData.is_flash_sale = false;
+                    updateData.is_promo = false;
+                }
+
+                await updateDoc(doc(db, "products", id), updateData);
                 showToast(newSoldOutStatus ? "Menu ditandai Habis!" : "Menu ditandai Tersedia!");
             } catch(e) { 
                 showToast("Gagal mengubah status stok", false); 
@@ -1652,11 +1688,15 @@
                         if (!blob) throw new Error("Gagal membuat gambar");
                         const file = new File([blob], 'Story-Projekgo.jpg', { type: 'image/jpeg' });
                         
+                        // Menambahkan Link Toko dan Teks Promosi ke dalam text share
+                        const linkToko = `https://katalog.projekgo.id/?warung=${currentUser.id}`;
+                        const textPromosi = `Yuk pesan *${item.nama_menu}* di *${currentUser.name}*!\n\nBisa dipesan melalui aplikasi, klik link toko kami di bawah ini:\n${linkToko}`;
+
                         if (navigator.canShare && navigator.canShare({ files: [file] })) {
                             await navigator.share({
                                 files: [file],
-                                title: 'Menu Spesial',
-                                text: `Yuk pesan ${item.nama_menu} di ${currentUser.name} via Projekgo!`
+                                title: 'Menu Spesial Projekgo',
+                                text: textPromosi
                             });
                         } else {
                             // Jika fitur share native tidak didukung, otomatis unduh
@@ -1668,7 +1708,7 @@
                             a.click();
                             document.body.removeChild(a);
                             URL.revokeObjectURL(url);
-                            showToast("Gambar berhasil diunduh! Silakan pasang di Story WA.");
+                            showToast("Gambar berhasil diunduh! Silakan pasang di Story WA beserta link toko Anda.");
                         }
                     }, 'image/jpeg', 0.8);
 
@@ -1796,17 +1836,20 @@
 
             Object.entries(currentProducts).forEach(([id, item]) => {
                 const isFlashSale = !!item.is_flash_sale;
+                const isSoldOut = !!item.is_sold_out; // Cek status habis
+                
                 container.innerHTML += `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; ${isSoldOut ? 'opacity: 0.5;' : ''}">
                         <div style="display: flex; align-items: center; gap: 12px; max-width: 75%;">
-                            <img src="${fixImgUrl(item.foto_url) || 'https://cdn-icons-png.flaticon.com/512/1046/1046857.png'}" style="width: 45px; height: 45px; border-radius: 10px; object-fit: cover; background: #f5f5f5; border: 1px solid #eee;">
+                            <img src="${fixImgUrl(item.foto_url) || 'https://cdn-icons-png.flaticon.com/512/1046/1046857.png'}" style="width: 45px; height: 45px; border-radius: 10px; object-fit: cover; background: #f5f5f5; border: 1px solid #eee; ${isSoldOut ? 'filter: grayscale(100%);' : ''}">
                             <div>
                                 <div style="font-weight: 700; font-size: 13px; color: var(--dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;">${item.nama_menu}</div>
                                 <div style="font-size: 12px; color: var(--primary); font-weight: 700;">Rp ${item.harga.toLocaleString()}</div>
+                                ${isSoldOut ? '<div style="font-size: 10px; color: var(--danger); font-weight: 800; margin-top: 2px;">STOK HABIS</div>' : ''}
                             </div>
                         </div>
-                        <label class="modern-toggle" style="transform: scale(0.75); margin: 0;">
-                            <input type="checkbox" ${isFlashSale ? 'checked' : ''} onchange="toggleFlashSaleStatus('${id}', ${isFlashSale})">
+                        <label class="modern-toggle" style="transform: scale(0.75); margin: 0; ${isSoldOut ? 'pointer-events: none;' : ''}">
+                            <input type="checkbox" ${isFlashSale && !isSoldOut ? 'checked' : ''} onchange="toggleFlashSaleStatus('${id}', ${isFlashSale})">
                             <span class="modern-slider"></span>
                         </label>
                     </div>
@@ -1815,6 +1858,13 @@
         };
 
         window.toggleFlashSaleStatus = async (id, currentStatus) => {
+            // LOGIKA BARU: Jika menu sedang habis, tolak aktifkan Flash Sale
+            if (!currentStatus && currentProducts[id] && currentProducts[id].is_sold_out) {
+                showToast("Menu sedang habis, tidak bisa masuk Flash Sale!", false);
+                renderFlashSaleList(); // Kembalikan posisi toggle
+                return;
+            }
+
             // Cek batasan maksimal 2 menu jika ingin mengaktifkan flash sale
             if (!currentStatus) {
                 let flashSaleCount = 0;
