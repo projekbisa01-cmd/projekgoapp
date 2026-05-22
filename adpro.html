@@ -464,6 +464,39 @@
             </div>
         </div>
 
+        <!-- PENDAFTARAN PAGE -->
+        <div id="page-pendaftaran" class="page-content">
+            <div class="page-header">
+                <h1 class="page-title">Pendaftaran Seller</h1>
+                <p class="page-subtitle">Kelola pengajuan mitra baru</p>
+            </div>
+            
+            <div style="position: relative; margin-bottom: 20px;">
+                <i class="ph ph-magnifying-glass" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray); font-size: 20px;"></i>
+                <input type="text" id="search-pengajuan" class="form-input" style="padding-left: 45px;" placeholder="Cari nama pemilik atau warung..." oninput="window.renderPengajuanMitra()">
+            </div>
+
+            <div class="data-card">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Info Pendaftar</th>
+                                <th>Alamat & Kontak</th>
+                                <th>Tanggal</th>
+                                <th>Status & Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pengajuan-list-body">
+                            <tr>
+                                <td colspan="4" style="text-align:center; padding:30px; color:#999;">Memuat data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- BOTTOM NAV -->
@@ -487,6 +520,10 @@
         <div class="nav-item" onclick="showPage('reviews', this)">
             <i class="ph ph-star"></i>
             <span>Ulasan</span>
+        </div>
+        <div class="nav-item" onclick="showPage('pendaftaran', this)">
+            <i class="ph ph-user-plus"></i>
+            <span>Daftar</span>
         </div>
     </div>
 
@@ -726,7 +763,7 @@
         let adminAllKategori = []; 
         let currentVendorView = null; 
         let deleteTarget = null; 
-
+        let adminAllPengajuan = [];
         // --- PWA VIRTUAL LOGIC ---
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
@@ -807,6 +844,7 @@
             }
             if (pageId === 'tagihan') window.renderTagihanList();
             if (pageId === 'warung-admin') window.renderWarungAdminList();
+            if (pageId === 'pendaftaran') window.renderPengajuanMitra();
         }
 
         // --- RENDER KATEGORI OPTIONS ---
@@ -1087,10 +1125,15 @@
                 const isMigrated = !!v.email;
                 const isAdminManaged = v.is_admin_managed === true;
                 let accessInfo = '';
+                
                 if (isAdminManaged) {
                     accessInfo = `<div style="font-size:11px; color:#7c3aed; font-weight:700;"><i class="ph-fill ph-shield-star"></i> DIKELOLA ADMIN</div>`;
                 } else if (isMigrated) {
-                    accessInfo = `<div style="font-size:11px; color:#10b981;">Email: <b>${v.email}</b></div>`;
+                    // Tampilkan Email DAN PIN jika isMigrated
+                    accessInfo = `
+                        <div style="font-size:11px; color:#10b981; margin-bottom: 2px;">Email: <b>${v.email}</b></div>
+                        <div style="font-size:11px; color:#ef4444;">PIN: <b>${v.pin || '-'}</b></div>
+                    `;
                 } else {
                     accessInfo = `<div style="font-size:11px; color:#ef4444;">Auth Lama | PIN: <b>${v.pin || '-'}</b></div>`;
                 }
@@ -1771,6 +1814,133 @@
         }
 
         // --- DATA SYNC HEMAT KUOTA ---
+        
+        window.fetchPengajuanMitra = async () => {
+            try {
+                const snap = await getDocs(collection(db, "pengajuan_mitra"));
+                adminAllPengajuan = [];
+                snap.forEach(d => adminAllPengajuan.push({id: d.id, ...d.data()}));
+                // Sort descending berdasarkan tanggal
+                adminAllPengajuan.sort((a, b) => new Date(b.tanggal_pengajuan) - new Date(a.tanggal_pengajuan));
+                if(document.getElementById('page-pendaftaran').classList.contains('active')) {
+                    window.renderPengajuanMitra();
+                }
+            } catch (error) {
+                console.error("Gagal menarik data pengajuan:", error);
+            }
+        }
+
+        window.renderPengajuanMitra = () => {
+            const tbody = document.getElementById('pengajuan-list-body');
+            if(!tbody) return;
+            const searchKeyword = (document.getElementById('search-pengajuan')?.value || '').toLowerCase();
+            tbody.innerHTML = '';
+            
+            const filteredData = adminAllPengajuan.filter(p => 
+                (p.nama_pemilik || '').toLowerCase().includes(searchKeyword) || 
+                (p.nama_warung || '').toLowerCase().includes(searchKeyword)
+            );
+
+            if (filteredData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px; color:#999;">Tidak ada data pengajuan.</td></tr>';
+                return;
+            }
+
+            filteredData.forEach(p => {
+                const statusStr = p.status || "Menunggu Tinjauan";
+                const isAcc = statusStr === "Disetujui" || statusStr === "terdaftar";
+                const badgeClass = isAcc ? "open" : "warning";
+                
+                let dateStr = '-';
+                if(p.tanggal_pengajuan) {
+                    const d = new Date(p.tanggal_pengajuan);
+                    dateStr = d.toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric'});
+                }
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td data-label="Info Pendaftar">
+                            <div style="font-weight:700; font-size:15px; color:var(--primary);">${p.nama_warung || '-'}</div>
+                            <div style="font-size:12px; color:var(--dark); margin-top:3px;"><i class="ph-fill ph-user"></i> ${p.nama_pemilik || '-'}</div>
+                        </td>
+                        <td data-label="Alamat & Kontak">
+                            <div style="font-size:12px; font-weight:600; color:var(--info); margin-bottom: 4px;">
+                                <i class="ph-fill ph-whatsapp-logo"></i> ${p.no_wa || '-'}
+                            </div>
+                            <div style="font-size:13px; color:var(--gray); max-width: 200px; line-height:1.4;">
+                                ${p.alamat || '-'}
+                            </div>
+                        </td>
+                        <td data-label="Tanggal">
+                            <div style="font-size:13px; font-weight:600; color:var(--dark);">${dateStr}</div>
+                        </td>
+                        <td data-label="Status & Aksi">
+                            <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
+                                <span class="btn-status ${badgeClass}" style="width:fit-content;">${statusStr}</span>
+                                ${!isAcc ? `
+                                <button class="btn-modal" style="background:#10b981; color:white; padding: 6px 12px; font-size: 11px; width:auto; border-radius:8px;" onclick="window.accPengajuan('${p.id}')">
+                                    <i class="ph-bold ph-check"></i> ACC Pendaftaran
+                                </button>
+                                ` : `
+                                <span style="font-size:11px; color:var(--success); font-weight:700;"><i class="ph-fill ph-check-circle"></i> Sudah di-ACC</span>
+                                `}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        window.accPengajuan = async (id) => {
+            if(!confirm("Anda yakin ingin menandai pengajuan ini sebagai 'terdaftar' dan mendaftarkannya otomatis ke sistem Mitra?")) return;
+            try {
+                // 1. Ambil data pengajuan dari array lokal
+                const p = adminAllPengajuan.find(x => x.id === id);
+                if(!p) throw new Error("Data pengajuan tidak ditemukan.");
+
+                // 2. Buat ID unik dan PIN acak untuk mitra baru
+                let baseId = (p.nama_warung || 'warung').toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+                let newVendorId = baseId + '_' + Math.floor(1000 + Math.random() * 9000);
+                let newPin = Math.floor(100000 + Math.random() * 900000).toString();
+
+                // 3. Tambahkan ke koleksi "vendors" (Otomatis masuk halaman Mitra)
+                const vendorRef = doc(db, "vendors", newVendorId);
+                await setDoc(vendorRef, {
+                    id: newVendorId,
+                    nama_warung: p.nama_warung || 'Tanpa Nama',
+                    kategori_utama: [],
+                    alamat_warung: p.alamat || '-',
+                    pin: newPin,
+                    status: 'BUKA',
+                    is_andalan: false,
+                    role: 'vendor',
+                    nama_pemilik: p.nama_pemilik || '',
+                    no_wa: p.no_wa || '',
+                    created_at: new Date().toISOString()
+                });
+
+                // 4. Update status pengajuan di Firestore
+                await updateDoc(doc(db, "pengajuan_mitra", id), {
+                    status: "terdaftar",
+                    vendor_id: newVendorId // Menyimpan referensi ID warung ke data pengajuan
+                });
+                
+                // 5. Update data lokal pengajuan
+                const idx = adminAllPengajuan.findIndex(x => x.id === id);
+                if(idx !== -1) {
+                    adminAllPengajuan[idx].status = "terdaftar";
+                }
+                
+                // 6. Tarik ulang data mitra agar tabel di halaman Mitra langsung ter-update
+                await window.fetchVendors();
+
+                alert(`Pendaftaran di-ACC & Mitra berhasil dibuat!\n\nID Login: ${newVendorId}\nPIN Akses: ${newPin}\n\nSilakan informasikan ID dan PIN ini ke pihak Mitra melalui WhatsApp.`);
+                window.renderPengajuanMitra(); // Refresh UI Pendaftaran
+            } catch (error) {
+                alert("Gagal melakukan ACC & Daftar Mitra: " + error.message);
+            }
+        }
+
         window.fetchKategori = async () => {
             const snap = await getDocs(collection(db, "kategori_utama"));
             adminAllKategori = [];
@@ -1910,6 +2080,7 @@
                 await window.fetchProducts();
                 await window.fetchReviews();
                 await window.fetchBroadcasts();
+                await window.fetchPengajuanMitra(); // Panggil data pengajuan
             } catch (error) {
                 console.error("Kesalahan koneksi Firebase:", error);
                 if (error.code === 'permission-denied') {
