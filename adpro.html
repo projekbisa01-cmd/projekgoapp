@@ -1137,6 +1137,26 @@
                 } else {
                     accessInfo = `<div style="font-size:11px; color:#ef4444;">Auth Lama | PIN: <b>${v.pin || '-'}</b></div>`;
                 }
+
+                // --- LOGIKA TEMPLATE PESAN WHATSAPP ---
+                // Gunakan email jika ada, jika belum migrasi gunakan ID
+                const loginId = v.email ? v.email : v.id; 
+                const pinAkses = v.pin || '-';
+                
+                // Menyusun pesan sesuai template yang Anda minta
+                const rawPesan = `Halo ${v.nama_warung}, ini adalah email login Anda ${loginId} dan pin masuk anda *${pinAkses}*  untuk masuk dan menambahkan serta mengatur katalog penjualan kamu, simpan dan rahasiakan pin, jangan diberitahu siapa pun yah, jika kemudian hari lupa pin bisa chat admin`;
+                const pesanWA = encodeURIComponent(rawPesan);
+                
+                // Merapikan nomor WA (jika ada di database, ubah awalan '0' jadi '62')
+                const nomorWA = v.no_wa ? v.no_wa.replace(/[^0-9]/g, '') : '';
+                let waLink = `https://wa.me/?text=${pesanWA}`; // Fallback jika tidak ada nomor, akan buka pilih kontak
+                if (nomorWA) {
+                    if(nomorWA.startsWith('0')) {
+                        waLink = `https://wa.me/62${nomorWA.substring(1)}?text=${pesanWA}`;
+                    } else {
+                        waLink = `https://wa.me/${nomorWA}?text=${pesanWA}`;
+                    }
+                }
                 
                 hMain += `
                     <tr>
@@ -1161,6 +1181,11 @@
                         <td data-label="Status"><button class="btn-status ${isOpen ? 'open' : 'closed'}" onclick="window.toggleStatus('${v.id}', '${v.status}')">${v.status}</button></td>
                         <td data-label="Aksi">
                             <div style="display:flex; gap:5px; justify-content: flex-end;">
+                                <!-- TOMBOL WHATSAPP BARU -->
+                                <a href="${waLink}" target="_blank" class="action-btn btn-success" title="Kirim Akses via WA" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">
+                                    <i class="ph-bold ph-whatsapp-logo"></i>
+                                </a>
+                                <!-- TOMBOL LAINNYA -->
                                 <button class="action-btn btn-edit-info" title="Edit Info Warung" onclick="window.openEditVendorInfo('${v.id}')">
                                     <i class="ph-bold ph-pencil-simple"></i>
                                 </button>
