@@ -983,16 +983,18 @@
 
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault(); deferredPrompt = e;
-                if (!sessionStorage.getItem('pwa_closed')) {
-                    setTimeout(() => { document.getElementById('pwa-overlay-android').classList.add('show'); }, 1500); 
-                }
+                // [PERBAIKAN]: Fitur Popup PWA dimatikan sementara agar tidak menutupi layar login
+                // if (!sessionStorage.getItem('pwa_closed')) {
+                //     setTimeout(() => { document.getElementById('pwa-overlay-android').classList.add('show'); }, 1500); 
+                // }
             });
 
             const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
             const isInStandaloneMode = () => ('standalone' in window.navigator) && (window.navigator.standalone);
-            if (isIos() && !isInStandaloneMode() && !sessionStorage.getItem('pwa_closed')) {
-                setTimeout(() => { document.getElementById('pwa-overlay-ios').classList.add('show'); }, 1500);
-            }
+            // [PERBAIKAN]: Fitur Popup PWA untuk iOS juga dimatikan sementara
+            // if (isIos() && !isInStandaloneMode() && !sessionStorage.getItem('pwa_closed')) {
+            //     setTimeout(() => { document.getElementById('pwa-overlay-ios').classList.add('show'); }, 1500);
+            // }
         }
 
         window.installPWA = async () => {
