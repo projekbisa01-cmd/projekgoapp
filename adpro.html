@@ -1100,6 +1100,21 @@
         window.renderVendorsList = () => {
             const vendorBody = document.getElementById('vendor-list-body');
             if(!vendorBody) return;
+            
+            // --- UI Tweaks: Ubah tampilan tabel menjadi Card List (agar tidak berantakan di HP) ---
+            const pageVendorsTable = vendorBody.closest('table');
+            if (pageVendorsTable) {
+                const thead = pageVendorsTable.querySelector('thead');
+                if (thead) thead.style.display = 'none'; // Sembunyikan header tabel bawaan
+            }
+            const dataCard = vendorBody.closest('.data-card');
+            if (dataCard) {
+                dataCard.style.background = 'transparent';
+                dataCard.style.border = 'none';
+                dataCard.style.boxShadow = 'none';
+            }
+            // --------------------------------------------------------------------------------------
+
             let hMain = '';
             const searchKeyword = (document.getElementById('search-vendors')?.value || '').toLowerCase();
             
@@ -1112,12 +1127,16 @@
                 return name.includes(searchKeyword) || address.includes(searchKeyword) || kategoriStr.toLowerCase().includes(searchKeyword);
             });
 
+            if (filteredVendors.length === 0) {
+                vendorBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px 20px; color:#999; background:white; border-radius:16px; border:none; display:block;">Tidak ada mitra ditemukan.</td></tr>';
+                return;
+            }
+
             filteredVendors.forEach(v => {
                 const isOpen = v.status === 'BUKA';
                 const isFeatured = v.is_andalan === true;
                 const safeName = (v.nama_warung || '').replace(/'/g, "\\'");
                 const addressData = v.alamat_warung || v.lokasi || '-';
-                const safeAddress = addressData.replace(/'/g, "\\'");
                 
                 let kategoriDataRaw = v.kategori_utama || [];
                 let kategoriStr = Array.isArray(kategoriDataRaw) ? kategoriDataRaw.join(', ') : kategoriDataRaw;
@@ -1127,29 +1146,24 @@
                 let accessInfo = '';
                 
                 if (isAdminManaged) {
-                    accessInfo = `<div style="font-size:11px; color:#7c3aed; font-weight:700;"><i class="ph-fill ph-shield-star"></i> DIKELOLA ADMIN</div>`;
+                    accessInfo = `<div style="display:flex; align-items:center; gap:6px; color:#7c3aed; font-weight:700;"><i class="ph-fill ph-shield-star" style="font-size:16px;"></i> Dikelola Admin</div>`;
                 } else if (isMigrated) {
-                    // Tampilkan Email DAN PIN jika isMigrated
                     accessInfo = `
-                        <div style="font-size:11px; color:#10b981; margin-bottom: 2px;">Email: <b>${v.email}</b></div>
-                        <div style="font-size:11px; color:#ef4444;">PIN: <b>${v.pin || '-'}</b></div>
+                        <div style="display:flex; align-items:center; gap:6px; color:#10b981; margin-bottom: 6px; font-weight:600;"><i class="ph-fill ph-envelope-simple" style="font-size:16px;"></i> ${v.email}</div>
+                        <div style="display:flex; align-items:center; gap:6px; color:#ef4444; font-weight:600;"><i class="ph-fill ph-key" style="font-size:16px;"></i> PIN: ${v.pin || '-'}</div>
                     `;
                 } else {
-                    accessInfo = `<div style="font-size:11px; color:#ef4444;">Auth Lama | PIN: <b>${v.pin || '-'}</b></div>`;
+                    accessInfo = `<div style="display:flex; align-items:center; gap:6px; color:#ef4444; font-weight:600;"><i class="ph-fill ph-warning-circle" style="font-size:16px;"></i> Auth Lama | PIN: ${v.pin || '-'}</div>`;
                 }
 
-                // --- LOGIKA TEMPLATE PESAN WHATSAPP ---
-                // Gunakan email jika ada, jika belum migrasi gunakan ID
+                // Logika pesan WA
                 const loginId = v.email ? v.email : v.id; 
                 const pinAkses = v.pin || '-';
-                
-                // Menyusun pesan sesuai template yang Anda minta
-                const rawPesan = `Halo ${v.nama_warung}, ini adalah email login Anda ${loginId} dan pin masuk anda *${pinAkses}*  untuk masuk dan menambahkan serta mengatur katalog penjualan kamu, simpan dan rahasiakan pin, jangan diberitahu siapa pun yah, jika kemudian hari lupa pin bisa chat admin`;
+                const rawPesan = `Halo ${v.nama_warung}, ini adalah email login Anda ${loginId} dan pin masuk anda *${pinAkses}* untuk masuk dan menambahkan serta mengatur katalog penjualan kamu, simpan dan rahasiakan pin, jangan diberitahu siapa pun yah, jika kemudian hari lupa pin bisa chat admin`;
                 const pesanWA = encodeURIComponent(rawPesan);
                 
-                // Merapikan nomor WA (jika ada di database, ubah awalan '0' jadi '62')
                 const nomorWA = v.no_wa ? v.no_wa.replace(/[^0-9]/g, '') : '';
-                let waLink = `https://wa.me/?text=${pesanWA}`; // Fallback jika tidak ada nomor, akan buka pilih kontak
+                let waLink = `https://wa.me/?text=${pesanWA}`;
                 if (nomorWA) {
                     if(nomorWA.startsWith('0')) {
                         waLink = `https://wa.me/62${nomorWA.substring(1)}?text=${pesanWA}`;
@@ -1159,49 +1173,69 @@
                 }
                 
                 hMain += `
-                    <tr>
-                        <td data-label="Warung & Akses">
-                            <div style="font-weight:700; font-size:16px; color:var(--primary);">${v.nama_warung}</div>
-                            <div class="unique-badge">ID: ${v.id}</div>
-                            ${accessInfo}
-                        </td>
-                        <td data-label="Kategori & Lokasi">
-                            <div style="font-size:12px; font-weight:700; color:var(--info); margin-bottom: 4px;">
-                                ${kategoriStr ? `<i class="ph-fill ph-tag"></i> ${kategoriStr}` : '<i class="ph-fill ph-tag"></i> Belum ada kategori'}
+                    <tr style="display: block; background: white; margin-bottom: 15px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border: 1px solid #f0f0f0;">
+                        <td colspan="5" style="display: block; padding: 0; border: none; text-align: left;">
+                            <!-- HEADER CARD -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #f8fafc; background: #fff;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <button class="action-btn btn-feature ${isFeatured ? 'active' : ''}" title="Jadikan Andalan" onclick="window.toggleFeatured('${v.id}', ${isFeatured})" style="width: 36px; height: 36px; flex-shrink: 0; border-radius: 10px;">
+                                        <i class="${isFeatured ? 'ph-fill' : 'ph-bold'} ph-star" style="font-size:18px;"></i>
+                                    </button>
+                                    <div>
+                                        <div style="font-weight: 800; font-size: 16px; color: var(--dark); line-height: 1.2; margin-bottom: 4px;">${v.nama_warung}</div>
+                                        <div style="font-size: 11px; font-weight: 600; color: #64748b; background: #f1f5f9; padding: 3px 8px; border-radius: 6px; display: inline-block;">ID: ${v.id}</div>
+                                    </div>
+                                </div>
+                                <button class="btn-status ${isOpen ? 'open' : 'closed'}" onclick="window.toggleStatus('${v.id}', '${v.status}')" style="flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); padding: 6px 14px; border-radius: 10px;">
+                                    ${v.status}
+                                </button>
                             </div>
-                            <div style="font-size:13px; color:var(--dark); max-width: 150px; line-height:1.4;">
-                                ${addressData}
-                            </div>
-                        </td>
-                        <td data-label="Andalan">
-                            <button class="action-btn btn-feature ${isFeatured ? 'active' : ''}" title="Jadikan Andalan" onclick="window.toggleFeatured('${v.id}', ${isFeatured})">
-                                <i class="${isFeatured ? 'ph-fill' : 'ph-bold'} ph-star"></i>
-                            </button>
-                        </td>
-                        <td data-label="Status"><button class="btn-status ${isOpen ? 'open' : 'closed'}" onclick="window.toggleStatus('${v.id}', '${v.status}')">${v.status}</button></td>
-                        <td data-label="Aksi">
-                            <div style="display:flex; gap:5px; justify-content: flex-end;">
-                                <!-- TOMBOL WHATSAPP BARU -->
-                                <a href="${waLink}" target="_blank" class="action-btn btn-success" title="Kirim Akses via WA" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">
-                                    <i class="ph-bold ph-whatsapp-logo"></i>
-                                </a>
-                                <!-- TOMBOL LAINNYA -->
-                                <button class="action-btn btn-edit-info" title="Edit Info Warung" onclick="window.openEditVendorInfo('${v.id}')">
-                                    <i class="ph-bold ph-pencil-simple"></i>
-                                </button>
-                                ${(!isMigrated && !isAdminManaged) ? `
-                                <button class="action-btn btn-migrate" title="Migrasi ke Email" onclick="window.openMigrateModal('${v.id}', '${safeName}')">
-                                    <i class="ph-bold ph-envelope"></i>
-                                </button>
-                                ` : ''}
-                                ${!isAdminManaged ? `
-                                <button class="action-btn btn-edit-pin" title="Ganti PIN" onclick="window.openChangePinModal('${v.id}', '${safeName}')">
-                                    <i class="ph-bold ph-key"></i>
-                                </button>
-                                ` : ''}
-                                <button class="action-btn btn-delete" onclick="window.askDelete('vendors', '${v.id}')">
-                                    <i class="ph-bold ph-trash"></i>
-                                </button>
+
+                            <!-- BODY CARD -->
+                            <div style="padding: 15px;">
+                                <div style="display: grid; gap: 10px; margin-bottom: 15px;">
+                                    <div style="display: flex; gap: 10px; align-items: start;">
+                                        <i class="ph-fill ph-tag" style="color: var(--info); font-size: 16px; margin-top: 1px;"></i>
+                                        <div style="font-size: 13px; font-weight: 700; color: var(--dark);">
+                                            ${kategoriStr || 'Belum ada kategori'}
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; gap: 10px; align-items: start;">
+                                        <i class="ph-fill ph-map-pin" style="color: var(--danger); font-size: 16px; margin-top: 1px;"></i>
+                                        <div style="font-size: 13px; color: var(--gray); line-height: 1.4;">
+                                            ${addressData}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style="background: #f8fafc; padding: 12px; border-radius: 12px; margin-bottom: 15px; font-size: 12px; border: 1px solid #f1f5f9;">
+                                    ${accessInfo}
+                                </div>
+
+                                <!-- ACTIONS FOOTER -->
+                                <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; align-items: center; padding-top: 12px; border-top: 1px dashed #e2e8f0;">
+                                    <span style="font-size: 12px; color: var(--gray); font-weight: 600; margin-right: auto;">Kelola:</span>
+                                    
+                                    <a href="${waLink}" target="_blank" class="action-btn btn-success" title="Kirim Akses via WA" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">
+                                        <i class="ph-bold ph-whatsapp-logo"></i>
+                                    </a>
+                                    <button class="action-btn btn-edit-info" title="Edit Info Warung" onclick="window.openEditVendorInfo('${v.id}')">
+                                        <i class="ph-bold ph-pencil-simple"></i>
+                                    </button>
+                                    ${(!isMigrated && !isAdminManaged) ? `
+                                    <button class="action-btn btn-migrate" title="Migrasi ke Email" onclick="window.openMigrateModal('${v.id}', '${safeName}')">
+                                        <i class="ph-bold ph-envelope"></i>
+                                    </button>
+                                    ` : ''}
+                                    ${!isAdminManaged ? `
+                                    <button class="action-btn btn-edit-pin" title="Ganti PIN" onclick="window.openChangePinModal('${v.id}', '${safeName}')">
+                                        <i class="ph-bold ph-key"></i>
+                                    </button>
+                                    ` : ''}
+                                    <button class="action-btn btn-delete" onclick="window.askDelete('vendors', '${v.id}')">
+                                        <i class="ph-bold ph-trash"></i>
+                                    </button>
+                                </div>
                             </div>
                         </td>
                     </tr>`;
@@ -1858,6 +1892,21 @@
         window.renderPengajuanMitra = () => {
             const tbody = document.getElementById('pengajuan-list-body');
             if(!tbody) return;
+            
+            // --- UI Tweaks: Ubah tampilan tabel menjadi Card List (agar tidak berantakan di HP) ---
+            const pageTable = tbody.closest('table');
+            if (pageTable) {
+                const thead = pageTable.querySelector('thead');
+                if (thead) thead.style.display = 'none'; // Sembunyikan header tabel bawaan
+            }
+            const dataCard = tbody.closest('.data-card');
+            if (dataCard) {
+                dataCard.style.background = 'transparent';
+                dataCard.style.border = 'none';
+                dataCard.style.boxShadow = 'none';
+            }
+            // --------------------------------------------------------------------------------------
+
             const searchKeyword = (document.getElementById('search-pengajuan')?.value || '').toLowerCase();
             tbody.innerHTML = '';
             
@@ -1866,11 +1915,25 @@
                 (p.nama_warung || '').toLowerCase().includes(searchKeyword)
             );
 
+            // Sort: Menunggu Tinjauan di atas, kemudian urutkan berdasarkan tanggal terbaru
+            filteredData.sort((a, b) => {
+                const statusA = a.status || "Menunggu Tinjauan";
+                const statusB = b.status || "Menunggu Tinjauan";
+                const isAccA = statusA === "Disetujui" || statusA === "terdaftar";
+                const isAccB = statusB === "Disetujui" || statusB === "terdaftar";
+                
+                if (isAccA === isAccB) {
+                    return new Date(b.tanggal_pengajuan) - new Date(a.tanggal_pengajuan);
+                }
+                return isAccA ? 1 : -1; // Yang belum di-ACC (-1) akan naik ke atas
+            });
+
             if (filteredData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px; color:#999;">Tidak ada data pengajuan.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:40px 20px; color:#999; background:white; border-radius:16px; border:none; display:block;">Tidak ada data pengajuan.</td></tr>';
                 return;
             }
 
+            let hMain = '';
             filteredData.forEach(p => {
                 const statusStr = p.status || "Menunggu Tinjauan";
                 const isAcc = statusStr === "Disetujui" || statusStr === "terdaftar";
@@ -1882,38 +1945,68 @@
                     dateStr = d.toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric'});
                 }
 
-                tbody.innerHTML += `
-                    <tr>
-                        <td data-label="Info Pendaftar">
-                            <div style="font-weight:700; font-size:15px; color:var(--primary);">${p.nama_warung || '-'}</div>
-                            <div style="font-size:12px; color:var(--dark); margin-top:3px;"><i class="ph-fill ph-user"></i> ${p.nama_pemilik || '-'}</div>
-                        </td>
-                        <td data-label="Alamat & Kontak">
-                            <div style="font-size:12px; font-weight:600; color:var(--info); margin-bottom: 4px;">
-                                <i class="ph-fill ph-whatsapp-logo"></i> ${p.no_wa || '-'}
+                hMain += `
+                    <tr style="display: block; background: white; margin-bottom: 15px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border: 1px solid #f0f0f0;">
+                        <td colspan="4" style="display: block; padding: 0; border: none; text-align: left;">
+                            <!-- HEADER CARD -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #f8fafc; background: #fff;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 36px; height: 36px; flex-shrink: 0; border-radius: 10px; background: #f3e8ff; color: #9333ea; display: flex; align-items: center; justify-content: center;">
+                                        <i class="ph-bold ph-storefront" style="font-size:18px;"></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 800; font-size: 16px; color: var(--dark); line-height: 1.2; margin-bottom: 4px;">${p.nama_warung || '-'}</div>
+                                        <div style="font-size: 11px; font-weight: 600; color: #64748b; background: #f1f5f9; padding: 3px 8px; border-radius: 6px; display: inline-block;">
+                                            <i class="ph-fill ph-user"></i> ${p.nama_pemilik || '-'}
+                                        </div>
+                                    </div>
+                                </div>
+                                <span class="btn-status ${badgeClass}" style="flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); padding: 6px 14px; border-radius: 10px;">
+                                    ${statusStr}
+                                </span>
                             </div>
-                            <div style="font-size:13px; color:var(--gray); max-width: 200px; line-height:1.4;">
-                                ${p.alamat || '-'}
-                            </div>
-                        </td>
-                        <td data-label="Tanggal">
-                            <div style="font-size:13px; font-weight:600; color:var(--dark);">${dateStr}</div>
-                        </td>
-                        <td data-label="Status & Aksi">
-                            <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
-                                <span class="btn-status ${badgeClass}" style="width:fit-content;">${statusStr}</span>
-                                ${!isAcc ? `
-                                <button class="btn-modal" style="background:#10b981; color:white; padding: 6px 12px; font-size: 11px; width:auto; border-radius:8px;" onclick="window.accPengajuan('${p.id}')">
-                                    <i class="ph-bold ph-check"></i> ACC Pendaftaran
-                                </button>
-                                ` : `
-                                <span style="font-size:11px; color:var(--success); font-weight:700;"><i class="ph-fill ph-check-circle"></i> Sudah di-ACC</span>
-                                `}
+
+                            <!-- BODY CARD -->
+                            <div style="padding: 15px;">
+                                <div style="display: grid; gap: 10px; margin-bottom: 15px;">
+                                    <div style="display: flex; gap: 10px; align-items: start;">
+                                        <i class="ph-fill ph-whatsapp-logo" style="color: var(--success); font-size: 16px; margin-top: 1px;"></i>
+                                        <div style="font-size: 13px; font-weight: 700; color: var(--dark);">
+                                            ${p.no_wa || '-'}
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; gap: 10px; align-items: start;">
+                                        <i class="ph-fill ph-map-pin" style="color: var(--danger); font-size: 16px; margin-top: 1px;"></i>
+                                        <div style="font-size: 13px; color: var(--gray); line-height: 1.4;">
+                                            ${p.alamat || '-'}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style="background: #f8fafc; padding: 12px; border-radius: 12px; margin-bottom: 15px; font-size: 12px; border: 1px solid #f1f5f9; color: var(--gray);">
+                                    <i class="ph-fill ph-calendar-blank"></i> Diajukan pada: <b>${dateStr}</b>
+                                </div>
+
+                                <!-- ACTIONS FOOTER -->
+                                <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; align-items: center; padding-top: 12px; border-top: 1px dashed #e2e8f0;">
+                                    <span style="font-size: 12px; color: var(--gray); font-weight: 600; margin-right: auto;">Aksi:</span>
+                                    
+                                    ${!isAcc ? `
+                                    <button class="btn-modal" style="background:#10b981; color:white; padding: 8px 16px; font-size: 12px; width:auto; border-radius:10px; font-weight: 700; display: flex; align-items: center; gap: 6px;" onclick="window.accPengajuan('${p.id}')">
+                                        <i class="ph-bold ph-check"></i> ACC Pendaftaran
+                                    </button>
+                                    ` : `
+                                    <div style="font-size:12px; color:var(--success); font-weight:700; display: flex; align-items: center; gap: 6px; padding: 8px 0;">
+                                        <i class="ph-fill ph-check-circle" style="font-size:16px;"></i> Sudah di-ACC
+                                    </div>
+                                    `}
+                                </div>
                             </div>
                         </td>
                     </tr>
                 `;
             });
+            tbody.innerHTML = hMain;
         }
 
         window.accPengajuan = async (id) => {
