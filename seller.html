@@ -331,7 +331,7 @@
                     <p>2. Mitra Merchant wajib segera menyiapkan pesanan dengan rentang waktu yang wajar sesaat setelah pesanan dikonfirmasi oleh Kurir/Admin.</p>
 
                     <h4>Pasal 5: Biaya Layanan & Tagihan</h4>
-                    <p>1. tidak ada komisi atau biaya lain dari penjualan makanan kepada projekgo,murni Projekgo hanya menampilkan menu penjual agar bisa dilihat oelh pelanggan PROJEKGO.</p>
+                    <p>1. Meskipun tidak ada komisi dari penjualan makanan, Projekgo dapat menerapkan "Biaya Layanan Platform" (misal: Rp 1.000 per transaksi QR Meja) yang ditagihkan secara berkala ke Mitra, semata-mata untuk biaya operasional server dan pengembangan aplikasi agar Projekgo tetap hidup.</p>
                     
                     <h4>Pasal 6: Penyelesaian Sengketa</h4>
                     <p>1. Segala keluhan pelanggan mengenai rasa, kualitas, atau kebersihan makanan merupakan tanggung jawab penuh Mitra Merchant.</p>
@@ -375,10 +375,36 @@
 
     <!-- POPUP INSTALL PWA -->
     <div id="pwa-overlay-android" class="pwa-overlay">
-        <!-- PWA sama -->
+        <div class="pwa-modal">
+            <div class="top-bar"></div>
+            <img src="https://i.ibb.co/cSvMG2BY/PROJEKITA-8.png" class="pwa-icon" alt="Projekgo Icon">
+            <h3 class="pwa-title">Install Projekgo</h3>
+            <p class="pwa-desc">Pasang aplikasi Mitra Projekgo di HP Anda untuk akses lebih cepat dan mudah mengelola warung.</p>
+            <button class="btn-install-pwa" onclick="installPWA()"><i class="ph-bold ph-download-simple"></i> Install Sekarang</button>
+            <button class="btn-close-pwa" onclick="closePWA('android')">Nanti Saja</button>
+        </div>
     </div>
     <div id="pwa-overlay-ios" class="pwa-overlay" style="align-items: flex-end;">
-        <!-- PWA sama -->
+        <div class="pwa-ios-modal">
+            <button class="ios-close" onclick="closePWA('ios')"><i class="ph-bold ph-x"></i></button>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <img src="https://i.ibb.co/cSvMG2BY/PROJEKITA-8.png" style="width: 60px; height: 60px; border-radius: 14px; border: 1px solid #eee;">
+                <div>
+                    <div style="font-weight: 800; font-size: 16px; color: var(--dark);">Mitra Projekgo</div>
+                    <div style="font-size: 12px; color: #666; margin-top: 2px;">Akses lebih cepat & ringan!</div>
+                </div>
+            </div>
+            <div class="ios-step">
+                <div style="font-size: 13px; font-weight: 600; color: #444; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                    <span style="background: var(--primary); color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px;">1</span>
+                    Ketuk tombol <b>Share</b> <i class="ph-bold ph-export" style="font-size: 16px; color: #007AFF;"></i> di bawah
+                </div>
+                <div style="font-size: 13px; font-weight: 600; color: #444; display: flex; align-items: center; gap: 8px;">
+                    <span style="background: var(--primary); color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px;">2</span>
+                    Pilih <b>"Add to Home Screen"</b> <i class="ph-bold ph-plus-square" style="font-size: 16px;"></i>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="toast">
@@ -983,18 +1009,18 @@
 
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault(); deferredPrompt = e;
-                // [PERBAIKAN]: Fitur Popup PWA dimatikan sementara agar tidak menutupi layar login
-                // if (!sessionStorage.getItem('pwa_closed')) {
-                //     setTimeout(() => { document.getElementById('pwa-overlay-android').classList.add('show'); }, 1500); 
-                // }
+                // [PERBAIKAN]: Fitur Popup PWA dihidupkan kembali dengan aman karena HTML sudah lengkap
+                if (!sessionStorage.getItem('pwa_closed')) {
+                    setTimeout(() => { document.getElementById('pwa-overlay-android').classList.add('show'); }, 1500); 
+                }
             });
 
             const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
             const isInStandaloneMode = () => ('standalone' in window.navigator) && (window.navigator.standalone);
-            // [PERBAIKAN]: Fitur Popup PWA untuk iOS juga dimatikan sementara
-            // if (isIos() && !isInStandaloneMode() && !sessionStorage.getItem('pwa_closed')) {
-            //     setTimeout(() => { document.getElementById('pwa-overlay-ios').classList.add('show'); }, 1500);
-            // }
+            // [PERBAIKAN]: Fitur Popup PWA iOS dihidupkan kembali
+            if (isIos() && !isInStandaloneMode() && !sessionStorage.getItem('pwa_closed')) {
+                setTimeout(() => { document.getElementById('pwa-overlay-ios').classList.add('show'); }, 1500);
+            }
         }
 
         window.installPWA = async () => {
