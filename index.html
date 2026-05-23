@@ -400,16 +400,16 @@
         .cat-item:active { transform: scale(0.9); }
 
         .cat-icon-box { 
-            width: 55px; 
-            height: 55px; 
-            background: rgba(255, 102, 0, 0.08); /* Diubah ke oranye samar-samar */
-            border-radius: 50%; /* Bulat sempurna */
+            width: 44px; /* Ukuran diperkecil */
+            height: 44px; 
+            background: #F9FAFB; /* Latar abu-abu sangat lembut & elegan */
+            border-radius: 14px; /* Menggunakan sudut melengkung modern (bukan bulat sempurna) */
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
-            border: 1px solid rgba(255, 102, 0, 0.12); /* Border disesuaikan agar senada */
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05), 0 2px 5px rgba(0,0,0,0.02); /* Bayangan bersih & rapi */
             overflow: hidden; 
+            transition: all 0.2s ease;
         }
         .cat-icon-box img { 
             width: 100% !important; 
@@ -418,7 +418,7 @@
             transform: scale(1.1); /* Hides edges of existing SVG boxes */
         }
         
-        .cat-name { font-size: 10px; font-weight: 700; color: #444; text-align: center; line-height: 1.2; text-transform: capitalize; }
+        .cat-name { font-size: 10px; font-weight: 600; color: #4B5563; text-align: center; line-height: 1.2; text-transform: capitalize; margin-top: 4px; }
 
         /* --- SECTION LAIN --- */
         .promo-section-layout { display: flex; align-items: center; padding: 15px 0 15px 20px; margin-bottom: 0; border-bottom: 8px solid var(--bg); overflow-x: auto; position: relative; gap: 12px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
@@ -3973,21 +3973,14 @@
             const baseCategories = ['Sarapan', 'Pernasian', 'Minuman', 'Ayam', 'Berkuah', 'Aneka Mie', 'Snack', 'Legendaris', 'Cepat Saji'];
             
             let extractedFromVendors = [];
-            // Ekstrak kategori HANYA dari toko yang ada di lokasi aktif
             currentDisplayVendors.forEach(v => {
                 extractedFromVendors.push(...extractCategories(v.kategori_utama));
             });
 
             let dbCategories = [];
-            let dbIconMap = {}; 
             allMainCategories.forEach(catDoc => {
                 const catName = catDoc.nama || catDoc.name;
-                if(catName) {
-                    dbCategories.push(catName);
-                    if(catDoc.icon_url) {
-                        dbIconMap[catName.toLowerCase()] = catDoc.icon_url;
-                    }
-                }
+                if(catName) dbCategories.push(catName);
             });
             
             const uniqueCatsMap = new Map();
@@ -4001,42 +3994,67 @@
                 }
             });
 
+            // --- ICON MAPPING MODERN (WARNA DEWASA & ELEGAN PAKAI PHOSPHOR ICONS) ---
+            // Kita mengganti SVG blob lama dengan ikon duotone profesional
+            const modernIcons = {
+                'sarapan': '<i class="ph-duotone ph-coffee" style="font-size: 24px; color: #D97706;"></i>', // Orange gelap (Mustard)
+                'pernasian': '<i class="ph-duotone ph-bowl-food" style="font-size: 24px; color: #43A047;"></i>', // Hijau kalem (Sage)
+                'minuman': '<i class="ph-duotone ph-brandy" style="font-size: 24px; color: #1E88E5;"></i>', // Biru elegan
+                'ayam': '<i class="ph-duotone ph-bone" style="font-size: 24px; color: #8D6E63;"></i>', // Coklat 
+                'berkuah': '<i class="ph-duotone ph-bowl-steam" style="font-size: 24px; color: #00897B;"></i>', // Teal
+                'aneka mie': '<i class="ph-duotone ph-fork-knife" style="font-size: 24px; color: #E53935;"></i>', // Merah Redup
+                'snack': '<i class="ph-duotone ph-cookie" style="font-size: 24px; color: #FBC02D;"></i>', // Kuning emas
+                'legendaris': '<i class="ph-duotone ph-medal" style="font-size: 24px; color: #F57F17;"></i>', // Orange tembaga
+                'cepat saji': '<i class="ph-duotone ph-hamburger" style="font-size: 24px; color: #D84315;"></i>', // Terracotta
+                'makanan khas': '<i class="ph-duotone ph-map-pin-line" style="font-size: 24px; color: #6D4C41;"></i>', // Coklat tua
+                'default': '<i class="ph-duotone ph-storefront" style="font-size: 24px; color: #757575;"></i>' // Abu-abu netral
+            };
+
             let finalCategories = Array.from(uniqueCatsMap.entries()).map(([lowerCat, displayCat]) => {
-                const icon = dbIconMap[lowerCat] || categoryIconMap[displayCat] || categoryIconMap[lowerCat] || categoryIconMap['Default'];
-                return { name: displayCat, icon: icon };
+                const iconHtml = modernIcons[lowerCat] || modernIcons['default'];
+                return { name: displayCat, icon: iconHtml };
             });
 
+            // 1. Render untuk Modal (Tampilkan Semua Kategori Penuh)
             finalCategories.forEach(cat => {
-                const div = document.createElement('div');
-                div.className = 'cat-item';
-                div.onclick = () => openCategoryPage(cat.name);
-                
-                // Cek apakah icon adalah ID referensi SVG (#icon-...) atau URL gambar biasa
-                let iconHtml = '';
-                if (cat.icon.startsWith('#')) {
-                    iconHtml = `<svg style="width: 100%; height: 100%; object-fit: cover; transform: scale(1.1);"><use href="${cat.icon}"></use></svg>`;
-                } else {
-                    iconHtml = `<img src="${cat.icon}">`;
-                }
-
-                div.innerHTML = `<div class="cat-icon-box">${iconHtml}</div><div class="cat-name">${cat.name}</div>`;
-                catGrid.appendChild(div);
-
-                // Untuk modal popup semua kategori
                 if (catModalGrid) {
                     const modalDiv = document.createElement('div');
                     modalDiv.className = 'cat-item';
-                    modalDiv.onclick = () => {
-                        closeAllCategoriesModal();
-                        openCategoryPage(cat.name);
-                    };
-                    modalDiv.innerHTML = `<div class="cat-icon-box" style="width:60px; height:60px;">${iconHtml}</div><div class="cat-name" style="font-size:10px;">${cat.name}</div>`;
+                    modalDiv.onclick = () => { closeAllCategoriesModal(); openCategoryPage(cat.name); };
+                    modalDiv.innerHTML = `<div class="cat-icon-box" style="background:#fff; border:1px solid #eee;">${cat.icon}</div><div class="cat-name" style="font-size:10px;">${cat.name}</div>`;
                     catModalGrid.appendChild(modalDiv);
                 }
             });
 
-            // Cloning dihapus karena kita pakai 1 baris scroll natural
-            catGrid.onscroll = null; 
+            // 2. Render untuk Beranda (BATASI MAX 8 ITEM AGAR PAS 2 BARIS)
+            if (finalCategories.length > 8) {
+                // Jika total kategori lebih dari 8, ambil 7 yang pertama
+                const berandaCategories = finalCategories.slice(0, 7);
+                berandaCategories.forEach(cat => {
+                    const div = document.createElement('div');
+                    div.className = 'cat-item';
+                    div.onclick = () => openCategoryPage(cat.name);
+                    div.innerHTML = `<div class="cat-icon-box">${cat.icon}</div><div class="cat-name">${cat.name}</div>`;
+                    catGrid.appendChild(div);
+                });
+                
+                // Tambahkan tombol "Lainnya" sebagai kotak ke-8
+                const moreDiv = document.createElement('div');
+                moreDiv.className = 'cat-item';
+                moreDiv.onclick = () => openAllCategoriesModal();
+                moreDiv.innerHTML = `<div class="cat-icon-box" style="background:#FFF0E5;"><i class="ph-bold ph-squares-four" style="font-size: 22px; color: var(--primary);"></i></div><div class="cat-name">Lainnya</div>`;
+                catGrid.appendChild(moreDiv);
+                
+            } else {
+                // Jika total kategori pas 8 atau kurang, tampilkan semuanya tanpa tombol "Lainnya"
+                finalCategories.forEach(cat => {
+                    const div = document.createElement('div');
+                    div.className = 'cat-item';
+                    div.onclick = () => openCategoryPage(cat.name);
+                    div.innerHTML = `<div class="cat-icon-box">${cat.icon}</div><div class="cat-name">${cat.name}</div>`;
+                    catGrid.appendChild(div);
+                });
+            }
         }
         
         function renderWarungList(vends) {
