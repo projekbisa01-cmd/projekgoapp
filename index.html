@@ -779,7 +779,7 @@
         .profile-edit-box { display: none; background: #fff; padding: 15px; margin: 10px 20px; border-radius: 10px; box-shadow: var(--shadow-sm); animation: fadeIn 0.3s; }
         .btn-save-profile { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: 700; width: 100%; cursor: pointer; }
         .btn-review-action { background: var(--white); border: 1px solid var(--primary); color: var(--primary); padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; transition: 0.2s; }
-        .btn-reorder-action { background: var(--primary); border: 1px solid var(--primary); color: white; padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: margin-left: 8px; box-shadow: 0 2px 5px rgba(255, 102, 0, 0.3); }
+        .btn-reorder-action { background: var(--primary); border: 1px solid var(--primary); color: white; padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; margin-left: 8px; box-shadow: 0 2px 5px rgba(255, 102, 0, 0.3); }
 
         #review-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(2px); }
         .modal-content { background: white; width: 100%; max-width: 400px; padding: 30px 25px; border-radius: 25px; animation: slideUp 0.3s; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
@@ -2393,7 +2393,12 @@
                     document.getElementById('btn-submit-review').style.display = 'block';
                 }).catch((error) => {
                     console.error("Error login Google:", error);
-                    showToast("Gagal memuat login Google.");
+                    // Menambahkan penanganan error khusus untuk Canvas/Preview
+                    if (error.code === 'auth/unauthorized-domain') {
+                         showToast("⚠️ Gagal: Anda sedang di layar Preview/Canvas. Silakan tes fitur login ini di web asli Anda.");
+                    } else {
+                         showToast("Gagal memuat login Google.");
+                    }
                 });
         }
 
