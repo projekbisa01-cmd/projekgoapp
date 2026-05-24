@@ -779,7 +779,7 @@
         .profile-edit-box { display: none; background: #fff; padding: 15px; margin: 10px 20px; border-radius: 10px; box-shadow: var(--shadow-sm); animation: fadeIn 0.3s; }
         .btn-save-profile { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: 700; width: 100%; cursor: pointer; }
         .btn-review-action { background: var(--white); border: 1px solid var(--primary); color: var(--primary); padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; transition: 0.2s; }
-        .btn-reorder-action { background: var(--primary); border: 1px solid var(--primary); color: white; padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; margin-left: 8px; box-shadow: 0 2px 5px rgba(255, 102, 0, 0.3); }
+        .btn-reorder-action { background: var(--primary); border: 1px solid var(--primary); color: white; padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: margin-left: 8px; box-shadow: 0 2px 5px rgba(255, 102, 0, 0.3); }
 
         #review-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(2px); }
         .modal-content { background: white; width: 100%; max-width: 400px; padding: 30px 25px; border-radius: 25px; animation: slideUp 0.3s; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
@@ -1769,25 +1769,12 @@
     </div>
 
     <script type="module">
-        // --- 1. IMPORT FIREBASE (VERSI 10.7.1) ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        // 1. TAMBAHKAN enableIndexedDbPersistence & onSnapshot DI DAFTAR IMPORT INI
         import { getFirestore, collection, getDocs, addDoc, query, where, doc, getDoc, setDoc, enableIndexedDbPersistence, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        
+        // --- IMPORT FIREBASE AUTH (UNTUK SISTEM LOGIN) ---
         import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-        // --- 2. KONFIGURASI FIREBASE BERSIH ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyAc4ZnBU6xAil7Un4Y53Jxncj_B6eURHBo",
-            authDomain: "projekgo-app.firebaseapp.com",
-            projectId: "projekgo-app",
-            storageBucket: "projekgo-app.firebasestorage.app",
-            messagingSenderId: "910691523179",
-            appId: "1:910691523179:web:2c78d27de6a02cec952f2e"
-        };
-
-        // --- 3. INISIALISASI FIREBASE ---
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
 
         // ====================================================================
         // --- 1. GENERATE MANIFEST & SERVICE WORKER VIRTUAL (INLINE) ---
@@ -1914,6 +1901,19 @@
              document.getElementById('pwa-install-modal').style.display = 'none';
              showToast("Terima kasih telah menginstall Katalog Projekgo!");
         });
+
+        const firebaseConfig = {
+  apiKey: "AIzaSyAc4ZnBU6xAil7Un4Y53Jxncj_B6eURHBo",
+  authDomain: "projekgo-app.firebaseapp.com",
+  projectId: "projekgo-app",
+  storageBucket: "projekgo-app.firebasestorage.app",
+  messagingSenderId: "910691523179",
+  appId: "1:910691523179:web:2c78d27de6a02cec952f2e"
+};
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app); // Inisialisasi Auth
 
         // VARIABEL GLOBAL UNTUK MENYIMPAN ID LOGIN USER
         let currentUserUid = null;
@@ -2354,20 +2354,14 @@
             currentReviewOrderId = orderId; 
             document.getElementById('review-vendor-name').innerText = vendorName; 
             
-            // Logika Tampilan: Cek apakah sudah login Google
+            // Langsung tampilkan form ulasan tanpa Google Sign-in
             const loginSection = document.getElementById('google-login-section');
             const formSection = document.getElementById('review-form-section');
             const submitBtn = document.getElementById('btn-submit-review');
             
-            if (isGoogleLoggedIn) {
-                loginSection.style.display = 'none';
-                formSection.style.display = 'block';
-                submitBtn.style.display = 'block';
-            } else {
-                loginSection.style.display = 'block';
-                formSection.style.display = 'none';
-                submitBtn.style.display = 'none';
-            }
+            if(loginSection) loginSection.style.display = 'none';
+            if(formSection) formSection.style.display = 'block';
+            if(submitBtn) submitBtn.style.display = 'block';
 
             document.getElementById('review-modal').style.display = 'flex'; 
             document.getElementById('review-text').value = ''; 
@@ -2393,12 +2387,7 @@
                     document.getElementById('btn-submit-review').style.display = 'block';
                 }).catch((error) => {
                     console.error("Error login Google:", error);
-                    // Menambahkan penanganan error khusus untuk Canvas/Preview
-                    if (error.code === 'auth/unauthorized-domain') {
-                         showToast("⚠️ Gagal: Anda sedang di layar Preview/Canvas. Silakan tes fitur login ini di web asli Anda.");
-                    } else {
-                         showToast("Gagal memuat login Google.");
-                    }
+                    showToast("Gagal memuat login Google.");
                 });
         }
 
@@ -2437,14 +2426,8 @@
         // ---------------------------------------
 
         window.submitReview = async () => {
-            // Pengaman 1: Wajib Login Google
-            if (!isGoogleLoggedIn) {
-                showToast("Silakan login Google dulu ya!");
-                return;
-            }
-
-            // Pengaman 2: 1 Hari cuma boleh 1 Ulasan (Anti-Spam)
-            const today = new Date().toLocaleDateString('id-ID'); // Menghasilkan misal: "23/5/2026"
+            // Pengaman 1: 1 Hari cuma boleh 1 Ulasan (Anti-Spam)
+            const today = new Date().toLocaleDateString('id-ID');
             const lastReviewDate = localStorage.getItem('last_review_date');
             
             if (lastReviewDate === today) {
@@ -2456,19 +2439,20 @@
             const text = document.getElementById('review-text').value; 
             const stars = document.querySelectorAll('.star-rating.active').length; 
             const vendorName = document.getElementById('review-vendor-name').innerText; 
-            // Ambil nama dari Google agar tidak bisa dipalsukan
-            const user = googleUserProfile ? googleUserProfile.name : savedProfile.name;
+            // Ambil nama dari profil lokal yang didaftarkan diawal
+            const user = savedProfile.name || "Pelanggan";
             
             try { 
+                // Tambahkan field status: "pending" agar masuk ke admin dulu
                 await addDoc(collection(db, "reviews"), { 
                     vendor_name: vendorName || "Warung", 
-                    user: user || "Pelanggan", 
+                    user: user, 
                     rating: stars || 5, 
                     text: text || "", 
                     timestamp: Date.now(), 
                     order_id: currentReviewOrderId || 0,
                     uid: currentUserUid || "anonim",
-                    email: googleUserProfile ? googleUserProfile.email : "" // Tambahan keamanan admin
+                    status: "pending" // Admin harus merubah status ini jadi "approved" di dashboard
                 }); 
                 
                 const history = JSON.parse(localStorage.getItem('order_history')) || []; 
@@ -2483,7 +2467,7 @@
                 // Kunci tanggal ulasan hari ini di HP pelanggan
                 localStorage.setItem('last_review_date', today);
 
-                showToast("Ulasan terkirim! Terima kasih."); 
+                showToast("Ulasan terkirim & menunggu ACC Admin!"); 
                 document.getElementById('review-modal').style.display = 'none'; 
                 renderOrderHistory(); 
             } catch (error) { 
@@ -2796,7 +2780,14 @@
                     const q = query(collection(db, "reviews"), where("vendor_name", "==", vendor.nama_warung));
                     const snapshot = await getDocs(q);
                     let vendorReviews = [];
-                    snapshot.forEach(doc => vendorReviews.push({id: doc.id, ...doc.data()}));
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        // Filter: Ulasan baru akan tampil JIKA statusnya di-ACC ("approved" atau "acc") oleh Admin
+                        // (atau ulasan lama yang memang belum ada field statusnya)
+                        if (!data.status || data.status === "approved" || data.status === "acc") {
+                            vendorReviews.push({id: doc.id, ...data});
+                        }
+                    });
                     
                     allReviews = allReviews.filter(r => r.vendor_name !== vendor.nama_warung).concat(vendorReviews);
 
