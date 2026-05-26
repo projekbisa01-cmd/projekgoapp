@@ -781,7 +781,7 @@
         .profile-edit-box { display: none; background: #fff; padding: 15px; margin: 10px 20px; border-radius: 10px; box-shadow: var(--shadow-sm); animation: fadeIn 0.3s; }
         .btn-save-profile { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: 700; width: 100%; cursor: pointer; }
         .btn-review-action { background: var(--white); border: 1px solid var(--primary); color: var(--primary); padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; transition: 0.2s; }
-        .btn-reorder-action { background: var(--primary); border: 1px solid var(--primary); color: white; padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: margin-left: 8px; box-shadow: 0 2px 5px rgba(255, 102, 0, 0.3); }
+        .btn-reorder-action { background: var(--primary); border: 1px solid var(--primary); color: white; padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; margin-left: 8px; box-shadow: 0 2px 5px rgba(255, 102, 0, 0.3); }
 
         #review-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(2px); }
         .modal-content { background: white; width: 100%; max-width: 400px; padding: 30px 25px; border-radius: 25px; animation: slideUp 0.3s; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
@@ -1407,8 +1407,59 @@
                 </div>
             </div>
 
-            <!-- KATEGORI MENU (Di atas card dengan pagination dots) -->
-            <div style="background: var(--bg); border-top-left-radius: 20px; border-top-right-radius: 20px; margin-top: -20px; position: relative; z-index: 5;">
+            <!-- KONTAINER AKSES CEPAT LAYANAN LAINNYA -->
+            <div id="akses-cepat-layanan-lainnya" style="background: var(--bg); border-top-left-radius: 20px; border-top-right-radius: 20px; margin-top: -20px; position: relative; z-index: 5; padding: 25px 15px 5px 15px;">
+                
+                <!-- Hint Geser ke Samping -->
+                <div class="swipe-hint-box" style="padding: 0 5px 10px 0;">
+                    <span class="swipe-hint-text">Geser ke samping</span>
+                    <i class="ph-bold ph-caret-double-right swipe-hint-icon"></i>
+                </div>
+
+                <!-- Diubah menjadi 1 baris scroll menyamping (flex horizontal) -->
+                <div style="display: flex; overflow-x: auto; gap: 12px; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding-bottom: 10px;">
+                    
+                    <!-- 1. Ngojek -->
+                    <div onclick="openServiceForm('Ngojek')" style="min-width: 85px; flex-shrink: 0; background: #EAECEF; border-radius: 18px; padding: 15px 5px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: transform 0.1s;" onmousedown="this.style.transform='scale(0.92)'" onmouseup="this.style.transform='scale(1)'" onmouseleave="this.style.transform='scale(1)'">
+                        <img src="https://i.ibb.co.com/Fb71zHny/1023346-removebg-preview.png" style="width: 42px; height: 42px; object-fit: contain;">
+                        <span style="font-size: 11px; font-weight: 700; color: #333;">Ngojek</span>
+                    </div>
+
+                    <!-- 2. Mobil -->
+                    <div onclick="openServiceForm('Mobil')" style="min-width: 85px; flex-shrink: 0; background: #EAECEF; border-radius: 18px; padding: 15px 5px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: transform 0.1s;" onmousedown="this.style.transform='scale(0.92)'" onmouseup="this.style.transform='scale(1)'" onmouseleave="this.style.transform='scale(1)'">
+                        <img src="https://cdn-icons-png.flaticon.com/512/2555/2555013.png" style="width: 42px; height: 42px; object-fit: contain;">
+                        <span style="font-size: 11px; font-weight: 700; color: #333;">Mobil</span>
+                    </div>
+
+                    <!-- 3. Kirim Paket -->
+                    <div onclick="openServiceForm('Kirim Paket')" style="min-width: 85px; flex-shrink: 0; background: #EAECEF; border-radius: 18px; padding: 15px 5px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: transform 0.1s;" onmousedown="this.style.transform='scale(0.92)'" onmouseup="this.style.transform='scale(1)'" onmouseleave="this.style.transform='scale(1)'">
+                        <img src="https://i.ibb.co.com/7NkBqtRf/desain-vektor-gaya-ikon-kotak-pengiriman-1250006-14080-removebg-preview-1.png" style="width: 42px; height: 42px; object-fit: contain;">
+                        <span style="font-size: 11px; font-weight: 700; color: #333;">Kirim Paket</span>
+                    </div>
+
+                    <!-- 4. Belanja -->
+                    <div onclick="openServiceForm('Belanja')" style="min-width: 85px; flex-shrink: 0; background: #EAECEF; border-radius: 18px; padding: 15px 5px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: transform 0.1s;" onmousedown="this.style.transform='scale(0.92)'" onmouseup="this.style.transform='scale(1)'" onmouseleave="this.style.transform='scale(1)'">
+                        <img src="https://cdn-icons-png.flaticon.com/512/3081/3081840.png" style="width: 42px; height: 42px; object-fit: contain;">
+                        <span style="font-size: 11px; font-weight: 700; color: #333;">Belanja</span>
+                    </div>
+
+                    <!-- 5. Beli Obat -->
+                    <div onclick="openServiceForm('Beli Obat')" style="min-width: 85px; flex-shrink: 0; background: #EAECEF; border-radius: 18px; padding: 15px 5px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: transform 0.1s;" onmousedown="this.style.transform='scale(0.92)'" onmouseup="this.style.transform='scale(1)'" onmouseleave="this.style.transform='scale(1)'">
+                        <img src="https://cdn-icons-png.flaticon.com/512/2966/2966327.png" style="width: 42px; height: 42px; object-fit: contain;">
+                        <span style="font-size: 11px; font-weight: 700; color: #333;">Beli Obat</span>
+                    </div>
+
+                    <!-- 6. Bantuin Aja -->
+                    <div onclick="openServiceForm('Bantuin Aja')" style="min-width: 85px; flex-shrink: 0; background: #EAECEF; border-radius: 18px; padding: 15px 5px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: transform 0.1s;" onmousedown="this.style.transform='scale(0.92)'" onmouseup="this.style.transform='scale(1)'" onmouseleave="this.style.transform='scale(1)'">
+                        <img src="https://cdn-icons-png.flaticon.com/512/9356/9356947.png" style="width: 42px; height: 42px; object-fit: contain;">
+                        <span style="font-size: 11px; font-weight: 700; color: #333;">Bantuin Aja</span>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- KONTAINER KATEGORI MAKANAN -->
+            <div id="kategori-makanan" style="background: var(--bg); position: relative; z-index: 5;">
                 <div class="swipe-hint-box" style="display: none;">
                     <span class="swipe-hint-text">Geser ke samping</span>
                     <i class="ph-bold ph-caret-double-right swipe-hint-icon"></i>
@@ -2077,9 +2128,9 @@
         // GAMBAR PENGGANTI (FALLBACK) JIKA PENJUAL BELUM UPLOAD FOTO ATAU FOTO ERROR
         // Menggunakan SVG Inline Data URI agar render INSTAN (0 detik) tanpa loading
         // ====================================================================
-        const FALLBACK_MENU_IMG = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23FFF9F5'/%3E%3Ccircle cx='200' cy='170' r='90' fill='%23FFE0CC'/%3E%3Cpath d='M120 200 C 120 120, 280 120, 280 200 Z' fill='%23FF8533'/%3E%3Crect x='105' y='200' width='190' height='12' rx='6' fill='%23FF6600'/%3E%3Ccircle cx='200' cy='120' r='14' fill='%23FF6600'/%3E%3Cpath d='M160 150 Q 200 120 240 150' fill='none' stroke='%23FFB380' stroke-width='6' stroke-linecap='round'/%3E%3Ctext x='200' y='275' font-family='system-ui, sans-serif' font-size='26' font-weight='800' fill='%23FF6600' text-anchor='middle'%3EMenu Andalan%3C/text%3E%3Ctext x='200' y='305' font-family='system-ui, sans-serif' font-size='14' font-weight='600' fill='%23FF8533' text-anchor='middle'%3EFoto Belum Tersedia%3C/text%3E%3C/svg%3E"; 
+        const FALLBACK_MENU_IMG = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22400%22 viewBox=%220 0 400 400%22%3E%3Crect width=%22400%22 height=%22400%22 fill=%22%23FFF9F5%22/%3E%3Ccircle cx=%22200%22 cy=%22170%22 r=%2290%22 fill=%22%23FFE0CC%22/%3E%3Cpath d=%22M120 200 C 120 120, 280 120, 280 200 Z%22 fill=%22%23FF8533%22/%3E%3Crect x=%22105%22 y=%22200%22 width=%22190%22 height=%2212%22 rx=%226%22 fill=%22%23FF6600%22/%3E%3Ccircle cx=%22200%22 cy=%22120%22 r=%2214%22 fill=%22%23FF6600%22/%3E%3Cpath d=%22M160 150 Q 200 120 240 150%22 fill=%22none%22 stroke=%22%23FFB380%22 stroke-width=%226%22 stroke-linecap=%22round%22/%3E%3Ctext x=%22200%22 y=%22275%22 font-family=%22system-ui, sans-serif%22 font-size=%2226%22 font-weight=%22800%22 fill=%22%23FF6600%22 text-anchor=%22middle%22%3EMenu Andalan%3C/text%3E%3Ctext x=%22200%22 y=%22305%22 font-family=%22system-ui, sans-serif%22 font-size=%2214%22 font-weight=%22600%22 fill=%22%23FF8533%22 text-anchor=%22middle%22%3EFoto Belum Tersedia%3C/text%3E%3C/svg%3E"; 
         
-        const FALLBACK_VENDOR_IMG = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23FFF9F5'/%3E%3Cpath d='M140 180 L140 130 L260 130 L260 180 Z' fill='%23FFE0CC'/%3E%3Cpath d='M130 130 L270 130 L280 100 L120 100 Z' fill='%23FF8533'/%3E%3Crect x='185' y='145' width='30' height='35' fill='%23FFB380'/%3E%3Ctext x='200' y='230' font-family='system-ui, sans-serif' font-size='24' font-weight='800' fill='%23FF6600' text-anchor='middle'%3EToko / Warung%3C/text%3E%3Ctext x='200' y='255' font-family='system-ui, sans-serif' font-size='13' font-weight='600' fill='%23FF8533' text-anchor='middle'%3EFoto Belum Tersedia%3C/text%3E%3C/svg%3E";
+        const FALLBACK_VENDOR_IMG = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22 viewBox=%220 0 400 300%22%3E%3Crect width=%22400%22 height=%22300%22 fill=%22%23FFF9F5%22/%3E%3Cpath d=%22M140 180 L140 130 L260 130 L260 180 Z%22 fill=%22%23FFE0CC%22/%3E%3Cpath d=%22M130 130 L270 130 L280 100 L120 100 Z%22 fill=%22%23FF8533%22/%3E%3Crect x=%22185%22 y=%22145%22 width=%2230%22 height=%2235%22 fill=%22%23FFB380%22/%3E%3Ctext x=%22200%22 y=%22230%22 font-family=%22system-ui, sans-serif%22 font-size=%2224%22 font-weight=%22800%22 fill=%22%23FF6600%22 text-anchor=%22middle%22%3EToko / Warung%3C/text%3E%3Ctext x=%22200%22 y=%22255%22 font-family=%22system-ui, sans-serif%22 font-size=%2213%22 font-weight=%22600%22 fill=%22%23FF8533%22 text-anchor=%22middle%22%3EFoto Belum Tersedia%3C/text%3E%3C/svg%3E";
 
         // Inisialisasi Teks Navigasi Atas Sesuai Pilihan Lokasi Terakhir
         document.getElementById('loc-text').innerText = currentArea === 'Gombong' ? 'Sekitar Gombong ▾' : 'Kebumen Kota ▾';
@@ -2798,54 +2849,114 @@
             const reviewsContainer = document.getElementById('vendor-reviews');
             reviewsContainer.innerHTML = '';
 
-            const groups = {};
+            // --- START: LOGIKA MENU LENGKAP BARU (PILL CAPSULE & KARTU MENONJOL) ---
+            const groups = { "Semua": availableMenu };
             availableMenu.forEach(item => {
                 const groupKey = item.tipe || item.kategori || 'Lainnya';
                 if(!groups[groupKey]) groups[groupKey] = [];
                 groups[groupKey].push(item);
             });
 
-            const sortedKeys = Object.keys(groups).sort(); 
+            const sortedKeys = ["Semua", ...Object.keys(groups).filter(k => k !== "Semua").sort()];
 
-            if(sortedKeys.length === 0) { 
+            if(availableMenu.length === 0) { 
                 listContainer.innerHTML = '<div style="text-align:center; padding:30px; color:#999;">Belum ada menu tersedia.</div>'; 
             } else {
-                const fragment = document.createDocumentFragment();
-                
-                sortedKeys.forEach(key => {
-                    const items = groups[key];
-                    
-                    const headerDiv = document.createElement('div');
-                    headerDiv.className = 'menu-category-header';
-                    headerDiv.innerHTML = `<span>${key}</span>`;
-                    fragment.appendChild(headerDiv);
-                    
-                    items.forEach(item => {
+                // 1. Buat UI Pill Categories
+                let pillsHtml = '<div style="display:flex; overflow-x:auto; gap:10px; padding:5px 15px 15px 15px; scrollbar-width:none; -webkit-overflow-scrolling:touch;">';
+                sortedKeys.forEach((key, idx) => {
+                    // Warna hijau khas seperti di gambar
+                    const bgActive = '#00a35c'; 
+                    const isActive = idx === 0 ? `background:${bgActive}; color:white; border-color:${bgActive};` : 'background:white; color:#333; border-color:#ddd;';
+                    pillsHtml += `<div class="menu-pill-btn" onclick="filterMenuVendor('${key}', this)" style="white-space:nowrap; padding:6px 18px; border-radius:20px; font-size:12px; font-weight:700; border:1px solid; cursor:pointer; transition:0.2s; box-shadow:0 2px 4px rgba(0,0,0,0.02); ${isActive}">${key}</div>`;
+                });
+                pillsHtml += '</div>';
+
+                // 2. Buat Kontainer Kosong untuk Daftar Menu
+                let listItemsHtml = '<div id="vendor-filtered-menu-list" style="padding: 0 15px 40px 25px;"></div>';
+
+                listContainer.innerHTML = pillsHtml + listItemsHtml;
+
+                // 3. Fungsi Render Menu berdasarkan Kategori yang diklik
+                window.filterMenuVendor = (categoryKey, clickedEl) => {
+                    // Ubah visual tombol kategori
+                    document.querySelectorAll('.menu-pill-btn').forEach(btn => {
+                        btn.style.background = 'white';
+                        btn.style.color = '#333';
+                        btn.style.borderColor = '#ddd';
+                    });
+                    clickedEl.style.background = '#00a35c';
+                    clickedEl.style.color = 'white';
+                    clickedEl.style.borderColor = '#00a35c';
+
+                    // Tarik data item sesuai kategori
+                    const itemsToRender = groups[categoryKey] || [];
+                    const containerFiltered = document.getElementById('vendor-filtered-menu-list');
+                    containerFiltered.innerHTML = '';
+
+                    if(itemsToRender.length === 0) {
+                        containerFiltered.innerHTML = '<div style="text-align:center; padding:20px; color:#999; font-size:12px;">Menu tidak ditemukan di kategori ini.</div>';
+                        return;
+                    }
+
+                    const fragment = document.createDocumentFragment();
+
+                    itemsToRender.forEach(item => {
                         const imgItem = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG; 
                         const realPrice = parseInt(item.harga); 
                         const fakePrice = Math.ceil(realPrice * 1.2); 
-                        const isFav = favorites.includes(item.id) ? 'active' : ''; 
-                        const desc = item.deskripsi || "Menu spesial warung ini, dijamin enak.";
+                        const desc = item.deskripsi || `${item.nama_menu} spesial, porsi pas bikin kenyang.`;
                         
-                        /* --- MODIFIKASI: Matikan fungsi menu jika toko tutup --- */
+                        // Status Toko & Menu
                         const isAvailable = item.is_available !== false && item.is_sold_out !== true && isOpen; 
                         const grayscaleClass = isAvailable ? '' : 'filter:grayscale(100%);'; 
                         const opacityClass = isAvailable ? '' : 'opacity:0.6;'; 
                         const badgeText = !isOpen ? 'TUTUP' : 'HABIS';
-                        const habisBadge = isAvailable ? '' : `<div class="badge-habis-overlay"><span class="badge-habis-text">${badgeText}</span></div>`; 
+                        const habisBadge = isAvailable ? '' : `<div style="position:absolute; inset:0; background:rgba(255,255,255,0.7); display:flex; align-items:center; justify-content:center; z-index:4; border-radius:50%;"><span style="background:rgba(0,0,0,0.8); color:white; font-weight:800; font-size:10px; padding:3px 6px; border-radius:6px;">${badgeText}</span></div>`; 
+                        
                         const addBtnAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, ${!isOpen ? 'Resto Sedang Tutup' : 'stok habis'} 🙏')`; 
-                        const addBtnStyle = isAvailable ? '' : 'background:#ccc; cursor:not-allowed;';
-                        /* -------------------------------------------------------- */
+                        const addBtnStyle = isAvailable ? 'background:#00a35c; color:white; cursor:pointer;' : 'background:#ccc; color:#fff; cursor:not-allowed;';
 
                         const div = document.createElement('div'); 
-                        div.className = 'menu-list-item'; 
-                        div.innerHTML = `<div style="position:relative;">${habisBadge}<img src="${imgItem}" class="mli-img" style="${grayscaleClass}; cursor:zoom-in;" loading="lazy" onerror="this.src='${FALLBACK_MENU_IMG}'" onclick="openImageViewer('${imgItem}')"><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')" style="width:24px; height:24px; font-size:12px; top:4px; right:4px;"><i class="ph-fill ph-heart"></i></div></div><div class="mli-info" style="${opacityClass}"><div onclick="openProductDetail('${item.id}')"><div class="mli-title">${item.nama_menu}</div><div class="mli-desc">${desc}</div></div><div class="mli-action"><div class="mli-price-box"><span class="mli-coret">Rp ${fakePrice.toLocaleString()}</span><span class="mli-price">Rp ${realPrice.toLocaleString()}</span></div><button class="mli-btn" style="${addBtnStyle}" onclick="${addBtnAction}">Tambah +</button></div></div>`; 
+                        // Desain Kartu UI Sesuai Gambar (Gambar Menonjol ke kiri)
+                        div.style.cssText = `position:relative; display:flex; align-items:center; background:#f4f6f8; border-radius:24px; padding:12px 15px 12px 0; margin-bottom:18px; box-shadow:0 4px 10px rgba(0,0,0,0.03); transition:transform 0.2s; ${opacityClass}`;
+                        
+                        div.innerHTML = `
+                            <!-- Gambar Menonjol -->
+                            <div style="position:absolute; left:-20px; width:85px; height:85px; border-radius:50%; box-shadow:4px 4px 15px rgba(0,0,0,0.15); z-index:2; background:white;">
+                                ${habisBadge}
+                                <img src="${imgItem}" style="width:100%; height:100%; object-fit:cover; border-radius:50%; ${grayscaleClass} cursor:zoom-in;" loading="lazy" onerror="this.src='${FALLBACK_MENU_IMG}'" onclick="openImageViewer('${imgItem}')">
+                            </div>
+                            
+                            <!-- Area Konten (Diberi margin agar tidak tertutup gambar) -->
+                            <div style="margin-left: 75px; flex-grow:1; display:flex; flex-direction:column; justify-content:center; width:calc(100% - 75px);">
+                                <div onclick="openProductDetail('${item.id}')" style="cursor:pointer;">
+                                    <div style="font-weight:800; font-size:13px; color:var(--dark); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.nama_menu}</div>
+                                    <div style="font-size:11px; color:#888; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${desc}</div>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:8px;">
+                                    <div style="display:flex; flex-direction:column;">
+                                        <span style="font-size:10px; text-decoration:line-through; color:#999; font-weight:600;">Rp ${fakePrice.toLocaleString()}</span>
+                                        <span style="font-size:14px; font-weight:800; color:var(--dark);">Rp ${realPrice.toLocaleString()}</span>
+                                    </div>
+                                    <!-- Tombol Pesan seperti di gambar -->
+                                    <button onclick="${addBtnAction}" style="${addBtnStyle} border:none; padding:6px 16px; border-radius:15px; font-weight:800; font-size:11px; box-shadow:0 4px 8px rgba(0, 163, 92, 0.2);">Pesan</button>
+                                </div>
+                            </div>
+                        `; 
                         fragment.appendChild(div);
                     });
-                });
-                
-                listContainer.appendChild(fragment);
+                    containerFiltered.appendChild(fragment);
+                };
+
+                // 4. Render Otomatis Kategori "Semua" Saat Pertama Kali Dibuka
+                const firstPillBtn = listContainer.querySelector('.menu-pill-btn');
+                if(firstPillBtn) {
+                    // Beri sedikit jeda agar DOM terload sempurna
+                    setTimeout(() => window.filterMenuVendor('Semua', firstPillBtn), 10);
+                }
             }
+            // --- END: LOGIKA MENU LENGKAP BARU ---
             
             // --- OPTIMASI: Lazy Load Review (Hanya tarik review khusus warung ini saja) ---
             const actionContainer = document.getElementById('vendor-reviews-action');
@@ -3896,8 +4007,8 @@
             if(products.length === 0) return;
             
             const promoDiv = document.createElement('div');
-            // Background putih untuk area menu, judul orange dipisah di header
-            promoDiv.style.cssText = "background: #ffffff; padding-bottom: 20px; margin-bottom: 0; border-bottom: 8px solid var(--bg); overflow: hidden;";
+            // DIUBAH: Background disamakan dengan kontainer kategori makanan
+            promoDiv.style.cssText = "background: linear-gradient(180deg, #f0fce8 0%, #ffffff 120px); padding-bottom: 20px; margin-bottom: 0; border-bottom: 8px solid var(--bg); overflow: hidden;";
             
             let header = `
                 <div style="background: linear-gradient(135deg, #FF6B4A 0%, #FF3D00 100%); display:flex; justify-content:space-between; align-items:center; padding: 15px 20px 15px 20px; box-shadow: 0 4px 10px rgba(255, 61, 0, 0.15);">
@@ -4227,10 +4338,10 @@
                 const topVendors = foodVendors.slice(0, 3); // Ambil 3 resto saja
                 if (topVendors.length > 0) {
                     const sectionDiv = document.createElement('div');
-                    sectionDiv.style.marginBottom = "15px";
-                    sectionDiv.style.marginTop = "10px";
+                    // DIUBAH: Background disamakan dengan kontainer kategori makanan
+                    sectionDiv.style.cssText = "background: linear-gradient(180deg, #f0fce8 0%, #ffffff 120px); margin-bottom: 15px; margin-top: 10px; padding-bottom: 10px;";
                     sectionDiv.innerHTML = `
-                        <div class="section-title" style="padding-top: 10px; padding-bottom: 12px; display:flex; flex-direction:column; align-items:flex-start;">
+                        <div class="section-title" style="background: transparent; padding-top: 15px; padding-bottom: 12px; display:flex; flex-direction:column; align-items:flex-start;">
                             <span style="font-size:16px; font-weight:800; color:var(--dark);">Resto dengan rating Andalan</span>
                             <span style="font-size:12px; color:#666; font-weight:500; margin-top:4px;">pilihan</span>
                         </div>
@@ -4282,7 +4393,8 @@
                 if (promoItems.length === 0) return;
 
                 const promoDiv = document.createElement('div');
-                promoDiv.style.cssText = "background: linear-gradient(180deg, #FFEBE5 0%, #FFFFFF 100%); padding: 15px 0 5px 0; margin-bottom: 0; border-bottom: 8px solid #f9f9f9;";
+                // DIUBAH: Background disamakan dengan kontainer kategori makanan
+                promoDiv.style.cssText = "background: linear-gradient(180deg, #f0fce8 0%, #ffffff 120px); padding: 15px 0 5px 0; margin-bottom: 0; border-bottom: 8px solid var(--bg);";
                 
                 const headerHtml = `
                     <div style="background: linear-gradient(90deg, rgba(255,107,74,0.1) 0%, transparent 100%); display:flex; justify-content:space-between; align-items:flex-start; padding: 10px 15px; margin-bottom: 12px;">
@@ -4344,7 +4456,8 @@
                 if(vendors.length === 0) return;
                 
                 const promoDiv = document.createElement('div');
-                promoDiv.style.cssText = "background: #fff; padding-bottom: 15px; border-top: 8px solid var(--bg); border-bottom: 8px solid var(--bg);";
+                // DIUBAH: Background disamakan dengan kontainer kategori makanan
+                promoDiv.style.cssText = "background: linear-gradient(180deg, #f0fce8 0%, #ffffff 120px); padding-bottom: 15px; border-top: 8px solid var(--bg); border-bottom: 8px solid var(--bg);";
                 
                 let header = `
                     <div style="background: linear-gradient(90deg, #FFF2F0 0%, transparent 100%); display:flex; justify-content:space-between; align-items:center; padding: 15px 15px 12px 15px;">
@@ -4381,7 +4494,8 @@
                 if(exclusiveItems.length === 0) return;
                 
                 const promoDiv = document.createElement('div');
-                promoDiv.style.cssText = "background: linear-gradient(180deg, #FFF4E6 0%, #FFFFFF 100%); padding-bottom: 20px; border-radius: 16px; margin: 0 15px 20px 15px; box-shadow: 0 8px 20px rgba(255, 102, 0, 0.15); overflow: hidden;";
+                // DIUBAH: Background disamakan dengan kontainer kategori makanan
+                promoDiv.style.cssText = "background: linear-gradient(180deg, #f0fce8 0%, #ffffff 120px); padding-bottom: 20px; border-radius: 16px; margin: 0 15px 20px 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden;";
                 
                 let header = `
                     <div style="background: linear-gradient(90deg, #FFE0B2 0%, transparent 100%); display:flex; justify-content:space-between; align-items:center; padding: 15px 15px 12px 15px;">
@@ -4503,8 +4617,9 @@
                     if (s) { div.onclick = () => openVendorPage(v.id); } 
                     else { div.style.opacity = "0.8"; div.style.cursor = "default"; }
 
+                    // DIUBAH: Tambahan background gradasi di Kartu Besar
                     div.innerHTML = `
-                        <div style="background: white; border-radius: 16px; box-shadow: 0 6px 20px rgba(0,0,0,0.08); overflow: hidden; display: flex; flex-direction: column; width: 100%; border: 1px solid #f0f0f0; position: relative;">
+                        <div style="background: linear-gradient(180deg, #f0fce8 0%, #ffffff 120px); border-radius: 16px; box-shadow: 0 6px 20px rgba(0,0,0,0.08); overflow: hidden; display: flex; flex-direction: column; width: 100%; border: 1px solid #f0f0f0; position: relative;">
                             <div style="position: relative; width: 100%; height: 180px;">
                                 <img src="${v.cover_photo || img}" style="width: 100%; height: 100%; object-fit: cover; ${!s ? 'filter:grayscale(100%);' : ''}" onerror="this.src='${img}'">
                                 ${!s ? '<div class="badge-habis-overlay"><span class="badge-habis-text">TUTUP</span></div>' : ''}
@@ -4536,6 +4651,14 @@
                     div.className = 'warung-list-item';
                     div.style.marginLeft = "15px";
                     div.style.marginRight = "15px";
+
+                    // DIUBAH: Tambahan background gradasi dan style agar jadi bentuk "Kartu"
+                    div.style.background = "linear-gradient(180deg, #f0fce8 0%, #ffffff 120px)";
+                    div.style.borderRadius = "16px";
+                    div.style.padding = "15px";
+                    div.style.marginBottom = "15px";
+                    div.style.boxShadow = "0 4px 12px rgba(0,0,0,0.04)";
+                    div.style.border = "1px solid rgba(0,0,0,0.03)";
 
                     if (s) { div.onclick = () => openVendorPage(v.id); } 
                     else { div.style.opacity = "0.6"; div.style.filter = "grayscale(100%)"; div.style.cursor = "default"; }
