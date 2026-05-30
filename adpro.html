@@ -2073,15 +2073,29 @@
                 const p = adminAllPengajuan.find(x => x.id === id);
                 if(!p) throw new Error("Data pengajuan tidak ditemukan.");
 
-                // 2. Buat ID unik dan PIN acak untuk mitra baru
-                let baseId = (p.nama_warung || 'warung').toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-                let newVendorId = baseId + '_' + Math.floor(1000 + Math.random() * 9000);
-                let newPin = Math.floor(100000 + Math.random() * 900000).toString();
+                // 2. Buat Email ID dan PIN acak untuk mitra baru
+                // Ambil kata pertama dari nama pemilik (atau nama warung jika kosong)
+                let rawName = (p.nama_pemilik || p.nama_warung || 'mitra').trim().split(' ')[0];
+                let baseName = rawName.toLowerCase().replace(/[^a-z0-9]/g, '');
+                if (!baseName) baseName = 'mitra';
+                
+                let randomNum = Math.floor(1000 + Math.random() * 9000);
+                let newEmail = `${baseName}${randomNum}@projekgo.id`;
+                let newVendorId = newEmail; // ID menggunakan format email
+                let newPin = Math.floor(100000 + Math.random() * 900000).toString(); // PIN 6 digit digunakan sebagai password
+                
+                // Otomatis buatkan akun Auth agar mitra bisa langsung login
+                try {
+                    await createUserWithEmailAndPassword(secondaryAuth, newEmail, newPin);
+                } catch (authErr) {
+                    console.warn("Peringatan Auth: ", authErr);
+                }
 
                 // 3. Tambahkan ke koleksi "vendors" (Otomatis masuk halaman Mitra)
                 const vendorRef = doc(db, "vendors", newVendorId);
                 await setDoc(vendorRef, {
                     id: newVendorId,
+                    email: newEmail,
                     nama_warung: p.nama_warung || 'Tanpa Nama',
                     kategori_utama: [],
                     alamat_warung: p.alamat || '-',
@@ -2091,6 +2105,7 @@
                     role: 'vendor',
                     nama_pemilik: p.nama_pemilik || '',
                     no_wa: p.no_wa || '',
+                    is_approved: true, // Otomatis dianggap tervalidasi email
                     created_at: new Date().toISOString()
                 });
 
@@ -2109,7 +2124,7 @@
                 // 6. Tarik ulang data mitra agar tabel di halaman Mitra langsung ter-update
                 await window.fetchVendors();
 
-                alert(`Pendaftaran di-ACC & Mitra berhasil dibuat!\n\nID Login: ${newVendorId}\nPIN Akses: ${newPin}\n\nSilakan informasikan ID dan PIN ini ke pihak Mitra melalui WhatsApp.`);
+                alert(`Pendaftaran di-ACC & Mitra berhasil dibuat!\n\nEmail Login: ${newEmail}\nPassword/PIN: ${newPin}\n\nSilakan informasikan Email dan PIN ini ke pihak Mitra.`);
                 window.renderPengajuanMitra(); // Refresh UI Pendaftaran
             } catch (error) {
                 alert("Gagal melakukan ACC & Daftar Mitra: " + error.message);
