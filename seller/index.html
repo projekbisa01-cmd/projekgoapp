@@ -10,6 +10,9 @@
     <link rel="apple-touch-icon" href="https://i.ibb.co/cSvMG2BY/PROJEKITA-8.png">
     <link rel="icon" type="image/png" href="https://i.ibb.co/cSvMG2BY/PROJEKITA-8.png">
 
+    <!-- PERBAIKAN: Link statis ke manifest.json menggunakan jalur absolut /seller/ -->
+    <link rel="manifest" href="/seller/manifest.json">
+
     <title>Mitra Projekgo - Kelola Warung</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -941,7 +944,6 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT: LOGIKA TIDAK ADA YANG SAYA UBAH -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, where, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -985,26 +987,13 @@
         // --- SISTEM PWA ---
         let deferredPrompt;
         function initPWA() {
-            const manifest = {
-                name: "PROJEKGO",
-                short_name: "Projekgo",
-                start_url: window.location.href.split('?')[0],
-                display: "standalone",
-                background_color: "#F8F9FB",
-                theme_color: "#FF6600",
-                icons: [{ src: "https://i.ibb.co/cSvMG2BY/PROJEKITA-8.png", sizes: "192x192", type: "image/png" }, { src: "https://i.ibb.co/cSvMG2BY/PROJEKITA-8.png", sizes: "512x512", type: "image/png" }]
-            };
-            const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-            const manifestUrl = URL.createObjectURL(manifestBlob);
-            const link = document.createElement('link');
-            link.rel = 'manifest'; link.href = manifestUrl;
-            document.head.appendChild(link);
-
+            // PERBAIKAN: Mendaftarkan Service Worker menggunakan file fisik statis dengan jalur absolut /seller/
             if ('serviceWorker' in navigator) {
-                const swCode = "self.addEventListener('fetch', function(e) {});";
-                const swBlob = new Blob([swCode], {type: 'application/javascript'});
-                const swUrl = URL.createObjectURL(swBlob);
-                navigator.serviceWorker.register(swUrl).catch(err => console.log('SW Registration failed', err));
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/seller/sw.js', { scope: '/seller/' })
+                        .then(reg => console.log('SW Registration Success, scope: ', reg.scope))
+                        .catch(err => console.log('SW Registration failed', err));
+                });
             }
 
             window.addEventListener('beforeinstallprompt', (e) => {
@@ -1057,7 +1046,6 @@
         };
 
         window.login = async () => {
-            // Mengambil input dari form HTML
             const emailInput = document.getElementById('login-id').value.trim().toLowerCase(); 
             const pinInput = document.getElementById('login-pin').value.trim();
             
@@ -1067,18 +1055,15 @@
             btn.innerHTML = "Memeriksa..."; btn.disabled = true;
             
             try {
-                // 1. Mencari data vendor berdasarkan field "email" menggunakan query
                 const q = query(collection(db, "vendors"), where("email", "==", emailInput));
                 
-                // Menggunakan onSnapshot sebagai trik pengganti getDocs agar Anda tidak perlu ubah import
                 const unsub = onSnapshot(q, async (querySnapshot) => {
-                    unsub(); // Langsung matikan pendengar agar data hanya diambil 1 kali (hemat kuota Firebase)
+                    unsub(); 
                     
                     if (!querySnapshot.empty) {
                         let loginSuccess = false;
                         
                         querySnapshot.forEach((docSnap) => {
-                            // 2. Cek apakah PIN cocok
                             if (docSnap.data().pin === pinInput) {
                                 currentUser = { id: docSnap.id, name: docSnap.data().nama_warung };
                                 localStorage.setItem('vendor_user', JSON.stringify(currentUser));
@@ -1093,7 +1078,6 @@
                             btn.innerHTML = "Masuk ke Dashboard"; btn.disabled = false;
                         }
                     } else {
-                        // 3. FALLBACK: Jika tidak ketemu di field email, coba cari berdasarkan ID Dokumen
                         try {
                             const docSnap = await getDoc(doc(db, "vendors", emailInput));
                             if (docSnap.exists() && docSnap.data().pin === pinInput) {
