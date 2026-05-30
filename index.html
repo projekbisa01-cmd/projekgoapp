@@ -2632,7 +2632,10 @@
                     let starsHtml = '';
                     const rating = order.reviewRating || 5;
                     for(let i=0; i<5; i++) { starsHtml += i < rating ? '<i class="ph-fill ph-star" style="color:#FFC107;"></i>' : '<i class="ph ph-star" style="color:#ddd;"></i>'; }
-                    const rText = order.reviewText ? `"${order.reviewText}"` : "Terima kasih atas ulasan Anda!";
+                    
+                    // TAHAP SANITASI (MENCEGAH HACK XSS)
+                    const safeReviewText = order.reviewText ? order.reviewText.replace(/</g, "&lt;").replace(/>/g, "&gt;") : "";
+                    const rText = safeReviewText ? `"${safeReviewText}"` : "Terima kasih atas ulasan Anda!";
                     
                     reviewDisplayHtml = `
                     <div style="background:#f9f9f9; padding:12px; border-radius:10px; margin-top:12px; border:1px solid #eee;">
@@ -2993,12 +2996,17 @@
                         previewReviews.forEach(rev => { 
                             let starsHtml = ''; 
                             for(let i=0; i<5; i++) { starsHtml += i < rev.rating ? '<i class="ph-fill ph-star"></i>' : '<i class="ph ph-star" style="color:#ddd;"></i>'; } 
-                            let displayName = rev.user;
+                            
+                            // TAHAP SANITASI (MENCEGAH HACK XSS)
+                            const safeText = rev.text ? rev.text.replace(/</g, "&lt;").replace(/>/g, "&gt;") : "";
+                            const safeUser = rev.user ? rev.user.replace(/</g, "&lt;").replace(/>/g, "&gt;") : "Pelanggan";
+                            
+                            let displayName = safeUser;
                             if (displayName.length > 2) { displayName = displayName.substring(0, 2) + "***"; }
                             
                             reviewsContainer.innerHTML += `
                                 <div class="review-card-scroll">
-                                    <div class="rc-text-box">"${rev.text}"</div>
+                                    <div class="rc-text-box">"${safeText}"</div>
                                     <div class="rc-footer">
                                         <div class="rc-user-small"><i class="ph-fill ph-user"></i> ${displayName}</div>
                                         <div class="rc-stars-small">${starsHtml}</div>
@@ -3063,12 +3071,17 @@
                 for(let i=0; i<5; i++) { starsHtml += i < rev.rating ? '<i class="ph-fill ph-star" style="color:#FFC107;"></i>' : '<i class="ph ph-star" style="color:#ddd;"></i>'; }
                 const date = rev.timestamp ? new Date(rev.timestamp).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'}) : '';
                 
+                // TAHAP SANITASI (MENCEGAH HACK XSS)
+                const safeText = rev.text ? rev.text.replace(/</g, "&lt;").replace(/>/g, "&gt;") : "";
+                const safeUser = rev.user ? rev.user.replace(/</g, "&lt;").replace(/>/g, "&gt;") : "Pelanggan";
+                const safeReply = rev.reply ? rev.reply.replace(/</g, "&lt;").replace(/>/g, "&gt;") : "";
+                
                 let replyHtml = '';
-                if (rev.reply) {
+                if (safeReply) {
                     replyHtml = `
                         <div class="review-reply-box">
                             <div class="rr-header"><i class="ph-fill ph-storefront" style="color:var(--primary);"></i> Respon Penjual</div>
-                            <div class="rr-content">"${rev.reply}"</div>
+                            <div class="rr-content">"${safeReply}"</div>
                         </div>
                     `;
                 }
@@ -3077,12 +3090,12 @@
                     <div class="review-list-item">
                         <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center;">
                             <div style="font-weight:700; font-size:14px; color:var(--dark); display:flex; align-items:center; gap:6px;">
-                                <i class="ph-fill ph-user-circle" style="font-size:20px; color:#ccc;"></i> ${rev.user}
+                                <i class="ph-fill ph-user-circle" style="font-size:20px; color:#ccc;"></i> ${safeUser}
                             </div>
                             <div style="font-size:10px; color:#999;">${date}</div>
                         </div>
                         <div style="margin-bottom:10px; display:flex; font-size:14px;">${starsHtml}</div>
-                        <div style="font-size:13px; color:#444; line-height:1.5; margin-bottom:${rev.reply ? '5px' : '0'};">"${rev.text}"</div>
+                        <div style="font-size:13px; color:#444; line-height:1.5; margin-bottom:${safeReply ? '5px' : '0'};">"${safeText}"</div>
                         ${replyHtml}
                     </div>
                 `;
