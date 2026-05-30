@@ -10,8 +10,8 @@
     <link rel="apple-touch-icon" href="https://i.ibb.co/cSvMG2BY/PROJEKITA-8.png">
     <link rel="icon" type="image/png" href="https://i.ibb.co/cSvMG2BY/PROJEKITA-8.png">
 
-    <!-- PERBAIKAN: Link statis ke manifest.json menggunakan jalur absolut /seller/ -->
-    <link rel="manifest" href="/seller/manifest.json">
+    <!-- PERBAIKAN: Link statis ke manifest.json menggunakan jalur RELATIF agar aman saat discan PWABuilder -->
+    <link rel="manifest" href="./manifest.json">
 
     <title>Mitra Projekgo - Kelola Warung</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -987,10 +987,10 @@
         // --- SISTEM PWA ---
         let deferredPrompt;
         function initPWA() {
-            // PERBAIKAN: Mendaftarkan Service Worker menggunakan file fisik statis dengan jalur absolut /seller/
+            // PERBAIKAN: Mendaftarkan Service Worker menggunakan jalur RELATIF
             if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('/seller/sw.js', { scope: '/seller/' })
+                    navigator.serviceWorker.register('./sw.js', { scope: './' })
                         .then(reg => console.log('SW Registration Success, scope: ', reg.scope))
                         .catch(err => console.log('SW Registration failed', err));
                 });
