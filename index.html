@@ -4358,17 +4358,52 @@
             let topRestoInserted = false; 
             let customPromoInserted = false;
             
+            // --- LOGIKA MENU PALING LARIS DIPERBARUI SAMA PERSIS DENGAN UI EXCLUSIVE ---
             const renderBestSeller = () => {
                 if (bestSellerInserted) return;
                 if (bestSellerItems.length > 0) {
                     const promoDiv = document.createElement('div');
-                    promoDiv.className = 'promo-section-layout';
-                    promoDiv.id = 'wrapper-best-seller';
-                    promoDiv.style.marginBottom = "0"; 
-                    promoDiv.style.marginTop = "0";
-                    promoDiv.innerHTML = `<div class="promo-info-side"><img src="https://i.ibb.co.com/Q2mwSMT/best-sell-removebg-preview.png" style="width:110px; height:110px; object-fit:contain; margin-bottom:10px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.1));"><h3 class="promo-title">Menu Paling Laris</h3><p class="promo-subtitle">Wajib Coba!</p><button class="promo-btn" onclick="openCategoryPage('Paling Laris')">Order Now!</button></div><div class="promo-scroll-side" id="container-best-in-list"></div>`;
+                    // Style container dibuat persis dengan renderExclusiveStyle
+                    promoDiv.style.cssText = "background: white; padding-bottom: 20px; border-radius: 16px; margin: 10px 15px 20px 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden;";
+                    
+                    let headerHtml = `
+                        <div style="background: linear-gradient(90deg, #E8F5E9 0%, transparent 100%); display:flex; justify-content:space-between; align-items:center; padding: 15px 15px 12px 15px;">
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <div style="font-size: 16px; font-weight: 800; color: #2E7D32; display:flex; align-items:center; gap:6px;">
+                                    Menu Paling Laris <span style="background:#2E7D32; color:white; font-size:10px; padding:3px 6px; border-radius:4px; font-weight:800; line-height:1;"><i class="ph-fill ph-fire" style="margin-right:2px;"></i>HOT</span>
+                                </div>
+                            </div>
+                            <div onclick="openCategoryPage('Paling Laris')" style="font-size: 12px; color: #2E7D32; display:flex; align-items:center; font-weight: 700; cursor: pointer;">Lihat Semua <i class="ph-bold ph-caret-right" style="margin-left:2px;"></i></div>
+                        </div>
+                    `;
+
+                    let cardsHtml = '<div class="scroll-container" style="padding: 0 15px; gap: 12px;">';
+                    
+                    bestSellerItems.forEach(item => {
+                        const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG;
+                        const realPrice = parseInt(item.harga);
+                        const fakePrice = Math.ceil(realPrice * 1.2);
+                        
+                        cardsHtml += `
+                            <div style="width: 140px; flex-shrink: 0; cursor: pointer; background: white; border-radius: 12px; padding: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.03);" onclick="openProductDetail('${item.id}')">
+                                <div style="position:relative; width:100%; height:120px; border-radius:8px; overflow:hidden;">
+                                    <img src="${img}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='${FALLBACK_MENU_IMG}'">
+                                    <div style="position:absolute; bottom:0; right:0; background: linear-gradient(45deg, #2E7D32, #4CAF50); color: white; font-size:9px; padding:4px 8px; border-top-left-radius:8px; font-weight:800;">
+                                        TERLARIS
+                                    </div>
+                                </div>
+                                <div style="font-size: 12px; font-weight: 700; color: var(--dark); margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 4px;">${item.nama_menu}</div>
+                                <div style="display:flex; flex-direction:column; padding: 0 4px; margin-top: 2px;">
+                                    <span style="font-size:11px; text-decoration:line-through; color:#999;">Rp${fakePrice.toLocaleString()}</span>
+                                    <span style="font-size: 14px; font-weight: 800; color: var(--primary);">Rp${realPrice.toLocaleString()}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    cardsHtml += '</div>';
+                    promoDiv.innerHTML = headerHtml + cardsHtml;
                     c.appendChild(promoDiv);
-                    renderHorizontalScroll('container-best-in-list', bestSellerItems);
                 }
                 bestSellerInserted = true;
             };
