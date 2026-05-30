@@ -1,11 +1,11 @@
-const CACHE_NAME = 'projekgo-mitra-v2';
+const CACHE_NAME = 'projekgo-mitra-v3';
 const urlsToCache = [
   './',
   './index.html'
 ];
 
 self.addEventListener('install', event => {
-  self.skipWaiting(); // Memaksa Service Worker langsung aktif
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -15,7 +15,7 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('activate', event => {
-  event.waitUntil(self.clients.claim()); // Langsung mengambil alih kontrol halaman
+  event.waitUntil(self.clients.claim());
 });
 
 self.addEventListener('fetch', event => {
