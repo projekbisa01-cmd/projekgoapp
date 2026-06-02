@@ -9,8 +9,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="https://i.ibb.co/cSvMG2BY/PROJEKITA-8.png">
     <link rel="icon" type="image/png" href="https://i.ibb.co/cSvMG2BY/PROJEKITA-8.png">
-
-    <!-- PERBAIKAN: Link statis ke manifest.json menggunakan jalur RELATIF agar aman saat discan PWABuilder -->
+    
+    <!-- PERBAIKAN: Link statis ke manifest.json (Wajib untuk PWABuilder) -->
     <link rel="manifest" href="manifest.json">
 
     <title>Mitra Projekgo - Kelola Warung</title>
@@ -944,6 +944,7 @@
         </div>
     </div>
 
+    <!-- JAVASCRIPT: TELAH DISESUAIKAN PADA BAGIAN INITPWA -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, where, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -984,21 +985,19 @@
         let globalMenuGroups = {};
         let currentMenuFilter = 'Semua';
 
-        // --- SISTEM PWA ---
+        // --- SISTEM PWA (SUDAH DIPERBAIKI UNTUK PWABUILDER) ---
         let deferredPrompt;
         function initPWA() {
-            // PERBAIKAN: Mendaftarkan Service Worker menggunakan jalur RELATIF
+            // Kita sudah menggunakan tag <link rel="manifest" href="manifest.json"> di atas.
+            // Script pembuatan blob manifest dihilangkan agar tidak bentrok dengan PWABuilder.
+
             if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('./sw.js', { scope: './' })
-                        .then(reg => console.log('SW Registration Success, scope: ', reg.scope))
-                        .catch(err => console.log('SW Registration failed', err));
-                });
+                // Mendaftarkan service worker dari file asli (sw.js)
+                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW Registration failed', err));
             }
 
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault(); deferredPrompt = e;
-                // [PERBAIKAN]: Fitur Popup PWA dihidupkan kembali dengan aman karena HTML sudah lengkap
                 if (!sessionStorage.getItem('pwa_closed')) {
                     setTimeout(() => { document.getElementById('pwa-overlay-android').classList.add('show'); }, 1500); 
                 }
@@ -1006,7 +1005,7 @@
 
             const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
             const isInStandaloneMode = () => ('standalone' in window.navigator) && (window.navigator.standalone);
-            // [PERBAIKAN]: Fitur Popup PWA iOS dihidupkan kembali
+            
             if (isIos() && !isInStandaloneMode() && !sessionStorage.getItem('pwa_closed')) {
                 setTimeout(() => { document.getElementById('pwa-overlay-ios').classList.add('show'); }, 1500);
             }
@@ -1245,9 +1244,8 @@
                 document.getElementById('dashboard').style.display = 'block';
                 if(snap.exists()) {
                     const data = snap.data();
-                    currentUser.is_andalan = data.is_andalan === true; // Simpan status andalan
+                    currentUser.is_andalan = data.is_andalan === true; 
                     
-                    // Menampilkan badge andalan jika status is_andalan adalah true
                     const badge = document.getElementById('badge-andalan-header');
                     if (badge) {
                         badge.style.display = currentUser.is_andalan ? 'flex' : 'none';
@@ -1272,7 +1270,6 @@
                     const homeText = document.getElementById('home-status-text');
                     if(homeText) homeText.innerText = isOpen ? "Buka" : "Tutup";
 
-                    // Update visibilitas badge info WA pada card home
                     const homeInfoBadge = document.getElementById('home-status-info-badge');
                     if (homeInfoBadge) {
                         if (isOpen) {
@@ -1299,7 +1296,7 @@
             onSnapshot(query(collection(db, "products"), where("vendor_id", "==", currentUser.id)), (snapshot) => {
                 document.getElementById('menu-count').innerText = snapshot.size + " Menu";
                 currentProducts = {};
-                globalMenuGroups = {}; // Kosongkan grup sebelum memuat baru
+                globalMenuGroups = {}; 
                 
                 if(snapshot.empty) { 
                     document.getElementById('menu-container').innerHTML = '<div style="text-align:center; padding:40px; color:#999;">Belum ada menu.</div>'; 
@@ -1327,12 +1324,10 @@
             
             const categories = Object.keys(globalMenuGroups).sort();
             
-            // Jika filter aktif kategori dihapus, kembalikan ke 'Semua'
             if(currentMenuFilter !== 'Semua' && !categories.includes(currentMenuFilter)) {
                 currentMenuFilter = 'Semua';
             }
 
-            // Buat HTML Tombol Kapsul Filter
             let filterHTML = `<div class="filter-container">
                 <div class="filter-pill ${currentMenuFilter === 'Semua' ? 'active' : ''}" onclick="setMenuFilter('Semua')">Semua</div>`;
             categories.forEach(cat => {
@@ -1341,7 +1336,6 @@
             filterHTML += `</div>`;
             if(filterWrapper) filterWrapper.innerHTML = filterHTML;
 
-            // Render Item Menu Sesuai Filter
             categories.forEach(cat => {
                 if (currentMenuFilter !== 'Semua' && currentMenuFilter !== cat) return;
                 
@@ -1365,7 +1359,6 @@
                                     ${item.is_priority ? '<span style="color:#FFC107;font-size:10px;font-weight:700;"><i class="ph-fill ph-star"></i> Andalan</span>' : ''}
                                 </div>
                                 
-                                <!-- Bagian Bawah: Toggle dan Icon disejajarkan agar tidak nabrak teks -->
                                 <div style="margin-top:12px; padding-top:10px; border-top:1px dashed #eee; display:flex; align-items:center; justify-content:space-between;">
                                     <div style="display:flex; align-items:center; gap:5px;">
                                         <label class="modern-toggle" style="transform: scale(0.65); margin: 0; transform-origin: left center;">
@@ -1386,17 +1379,15 @@
             });
         }
 
-        // FUNGSI SAAT TOMBOL FILTER DIKLIK
         window.setMenuFilter = (cat) => {
             currentMenuFilter = cat;
-            renderMenuUI(); // Render ulang tampilan tanpa tarik data internet lagi
+            renderMenuUI();
         };
 
-        // FUNGSI FORMAT NOMINAL RIBUAN
         window.formatRibuan = (input) => {
-            let val = input.value.replace(/\D/g, ''); // Hapus semua karakter selain angka
+            let val = input.value.replace(/\D/g, '');
             if (val) {
-                input.value = parseInt(val, 10).toLocaleString('id-ID'); // Format ke Rupiah
+                input.value = parseInt(val, 10).toLocaleString('id-ID');
             } else {
                 input.value = '';
             }
@@ -1423,7 +1414,6 @@
             document.getElementById('modal-title').innerText = "Edit Menu";
             document.getElementById('menu-id').value = id;
             document.getElementById('inp-nama').value = item.nama_menu;
-            // Tampilkan harga ke dalam form dengan format titik ribuan
             document.getElementById('inp-harga').value = item.harga ? item.harga.toLocaleString('id-ID') : "";
             document.getElementById('inp-harga-asli').value = item.harga_asli || "";
             document.getElementById('inp-tipe').value = item.tipe || "";
@@ -1445,9 +1435,6 @@
             placeholder.innerHTML = 'Memproses...';
             
             try {
-                // PENGECEKAN KEAMANAN (FORCE LOGIN)
-                // Memastikan ulang bahwa sesi Firebase Authentication aktif.
-                // Jika tidak aktif, paksa login ulang secara anonim.
                 const auth = getAuth();
                 if (!auth.currentUser) {
                      placeholder.innerHTML = `<div style="color:orange; font-size:10px; padding:5px;">Sedang menghubungkan koneksi ke server...</div>`;
@@ -1477,7 +1464,6 @@
 
                     img.onload = async () => {
                         try {
-                            // 1. Proses Pengecilan Gambar (Canvas)
                             const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
                             const maxWidth = 400; const scale = maxWidth / img.width;
                             canvas.width = maxWidth; canvas.height = img.height * scale;
@@ -1490,11 +1476,9 @@
                             
                             showToast("Mengunggah ke server...");
                             
-                            // 2. Proses Upload ke Firebase
                             uploadedImageUrl = await uploadToFirebaseStorage(base64Data, `vendors/${currentUser.id}/menu/${Date.now()}.jpg`);
                             showToast("Foto berhasil diunggah!");
                         } catch (err) { 
-                            // Tampilkan error sedetail mungkin di dalam kotak
                             document.getElementById('preview-img').style.display = 'none';
                             placeholder.style.display = "block"; 
                             placeholder.innerHTML = `<div style="color:red; font-size:10px; padding:5px; word-break:break-all; text-align:left;"><b>Err Upload:</b><br>${err.name}: ${err.message}</div>`;
@@ -1512,7 +1496,6 @@
             const id = document.getElementById('menu-id').value;
             const nama = document.getElementById('inp-nama').value.trim();
             
-            // Ambil input harga, dan hilangkan titiknya agar menjadi angka utuh sebelum masuk ke database
             let hargaRaw = document.getElementById('inp-harga').value.replace(/\./g, '');
             let hargaAsliRaw = document.getElementById('inp-harga-asli').value.replace(/\./g, '');
             
@@ -1544,13 +1527,9 @@
 
         window.toggleAvailableStatus = async (id, currentAvailableStatus) => {
             try {
-                // Jika status saat ini true (tersedia), maka saat diklik dia berubah menjadi habis (is_sold_out: true)
                 const newSoldOutStatus = currentAvailableStatus ? true : false;
-                
-                // Siapkan data update
                 let updateData = { is_sold_out: newSoldOutStatus };
 
-                // LOGIKA BARU: Jika stok ditandai HABIS, otomatis matikan Flash Sale & Promo di database
                 if (newSoldOutStatus === true) {
                     updateData.is_flash_sale = false;
                     updateData.is_promo = false;
@@ -1612,7 +1591,6 @@
             window.open(link, '_blank');
         };
 
-        // --- FUNGSI SHARE STORY WA OTOMATIS ---
         window.shareMenuToStory = async (id) => {
             const item = currentProducts[id];
             if(!item) return;
@@ -1623,17 +1601,14 @@
             canvas.height = 1920;
             const ctx = canvas.getContext('2d');
 
-            // 1. Gambar Background
             ctx.fillStyle = '#F8F9FB';
             ctx.fillRect(0, 0, 1080, 1920);
 
-            // 2. Gambar Header Melengkung
             ctx.fillStyle = '#FF6600'; 
             ctx.beginPath();
             ctx.arc(540, -100, 900, 0, Math.PI * 2);
             ctx.fill();
 
-            // 3. Teks Header
             ctx.fillStyle = 'white';
             ctx.font = 'bold 80px "Plus Jakarta Sans", sans-serif';
             ctx.textAlign = 'center';
@@ -1643,7 +1618,6 @@
             ctx.fillStyle = '#FFF3E0';
             ctx.fillText(`📍 ${currentUser.name}`, 540, 380);
 
-            // 4. Muat dan Gambar Foto Produk
             const img = new Image();
             img.crossOrigin = 'Anonymous'; 
             img.src = window.fixImgUrl(item.foto_url);
@@ -1652,7 +1626,6 @@
                 try {
                     ctx.save();
                     ctx.beginPath();
-                    // Fallback untuk browser lawas yang tidak mendukung roundRect
                     if(ctx.roundRect) {
                         ctx.roundRect(140, 480, 800, 800, 50);
                     } else {
@@ -1662,7 +1635,6 @@
                     ctx.drawImage(img, 140, 480, 800, 800);
                     ctx.restore();
 
-                    // Bingkai Foto
                     ctx.lineWidth = 15;
                     ctx.strokeStyle = 'white';
                     if(ctx.roundRect) {
@@ -1671,10 +1643,8 @@
                         ctx.stroke();
                     }
 
-                    // 5. Nama Menu & Harga
                     ctx.fillStyle = '#1A1A1A';
                     ctx.font = 'bold 75px "Plus Jakarta Sans", sans-serif';
-                    // Potong teks jika kepanjangan (sederhana)
                     let namaMenu = item.nama_menu.length > 20 ? item.nama_menu.substring(0, 20) + '...' : item.nama_menu;
                     ctx.fillText(namaMenu, 540, 1450);
 
@@ -1682,7 +1652,6 @@
                     ctx.font = 'bold 100px "Plus Jakarta Sans", sans-serif';
                     ctx.fillText(`Rp ${item.harga.toLocaleString()}`, 540, 1580);
 
-                    // 6. Tombol CTA Bawah
                     ctx.fillStyle = '#25D366'; 
                     if(ctx.roundRect) {
                         ctx.beginPath();
@@ -1695,12 +1664,10 @@
                     ctx.font = 'bold 40px "Plus Jakarta Sans", sans-serif';
                     ctx.fillText("Pesan via WhatsApp Sekarang!", 540, 1800);
 
-                    // 7. Ekspor dan Bagikan
                     canvas.toBlob(async (blob) => {
                         if (!blob) throw new Error("Gagal membuat gambar");
                         const file = new File([blob], 'Story-Projekgo.jpg', { type: 'image/jpeg' });
                         
-                        // Menambahkan Link Toko dan Teks Promosi ke dalam text share
                         const linkToko = `https://katalog.projekgo.id/?warung=${currentUser.id}`;
                         const textPromosi = `Yuk pesan *${item.nama_menu}* di *${currentUser.name}*!\n\nBisa dipesan melalui aplikasi, klik link toko kami di bawah ini:\n${linkToko}`;
 
@@ -1711,7 +1678,6 @@
                                 text: textPromosi
                             });
                         } else {
-                            // Jika fitur share native tidak didukung, otomatis unduh
                             const url = URL.createObjectURL(blob);
                             const a = document.createElement('a');
                             a.href = url;
@@ -1733,7 +1699,6 @@
             img.onerror = () => showToast("Gagal memuat foto untuk poster", false);
         };
 
-        // --- FUNGSI PESAN KURIR WA ---
         window.openKurirModal = () => {
             document.getElementById('inp-kurir-detail').value = '';
             document.getElementById('inp-kurir-tujuan').value = '';
@@ -1757,7 +1722,6 @@
             closeKurirModal();
         };
 
-        // --- FUNGSI ATUR PROMO ---
         window.openPromoModal = () => {
             renderPromoList();
             document.getElementById('modal-promo').style.display = 'flex';
@@ -1797,7 +1761,6 @@
         };
 
         window.togglePromoStatus = async (id, currentStatus) => {
-            // Cek batasan maksimal 2 menu jika ingin mengaktifkan promo
             if (!currentStatus) {
                 let promoCount = 0;
                 Object.values(currentProducts).forEach(item => {
@@ -1806,7 +1769,7 @@
 
                 if (promoCount >= 2) {
                     showToast("Maksimal hanya 2 menu untuk Promo!", false);
-                    renderPromoList(); // Kembalikan posisi toggle secara visual
+                    renderPromoList(); 
                     return;
                 }
             }
@@ -1815,16 +1778,14 @@
                 await updateDoc(doc(db, "products", id), { is_promo: !currentStatus });
                 showToast("Status promo disimpan!");
                 
-                // Update local memory agar tombol sinkron sebelum database merefresh data
                 if(currentProducts[id]) currentProducts[id].is_promo = !currentStatus;
                 renderPromoList(); 
             } catch (e) {
                 showToast("Gagal mengatur promo", false);
-                renderPromoList(); // Kembalikan posisi toggle jika gagal
+                renderPromoList(); 
             }
         };
 
-        // --- FUNGSI ATUR FLASH SALE ---
         window.openFlashSaleModal = () => {
             if (!currentUser.is_andalan) {
                 return showToast("Maaf, fitur Flash Sale khusus untuk Mitra Andalan!", false);
@@ -1848,7 +1809,7 @@
 
             Object.entries(currentProducts).forEach(([id, item]) => {
                 const isFlashSale = !!item.is_flash_sale;
-                const isSoldOut = !!item.is_sold_out; // Cek status habis
+                const isSoldOut = !!item.is_sold_out; 
                 
                 container.innerHTML += `
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; ${isSoldOut ? 'opacity: 0.5;' : ''}">
@@ -1870,14 +1831,12 @@
         };
 
         window.toggleFlashSaleStatus = async (id, currentStatus) => {
-            // LOGIKA BARU: Jika menu sedang habis, tolak aktifkan Flash Sale
             if (!currentStatus && currentProducts[id] && currentProducts[id].is_sold_out) {
                 showToast("Menu sedang habis, tidak bisa masuk Flash Sale!", false);
-                renderFlashSaleList(); // Kembalikan posisi toggle
+                renderFlashSaleList(); 
                 return;
             }
 
-            // Cek batasan maksimal 2 menu jika ingin mengaktifkan flash sale
             if (!currentStatus) {
                 let flashSaleCount = 0;
                 Object.values(currentProducts).forEach(item => {
@@ -1886,7 +1845,7 @@
 
                 if (flashSaleCount >= 2) {
                     showToast("Maksimal hanya 2 menu untuk Flash Sale!", false);
-                    renderFlashSaleList(); // Kembalikan posisi toggle secara visual
+                    renderFlashSaleList(); 
                     return;
                 }
             }
@@ -1899,11 +1858,10 @@
                 renderFlashSaleList(); 
             } catch (e) {
                 showToast("Gagal mengatur Flash Sale", false);
-                renderFlashSaleList(); // Kembalikan posisi toggle jika gagal
+                renderFlashSaleList(); 
             }
         };
 
-        // --- FUNGSI BANTUAN ---
         window.openBantuanModal = () => {
             document.getElementById('modal-bantuan').style.display = 'flex';
         };
@@ -1912,7 +1870,6 @@
             document.getElementById('modal-bantuan').style.display = 'none';
         };
 
-        // --- FUNGSI TAGIHAN ---
         window.openTagihanModal = () => {
             document.getElementById('modal-tagihan').style.display = 'flex';
         };
@@ -1928,7 +1885,6 @@
             closeTagihanModal();
         };
 
-        // --- FUNGSI PENDAFTARAN MERCHANT ---
         window.openRegisterModal = () => {
             document.getElementById('modal-register').style.display = 'flex';
         };
@@ -1954,7 +1910,6 @@
             btn.disabled = true;
 
             try {
-                // Simpan data pendaftaran ke collection baru "pengajuan_mitra"
                 await addDoc(collection(db, "pengajuan_mitra"), {
                     nama_pemilik: pemilik,
                     nama_warung: warung,
@@ -1966,14 +1921,12 @@
 
                 showToast("Pendaftaran berhasil dikirim!");
                 
-                // Reset form
                 document.getElementById('reg-pemilik').value = '';
                 document.getElementById('reg-warung').value = '';
                 document.getElementById('reg-wa').value = '';
                 document.getElementById('reg-alamat').value = '';
                 closeRegisterModal();
 
-                // Arahkan ke WhatsApp Admin dengan pesan otomatis (Menambahkan Nama Warung)
                 const text = `Halo Admin, saya sudah mengisi form pendaftaran sebagai mitra merchant untuk warung *${warung}*, tolong ditinjau yah.`;
                 const waUrl = `https://wa.me/62882008667068?text=${encodeURIComponent(text)}`;
                 window.open(waUrl, '_blank');
@@ -1987,11 +1940,10 @@
             }
         };
 
-        // --- FUNGSI QR MEJA ---
         window.openQRModal = () => {
             document.getElementById('inp-qr-meja').value = '';
             document.getElementById('qr-result-box').style.display = 'none';
-            document.getElementById('qr-code-container').innerHTML = ''; // Kosongkan
+            document.getElementById('qr-code-container').innerHTML = ''; 
             document.getElementById('btn-generate-qr').style.display = 'block';
             document.getElementById('btn-download-qr').style.display = 'none';
             document.getElementById('modal-qr-meja').style.display = 'flex';
@@ -2003,16 +1955,14 @@
 
         window.generateQRMeja = () => {
             const mejaInput = document.getElementById('inp-qr-meja').value.trim();
-            // Buat URL rahasia mode Dine In
             const url = `https://katalog.projekgo.id/?warung=${currentUser.id}&mode=dine_in${mejaInput ? '&meja=' + encodeURIComponent(mejaInput) : ''}`;
             
             const qrContainer = document.getElementById('qr-code-container');
-            qrContainer.innerHTML = ''; // Bersihkan sebelumnya jika ada
+            qrContainer.innerHTML = ''; 
 
-            // Proses Generate QR Code
             new QRCode(qrContainer, {
                 text: url,
-                width: 170, // Ukuran pas untuk layar HP
+                width: 170, 
                 height: 170,
                 colorDark : "#1A1A1A",
                 colorLight : "#ffffff",
@@ -2027,7 +1977,6 @@
 
         window.downloadQRMeja = () => {
             const qrContainer = document.getElementById('qr-code-container');
-            // QRCode.js membuat <canvas> dan <img>. Kita ambil gambarnya.
             const canvas = qrContainer.querySelector('canvas');
             const img = qrContainer.querySelector('img');
 
@@ -2057,13 +2006,11 @@
             showToast("Memproses...");
             const reader = new FileReader();
             
-            // Tambahan: Tangkap error pembacaan file
             reader.onerror = () => showToast("Gagal membaca file profil!", false);
 
             reader.onload = (event) => {
                 const img = new Image(); 
                 
-                // Tambahan: Tangkap error gambar profil
                 img.onerror = () => showToast("Gagal memproses gambar profil!", false);
 
                 img.onload = async () => {
@@ -2074,7 +2021,6 @@
                         const url = await uploadToFirebaseStorage(canvas.toDataURL('image/jpeg', 0.8), `vendors/${currentUser.id}/profile/${Date.now()}.jpg`);
                         await updateDoc(doc(db, "vendors", currentUser.id), { shop_photo: url }); showToast("Foto profil diperbarui!");
                     } catch (err) { 
-                        // Tambahan: Tampilkan pesan error ASLI dari Firebase
                         showToast("Error Profil: " + err.message, false); 
                     }
                 };
@@ -2090,12 +2036,10 @@
                 snap.forEach(d => {
                     const r = d.data(); c++; tr += parseFloat(r.rating || 0);
                     
-                    // Logika untuk mengubah nama "undefined" menjadi tanggal
                     let displayName = r.user_name;
                     if (!displayName || displayName === 'undefined') {
                         if (r.created_at) {
                             const dateObj = new Date(r.created_at);
-                            // Format: Senin, 18 Mei 2026
                             displayName = dateObj.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
                         } else {
                             displayName = "Pelanggan";
@@ -2117,21 +2061,14 @@
         document.addEventListener("DOMContentLoaded", function() {
             const splashScreen = document.getElementById('splash-screen');
 
-            // ==========================================
-            // PENGATURAN WAKTU TAMPIL SPLASH SCREEN
-            // ==========================================
-            const waktuTampil = 3000; // 3000 = 3 detik
+            const waktuTampil = 3000; 
 
             if(splashScreen) {
                 setTimeout(() => {
-                    // 1. Memulai efek transisi memudar (fade out)
                     splashScreen.style.opacity = '0';
                     
-                    // 2. Menunggu efek memudar selesai (0.5 detik), baru dihilangkan dari HTML
                     setTimeout(() => {
                         splashScreen.style.display = 'none';
-                        
-                        // Opsional: aktifkan scroll kembali jika sebelumnya body diberi overflow: hidden
                         document.body.style.overflow = 'auto'; 
                     }, 500); 
 
