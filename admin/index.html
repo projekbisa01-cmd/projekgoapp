@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Admin">
     <link rel="apple-touch-icon" href="https://i.ibb.co.com/jvsG9cZD/PROJEKITA-10.png">
-    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Admin%22%2C%22short_name%22%3A%22Admin%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23F8F9FB%22%2C%22theme_color%22%3A%22%23FF6600%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fi.ibb.co.com%2FjvsG9cZD%2FPROJEKITA-10.png%22%2C%22sizes%22%3A%22192x192%20512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
+    <link rel="manifest" href="./manifest.json">
     
     <title>Admin Pusat - Projekgo</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -732,6 +732,17 @@
             </div>
         </div>
     </div>
+
+    <!-- Pendaftaran Service Worker Ditambahkan di Sini -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker Admin Terdaftar! Scope:', reg.scope))
+                    .catch(err => console.log('Service Worker Gagal:', err));
+            });
+        }
+    </script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
