@@ -8,8 +8,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Admin">
-    <link rel="apple-touch-icon" href="https://i.ibb.co.com/jvsG9cZD/PROJEKITA-10.png">
-    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="https://i.ibb.co.com/9mK8P8p0/Mitra-Seller-1.png">
+    <link id="dynamic-manifest" rel="manifest">
     
     <title>Admin Pusat - Projekgo</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -733,13 +733,48 @@
         </div>
     </div>
 
-    <!-- Pendaftaran Service Worker Ditambahkan di Sini -->
+    <!-- PWA VIRTUAL & SERVICE WORKER INLINE -->
     <script>
+        // 1. Generate Virtual Manifest (Tanpa file manifest.json)
+        const manifest = {
+            "name": "Admin Pusat - Projekgo",
+            "short_name": "Admin Go",
+            "start_url": location.pathname,
+            "display": "standalone",
+            "background_color": "#F8F9FB",
+            "theme_color": "#FF6600",
+            "icons": [{
+                "src": "https://i.ibb.co.com/9mK8P8p0/Mitra-Seller-1.png",
+                "sizes": "512x512",
+                "type": "image/png",
+                "purpose": "any maskable"
+            }]
+        };
+        // Konversi JSON ke Blob URL
+        const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+        document.getElementById('dynamic-manifest').href = URL.createObjectURL(manifestBlob);
+
+        // 2. Generate Virtual Service Worker (Tanpa file sw.js)
+        const swCode = `
+            self.addEventListener('install', (e) => {
+                self.skipWaiting(); // Langsung aktif
+            });
+            self.addEventListener('activate', (e) => {
+                e.waitUntil(self.clients.claim());
+            });
+            self.addEventListener('fetch', (e) => {
+                // Pass-through sederhana
+                e.respondWith(fetch(e.request).catch(() => new Response('Sedang offline. Silakan cek koneksi internet Anda.')));
+            });
+        `;
+        const swBlob = new Blob([swCode], {type: 'application/javascript'});
+        const swUrl = URL.createObjectURL(swBlob);
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker Admin Terdaftar! Scope:', reg.scope))
-                    .catch(err => console.log('Service Worker Gagal:', err));
+                navigator.serviceWorker.register(swUrl)
+                    .then(reg => console.log('Virtual Service Worker Terdaftar dengan Sukses!'))
+                    .catch(err => console.log('Virtual Service Worker Gagal:', err));
             });
         }
     </script>
@@ -775,13 +810,32 @@
         let currentVendorView = null; 
         let deleteTarget = null; 
         let adminAllPengajuan = [];
-        // --- PWA VIRTUAL LOGIC ---
+
+        // --- PWA VIRTUAL LOGIC (AGRESIF) ---
         let deferredPrompt;
+        
         window.addEventListener('beforeinstallprompt', (e) => {
+            // Mencegah Chrome memunculkan mini-infobar default
             e.preventDefault();
+            // Simpan event agar bisa dipicu nanti
             deferredPrompt = e;
+            
             const installBtn = document.getElementById('btn-install-pwa');
             if(installBtn) installBtn.style.display = 'flex';
+
+            // TAKTIK AGRESIF 1: Otomatis memicu prompt install setelah 3 detik
+            setTimeout(() => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            console.log('User menerima instalasi PWA');
+                            if(installBtn) installBtn.style.display = 'none';
+                        }
+                        deferredPrompt = null;
+                    });
+                }
+            }, 3000);
         });
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -791,11 +845,26 @@
                     if (deferredPrompt) {
                         deferredPrompt.prompt();
                         const { outcome } = await deferredPrompt.userChoice;
+                        if (outcome === 'accepted') {
+                            installBtn.style.display = 'none';
+                        }
                         deferredPrompt = null;
-                        installBtn.style.display = 'none';
                     }
                 });
             }
+            
+            // TAKTIK AGRESIF 2: Otomatis memicu prompt install saat layar di-tap/klik pertama kali
+            document.body.addEventListener('click', () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            if(installBtn) installBtn.style.display = 'none';
+                        }
+                        deferredPrompt = null;
+                    });
+                }
+            }, { once: true }); // event hanya berjalan satu kali saja
         });
 
         // --- AUTH ---
