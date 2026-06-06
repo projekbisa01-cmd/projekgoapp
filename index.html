@@ -1306,6 +1306,11 @@
         <input type="text" id="reg-name" class="reg-input" placeholder="Nama Panggilan / Lengkap">
         <input type="tel" id="reg-phone" class="reg-input" placeholder="Nomer WhatsApp (Contoh: 0812...)">
         
+        <!-- TAMBAHAN: Badge Error Nomer HP -->
+        <div id="phone-error-badge" style="display: none; color: #D32F2F; font-size: 11px; margin-top: -10px; margin-bottom: 15px; text-align: left; width: 100%; max-width: 320px; background: #FFEBEE; padding: 8px 12px; border-radius: 8px; border: 1px solid #FFCDD2; font-weight: 600; align-items: center; gap: 5px;">
+            ⚠️ Nomer WA tidak valid.
+        </div>
+        
         <button class="reg-btn" onclick="submitRegistration()">Mulai Sekarang</button>
         
         <!-- TAMBAHAN: Teks Kebijakan Privasi -->
@@ -1612,6 +1617,7 @@
             <div style="background:white; padding:0 20px; box-shadow:var(--shadow-sm);">
                 <div onclick="openPage('favorites')" style="padding:18px 0; border-bottom:1px solid #f5f5f5; display:flex; align-items:center; gap:12px; cursor:pointer;"><i class="ph-fill ph-heart" style="color:#E91E63; font-size:20px;"></i> <span style="font-weight:600; font-size:14px;">Favorit Saya</span> <i class="ph ph-caret-right" style="margin-left:auto; color:#ccc;"></i></div>
                 <div onclick="openPage('orders')" style="padding:18px 0; border-bottom:1px solid #f5f5f5; display:flex; align-items:center; gap:12px; cursor:pointer;"><i class="ph-fill ph-receipt" style="color:#2196F3; font-size:20px;"></i> <span style="font-weight:600; font-size:14px;">Riwayat Pesanan</span> <i class="ph ph-caret-right" style="margin-left:auto; color:#ccc;"></i></div>
+                <div onclick="logoutApp()" style="padding:18px 0; display:flex; align-items:center; gap:12px; cursor:pointer; color:#D32F2F;"><i class="ph-bold ph-sign-out" style="font-size:20px;"></i> <span style="font-weight:600; font-size:14px;">Keluar Akun</span> <i class="ph ph-caret-right" style="margin-left:auto; color:#ccc;"></i></div>
             </div>
         </div>
         
@@ -1702,6 +1708,33 @@
             <a href="https://wa.me/62882008667068" target="_blank" class="btn-wa-contact"><i class="ph-fill ph-whatsapp-logo" style="font-size:20px;"></i> Admin 1 (Utama)</a>
             <a href="https://wa.me/6281292802623" target="_blank" class="btn-wa-contact"><i class="ph-fill ph-whatsapp-logo" style="font-size:20px;"></i> Admin 2</a>
             <div class="close-admin-btn" onclick="closeAdminModal()">Tutup</div>
+        </div>
+    </div>
+
+    <!-- MODAL CATATAN PESANAN (TAMBAHAN BARU) -->
+    <div id="note-modal" onclick="if(event.target===this) closeNoteModal()" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 99999; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(3px);">
+        <div class="modal-content" style="background: white; width: 100%; max-width: 320px; padding: 25px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+            <h3 style="margin:0 0 10px 0; color:var(--dark); font-weight:800; font-size:16px;" id="note-modal-title">Tambah Catatan</h3>
+            <textarea id="note-modal-input" class="form-input" rows="3" placeholder="Contoh: Jangan pakai bawang..." style="resize:none; margin-bottom: 15px;"></textarea>
+            <div style="display:flex; gap:10px;">
+                <button onclick="closeNoteModal()" style="flex:1; background:#f5f5f5; color:#555; border:none; padding:12px; border-radius:12px; font-weight:700; font-size:14px; cursor:pointer;">Batal</button>
+                <button onclick="saveNoteModal()" style="flex:1; background:var(--primary); color:white; border:none; padding:12px; border-radius:12px; font-weight:700; font-size:14px; cursor:pointer; box-shadow: 0 4px 10px rgba(255, 102, 0, 0.3);">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL KONFIRMASI LOGOUT -->
+    <div id="logout-modal" onclick="if(event.target===this) closeLogoutModal()" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 99999; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(3px);">
+        <div class="modal-content" style="background: white; width: 100%; max-width: 320px; padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+            <div style="width:60px; height:60px; background:#FFEBEE; border-radius:50%; display:flex; align-items:center; justify-content:center; margin: 0 auto 15px auto;">
+                <i class="ph-bold ph-sign-out" style="font-size:30px; color:#D32F2F;"></i>
+            </div>
+            <h3 style="margin:0 0 10px 0; color:var(--dark); font-weight:800; font-size:18px;">Keluar Akun?</h3>
+            <p style="font-size:13px; color:#666; margin-bottom:20px; line-height:1.5;">Informasi profil dan keranjang Anda di perangkat ini akan direset. Yakin ingin keluar?</p>
+            <div style="display:flex; gap:10px;">
+                <button onclick="closeLogoutModal()" style="flex:1; background:#f5f5f5; color:#555; border:none; padding:12px; border-radius:12px; font-weight:700; font-size:14px; cursor:pointer;">Batal</button>
+                <button onclick="processLogout()" style="flex:1; background:#D32F2F; color:white; border:none; padding:12px; border-radius:12px; font-weight:700; font-size:14px; cursor:pointer; box-shadow: 0 4px 10px rgba(211, 47, 47, 0.3);">Ya, Keluar</button>
+            </div>
         </div>
     </div>
 
@@ -2168,13 +2201,66 @@
         }
 
         window.submitRegistration = async () => {
-            const name = document.getElementById('reg-name').value.trim();
-            const phone = document.getElementById('reg-phone').value.trim();
+            const nameEl = document.getElementById('reg-name');
+            const phoneEl = document.getElementById('reg-phone');
+            const errorBadge = document.getElementById('phone-error-badge');
+            
+            const name = nameEl.value.trim();
+            const phone = phoneEl.value.trim();
+
+            // Reset error states (Hapus warna merah jika sebelumnya ada)
+            nameEl.style.borderColor = '#ddd';
+            nameEl.style.backgroundColor = '#f9f9f9';
+            phoneEl.style.borderColor = '#ddd';
+            phoneEl.style.backgroundColor = '#f9f9f9';
+            if (errorBadge) errorBadge.style.display = 'none';
 
             if (!name || !phone) {
                 showToast("⚠️ Nama dan Nomer WA wajib diisi ya!");
+                if (!name) { nameEl.style.borderColor = 'red'; nameEl.style.backgroundColor = '#ffebee'; }
+                if (!phone) { phoneEl.style.borderColor = 'red'; phoneEl.style.backgroundColor = '#ffebee'; }
                 return;
             }
+
+            // --- TAMBAHAN LOGIKA VALIDASI NOMER TELEPON DENGAN BADGE ERROR ---
+            // Hanya izinkan angka, spasi, tanda plus (+), atau strip (-)
+            const phoneRegex = /^[0-9+\- ]+$/;
+            if (!phoneRegex.test(phone)) {
+                if (errorBadge) {
+                    errorBadge.innerHTML = '⚠️ Nomer WA hanya boleh berisi angka (atau tanda +).';
+                    errorBadge.style.display = 'flex';
+                }
+                phoneEl.style.borderColor = 'red';
+                phoneEl.style.backgroundColor = '#ffebee';
+                showToast("⚠️ Format nomer WA tidak sesuai.");
+                return;
+            }
+
+            // Hitung jumlah digit angka saja (tanpa tanda + atau spasi)
+            const digitCount = phone.replace(/\D/g, '').length;
+            
+            // Minimal 8 angka, maksimal 16 angka
+            if (digitCount < 8) {
+                if (errorBadge) {
+                    errorBadge.innerHTML = '⚠️ Nomer WA terlalu pendek. Minimal 8 angka.';
+                    errorBadge.style.display = 'flex';
+                }
+                phoneEl.style.borderColor = 'red';
+                phoneEl.style.backgroundColor = '#ffebee';
+                showToast("⚠️ Nomer WA tidak valid.");
+                return;
+            }
+            if (digitCount > 16) {
+                if (errorBadge) {
+                    errorBadge.innerHTML = '⚠️ Nomer WA terlalu panjang. Maksimal 16 angka.';
+                    errorBadge.style.display = 'flex';
+                }
+                phoneEl.style.borderColor = 'red';
+                phoneEl.style.backgroundColor = '#ffebee';
+                showToast("⚠️ Nomer WA terlalu panjang.");
+                return;
+            }
+            // ----------------------------------------------
 
             // Simpan profil baru di browser
             const newProfile = { name: name, phone: phone };
@@ -2213,7 +2299,6 @@
                 }
             }, 500);
         }
-        // ----------------------------------------
 
         // FUNGSI CEK JAM OPERASIONAL YANG DIPERBARUI
         window.checkOperationalStatus = (isAction = true) => {
@@ -2444,6 +2529,38 @@
 
         window.toggleEditProfile = () => { const box = document.getElementById('edit-profile-form'); box.style.display = box.style.display === 'block' ? 'none' : 'block'; document.getElementById('edit-name').value = savedProfile.name; document.getElementById('edit-phone').value = savedProfile.phone; }
         window.saveProfile = () => { const name = document.getElementById('edit-name').value; const phone = document.getElementById('edit-phone').value; if(name && phone) { savedProfile.name = name; savedProfile.phone = phone; localStorage.setItem('user_profile', JSON.stringify(savedProfile)); document.getElementById('profile-name').innerText = name; document.getElementById('profile-phone').innerText = phone; document.getElementById('edit-profile-form').style.display = 'none'; showToast("Profil berhasil disimpan!"); } }
+
+        // --- FUNGSI LOGOUT AKUN ---
+        window.logoutApp = () => {
+            document.getElementById('logout-modal').style.display = 'flex';
+        }
+
+        window.closeLogoutModal = () => {
+            document.getElementById('logout-modal').style.display = 'none';
+        }
+
+        window.processLogout = () => {
+            // Hapus data pengguna di penyimpanan lokal
+            localStorage.removeItem('user_profile');
+            localStorage.removeItem('user_address');
+            localStorage.removeItem('user_maps');
+            localStorage.removeItem('order_history');
+            localStorage.removeItem('favs');
+            localStorage.removeItem('last_review_date');
+            localStorage.removeItem('app_reviewed');
+            
+            // Sign out dari Firebase jika auth tersedia, lalu reload paksa agar kembali ke layar pendaftaran
+            if (typeof auth !== 'undefined' && auth) {
+                auth.signOut().then(() => {
+                    window.location.reload();
+                }).catch(() => {
+                    window.location.reload();
+                });
+            } else {
+                window.location.reload();
+            }
+        }
+        // --------------------------
 
         window.openReviewModal = (vendorName, orderId) => { 
             currentReviewOrderId = orderId; 
@@ -3662,23 +3779,43 @@
             renderCartPage(); 
         }
 
+        // --- FUNGSI CATATAN PESANAN YANG DIPERBARUI ---
+        let currentEditingNoteKey = null;
+
         window.promptNote = (key) => {
             const item = cart.find(item => {
                  const itemKey = item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase();
                  return itemKey === key;
             });
             if (item) {
-                const newNote = prompt("Masukkan catatan untuk " + item.nama + ":", item.note || "");
-                if (newNote !== null) {
-                    // Update semua item serupa yang ada di keranjang
-                    cart.forEach(cartItem => {
-                         const itemKey = cartItem.id + '|' + cartItem.variant + '|' + (cartItem.note || '').trim().toLowerCase();
-                         if(itemKey === key) cartItem.note = newNote;
-                    });
-                    renderCartPage();
-                }
+                currentEditingNoteKey = key;
+                document.getElementById('note-modal-title').innerText = "Catatan: " + item.nama;
+                document.getElementById('note-modal-input').value = item.note || "";
+                document.getElementById('note-modal').style.display = 'flex';
+                setTimeout(() => document.getElementById('note-modal-input').focus(), 100);
             }
         }
+
+        window.closeNoteModal = () => {
+            document.getElementById('note-modal').style.display = 'none';
+            currentEditingNoteKey = null;
+        }
+
+        window.saveNoteModal = () => {
+            if (!currentEditingNoteKey) return;
+            const newNote = document.getElementById('note-modal-input').value;
+            
+            // Update semua item serupa yang ada di keranjang
+            cart.forEach(cartItem => {
+                 const itemKey = cartItem.id + '|' + cartItem.variant + '|' + (cartItem.note || '').trim().toLowerCase();
+                 if(itemKey === currentEditingNoteKey) cartItem.note = newNote;
+            });
+            
+            renderCartPage();
+            closeNoteModal();
+            showToast("Catatan berhasil disimpan!");
+        }
+        // ----------------------------------------------
 
         window.cekOngkirDulu = () => {
             const addrEl = document.getElementById('checkout-addr');
