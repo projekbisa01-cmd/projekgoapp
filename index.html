@@ -1307,6 +1307,11 @@
         <input type="tel" id="reg-phone" class="reg-input" placeholder="Nomer WhatsApp (Contoh: 0812...)">
         
         <button class="reg-btn" onclick="submitRegistration()">Mulai Sekarang</button>
+        
+        <!-- TAMBAHAN: Teks Kebijakan Privasi -->
+        <div style="margin-top: 15px; font-size: 11px; color: #666; text-align: center; max-width: 320px; line-height: 1.5;">
+            Dengan masuk dan melanjutkan, Anda menyetujui <a href="https://katalog.projekgo.id/privasi" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 700;">Kebijakan Privasi</a> kami.
+        </div>
     </div>
 
     <!-- SPLASH SCREEN / ONBOARDING -->
@@ -3850,8 +3855,20 @@
             cart = [];
             updateCartBadge();
 
-            // 4. Arahkan ke WhatsApp
-            window.open(`https://wa.me/${ADMIN_WA}?text=${message}`, '_blank');
+            // 4. Arahkan ke WhatsApp dengan proteksi error
+            try {
+                const waUrl = `https://wa.me/${ADMIN_WA}?text=${message}`;
+                const waWindow = window.open(waUrl, '_blank');
+                
+                // Cek jika browser memblokir popup atau gagal membuka jendela baru
+                if (!waWindow || waWindow.closed || typeof waWindow.closed === 'undefined') {
+                    showToast("Aplikasi WhatsApp tidak ditemukan di perangkat ini atau popup diblokir.");
+                }
+            } catch (error) {
+                // Tangkap error jika link gagal dieksekusi oleh sistem perangkat
+                showToast("Aplikasi WhatsApp tidak ditemukan di perangkat ini");
+                console.error("Gagal membuka WhatsApp:", error);
+            }
 
             // 5. Pindah ke beranda lalu tampilkan Pop Up
             openPage('home');
