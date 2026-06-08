@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -868,6 +868,72 @@
         .vm-radio-item.selected .vm-radio-circle { border-color: var(--primary); }
         .vm-radio-item.selected .vm-radio-circle::after { content:''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 10px; height: 10px; background: var(--primary); border-radius: 50%; }
 
+        /* --- BANNER PROJEKGO INFO (TAMBAHAN BARU) --- */
+        .promo-banner-orange {
+            background: linear-gradient(90deg, #fff0e6 0%, #ffdfcc 100%);
+            margin: 10px 15px 20px 15px;
+            border-radius: 16px;
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(255, 102, 0, 0.1);
+            transition: transform 0.2s;
+            border: 1px solid #ffccb3;
+        }
+        .promo-banner-orange:active { transform: scale(0.98); }
+        .promo-banner-orange::before, .promo-banner-orange::after {
+            content: ''; position: absolute; background: rgba(255,102,0,0.1); border-radius: 50%;
+        }
+        .promo-banner-orange::before { width: 80px; height: 80px; top: -30px; left: -20px; }
+        .promo-banner-orange::after { width: 100px; height: 100px; bottom: -40px; right: -30px; }
+
+        .pbo-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            z-index: 2;
+        }
+        .pbo-text {
+            font-size: 13px; font-weight: 700; color: #444; margin-bottom: 8px; text-align: center;
+        }
+        .pbo-btn {
+            background: linear-gradient(90deg, #FF6600, #E65100);
+            color: white; font-size: 13px; font-weight: 800; padding: 8px 18px; border-radius: 20px;
+            display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(255,102,0,0.3);
+        }
+        .pbo-icon {
+            position: absolute; color: #FF9900; font-size: 40px; z-index: 1; opacity: 0.6;
+        }
+
+        /* --- MODAL PROJEKGO INFO (TAMBAHAN BARU) --- */
+        #projekgo-info-modal {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6); z-index: 99999; align-items: center; justify-content: center;
+            backdrop-filter: blur(3px); padding: 20px; opacity: 0; transition: opacity 0.3s;
+        }
+        #projekgo-info-modal.show { opacity: 1; }
+        .projekgo-info-content {
+            background: white; width: 100%; max-width: 400px; border-radius: 20px; padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2); max-height: 85vh; overflow-y: auto;
+            transform: translateY(20px); transition: transform 0.3s; position: relative;
+        }
+        #projekgo-info-modal.show .projekgo-info-content { transform: translateY(0); }
+        .pi-close {
+            position: absolute; top: 15px; right: 15px; width: 30px; height: 30px; background: #f0f0f0;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 18px; color: #555; cursor: pointer; transition: 0.2s;
+        }
+        .pi-close:active { background: #e0e0e0; }
+        .pi-title { font-size: 18px; font-weight: 800; color: var(--primary); margin-bottom: 15px; text-align: center; line-height: 1.3;}
+        .pi-body { font-size: 12px; color: #444; line-height: 1.6; text-align: justify; }
+        .pi-body h4 { font-size: 14px; font-weight: 800; color: var(--dark); margin: 15px 0 5px 0; }
+        .pi-body p { margin: 0 0 10px 0; }
+
         /* --- STYLES UNTUK LOCATION MODAL --- */
         #location-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 2500; align-items: flex-end; justify-content: center; backdrop-filter: blur(2px); opacity: 0; transition: opacity 0.3s; }
         #location-modal.show { opacity: 1; }
@@ -1473,6 +1539,18 @@
                 </div>
             </div>
 
+            <!-- BANNER PROJEKGO DELIVERY PRIORITAS (TAMBAHAN BARU) -->
+            <div class="promo-banner-orange" onclick="openProjekgoInfoModal()">
+                <!-- Ikon tiket di kiri dan kanan background -->
+                <i class="ph-fill ph-ticket pbo-icon" style="left: -10px; transform: rotate(-30deg);"></i>
+                <i class="ph-fill ph-ticket pbo-icon" style="right: -10px; transform: rotate(30deg);"></i>
+                
+                <div class="pbo-content">
+                    <div class="pbo-text">Pasti dapet diskon tiap hari</div>
+                    <div class="pbo-btn">Apa itu Projekgo Delivery Prioritas <i class="ph-bold ph-arrow-right"></i></div>
+                </div>
+            </div>
+
             <!-- KONTAINER KATEGORI MAKANAN -->
             <div id="kategori-makanan" style="background: var(--bg); position: relative; z-index: 5;">
                 <div class="swipe-hint-box" style="display: none;">
@@ -1833,6 +1911,29 @@
                 </div>
             </div>
             
+        </div>
+    </div>
+
+    <!-- MODAL INFO PROJEKGO (TAMBAHAN BARU) -->
+    <div id="projekgo-info-modal" onclick="if(event.target===this) closeProjekgoInfoModal()">
+        <div class="projekgo-info-content">
+            <div class="pi-close" onclick="closeProjekgoInfoModal()"><i class="ph-bold ph-x"></i></div>
+            <div class="pi-title">Selamat Datang di PROJEKGO!</div>
+            <div class="pi-body">
+                <p><b>PROJEKGO</b> adalah aplikasi katalog digital yang dirancang khusus untuk memberikan kemudahan, kenyamanan, dan efisiensi dalam setiap pemesanan Anda. Berfungsi sebagai jembatan praktis, aplikasi ini mempermudah Anda memilih produk favorit, di mana semua pesanan yang Anda checkout akan langsung terhubung secara otomatis ke WhatsApp Admin untuk proses yang lebih personal dan cepat.</p>
+                
+                <h4>Tujuan Utama Kami</h4>
+                <p>Kami hadir dengan fokus pada efektivitas dan ketersediaan layanan demi memberikan pengalaman belanja yang mulus. Dengan sistem katalog terintegrasi, PROJEKGO berkomitmen untuk meminimalisir risiko kesalahan pesanan, sehingga apa yang Anda pilih adalah apa yang Anda dapatkan.</p>
+                
+                <h4>Mengapa Memilih PROJEKGO?</h4>
+                <p><b>Harga Jujur & Pasti Hemat:</b> Kami menjamin harga yang tertera di aplikasi sama persis dengan harga asli di penjual langsung. Tanpa ada kenaikan harga (no markup) karena PROJEKGO murni berfungsi sebagai katalog penjual. Tanpa menunggu promo atau diskon pun, Anda sudah pasti hemat setiap hari!</p>
+                <p><b>Pengantaran Prioritas (1 Pelanggan, 1 Rider):</b> Layanan pengiriman kami tidak hanya hemat, tetapi juga diprioritaskan. Begitu pesanan masuk, langsung diproses dengan sistem satu rider untuk satu pelanggan agar pengiriman menjadi jauh lebih cepat, tepat, dan aman.</p>
+                <p><b>Pemesanan Fleksibel (Bisa Kustom):</b> Ngidam makanan atau butuh barang yang kebetulan belum terdaftar di aplikasi? Tenang saja! Anda tetap bisa memesan apa pun di luar katalog dengan cara langsung chat Admin kami. Kami siap membantu membelikannya untuk Anda.</p>
+                
+                <div style="margin-top: 20px; padding: 15px; background: #FFF0E5; border-radius: 12px; border: 1px dashed #FF9900; font-style: italic; color: #E65100; font-weight: 700; text-align: center;">
+                    PROJEKGO: Berawal dari komitmen untuk menghadirkan kemudahan dan efektivitas, kami lahir sebagai aplikasi katalog yang siap mendampingi dan mempermudah segala kebutuhan harian Anda. Nikmati cara memesan yang lebih praktis dalam satu genggaman!
+                </div>
+            </div>
         </div>
     </div>
 
@@ -2400,6 +2501,20 @@
 
         window.closeMoreMenuModal = () => {
             const modal = document.getElementById('more-menu-modal');
+            modal.classList.remove('show');
+            setTimeout(() => { modal.style.display = 'none'; }, 300);
+        }
+
+        // --- LOGIKA MODAL PROJEKGO INFO (TAMBAHAN BARU) ---
+        window.openProjekgoInfoModal = () => {
+            const modal = document.getElementById('projekgo-info-modal');
+            modal.style.display = 'flex';
+            modal.offsetHeight; 
+            modal.classList.add('show');
+        }
+
+        window.closeProjekgoInfoModal = () => {
+            const modal = document.getElementById('projekgo-info-modal');
             modal.classList.remove('show');
             setTimeout(() => { modal.style.display = 'none'; }, 300);
         }
@@ -3010,17 +3125,18 @@
 
                         const div = document.createElement('div'); 
                         // Desain Kartu UI Sesuai Gambar (Gambar Menonjol ke kiri)
-                        div.style.cssText = `position:relative; display:flex; align-items:center; background:#f4f6f8; border-radius:24px; padding:12px 15px 12px 0; margin-bottom:18px; box-shadow:0 4px 10px rgba(0,0,0,0.03); transition:transform 0.2s; ${opacityClass}`;
+                        // Ditambahkan margin & padding sedikit lebih lega untuk gambar besar
+                        div.style.cssText = `position:relative; display:flex; align-items:center; background:#f4f6f8; border-radius:24px; padding:15px 15px 15px 0; margin-bottom:20px; box-shadow:0 4px 10px rgba(0,0,0,0.03); transition:transform 0.2s; ${opacityClass}`;
                         
                         div.innerHTML = `
-                            <!-- Gambar Menonjol -->
-                            <div style="position:absolute; left:-20px; width:85px; height:85px; border-radius:50%; box-shadow:4px 4px 15px rgba(0,0,0,0.15); z-index:2; background:white;">
+                            <!-- Gambar Menonjol (Diperbesar) -->
+                            <div style="position:absolute; left:-20px; width:100px; height:100px; border-radius:50%; box-shadow:4px 4px 15px rgba(0,0,0,0.15); z-index:2; background:white;">
                                 ${habisBadge}
                                 <img src="${imgItem}" style="width:100%; height:100%; object-fit:cover; border-radius:50%; ${grayscaleClass} cursor:zoom-in;" loading="lazy" onerror="this.src='${FALLBACK_MENU_IMG}'" onclick="openImageViewer('${imgItem}')">
                             </div>
                             
-                            <!-- Area Konten (Diberi margin agar tidak tertutup gambar) -->
-                            <div style="margin-left: 75px; flex-grow:1; display:flex; flex-direction:column; justify-content:center; width:calc(100% - 75px);">
+                            <!-- Area Konten (Margin disesuaikan agar teks tidak tertutup gambar besar) -->
+                            <div style="margin-left: 90px; flex-grow:1; display:flex; flex-direction:column; justify-content:center; width:calc(100% - 90px);">
                                 <div onclick="openProductDetail('${item.id}')" style="cursor:pointer;">
                                     <div style="font-weight:800; font-size:13px; color:var(--dark); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.nama_menu}</div>
                                     <div style="font-size:11px; color:#888; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${desc}</div>
