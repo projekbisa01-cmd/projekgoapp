@@ -2079,14 +2079,44 @@
                 let dateStr = '-';
                 if(p.tanggal_pengajuan) {
                     const d = new Date(p.tanggal_pengajuan);
-                    dateStr = d.toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric'});
+                    dateStr = d.toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'});
                 }
+
+                // --- EKSTRAK SEMUA DATA LAINNYA SECARA DINAMIS ---
+                // Data-data pokok di-skip karena sudah ditampilkan di layout utama card
+                const excludeKeys = ['id', 'nama_warung', 'nama_pemilik', 'status', 'tanggal_pengajuan', 'no_wa', 'alamat', 'vendor_id'];
+                let extraDataHtml = '';
+                
+                for (const [key, value] of Object.entries(p)) {
+                    if (!excludeKeys.includes(key) && value !== null && value !== '') {
+                        // Merapikan nama field (contoh: "email_pemilik" otomatis jadi "Email Pemilik")
+                        const formattedKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                        
+                        let formattedValue = value;
+                        // Cek jika datanya berupa URL/Link Gambar
+                        if (typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
+                            formattedValue = `<a href="${value}" target="_blank" style="color: var(--info); text-decoration: underline; font-weight: 700;">Lihat Lampiran / File</a>`;
+                        } else if (typeof value === 'object') {
+                            formattedValue = JSON.stringify(value); // Fallback array/objek
+                        }
+
+                        extraDataHtml += `
+                            <div style="display: flex; gap: 10px; align-items: start; margin-top: 8px;">
+                                <i class="ph-fill ph-info" style="color: var(--primary); font-size: 16px; margin-top: 1px;"></i>
+                                <div style="font-size: 13px; color: var(--dark); line-height: 1.4; word-break: break-word;">
+                                    <span style="color: var(--gray); font-weight: 600;">${formattedKey}:</span> <br/>${formattedValue}
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+                // --------------------------------------------------
 
                 hMain += `
                     <tr style="display: block; background: white; margin-bottom: 15px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border: 1px solid #f0f0f0;">
                         <td colspan="4" style="display: block; padding: 0; border: none; text-align: left;">
                             <!-- HEADER CARD -->
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #f8fafc; background: #fff;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #f8fafc; background: #fff; border-radius: 16px 16px 0 0;">
                                 <div style="display: flex; align-items: center; gap: 12px;">
                                     <div style="width: 36px; height: 36px; flex-shrink: 0; border-radius: 10px; background: #f3e8ff; color: #9333ea; display: flex; align-items: center; justify-content: center;">
                                         <i class="ph-bold ph-storefront" style="font-size:18px;"></i>
@@ -2118,6 +2148,11 @@
                                             ${p.alamat || '-'}
                                         </div>
                                     </div>
+                                    
+                                    <!-- CONTAINER DATA DINAMIS -->
+                                    <div style="border-top: 1px dashed #e2e8f0; margin-top: 8px; padding-top: 5px;">
+                                        ${extraDataHtml}
+                                    </div>
                                 </div>
 
                                 <div style="background: #f8fafc; padding: 12px; border-radius: 12px; margin-bottom: 15px; font-size: 12px; border: 1px solid #f1f5f9; color: var(--gray);">
@@ -2137,6 +2172,9 @@
                                         <i class="ph-fill ph-check-circle" style="font-size:16px;"></i> Sudah di-ACC
                                     </div>
                                     `}
+                                    <button class="action-btn btn-delete" onclick="window.askDelete('pengajuan_mitra', '${p.id}')" title="Hapus Pengajuan">
+                                        <i class="ph-bold ph-trash"></i>
+                                    </button>
                                 </div>
                             </div>
                         </td>
