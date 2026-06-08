@@ -1480,7 +1480,7 @@
                 <!-- SEARCH BAR BARU -->
                 <div id="sticky-search-wrapper" class="search-container-wrapper" style="margin-top: 15px; z-index: 1002;">
                     <div class="sticky-search-bar" onclick="openSearchModal()" style="padding: 6px 6px 6px 20px; border-radius: 40px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.08); background: white;">
-                        <input type="text" placeholder="McDonald's Burger" readonly style="color: #999; font-weight: 500;">
+                        <input type="text" placeholder="Cari Disini.." readonly style="color: #999; font-weight: 500;">
                         <div style="width: 44px; height: 44px; background: #FFD600; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-left: auto;">
                             <i class="ph-bold ph-magnifying-glass" style="color: #000; font-size: 20px;"></i>
                         </div>
@@ -1546,8 +1546,8 @@
                 <i class="ph-fill ph-ticket pbo-icon" style="right: -10px; transform: rotate(30deg);"></i>
                 
                 <div class="pbo-content">
-                    <div class="pbo-text">Pasti dapet diskon tiap hari</div>
-                    <div class="pbo-btn">Apa itu Projekgo Delivery Prioritas <i class="ph-bold ph-arrow-right"></i></div>
+                    <div class="pbo-text">Kenalan sama PROJEKGO yuk</div>
+                    <div class="pbo-btn">Apa itu Projekgo Prioritas <i class="ph-bold ph-arrow-right"></i></div>
                 </div>
             </div>
 
@@ -3762,6 +3762,19 @@
                 const consolidatedItems = [];
                 items.forEach(item => { const key = item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase(); const existing = consolidatedItems.find(i => i._key === key); if (existing) { existing.qty++; existing.totalItemPrice += item.harga; } else { consolidatedItems.push({ ...item, _key: key, qty: 1, totalItemPrice: item.harga }); } });
                 
+                // --- LOGIKA BARU: Cari Vendor ID agar tombol Tambah mengarah ke toko yang benar ---
+                let targetVendorId = vendor; 
+                if (items.length > 0) {
+                    const sampleProduct = rawProducts.find(p => p.id === items[0].id);
+                    if (sampleProduct && sampleProduct.vendor_id) {
+                        targetVendorId = sampleProduct.vendor_id;
+                    } else {
+                        const vendorObj = allVendors.find(v => v.nama_warung === vendor);
+                        if (vendorObj) targetVendorId = vendorObj.id;
+                    }
+                }
+                // -----------------------------------------------------------------------------------
+                
                 html += `<div class="cart-section" style="padding-bottom: 15px;"><div class="cart-vendor-group" style="border:none; margin-bottom:0; padding-bottom:0;"><div class="cv-title"><i class="ph-fill ph-storefront"></i> ${vendor}</div>${consolidatedItems.map((item) => { 
                     let metaText = ""; 
                     if(item.variant && item.variant !== '-') { metaText += item.variant; } 
@@ -3800,7 +3813,7 @@
                         <div style="font-weight:700; font-size:14px; color:var(--dark); margin-bottom: 2px;">Ada lagi yang mau dibeli?</div>
                         <div style="font-size:12px; color:#666;">Masih bisa nambah menu lain, ya.</div>
                     </div>
-                    <button onclick="goBack()" style="background:white; color:#2E7D32; border:1px solid #2E7D32; padding:6px 16px; border-radius:20px; font-weight:700; font-size:12px; cursor:pointer;">Tambah</button>
+                    <button onclick="openVendorPage('${targetVendorId}')" style="background:white; color:#2E7D32; border:1px solid #2E7D32; padding:6px 16px; border-radius:20px; font-weight:700; font-size:12px; cursor:pointer;">Tambah</button>
                 </div>
                 
                 </div></div>`;
@@ -4964,6 +4977,19 @@
                 // Menambahkan Badge Visual "Andalan" khusus untuk yang memiliki is_andalan = true
                 const andalanBadge = v.is_andalan ? '<span style="display:inline-flex; align-items:center; gap:3px; background:#E8F5E9; color:#2E7D32; font-size:10px; font-weight:800; padding:2px 6px; border-radius:12px; margin-left:4px; vertical-align:middle; border:1px solid #C8E6C9;"><i class="ph-fill ph-check-circle" style="font-size:12px;"></i>Andalan</span>' : '';
 
+                // --- TAMBAHAN BADGE HALAL (DIPERBESAR & PINDAH POSISI) ---
+                let halalBadge = '';
+                if (v.is_halal === true || v.has_sertifikat_halal === true) { 
+                    let textBersertifikat = (v.has_sertifikat_halal === true) ? '<span style="font-size: 10px; font-weight: 800; color: #2E7D32;">Bersertifikat</span>' : '';
+                    halalBadge = `
+                        <div style="display:inline-flex; align-items:center; gap:4px; background: white; padding: 2px 6px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #eee; margin-left: 2px;">
+                            <img src="https://i.ibb.co.com/KjN0Wf2G/Desain-tanpa-judul-44.png" style="width: 24px; height: 24px; object-fit: contain;">
+                            ${textBersertifikat}
+                        </div>
+                    `;
+                }
+                // -----------------------------
+
                 const div = document.createElement('div');
                 
                 if (index === 10 || index === 11 || index === 12) {
@@ -4980,13 +5006,14 @@
                             <div style="position: relative; width: 100%; height: 180px;">
                                 <img src="${v.cover_photo || img}" style="width: 100%; height: 100%; object-fit: cover; ${!s ? 'filter:grayscale(100%);' : ''}" onerror="this.src='${img}'">
                                 ${!s ? '<div class="badge-habis-overlay"><span class="badge-habis-text">TUTUP</span></div>' : ''}
-                                <div style="position: absolute; bottom: -12px; left: 15px; display: flex; gap: 6px; z-index: 2;">
+                                <div style="position: absolute; bottom: -12px; left: 15px; display: flex; align-items: center; gap: 6px; z-index: 2;">
                                     <div style="background: #1B5E20; color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 800; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
                                         <i class="ph-fill ph-star"></i> ${rating}
                                     </div>
                                     <div style="background: white; color: var(--dark); padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #eee;">
                                         <i class="ph-bold ph-moped"></i> ${dist}0-${dist}5 min
                                     </div>
+                                    ${halalBadge}
                                     <div style="background: white; color: #666; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #eee;">
                                         ${dist} km
                                     </div>
@@ -5038,6 +5065,7 @@
                                     <span style="color:#00880B; font-weight:800;">Ongkir Hemat</span>
                                     <span style="color:#E65100; font-weight:700; font-size:10px; background:#FFF3E0; padding:2px 6px; border-radius:4px; margin-left:4px;">Pengantaran Prioritas</span>
                                     <span style="color:#888; font-weight:500; font-size:11px; white-space:nowrap; margin-left:4px;">• Estimasi 10 - 30 mnt</span>
+                                    ${halalBadge}
                                 </div>
                                 <div style="font-size:10px; color:${statusColor}; font-weight:700; margin-top:2px;">${statusText}</div>
                                 ${catatanTokoListHtml}
