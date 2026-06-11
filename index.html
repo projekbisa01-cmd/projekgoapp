@@ -900,6 +900,11 @@
         }
         .pbo-text {
             font-size: 13px; font-weight: 700; color: #444; margin-bottom: 8px; text-align: center;
+            animation: textGerakKeren 2s ease-in-out infinite;
+        }
+        @keyframes textGerakKeren {
+            0%, 100% { transform: scale(1) translateY(0); color: #444; text-shadow: none; }
+            50% { transform: scale(1.05) translateY(-3px); color: #FF6600; text-shadow: 0 4px 8px rgba(255, 102, 0, 0.3); }
         }
         .pbo-btn {
             background: linear-gradient(90deg, #FF6600, #E65100);
@@ -2050,13 +2055,41 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         // ====================================================================
-        // --- 1. REGISTRASI SERVICE WORKER (FILE FISIK) ---
+        // --- 1. REGISTRASI SERVICE WORKER (FILE FISIK) & AUTO UPDATE ---
         // ====================================================================
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')
                 .then((registration) => {
                     console.log('ServiceWorker berhasil didaftarkan secara fisik');
+                    
+                    // MEMAKSA CEK UPDATE SETIAP KALI APLIKASI DIBUKA
+                    registration.update();
+
+                    // MENDETEKSI JIKA ADA VERSI BARU DI HOSTING
+                    registration.onupdatefound = () => {
+                        const installingWorker = registration.installing;
+                        if (installingWorker) {
+                            installingWorker.onstatechange = () => {
+                                if (installingWorker.state === 'installed') {
+                                    if (navigator.serviceWorker.controller) {
+                                        // Jika ada update baru, paksa refresh halaman agar langsung berubah
+                                        console.log('Versi baru ditemukan! Memuat ulang aplikasi...');
+                                        
+                                        // Opsional: Bisa tampilkan toast dulu sebelum reload
+                                        if (window.showToast) {
+                                            window.showToast("Memperbarui aplikasi ke versi terbaru...");
+                                            setTimeout(() => {
+                                                window.location.reload(true);
+                                            }, 1500);
+                                        } else {
+                                            window.location.reload(true);
+                                        }
+                                    }
+                                }
+                            };
+                        }
+                    };
                 })
                 .catch((err) => {
                     console.warn("ServiceWorker gagal didaftarkan:", err);
@@ -3071,15 +3104,14 @@
                 // 1. Buat UI Pill Categories (DIBUAT STICKY)
                 let pillsHtml = '<div style="position: sticky; top: 0; z-index: 99; background: var(--bg); padding: 15px 0 10px 0; margin: -10px -15px 10px -15px;"><div style="display:flex; overflow-x:auto; gap:10px; padding: 0 15px 5px 15px; scrollbar-width:none; -webkit-overflow-scrolling:touch;">';
                 sortedKeys.forEach((key, idx) => {
-                    // Warna hijau khas seperti di gambar
                     const bgActive = '#00a35c'; 
                     const isActive = idx === 0 ? `background:${bgActive}; color:white; border-color:${bgActive};` : 'background:white; color:#333; border-color:#ddd;';
-                    pillsHtml += `<div class="menu-pill-btn" onclick="filterMenuVendor('${key}', this)" style="white-space:nowrap; padding:6px 18px; border-radius:20px; font-size:12px; font-weight:700; border:1px solid; cursor:pointer; transition:0.2s; box-shadow:0 2px 4px rgba(0,0,0,0.02); ${isActive}">${key}</div>`;
+                    pillsHtml += `<div class="menu-pill-btn" onclick="filterMenuVendor('${key}', this)" style="white-space:nowrap; padding:8px 20px; border-radius:20px; font-size:13px; font-weight:700; border:1px solid; cursor:pointer; transition:0.2s; box-shadow:0 2px 4px rgba(0,0,0,0.02); ${isActive}">${key}</div>`;
                 });
                 pillsHtml += '</div></div>';
 
-                // 2. Buat Kontainer Kosong untuk Daftar Menu
-                let listItemsHtml = '<div id="vendor-filtered-menu-list" style="padding: 0 15px 40px 25px;"></div>';
+                // 2. Buat Kontainer Kosong untuk Daftar Menu (Padding dan background disesuaikan agar bersih)
+                let listItemsHtml = '<div id="vendor-filtered-menu-list" style="padding: 10px 15px 40px 15px; background: #fcfcfc;"></div>';
 
                 listContainer.innerHTML = pillsHtml + listItemsHtml;
 
@@ -3113,41 +3145,51 @@
                         const fakePrice = Math.ceil(realPrice * 1.2); 
                         const desc = item.deskripsi || `${item.nama_menu} spesial, porsi pas bikin kenyang.`;
                         
+                        // Cek Favorit
+                        const isFav = favorites.includes(item.id) ? 'active' : '';
+                        const heartColor = favorites.includes(item.id) ? '#E91E63' : '#ccc';
+                        
                         // Status Toko & Menu
                         const isAvailable = item.is_available !== false && item.is_sold_out !== true && isOpen; 
                         const grayscaleClass = isAvailable ? '' : 'filter:grayscale(100%);'; 
                         const opacityClass = isAvailable ? '' : 'opacity:0.6;'; 
                         const badgeText = !isOpen ? 'TUTUP' : 'HABIS';
-                        const habisBadge = isAvailable ? '' : `<div style="position:absolute; inset:0; background:rgba(255,255,255,0.7); display:flex; align-items:center; justify-content:center; z-index:4; border-radius:50%;"><span style="background:rgba(0,0,0,0.8); color:white; font-weight:800; font-size:10px; padding:3px 6px; border-radius:6px;">${badgeText}</span></div>`; 
+                        const habisBadge = isAvailable ? '' : `<div style="position:absolute; inset:0; background:rgba(255,255,255,0.7); display:flex; align-items:center; justify-content:center; z-index:4; border-radius:12px;"><span style="background:rgba(0,0,0,0.8); color:white; font-weight:800; font-size:11px; padding:4px 8px; border-radius:6px;">${badgeText}</span></div>`; 
                         
                         const addBtnAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, ${!isOpen ? 'Resto Sedang Tutup' : 'stok habis'} 🙏')`; 
                         const addBtnStyle = isAvailable ? 'background:#00a35c; color:white; cursor:pointer;' : 'background:#ccc; color:#fff; cursor:not-allowed;';
 
+                        // Badge Unggulan logic
+                        const badgeUnggulan = item.is_priority ? `<div style="position:absolute; top:6px; left:6px; background:#FFD54F; color:#333; font-size:10px; font-weight:800; padding:3px 6px; border-radius:4px; display:flex; align-items:center; gap:3px; z-index:2; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><i class="ph-fill ph-star" style="color:#E65100;"></i> Unggulan</div>` : '';
+
                         const div = document.createElement('div'); 
-                        // Desain Kartu UI Sesuai Gambar (Gambar Menonjol ke kiri)
-                        // Ditambahkan margin & padding sedikit lebih lega untuk gambar besar
-                        div.style.cssText = `position:relative; display:flex; align-items:center; background:#f4f6f8; border-radius:24px; padding:15px 15px 15px 0; margin-bottom:20px; box-shadow:0 4px 10px rgba(0,0,0,0.03); transition:transform 0.2s; ${opacityClass}`;
+                        // Desain Kartu UI Sesuai Gambar Referensi (List Bersih)
+                        div.style.cssText = `position:relative; display:flex; gap:12px; background:transparent; padding:15px 0; border-bottom:1px solid #f0f0f0; transition:transform 0.2s; ${opacityClass}`;
                         
                         div.innerHTML = `
-                            <!-- Gambar Menonjol (Diperbesar) -->
-                            <div style="position:absolute; left:-20px; width:100px; height:100px; border-radius:50%; box-shadow:4px 4px 15px rgba(0,0,0,0.15); z-index:2; background:white;">
+                            <!-- Gambar Kotak Kiri -->
+                            <div style="position:relative; width:120px; height:120px; flex-shrink:0; border-radius:12px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+                                ${badgeUnggulan}
+                                <div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')" style="position:absolute; top:6px; right:6px; width:26px; height:26px; background:rgba(255,255,255,0.9); border-radius:50%; display:flex; align-items:center; justify-content:center; color:${heartColor}; z-index:3; cursor:pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    <i class="ph-fill ph-heart" style="font-size:14px;"></i>
+                                </div>
                                 ${habisBadge}
-                                <img src="${imgItem}" style="width:100%; height:100%; object-fit:cover; border-radius:50%; ${grayscaleClass} cursor:zoom-in;" loading="lazy" onerror="this.src='${FALLBACK_MENU_IMG}'" onclick="openImageViewer('${imgItem}')">
+                                <img src="${imgItem}" style="width:100%; height:100%; object-fit:cover; ${grayscaleClass}" loading="lazy" onerror="this.src='${FALLBACK_MENU_IMG}'" onclick="openProductDetail('${item.id}')">
                             </div>
                             
-                            <!-- Area Konten (Margin disesuaikan agar teks tidak tertutup gambar besar) -->
-                            <div style="margin-left: 90px; flex-grow:1; display:flex; flex-direction:column; justify-content:center; width:calc(100% - 90px);">
+                            <!-- Area Konten Kanan -->
+                            <div style="flex-grow:1; display:flex; flex-direction:column; justify-content:space-between; padding:2px 0;">
                                 <div onclick="openProductDetail('${item.id}')" style="cursor:pointer;">
-                                    <div style="font-weight:800; font-size:13px; color:var(--dark); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.nama_menu}</div>
-                                    <div style="font-size:11px; color:#888; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${desc}</div>
+                                    <div style="font-weight:800; font-size:15px; color:#111; margin-bottom:4px; line-height:1.2; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${item.nama_menu}</div>
+                                    <div style="font-size:12px; color:#888; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin-bottom:8px;">${desc}</div>
                                 </div>
-                                <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:8px;">
+                                <div style="display:flex; justify-content:space-between; align-items:flex-end;">
                                     <div style="display:flex; flex-direction:column;">
-                                        <span style="font-size:10px; text-decoration:line-through; color:#999; font-weight:600;">Rp ${fakePrice.toLocaleString()}</span>
-                                        <span style="font-size:14px; font-weight:800; color:var(--dark);">Rp ${realPrice.toLocaleString()}</span>
+                                        <span style="font-size:11px; text-decoration:line-through; color:#aaa; font-weight:500;">Rp ${fakePrice.toLocaleString()}</span>
+                                        <span style="font-size:15px; font-weight:800; color:#111; line-height:1.1;">Rp ${realPrice.toLocaleString()}</span>
                                     </div>
-                                    <!-- Tombol Pesan seperti di gambar -->
-                                    <button onclick="${addBtnAction}" style="${addBtnStyle} border:none; padding:6px 16px; border-radius:15px; font-weight:800; font-size:11px; box-shadow:0 4px 8px rgba(0, 163, 92, 0.2);">Pesan</button>
+                                    <!-- Tombol Pesan -->
+                                    <button onclick="${addBtnAction}" style="${addBtnStyle} border:none; padding:8px 18px; border-radius:20px; font-weight:800; font-size:12px; box-shadow:0 4px 10px rgba(0, 163, 92, 0.2);">Pesan</button>
                                 </div>
                             </div>
                         `; 
@@ -4216,11 +4258,96 @@
         }
 
         window.openServiceForm = (svc) => {
-            currentServiceType = svc; document.getElementById('form-service-title').innerText = svc; const container = document.getElementById('dynamic-form-fields'); let html = '';
-            if (svc === 'Ngojek' || svc === 'Mobil') { html += `<div class="form-group"><label class="form-label">Lokasi Jemput</label><input type="text" id="svc-jemput" class="form-input"></div><div class="form-group"><label class="form-label">Tujuan</label><input type="text" id="svc-tujuan" class="form-input"></div><div class="form-group"><label class="form-label">Jam</label><input type="text" id="svc-jam" class="form-input" placeholder="Sekarang"></div>`; } else if (svc === 'Kirim Paket') { html += `<div class="form-group"><label class="form-label">Jenis Paket</label><input type="text" id="svc-paket" class="form-input"></div><div class="form-group"><label class="form-label">Alamat Ambil</label><input type="text" id="svc-jemput" class="form-input"></div><div class="form-group"><label class="form-label">Alamat Tujuan</label><input type="text" id="svc-tujuan" class="form-input"></div><div class="form-group"><label class="form-label">Penerima</label><input type="text" id="svc-penerima" class="form-input"></div>`; } else { html += `<div class="form-group"><label class="form-label">Detail Pesanan</label><input type="text" id="svc-detail" class="form-input" placeholder="Apa yang bisa kami bantu?"></div><div class="form-group"><label class="form-label">Alamat / Lokasi</label><input type="text" id="svc-lokasi" class="form-input"></div>`; }
-            container.innerHTML = html; openPage('service-form');
+            currentServiceType = svc; 
+            document.getElementById('form-service-title').innerText = svc; 
+            const container = document.getElementById('dynamic-form-fields'); 
+            let html = '';
+            
+            if (svc === 'Ngojek' || svc === 'Mobil') { 
+                html += `<div class="form-group"><label class="form-label">Lokasi Jemput</label><input type="text" id="svc-jemput" class="form-input"></div><div class="form-group"><label class="form-label">Tujuan</label><input type="text" id="svc-tujuan" class="form-input"></div><div class="form-group"><label class="form-label">Jam</label><input type="text" id="svc-jam" class="form-input" placeholder="Sekarang"></div>`; 
+            } else if (svc === 'Kirim Paket') { 
+                html += `<div class="form-group"><label class="form-label">Jenis Paket</label><input type="text" id="svc-paket" class="form-input"></div><div class="form-group"><label class="form-label">Alamat Ambil</label><input type="text" id="svc-jemput" class="form-input"></div><div class="form-group"><label class="form-label">Alamat Tujuan</label><input type="text" id="svc-tujuan" class="form-input"></div><div class="form-group"><label class="form-label">Penerima</label><input type="text" id="svc-penerima" class="form-input"></div>`; 
+            } else { 
+                html += `<div class="form-group"><label class="form-label">Detail Pesanan</label><input type="text" id="svc-detail" class="form-input" placeholder="Apa yang bisa kami bantu?"></div><div class="form-group"><label class="form-label">Alamat / Lokasi</label><input type="text" id="svc-lokasi" class="form-input"></div>`; 
+            }
+
+            // TAMBAHAN: Tombol titik maps untuk layanan lainnya
+            html += `
+            <div style="margin-top:15px; margin-bottom:10px;">
+                <button id="btn-titik-maps-svc" onclick="getCurrentLocationForMapsSvc()" style="width:100%; background:var(--primary-light); color:var(--primary); border:1px dashed var(--primary); padding:14px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:0.3s; line-height: 1.4;">
+                    <i class="ph-bold ph-map-pin" style="font-size:18px; flex-shrink:0;"></i> <span style="text-align:left;">KLIK DISINI Jika Lokasi pengantaran sama dengan lokasi kamu saat ini (biar rider akurat)</span>
+                </button>
+                <div id="maps-status-text-svc" style="font-size:10px; color:#2E7D32; text-align:center; margin-top:6px; font-weight:700; display:none;">✅ Titik lokasi berhasil didapatkan!</div>
+            </div>
+            `;
+
+            container.innerHTML = html; 
+            localStorage.removeItem('svc_maps_temp'); // Reset map temp tiap buka form
+            openPage('service-form');
         }
-        window.submitServiceForm = () => { let inputs = document.querySelectorAll('[id^="svc-"]'); let message = `Halo Admin Projekgo, pesan jasa *${currentServiceType}*:%0A%0A`; let filled = true; inputs.forEach(input => { const label = input.previousElementSibling.innerText; const val = input.value.trim(); if(val === '') filled = false; message += `▪️ ${label}: ${val}%0A`; }); if(!filled) { showToast("Mohon lengkapi data."); return; } window.open(`https://wa.me/${ADMIN_WA}?text=${message}`, '_blank'); }
+
+        window.submitServiceForm = () => { 
+            let inputs = document.querySelectorAll('[id^="svc-"]'); 
+            let message = `Halo Admin Projekgo, pesan jasa *${currentServiceType}*:%0A%0A`; 
+            let filled = true; 
+            
+            inputs.forEach(input => { 
+                const label = input.previousElementSibling.innerText; 
+                const val = input.value.trim(); 
+                if(val === '') filled = false; 
+                message += `▪️ ${label}: ${val}%0A`; 
+            }); 
+            
+            if(!filled) { 
+                showToast("Mohon lengkapi data."); 
+                return; 
+            } 
+
+            // Cek titik maps untuk layanan
+            const svcMaps = localStorage.getItem('svc_maps_temp');
+            if (svcMaps) {
+                message += `▪️ Titik Lokasi Saya: ${svcMaps}%0A`;
+            }
+
+            window.open(`https://wa.me/${ADMIN_WA}?text=${message}`, '_blank'); 
+        }
+
+        // FUNGSI BARU: Ambil lokasi khusus form layanan lainnya
+        window.getCurrentLocationForMapsSvc = () => {
+            if (!navigator.geolocation) {
+                showToast("⚠️ Browser Anda tidak mendukung pelacakan GPS.");
+                return;
+            }
+            const btnMaps = document.getElementById('btn-titik-maps-svc');
+            if(btnMaps) btnMaps.innerHTML = '<i class="ph-bold ph-spinner ph-spin" style="font-size:18px; flex-shrink:0;"></i> <span style="text-align:left;">Melacak lokasi...</span>';
+
+            showToast("Mencari titik lokasi Anda...");
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
+                    localStorage.setItem('svc_maps_temp', mapsLink);
+                    
+                    if(btnMaps) {
+                        btnMaps.style.background = '#E8F5E9';
+                        btnMaps.style.color = '#2E7D32';
+                        btnMaps.style.borderColor = '#2E7D32';
+                        btnMaps.innerHTML = '<i class="ph-fill ph-check-circle" style="font-size:18px; flex-shrink:0;"></i> <span style="text-align:left;">Titik Maps Tersimpan</span>';
+                    }
+                    const txtMaps = document.getElementById('maps-status-text-svc');
+                    if(txtMaps) txtMaps.style.display = 'block';
+                    
+                    showToast("Titik lokasi berhasil didapatkan! 📍");
+                },
+                (error) => {
+                    console.error("GPS Error:", error);
+                    showToast("⚠️ Gagal melacak. Pastikan GPS/Lokasi HP aktif.");
+                    if(btnMaps) btnMaps.innerHTML = '<i class="ph-bold ph-map-pin" style="font-size:18px; flex-shrink:0;"></i> <span style="text-align:left;">Coba Lagi Tentukan Titik Maps</span>';
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        }
 
         // --- VARIABEL PENANDA LOADING REALTIME ---
         let isVendorsReady = false;
@@ -5047,10 +5174,11 @@
                     if (s) { div.onclick = () => openVendorPage(v.id); } 
                     else { div.style.opacity = "0.6"; div.style.filter = "grayscale(100%)"; div.style.cursor = "default"; }
 
+                    // --- BAGIAN INI DIPERBARUI: Lebar gambar diatur statis melalui style inline dari 90px menjadi 115px ---
                     div.innerHTML = `
                         <div class="wli-top">
-                            <div style="position:relative;">
-                                <img src="${img}" class="wli-img" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
+                            <div style="position:relative; width: 115px; height: 115px; flex-shrink: 0;">
+                                <img src="${img}" style="width: 100%; height: 100%; border-radius: 18px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.06); background: #f0f0f0;" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
                                 ${!s ? '<div class="badge-habis-overlay" style="border-radius:18px;"><span class="badge-habis-text">TUTUP</span></div>' : ''}
                             </div>
                             <div class="wli-content">
@@ -5143,14 +5271,14 @@
                 }
             }
 
-            // Pasang kerangka untuk List Warung
+            // Pasang kerangka untuk List Warung (Diperbesar juga agar sinkron dengan ukuran 115px baru)
             const warungList = document.getElementById('container-warung');
             if (warungList) {
                 warungList.innerHTML = '';
                 for(let i=0; i<5; i++) {
                     warungList.innerHTML += `
                     <div class="skel-card">
-                        <div class="skeleton skel-img"></div>
+                        <div class="skeleton" style="width: 115px; height: 115px; border-radius: 18px; flex-shrink: 0;"></div>
                         <div class="skel-content">
                             <div class="skeleton skel-line" style="width: 80%;"></div>
                             <div class="skeleton skel-line" style="width: 50%;"></div>
