@@ -1,4 +1,4 @@
-const CACHE_NAME = 'projekgo-cache-v2';
+const CACHE_NAME = 'projekgo-cache-v3'; // Naikkan versi cache agar cache lama di-reset
 const urlsToCache = [
   '/',
   '/index.html',
@@ -7,7 +7,7 @@ const urlsToCache = [
 
 // 1. Install Event (Menyimpan aset penting)
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
+  self.skipWaiting(); // Memaksa service worker baru untuk langsung aktif
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(urlsToCache);
@@ -22,39 +22,59 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
+            console.log('Menghapus cache lama:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
-    }).then(() => self.clients.claim())
+    }).then(() => self.clients.claim()) // Memastikan SW langsung mengontrol halaman
   );
 });
 
-// 3. Fetch Event (Pola: Stale-while-revalidate dengan Offline Fallback)
+// 3. Fetch Event (Pola: Network-First untuk HTML, Stale-while-revalidate untuk aset lain)
 self.addEventListener('fetch', (event) => {
-  // Hanya proses metode GET, abaikan POST dll (karena untuk simpan data ke Firebase)
   if (event.request.method !== 'GET') return;
 
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      // Selalu coba ambil dari internet (network) untuk update di latar belakang
-      const fetchPromise = fetch(event.request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+  const url = new URL(event.request.url);
+
+  // STRATEGI 1: NETWORK-FIRST (Khusus untuk file HTML / Navigasi Aplikasi)
+  // Agar aplikasi selalu mengecek update terbaru di server terlebih dahulu
+  if (event.request.mode === 'navigate' || url.pathname === '/' || url.pathname === '/index.html') {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          // Jika sukses ambil versi terbaru dari internet, simpan ke cache lalu tampilkan
           const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseToCache);
           });
-        }
-        return networkResponse;
-      }).catch(() => {
-        // Jika internet mati (offline) dan user membuka halaman (HTML), arahkan ke index.html yang ada di cache
-        if (event.request.mode === 'navigate') {
-          return caches.match('/index.html');
-        }
-      });
+          return networkResponse;
+        })
+        .catch(() => {
+          // Jika HP offline/tanpa internet, baru ambil dari memori cache
+          return caches.match(event.request).then((cachedResponse) => {
+            return cachedResponse || caches.match('/index.html');
+          });
+        })
+    );
+  } 
+  // STRATEGI 2: STALE-WHILE-REVALIDATE (Untuk file pendukung seperti gambar, manifest)
+  else {
+    event.respondWith(
+      caches.match(event.request).then((cachedResponse) => {
+        const fetchPromise = fetch(event.request).then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return networkResponse;
+        }).catch(() => {}); // Abaikan error fetch di latar belakang
 
-      // Segera tampilkan dari cache jika ada (agar cepat), jika belum ada tunggu hasil dari internet
-      return cachedResponse || fetchPromise;
-    })
-  );
+        // Segera tampilkan dari cache jika ada, sambil memperbarui di latar belakang
+        return cachedResponse || fetchPromise;
+      })
+    );
+  }
 });
