@@ -39,8 +39,29 @@
             --nav-height: 115px;
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        * { 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+            outline: none; 
+            
+            /* KODE TAMBAHAN: Mencegah text selection (blok teks) agar terasa seperti aplikasi native */
+            -webkit-touch-callout: none; /* Mencegah menu popup saat long-press di iOS / Safari */
+            -webkit-user-select: none;   /* Chrome, Safari, Android, iOS */
+            -khtml-user-select: none;    /* Konqueror HTML */
+            -moz-user-select: none;      /* Firefox */
+            -ms-user-select: none;       /* Internet Explorer/Edge */
+            user-select: none;           /* Standar Global */
+        }
         
+        /* PENGECUALIAN: Form Input dan Textarea tetap harus bisa diblok dan diketik isinya */
+        input, textarea {
+            -webkit-user-select: auto !important;
+            -khtml-user-select: auto !important;
+            -moz-user-select: auto !important;
+            -ms-user-select: auto !important;
+            user-select: auto !important;
+        }
+
         /* KODE TAMBAHAN: Mencegah efek pull-to-refresh (tarik ke bawah untuk refresh) di HP */
         html, body {
             overscroll-behavior-y: none; 
