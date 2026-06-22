@@ -2065,8 +2065,11 @@
         // ====================================================================
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                // Trik Anti-Cache: Tambahkan parameter waktu agar browser selalu mengecek file sw.js terbaru
-                const swUrl = 'sw.js?v=' + new Date().getTime();
+                // PERBAIKAN BOOTLOOP: Hapus parameter waktu dinamis (new Date().getTime()).
+                // Cukup gunakan nama file aslinya agar browser dapat mencocokkan perubahan file secara alami.
+                const swUrl = 'sw.js';
+                
+                let refreshing = false; // Penjaga agar tidak terjadi multi-reload
                 
                 navigator.serviceWorker.register(swUrl)
                 .then((registration) => {
@@ -2084,12 +2087,14 @@
                                     if (navigator.serviceWorker.controller) {
                                         console.log('Versi baru ditemukan! Membersihkan cache dan memuat ulang...');
                                         
-                                        // TAMBAHAN: Bersihkan cache PWA (Cache Storage) secara paksa
+                                        // Mencegah eksekusi reload berkali-kali secara bersamaan
+                                        if (refreshing) return;
+                                        refreshing = true;
+                                        
+                                        // Bersihkan cache PWA (Cache Storage) secara paksa
                                         if (caches) {
                                             caches.keys().then(function(names) {
-                                                for (let name of names) {
-                                                    caches.delete(name);
-                                                }
+                                                Promise.all(names.map(name => caches.delete(name)));
                                             });
                                         }
 
@@ -2097,10 +2102,10 @@
                                         if (window.showToast) {
                                             window.showToast("Memperbarui aplikasi ke versi terbaru...");
                                             setTimeout(() => {
-                                                window.location.reload(true);
+                                                window.location.reload();
                                             }, 1500);
                                         } else {
-                                            window.location.reload(true);
+                                            window.location.reload();
                                         }
                                     }
                                 }
