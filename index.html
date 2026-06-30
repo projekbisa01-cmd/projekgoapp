@@ -4276,7 +4276,21 @@
         window.handleSearch = (e) => {
             if(e.key === 'Enter') { 
                 const keyword = e.target.value.toLowerCase(); 
-                const filtered = allProducts.filter(p => typeof p.nama_menu === 'string' && p.nama_menu.toLowerCase().includes(keyword)); 
+                
+                const filtered = allProducts.filter(p => {
+                    const matchMenu = typeof p.nama_menu === 'string' && p.nama_menu.toLowerCase().includes(keyword);
+                    const matchVendor = typeof p.vendor_name === 'string' && p.vendor_name.toLowerCase().includes(keyword);
+                    const matchDesc = typeof p.deskripsi === 'string' && p.deskripsi.toLowerCase().includes(keyword);
+                    
+                    // Logika khusus jika user mencari kata "promo" atau "diskon"
+                    let matchPromo = false;
+                    if (keyword.includes('promo') || keyword.includes('diskon')) {
+                        matchPromo = p.is_promo === true || p.is_flash_sale === true || parseInt(p.harga_coret) > parseInt(p.harga);
+                    }
+                    
+                    return matchMenu || matchVendor || matchDesc || matchPromo;
+                });
+                
                 const c = document.getElementById('list-content'); 
                 c.innerHTML = ''; 
                 c.classList.add('product-list-grid'); 
