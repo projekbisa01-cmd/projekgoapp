@@ -1013,10 +1013,49 @@
         .cat-modal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px 10px; overflow-y: auto; padding-bottom: 20px; scrollbar-width: none; }
         .cat-modal-grid::-webkit-scrollbar { display: none; }
 
-        /* --- STYLES UNTUK MORE MENU MODAL --- */
+        /* --- MORE MENU MODAL STYLES --- */
         #more-menu-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 2500; align-items: flex-end; justify-content: center; backdrop-filter: blur(2px); opacity: 0; transition: opacity 0.3s; }
         #more-menu-modal.show { opacity: 1; }
         #more-menu-modal.show .cart-popup-sheet { transform: translateY(0); }
+
+        /* --- SPEECH BUBBLE MASKOT --- */
+        .mascot-bubble {
+            position: absolute;
+            top: 15px; /* Dinaikkan sedikit ke atas */
+            left: -85px; /* Digeser jauh ke kiri agar wajah dan badan maskot tidak tertutupi */
+            background: white;
+            border-radius: 12px 12px 0 12px;
+            padding: 8px 12px;
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--primary);
+            box-shadow: 0 4px 15px rgba(255,102,0,0.2);
+            max-width: 140px;
+            text-align: center;
+            border: 1px solid #FFD1B3;
+            opacity: 0;
+            transform: translateY(10px) scale(0.9);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 2;
+            line-height: 1.3;
+        }
+        .mascot-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            right: 2px;
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-bottom: 1px solid #FFD1B3;
+            border-right: 1px solid #FFD1B3;
+            border-bottom-right-radius: 3px;
+            transform: rotate(45deg);
+        }
+        .mascot-bubble.show {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
 
         /* --- REGISTRATION / WELCOME SCREEN --- */
         #registration-screen {
@@ -1518,7 +1557,9 @@
                 
                 <!-- Dekorasi Maskot Pojok Kanan Atas (Gambar Transparan & Diperbesar) -->
                 <div style="position: absolute; right: -15px; top: 10px; width: 220px; pointer-events: none; z-index: 1;">
-                    <img src="https://i.ibb.co.com/SDtKrDdz/Desain-tanpa-judul-31.png" alt="Maskot Projekgo" style="width:100%; height:auto; object-fit:contain;">
+                    <!-- TAMBAHAN: Popup Text (Speech Bubble) bergantian -->
+                    <div id="mascot-speech-bubble" class="mascot-bubble">Halo Projekger! 👋</div>
+                    <img src="https://i.ibb.co.com/SDtKrDdz/Desain-tanpa-judul-31.png" alt="Maskot Projekgo" style="width:100%; height:auto; object-fit:contain; position:relative; z-index:1;">
                 </div>
 
                 <div class="top-nav-wrapper" style="background: transparent; padding: 10px 20px 0 20px; position: relative; z-index: 2;">
@@ -4920,8 +4961,8 @@
                 if (bestSellerInserted) return;
                 if (bestSellerItems.length > 0) {
                     const promoDiv = document.createElement('div');
-                    // Style container dibuat persis dengan renderExclusiveStyle
-                    promoDiv.style.cssText = "background: white; padding-bottom: 20px; border-radius: 16px; margin: 10px 15px 20px 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden;";
+                    // Style container dibuat persis dengan renderExclusiveStyle, margin disesuaikan mepet
+                    promoDiv.style.cssText = "background: white; padding-bottom: 20px; border-radius: 16px; margin: 10px 8px 20px 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden;";
                     
                     let headerHtml = `
                         <div style="background: linear-gradient(90deg, #E8F5E9 0%, transparent 100%); display:flex; justify-content:space-between; align-items:center; padding: 15px 15px 12px 15px;">
@@ -4968,7 +5009,7 @@
             const renderBanner = () => {
                 if (bannerInserted) return;
                 const bannerDiv = document.createElement('div');
-                bannerDiv.style.padding = "0 15px 15px 15px";
+                bannerDiv.style.padding = "0 8px 15px 8px"; // Dibuat lebih mepet layar
                 
                 // BANNER 1 DIUBAH JADI SLIDER
                 bannerDiv.innerHTML = `
@@ -5159,8 +5200,8 @@
                 if(exclusiveItems.length === 0) return;
                 
                 const promoDiv = document.createElement('div');
-                // DIUBAH: Background diganti putih
-                promoDiv.style.cssText = "background: white; padding-bottom: 20px; border-radius: 16px; margin: 0 15px 20px 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden;";
+                // DIUBAH: Background diganti putih, margin disesuaikan mepet
+                promoDiv.style.cssText = "background: white; padding-bottom: 20px; border-radius: 16px; margin: 0 8px 20px 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden;";
                 
                 let header = `
                     <div style="background: linear-gradient(90deg, #FFE0B2 0%, transparent 100%); display:flex; justify-content:space-between; align-items:center; padding: 15px 15px 12px 15px;">
@@ -5256,6 +5297,35 @@
                 </div>`;
                 // ----------------------------------------------
 
+                // --- LOGIKA BADGE HALAL & CERTIFIED BARU ---
+                let halalBadgeHtml = '';
+                let certifiedBadgeHtml = '';
+                let halalCombinedBadge = ''; // Untuk fallback di layout besar
+
+                if (v.is_halal === true || v.has_sertifikat_halal === true) { 
+                    halalBadgeHtml = `
+                        <img src="https://i.ibb.co.com/KjN0Wf2G/Desain-tanpa-judul-44.png" style="width: 28px; height: 28px; object-fit: contain; border-radius: 50%;">
+                    `;
+                    
+                    if (v.has_sertifikat_halal === true) {
+                        certifiedBadgeHtml = `
+                            <div style="display: flex; align-items: center; gap: 3px; background: #E8F5E9; color: #2E7D32; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px; border: 1px solid #C8E6C9;">
+                                <i class="ph-bold ph-check-circle" style="font-size: 11px;"></i> CERTIFIED
+                            </div>
+                        `;
+                    }
+
+                    // Untuk layout besar (index 10,11,12) kita gabung saja
+                    let textBersertifikat = (v.has_sertifikat_halal === true) ? '<span style="font-size: 10px; font-weight: 800; color: #2E7D32;">Bersertifikat</span>' : '';
+                    halalCombinedBadge = `
+                        <div style="display:inline-flex; align-items:center; gap:4px; background: white; padding: 2px 6px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #eee; margin-left: 2px;">
+                            <img src="https://i.ibb.co.com/KjN0Wf2G/Desain-tanpa-judul-44.png" style="width: 24px; height: 24px; object-fit: contain;">
+                            ${textBersertifikat}
+                        </div>
+                    `;
+                }
+                // -----------------------------
+
                 // --- LOGIKA BARU: Ambil 4 Nama Menu ---
                 let menuDesc = "Aneka Makanan";
                 if (vendorProds && vendorProds.length > 0) {
@@ -5272,24 +5342,11 @@
                 // Menambahkan Badge Visual "Andalan" khusus untuk yang memiliki is_andalan = true
                 const andalanBadge = v.is_andalan ? '<span style="display:inline-flex; align-items:center; gap:3px; background:#E8F5E9; color:#2E7D32; font-size:10px; font-weight:800; padding:2px 6px; border-radius:12px; margin-left:4px; vertical-align:middle; border:1px solid #C8E6C9;"><i class="ph-fill ph-check-circle" style="font-size:12px;"></i>Andalan</span>' : '';
 
-                // --- TAMBAHAN BADGE HALAL (DIPERBESAR & PINDAH POSISI) ---
-                let halalBadge = '';
-                if (v.is_halal === true || v.has_sertifikat_halal === true) { 
-                    let textBersertifikat = (v.has_sertifikat_halal === true) ? '<span style="font-size: 10px; font-weight: 800; color: #2E7D32;">Bersertifikat</span>' : '';
-                    halalBadge = `
-                        <div style="display:inline-flex; align-items:center; gap:4px; background: white; padding: 2px 6px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #eee; margin-left: 2px;">
-                            <img src="https://i.ibb.co.com/KjN0Wf2G/Desain-tanpa-judul-44.png" style="width: 24px; height: 24px; object-fit: contain;">
-                            ${textBersertifikat}
-                        </div>
-                    `;
-                }
-                // -----------------------------
-
                 const div = document.createElement('div');
                 
                 if (index === 10 || index === 11 || index === 12) {
                     // --- LAYOUT KARTU BESAR (SEPERTI REFERENSI GAMBAR) UNTUK URUTAN 11, 12, 13 ---
-                    div.style.margin = "0 15px 20px 15px";
+                    div.style.margin = "0 8px 20px 8px"; // DIUBAH: Margin dikurangi agar mepet pinggir layar
                     div.style.cursor = "pointer";
                     div.style.transition = "transform 0.2s";
                     if (s) { div.onclick = () => openVendorPage(v.id); } 
@@ -5308,7 +5365,7 @@
                                     <div style="background: white; color: var(--dark); padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #eee;">
                                         <i class="ph-bold ph-moped"></i> ${dist}0-${dist}5 min
                                     </div>
-                                    ${halalBadge}
+                                    ${halalCombinedBadge}
                                     <div style="background: white; color: #666; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #eee;">
                                         ${dist} km
                                     </div>
@@ -5328,11 +5385,11 @@
                 } else {
                     // --- LAYOUT NORMAL ---
                     div.className = 'warung-list-item';
-                    div.style.marginLeft = "15px";
-                    div.style.marginRight = "15px";
+                    div.style.marginLeft = "8px";   // DIUBAH: Margin dikurangi dari 15px agar "Zoom" / mepet layar (Native feel)
+                    div.style.marginRight = "8px";  // DIUBAH: Margin dikurangi dari 15px agar "Zoom" / mepet layar
                     div.style.background = "white";
                     div.style.borderRadius = "16px";
-                    div.style.padding = "15px";
+                    div.style.padding = "12px";     // DIUBAH: Padding sedikit lebih kecil agar ruang konten membesar
                     div.style.marginBottom = "15px";
                     div.style.boxShadow = "0 4px 12px rgba(0,0,0,0.04)";
                     div.style.border = "1px solid rgba(0,0,0,0.03)";
@@ -5343,49 +5400,59 @@
                     // --- BAGIAN INI DIPERBARUI: Gambar direkayasa lebih besar & badge digeser sejajar di samping gambar ---
                     div.innerHTML = `
                         <div class="wli-top">
-                            <div style="position:relative; width: 135px; height: 135px; flex-shrink: 0;">
+                            <!-- DIUBAH: Ukuran Gambar sedikit lebih besar (145px) untuk kesan Zoom In -->
+                            <div style="position:relative; width: 145px; height: 145px; flex-shrink: 0;">
                                 <img src="${img}" style="width: 100%; height: 100%; border-radius: 16px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.06); background: #f0f0f0;" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
                                 ${!s ? '<div class="badge-habis-overlay" style="border-radius:16px;"><span class="badge-habis-text">TUTUP</span></div>' : ''}
                             </div>
-                            <div class="wli-content" style="justify-content: flex-start; overflow: hidden; padding-left: 2px;">
+                            <div class="wli-content" style="justify-content: flex-start; overflow: hidden; padding-left: 4px;">
                                 <div class="wli-title" style="font-size: 15px; margin-bottom: 2px; line-height: 1.2;">${v.nama_warung || 'Warung Projekgo'} ${andalanBadge}</div>
-                                <div class="wli-meta" style="font-size: 11px; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; line-height: 1.3;">
+                                <div class="wli-meta" style="font-size: 11px; margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; line-height: 1.3;">
                                     <i class="ph-fill ph-star" style="color:#FFC107; font-size:12px;"></i> 
                                     <span style="font-weight:700; color:#333; margin-left:2px;">${rating}</span> 
                                     <span style="color:#888; margin-left:2px;">(${reviewCount})</span>
                                     <span style="margin: 0 4px;">•</span> ${menuDesc}
                                 </div>
-                                <div class="wli-price-row" style="font-size: 10px; margin-bottom: 4px; flex-wrap: wrap; gap: 4px;">
-                                    <span style="color:#00880B; font-weight:800;">Ongkir Hemat</span>
-                                    <span style="color:#E65100; font-weight:700; background:#FFF3E0; padding:2px 4px; border-radius:4px;">Prioritas</span>
-                                    ${halalBadge}
+                                
+                                <!-- KELOMPOK HARGA, STATUS & HALAL -->
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
+                                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                                        <div style="display: flex; align-items: center; gap: 6px; font-size: 11px;">
+                                            <span style="color:#00880B; font-weight:800;">Ongkir Hemat</span>
+                                            <span style="color:#E65100; font-weight:700; background:#FFF3E0; padding:2px 6px; border-radius:4px;">Prioritas</span>
+                                        </div>
+                                        <div style="font-size:11px; color:${statusColor}; font-weight:700;">${statusText}</div>
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                                        ${halalBadgeHtml}
+                                        ${certifiedBadgeHtml}
+                                    </div>
                                 </div>
-                                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
-                                    <div style="font-size:10px; color:${statusColor}; font-weight:700;">${statusText}</div>
-                                </div>
+                                
                                 ${catatanTokoListHtml}
                                 
                                 <!-- BADGE GESER DIPINDAH KESINI (Samping Gambar) -->
-                                <div class="wli-promo-scroll" style="margin-top: auto; padding-bottom: 0; padding-top: 4px;">
-                                    <div class="wli-promo-badge" style="min-width: 135px; height: 38px; padding: 0 8px; gap: 6px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                                        <i class="ph-fill ph-wallet" style="font-size:18px; color:var(--primary);"></i>
+                                <div class="wli-promo-scroll" style="margin-top: auto; padding-bottom: 0; padding-top: 8px;">
+                                    <!-- DIUBAH: Min-width badge dilebarkan jadi 240px agar memanjang dan menyentuh kanan, persis gambar rujukan -->
+                                    <div class="wli-promo-badge" style="min-width: 240px; height: 50px; padding: 0 12px; gap: 10px; border-radius: 12px; border: 1px solid #E0E0E0; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                                        <i class="ph-fill ph-wallet" style="font-size:22px; color:var(--primary);"></i>
                                         <div style="display:flex; flex-direction:column; justify-content:center;">
-                                            <div style="font-size:10px; font-weight:700; color:#333; margin-bottom:1px; line-height:1.1;">Harga Asli Penjual</div>
-                                            <div style="font-size:9px; color:#888; line-height:1.1;">Lebih hemat 20%</div>
+                                            <div style="font-size:12px; font-weight:800; color:#333; margin-bottom:2px; line-height:1.1;">Harga Asli Penjual</div>
+                                            <div style="font-size:10px; color:#888; line-height:1.1; font-weight:500;">Lebih hemat 20%</div>
                                         </div>
                                     </div>
-                                    <div class="wli-promo-badge" style="min-width: 135px; height: 38px; padding: 0 8px; gap: 6px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                                        <i class="ph-fill ph-moped" style="font-size:18px; color:#2E7D32;"></i>
+                                    <div class="wli-promo-badge" style="min-width: 220px; height: 50px; padding: 0 12px; gap: 10px; border-radius: 12px; border: 1px solid #E0E0E0; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                                        <i class="ph-fill ph-moped" style="font-size:22px; color:#2E7D32;"></i>
                                         <div style="display:flex; flex-direction:column; justify-content:center;">
-                                            <div style="font-size:10px; font-weight:700; color:#333; margin-bottom:1px; line-height:1.1;">Prioritas Utama</div>
-                                            <div style="font-size:9px; color:#888; line-height:1.1;">1 Rider khusus</div>
+                                            <div style="font-size:12px; font-weight:800; color:#333; margin-bottom:2px; line-height:1.1;">Prioritas Utama</div>
+                                            <div style="font-size:10px; color:#888; line-height:1.1; font-weight:500;">1 Rider khusus</div>
                                         </div>
                                     </div>
-                                    <div class="wli-promo-badge" style="min-width: 135px; height: 38px; padding: 0 8px; gap: 6px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                                        <i class="ph-fill ph-handshake" style="font-size:18px; color:#1565C0;"></i>
+                                    <div class="wli-promo-badge" style="min-width: 220px; height: 50px; padding: 0 12px; gap: 10px; border-radius: 12px; border: 1px solid #E0E0E0; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                                        <i class="ph-fill ph-handshake" style="font-size:22px; color:#1565C0;"></i>
                                         <div style="display:flex; flex-direction:column; justify-content:center;">
-                                            <div style="font-size:10px; font-weight:700; color:#333; margin-bottom:1px; line-height:1.1;">Ekonomi Lokal</div>
-                                            <div style="font-size:9px; color:#888; line-height:1.1;">100% Dukung UMKM</div>
+                                            <div style="font-size:12px; font-weight:800; color:#333; margin-bottom:2px; line-height:1.1;">Ekonomi Lokal</div>
+                                            <div style="font-size:10px; color:#888; line-height:1.1; font-weight:500;">100% Dukung UMKM</div>
                                         </div>
                                     </div>
                                 </div>
@@ -5465,10 +5532,40 @@
             renderWarungList(currentDisplayVendors); 
         }
 
+        // --- ANIMASI SPEECH BUBBLE MASKOT ---
+        const mascotMessages = [
+            "Halo Projekger! 👋",
+            "Lebih Hemat 20% - 30% lho! 🤩",
+            "Pengantaran Prioritas! 🛵💨",
+            "Pesan Apa Saja, Bisa! 🛒",
+            "100% Dukung UMKM Lokal 🤝"
+        ];
+        let mascotMsgIndex = 0;
+
+        function cycleMascotMessage() {
+            const bubble = document.getElementById('mascot-speech-bubble');
+            if(!bubble) return;
+            
+            bubble.classList.remove('show'); // Animasi keluar
+            
+            setTimeout(() => {
+                mascotMsgIndex = (mascotMsgIndex + 1) % mascotMessages.length;
+                bubble.innerText = mascotMessages[mascotMsgIndex];
+                bubble.classList.add('show'); // Animasi masuk
+            }, 400); // Jeda menyesuaikan durasi transition CSS
+        }
+
+        // Jalankan popup text mascot setelah beranda selesai dirender
+        setTimeout(() => {
+            const bubble = document.getElementById('mascot-speech-bubble');
+            if(bubble) bubble.classList.add('show');
+            setInterval(cycleMascotMessage, 4500); // Ganti teks setiap 4.5 detik
+        }, 1500);
+
         // Jalankan pemasangan Skeleton terlebih dahulu, baru load data
         showSkeletons();
         loadData();
 
     </script>
 </body>
-</html>  
+</html>
