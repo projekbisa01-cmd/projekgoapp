@@ -1610,6 +1610,9 @@
                 </div>
             </div>
 
+            <!-- FLASH SALE SECTION (DIPINDAH KE BAWAH BANNER KENALAN) -->
+            <div id="container-flash-sale-top"></div>
+
             <!-- KONTAINER KATEGORI MAKANAN -->
             <div id="kategori-makanan" style="background: var(--bg); position: relative; z-index: 5;">
                 <div class="swipe-hint-box" style="display: none;">
@@ -1628,9 +1631,6 @@
                     <div style="width: 6px; height: 4px; background: #E0E0E0; border-radius: 4px;"></div>
                 </div>
             </div>
-
-            <!-- FLASH SALE SECTION (DIPINDAH KE ATAS) -->
-            <div id="container-flash-sale-top"></div>
             
             <!-- CONTAINER RESTO RATING JEMPOLAN -->
             <div id="container-top-rated"></div>
@@ -5330,8 +5330,6 @@
                     div.className = 'warung-list-item';
                     div.style.marginLeft = "15px";
                     div.style.marginRight = "15px";
-
-                    // DIUBAH: Background diganti putih
                     div.style.background = "white";
                     div.style.borderRadius = "16px";
                     div.style.padding = "15px";
@@ -5342,51 +5340,54 @@
                     if (s) { div.onclick = () => openVendorPage(v.id); } 
                     else { div.style.opacity = "0.6"; div.style.filter = "grayscale(100%)"; div.style.cursor = "default"; }
 
-                    // --- BAGIAN INI DIPERBARUI: Lebar gambar diatur statis melalui style inline dari 90px menjadi 115px ---
+                    // --- BAGIAN INI DIPERBARUI: Gambar direkayasa lebih besar & badge digeser sejajar di samping gambar ---
                     div.innerHTML = `
                         <div class="wli-top">
-                            <div style="position:relative; width: 115px; height: 115px; flex-shrink: 0;">
-                                <img src="${img}" style="width: 100%; height: 100%; border-radius: 18px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.06); background: #f0f0f0;" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
-                                ${!s ? '<div class="badge-habis-overlay" style="border-radius:18px;"><span class="badge-habis-text">TUTUP</span></div>' : ''}
+                            <div style="position:relative; width: 135px; height: 135px; flex-shrink: 0;">
+                                <img src="${img}" style="width: 100%; height: 100%; border-radius: 16px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.06); background: #f0f0f0;" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
+                                ${!s ? '<div class="badge-habis-overlay" style="border-radius:16px;"><span class="badge-habis-text">TUTUP</span></div>' : ''}
                             </div>
-                            <div class="wli-content">
-                                <div class="wli-title">${v.nama_warung || 'Warung Projekgo'} ${andalanBadge}</div>
-                                <div class="wli-meta">
-                                    <i class="ph-fill ph-star" style="color:#FFC107; font-size:14px;"></i> 
-                                    <span style="font-weight:700; color:#333; margin-left:3px;">${rating}</span> 
-                                    <span style="color:#888; margin-left:2px;">(${reviewCount} ratings)</span>
+                            <div class="wli-content" style="justify-content: flex-start; overflow: hidden; padding-left: 2px;">
+                                <div class="wli-title" style="font-size: 15px; margin-bottom: 2px; line-height: 1.2;">${v.nama_warung || 'Warung Projekgo'} ${andalanBadge}</div>
+                                <div class="wli-meta" style="font-size: 11px; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; line-height: 1.3;">
+                                    <i class="ph-fill ph-star" style="color:#FFC107; font-size:12px;"></i> 
+                                    <span style="font-weight:700; color:#333; margin-left:2px;">${rating}</span> 
+                                    <span style="color:#888; margin-left:2px;">(${reviewCount})</span>
                                     <span style="margin: 0 4px;">•</span> ${menuDesc}
                                 </div>
-                                <div class="wli-price-row">
+                                <div class="wli-price-row" style="font-size: 10px; margin-bottom: 4px; flex-wrap: wrap; gap: 4px;">
                                     <span style="color:#00880B; font-weight:800;">Ongkir Hemat</span>
-                                    <span style="color:#E65100; font-weight:700; font-size:10px; background:#FFF3E0; padding:2px 6px; border-radius:4px; margin-left:4px;">Pengantaran Prioritas</span>
-                                    <span style="color:#888; font-weight:500; font-size:11px; white-space:nowrap; margin-left:4px;">• Estimasi 10 - 30 mnt</span>
+                                    <span style="color:#E65100; font-weight:700; background:#FFF3E0; padding:2px 4px; border-radius:4px;">Prioritas</span>
                                     ${halalBadge}
                                 </div>
-                                <div style="font-size:10px; color:${statusColor}; font-weight:700; margin-top:2px;">${statusText}</div>
+                                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+                                    <div style="font-size:10px; color:${statusColor}; font-weight:700;">${statusText}</div>
+                                </div>
                                 ${catatanTokoListHtml}
-                            </div>
-                        </div>
-                        <div class="wli-promo-scroll">
-                            <div class="wli-promo-badge">
-                                <i class="ph-fill ph-wallet" style="font-size:22px; color:var(--primary);"></i>
-                                <div style="display:flex; flex-direction:column; justify-content:center;">
-                                    <div style="font-size:12px; font-weight:700; color:#333; margin-bottom:2px;">Harga Asli Penjual</div>
-                                    <div style="font-size:11px; color:#888;">Lebih hemat 20% - 30%</div>
-                                </div>
-                            </div>
-                            <div class="wli-promo-badge">
-                                <i class="ph-fill ph-moped" style="font-size:22px; color:#2E7D32;"></i>
-                                <div style="display:flex; flex-direction:column; justify-content:center;">
-                                    <div style="font-size:12px; font-weight:700; color:#333; margin-bottom:2px;">Pengantaran Prioritas</div>
-                                    <div style="font-size:11px; color:#888;">1 Rider khusus untukmu</div>
-                                </div>
-                            </div>
-                            <div class="wli-promo-badge">
-                                <i class="ph-fill ph-handshake" style="font-size:22px; color:#1565C0;"></i>
-                                <div style="display:flex; flex-direction:column; justify-content:center;">
-                                    <div style="font-size:12px; font-weight:700; color:#333; margin-bottom:2px;">Ekonomi Lokal</div>
-                                    <div style="font-size:11px; color:#888;">100% Dukung UMKM</div>
+                                
+                                <!-- BADGE GESER DIPINDAH KESINI (Samping Gambar) -->
+                                <div class="wli-promo-scroll" style="margin-top: auto; padding-bottom: 0; padding-top: 4px;">
+                                    <div class="wli-promo-badge" style="min-width: 135px; height: 38px; padding: 0 8px; gap: 6px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                                        <i class="ph-fill ph-wallet" style="font-size:18px; color:var(--primary);"></i>
+                                        <div style="display:flex; flex-direction:column; justify-content:center;">
+                                            <div style="font-size:10px; font-weight:700; color:#333; margin-bottom:1px; line-height:1.1;">Harga Asli Penjual</div>
+                                            <div style="font-size:9px; color:#888; line-height:1.1;">Lebih hemat 20%</div>
+                                        </div>
+                                    </div>
+                                    <div class="wli-promo-badge" style="min-width: 135px; height: 38px; padding: 0 8px; gap: 6px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                                        <i class="ph-fill ph-moped" style="font-size:18px; color:#2E7D32;"></i>
+                                        <div style="display:flex; flex-direction:column; justify-content:center;">
+                                            <div style="font-size:10px; font-weight:700; color:#333; margin-bottom:1px; line-height:1.1;">Prioritas Utama</div>
+                                            <div style="font-size:9px; color:#888; line-height:1.1;">1 Rider khusus</div>
+                                        </div>
+                                    </div>
+                                    <div class="wli-promo-badge" style="min-width: 135px; height: 38px; padding: 0 8px; gap: 6px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                                        <i class="ph-fill ph-handshake" style="font-size:18px; color:#1565C0;"></i>
+                                        <div style="display:flex; flex-direction:column; justify-content:center;">
+                                            <div style="font-size:10px; font-weight:700; color:#333; margin-bottom:1px; line-height:1.1;">Ekonomi Lokal</div>
+                                            <div style="font-size:9px; color:#888; line-height:1.1;">100% Dukung UMKM</div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -5439,18 +5440,19 @@
                 }
             }
 
-            // Pasang kerangka untuk List Warung (Diperbesar juga agar sinkron dengan ukuran 115px baru)
+            // Pasang kerangka untuk List Warung (Diperbesar juga agar sinkron dengan ukuran 135px baru)
             const warungList = document.getElementById('container-warung');
             if (warungList) {
                 warungList.innerHTML = '';
                 for(let i=0; i<5; i++) {
                     warungList.innerHTML += `
-                    <div class="skel-card">
-                        <div class="skeleton" style="width: 115px; height: 115px; border-radius: 18px; flex-shrink: 0;"></div>
+                    <div class="skel-card" style="padding: 15px; border-radius: 16px; margin: 0 15px 15px 15px; border: 1px solid rgba(0,0,0,0.03);">
+                        <div class="skeleton" style="width: 135px; height: 135px; border-radius: 16px; flex-shrink: 0;"></div>
                         <div class="skel-content">
                             <div class="skeleton skel-line" style="width: 80%;"></div>
                             <div class="skeleton skel-line" style="width: 50%;"></div>
-                            <div class="skeleton skel-line" style="width: 60%; margin-top: 5px;"></div>
+                            <div class="skeleton skel-line" style="width: 90%; margin-top: 5px;"></div>
+                            <div class="skeleton skel-line" style="width: 100%; height: 38px; border-radius: 10px; margin-top: auto;"></div>
                         </div>
                     </div>`;
                 }
