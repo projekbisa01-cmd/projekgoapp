@@ -3865,13 +3865,20 @@
                 // Tampilkan popup ringan di atas halaman konfirmasi
                 if (savings > 0) {
                     const popup = document.createElement('div');
-                    popup.innerHTML = `<i class="ph-fill ph-check-circle" style="font-size:18px;"></i> Anda Lebih hemat Rp ${savings.toLocaleString()}`;
-                    popup.style.cssText = "position:fixed; top:75px; left:50%; transform:translateX(-50%); width:90%; max-width:380px; background:#4CAF50; color:white; padding:12px 20px; border-radius:12px; text-align:center; font-weight:700; font-size:13px; z-index:9999; box-shadow:0 6px 20px rgba(76, 175, 80, 0.4); display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); animation: slideDownCartPopup 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);";
+                    // MODIFIKASI: Layout popup disusun bertingkat ke bawah agar cocok di tengah layar
+                    popup.innerHTML = `
+                        <i class="ph-fill ph-check-circle" style="font-size:40px; margin-bottom:8px; text-shadow: 0 2px 10px rgba(0,0,0,0.1);"></i>
+                        <span style="font-size:14px; font-weight:600; margin-bottom:2px;">Yeay! Anda Lebih Hemat</span>
+                        <span style="font-size:22px; font-weight:800; letter-spacing:0.5px;">Rp ${savings.toLocaleString()}</span>
+                    `;
+                    // MODIFIKASI: Posisi diganti ke tengah (top: 50%, left: 50%, transform: translate(-50%, -50%))
+                    popup.style.cssText = "position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:80%; max-width:300px; background:linear-gradient(135deg, #4CAF50, #2E7D32); color:white; padding:25px 20px; border-radius:20px; text-align:center; z-index:99999; box-shadow:0 15px 35px rgba(0,0,0,0.4); display:flex; flex-direction:column; align-items:center; justify-content:center; transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); animation: popInCenter 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);";
                     
                     if (!document.getElementById('dynamic-cart-popup-style')) {
                         const style = document.createElement('style');
                         style.id = 'dynamic-cart-popup-style';
-                        style.innerHTML = `@keyframes slideDownCartPopup { from { transform:translate(-50%, -20px); opacity:0; } to { transform:translate(-50%, 0); opacity:1; } }`;
+                        // MODIFIKASI: Animasi diubah menjadi pop-in/zoom dari tengah
+                        style.innerHTML = `@keyframes popInCenter { from { transform:translate(-50%, -50%) scale(0.5); opacity:0; } to { transform:translate(-50%, -50%) scale(1); opacity:1; } }`;
                         document.head.appendChild(style);
                     }
 
@@ -3880,7 +3887,7 @@
                     // Hilangkan popup perlahan setelah 3 detik
                     setTimeout(() => {
                         popup.style.opacity = '0';
-                        popup.style.transform = 'translate(-50%, -20px)';
+                        popup.style.transform = 'translate(-50%, -50%) scale(0.8)';
                         setTimeout(() => popup.remove(), 300);
                     }, 3000);
                 }
