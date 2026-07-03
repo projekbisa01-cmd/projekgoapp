@@ -1,9 +1,16 @@
-const CACHE_NAME = 'projekgo-cache-v3'; // Naikkan versi cache agar cache lama di-reset
+const CACHE_NAME = 'projekgo-cache-v4'; // Versi dinaikkan
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json'
 ];
+
+// TAMBAHAN 1: Standar PWABuilder untuk menerima perintah update dari halaman
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
 
 // 1. Install Event (Menyimpan aset penting)
 self.addEventListener('install', (event) => {
@@ -31,11 +38,21 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// 3. Fetch Event (Pola: Network-First untuk HTML, Stale-while-revalidate untuk aset lain)
+// 3. Fetch Event
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   const url = new URL(event.request.url);
+
+  // --- TAMBAHAN 2: MENGABAIKAN REQUEST FIREBASE & API ---
+  // Sangat penting agar data Realtime (onSnapshot) warung & menu tidak ngaco.
+  // Biarkan SDK Firebase yang mengatur cache datanya sendiri.
+  if (url.hostname.includes('firestore.googleapis.com') || 
+      url.hostname.includes('firebase') || 
+      url.hostname.includes('gstatic.com') ||
+      url.hostname.includes('google.com')) {
+    return; // Lepaskan dari cengkraman Service Worker (Bypass)
+  }
 
   // STRATEGI 1: NETWORK-FIRST (Khusus untuk file HTML / Navigasi Aplikasi)
   // Agar aplikasi selalu mengecek update terbaru di server terlebih dahulu
@@ -58,12 +75,13 @@ self.addEventListener('fetch', (event) => {
         })
     );
   } 
-  // STRATEGI 2: STALE-WHILE-REVALIDATE (Untuk file pendukung seperti gambar, manifest)
+  // STRATEGI 2: STALE-WHILE-REVALIDATE (Untuk file pendukung seperti gambar internal, manifest)
   else {
     event.respondWith(
       caches.match(event.request).then((cachedResponse) => {
         const fetchPromise = fetch(event.request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          // Hanya cache response yang valid (menghindari error cache gambar dari ImgBB yang strict CORS)
+          if (networkResponse && (networkResponse.status === 200 || networkResponse.status === 0)) {
             const responseToCache = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => {
               cache.put(event.request, responseToCache);
