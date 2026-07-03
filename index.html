@@ -1873,6 +1873,20 @@
         </div>
     </div>
 
+    <!-- MODAL FORCE UPDATE (WAJIB UPDATE) -->
+    <div id="force-update-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 9999999; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(8px);">
+        <div class="modal-content" style="background: white; width: 100%; max-width: 320px; padding: 30px 25px; border-radius: 24px; text-align: center; box-shadow: 0 15px 50px rgba(0,0,0,0.4); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+            <div style="width:75px; height:75px; background:linear-gradient(135deg, #FFF0E5, #FFD1B3); border-radius:50%; display:flex; align-items:center; justify-content:center; margin: 0 auto 20px auto; box-shadow: 0 10px 20px rgba(255,102,0,0.2);">
+                <i class="ph-bold ph-rocket-launch" style="font-size:38px; color:var(--primary);"></i>
+            </div>
+            <h3 style="margin:0 0 10px 0; color:var(--dark); font-weight:800; font-size:20px; line-height:1.2;">Update Versi Terbaru!</h3>
+            <p style="font-size:13px; color:#555; margin-bottom:25px; line-height:1.6; font-weight:500;">Versi terbaru aplikasi Projekgo telah hadir dengan fitur baru dan perbaikan sistem. Yuk update sekarang agar aplikasi berjalan lancar!</p>
+            <button id="btn-force-update" style="width:100%; background:linear-gradient(45deg, #FF6600, #FF9900); color:white; border:none; padding:15px; border-radius:14px; font-weight:800; font-size:15px; cursor:pointer; box-shadow: 0 8px 20px rgba(255,102,0,0.3); transition: transform 0.2s;">
+                Update Sekarang
+            </button>
+        </div>
+    </div>
+
     <!-- MODAL KONFIRMASI LOGOUT -->
     <div id="logout-modal" onclick="if(event.target===this) closeLogoutModal()" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 99999; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(3px);">
         <div class="modal-content" style="background: white; width: 100%; max-width: 320px; padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
@@ -2256,6 +2270,51 @@
         const db = getFirestore(app);
         const auth = getAuth(app); // Inisialisasi Auth
 
+        // 2. MENGAKTIFKAN OFFLINE PERSISTENCE DI AWAL SEBELUM REQUEST FIRESTORE APAPUN
+        enableIndexedDbPersistence(db).catch((err) => {
+            if (err.code == 'failed-precondition') {
+                console.warn("Multiple tabs open, persistence can only be enabled in one tab at a a time.");
+            } else if (err.code == 'unimplemented') {
+                console.warn("Browser tidak mendukung mode offline Firebase.");
+            }
+        });
+
+        // --- SISTEM FORCE UPDATE ---
+        // CATATAN: Ubah angka ini (misal jadi 2, 3, dst) SETIAP KALI kamu upload AAB/APK baru ke Google Play Console
+        const APP_CURRENT_VERSION = 6; 
+
+        async function checkAppVersion() {
+            try {
+                // Mengambil data dari path /settings/app_version di Firestore
+                const versionRef = doc(db, "settings", "app_version");
+                const docSnap = await getDoc(versionRef);
+                
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const latestVersion = data.latest_version;
+                    const playStoreUrl = data.play_store_url;
+                    
+                    // Bandingkan versi lokal dengan versi di Firestore
+                    if (latestVersion && latestVersion > APP_CURRENT_VERSION) {
+                        const modal = document.getElementById('force-update-modal');
+                        const btnUpdate = document.getElementById('btn-force-update');
+                        
+                        // Set aksi tombol untuk mengarahkan ke link Playstore
+                        btnUpdate.onclick = () => {
+                            window.location.href = playStoreUrl;
+                        };
+                        
+                        // Tampilkan modal secara paksa (tidak bisa diclose)
+                        modal.style.display = 'flex';
+                    }
+                }
+            } catch (error) {
+                // Jangan tampilkan peringatan merah jika gagal karena ini tidak mengganggu berjalannya aplikasi utama
+                console.info("Pengecekan versi tertunda:", error.message);
+            }
+        }
+        // ---------------------------
+
         // VARIABEL GLOBAL UNTUK MENYIMPAN ID LOGIN USER
         let currentUserUid = null;
         let isGoogleLoggedIn = false;
@@ -2276,20 +2335,14 @@
                         photo: user.photoURL
                     };
                 }
+                
+                // JALANKAN CEK VERSI SETELAH USER LOGIN (Mencegah Permission Denied)
+                checkAppVersion();
             } else {
                 // Jika belum, buatkan ID login baru secara diam-diam (anonim)
                 signInAnonymously(auth).catch((error) => {
                     console.error("Gagal membuat login anonim:", error);
                 });
-            }
-        });
-
-        // 2. TAMBAHKAN BARIS INI UNTUK MENGAKTIFKAN OFFLINE PERSISTENCE (CACHE BAWAAN FIREBASE)
-        enableIndexedDbPersistence(db).catch((err) => {
-            if (err.code == 'failed-precondition') {
-                console.warn("Multiple tabs open, persistence can only be enabled in one tab at a a time.");
-            } else if (err.code == 'unimplemented') {
-                console.warn("Browser tidak mendukung mode offline Firebase.");
             }
         });
 
