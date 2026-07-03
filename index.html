@@ -763,9 +763,30 @@
             animation: pulse-orange 1.5s infinite;
         }
         
-        .nav-center-item { position: relative; top: -25px; }
-        .fab-whatsapp { width: 56px; height: 56px; background: #25D366; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 28px; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); border: 4px solid #f5f5f5; text-decoration: none; transition: transform 0.2s; cursor: pointer; }
-        .fab-whatsapp:active { transform: scale(0.95); }
+        /* .nav-center-item { position: relative; top: -25px; } */ /* Dihapus karena FAB pindah */
+        /* .fab-whatsapp { width: 56px; height: 56px; background: #25D366; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 28px; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); border: 4px solid #f5f5f5; text-decoration: none; transition: transform 0.2s; cursor: pointer; } */ /* Dihapus dari navbar, diganti dengan style di profil */
+        /* .fab-whatsapp:active { transform: scale(0.95); } */
+
+        /* --- STYLES UNTUK TOMBOL WA DI PROFIL --- */
+        .profile-wa-btn {
+            background: #25D366;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+            transition: transform 0.2s;
+            margin-bottom: 20px;
+        }
+        .profile-wa-btn:active { transform: scale(0.96); }
 
         /* --- FLOATING CART BANNER --- */
         .floating-cart-banner {
@@ -859,6 +880,12 @@
         .cp-footer { border-top: 1px solid #f0f0f0; padding-top: 15px; }
         .cp-total-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 14px; font-weight: 700; }
         .cp-btn-checkout { width: 100%; background: var(--primary); color: white; padding: 14px; border: none; border-radius: 12px; font-weight: 700; font-size: 15px; box-shadow: 0 4px 15px rgba(255, 102, 0, 0.3); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
+
+        /* --- PRODUCT DETAIL MODAL (BOTTOM SHEET) --- */
+        #product-detail-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 2500; align-items: flex-end; justify-content: center; backdrop-filter: blur(2px); opacity: 0; transition: opacity 0.3s; }
+        #product-detail-modal.show { opacity: 1; }
+        .product-detail-sheet { background: white; width: 100%; max-width: 480px; border-top-left-radius: 25px; border-top-right-radius: 25px; animation: slideUpSheet 0.3s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(100%); transition: transform 0.3s; display: flex; flex-direction: column; max-height: 90vh; }
+        #product-detail-modal.show .product-detail-sheet { transform: translateY(0); }
 
         /* --- SKELETON LOADING (SHIMMER EFFECT) --- */
         .skeleton {
@@ -1505,7 +1532,7 @@
 
                     <!-- Teks Sapaan "Hi. Projekger !" -->
                     <div style="margin-top: 25px; font-size: 42px; font-weight: 900; color: #000; font-family: 'Comic Sans MS', cursive, sans-serif; font-style: italic; letter-spacing: -1.5px; text-shadow: 1px 1px 0px rgba(255,255,255,0.5);">
-                        Hi. Projekger <span style="color:#E53935;">!</span>
+                        Hi. <span id="greeting-name">Projekger</span> <span style="color:#E53935;">!</span>
                     </div>
                 </div>
 
@@ -1614,43 +1641,46 @@
             </div>
         </div> 
 
-        <!-- ===== 2. DETAIL PRODUK (POPUP/PAGE) ===== -->
-        <div id="page-product-detail" class="page" style="z-index:200;">
-            <div class="sub-header" style="position:fixed; width:100%; max-width:480px; background:transparent; box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none; border-bottom:none;">
-                <div onclick="goBack()" style="background:white; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 15px rgba(0,0,0,0.1); cursor:pointer;">
-                    <i class="ph ph-arrow-left" style="font-size:20px;"></i>
-                </div>
-            </div>
-            
-            <img id="pd-img" class="pd-img" src="">
-            <div class="pd-content">
-                <div id="pd-vendor" class="pd-vendor"></div>
-                <div id="pd-title" class="pd-title">Nama Menu</div>
+        <!-- ===== 2. DETAIL PRODUK (BOTTOM SHEET MODAL) ===== -->
+        <div id="product-detail-modal" onclick="if(event.target===this) closeProductDetailModal()">
+            <div class="product-detail-sheet">
                 
-                <div class="pd-price-row">
-                    <div id="pd-price" class="pd-real">Rp 0</div>
-                    <div style="display:flex; flex-direction:column;">
-                        <span class="p-label-normal">Normal</span>
-                        <span id="pd-coret" class="pd-coret">Rp 0</span>
+                <div style="position: relative; width: 100%; height: 350px; flex-shrink: 0;">
+                    <img id="pd-img" style="width: 100%; height: 100%; object-fit: cover; border-top-left-radius: 25px; border-top-right-radius: 25px;" src="">
+                    <div onclick="closeProductDetailModal()" style="position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.9); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; z-index: 10;">
+                        <i class="ph-bold ph-x" style="font-size: 16px; color: #333;"></i>
                     </div>
-                    <div class="pd-disc-badge">Hemat 20%</div>
                 </div>
 
-                <p id="pd-desc" style="color:#555; font-size:13px; line-height:1.6; margin-bottom:20px;">Deskripsi menu...</p>
-                <div class="variant-box" id="variant-section">
-                    <div class="var-title" id="pd-var-title">Pilih Varian</div>
-                    <div class="var-opt" id="pd-var-options"></div>
-                </div>
-                <div style="margin-bottom:80px;">
-                    <div class="var-title">Catatan Khusus (Opsional)</div>
-                    <input type="text" id="pd-note" class="form-input" placeholder="Cth: Jangan pakai bawang...">
-                </div>
-            </div>
+                <div style="padding: 20px; overflow-y: auto; flex-grow: 1;">
+                    <div id="pd-vendor" class="pd-vendor" style="margin-top: 0; padding-top: 0;"></div>
+                    <div id="pd-title" class="pd-title">Nama Menu</div>
+                    
+                    <div class="pd-price-row">
+                        <div id="pd-price" class="pd-real">Rp 0</div>
+                        <div style="display:flex; flex-direction:column;">
+                            <span class="p-label-normal">Normal</span>
+                            <span id="pd-coret" class="pd-coret">Rp 0</span>
+                        </div>
+                        <div class="pd-disc-badge">Hemat 20%</div>
+                    </div>
 
-            <div class="pd-action">
-                <button class="btn-main-add" id="pd-add-btn" onclick="addToCartFromDetail()">
-                    <i class="ph-bold ph-plus"></i> <span id="pd-add-text">Tambah ke Keranjang</span> - <span id="pd-btn-price">Rp 0</span>
-                </button>
+                    <p id="pd-desc" style="color:#555; font-size:13px; line-height:1.6; margin-bottom:20px;">Deskripsi menu...</p>
+                    <div class="variant-box" id="variant-section" style="margin-bottom: 20px;">
+                        <div class="var-title" id="pd-var-title">Pilih Varian</div>
+                        <div class="var-opt" id="pd-var-options"></div>
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <div class="var-title">Catatan Khusus (Opsional)</div>
+                        <input type="text" id="pd-note" class="form-input" placeholder="Cth: Jangan pakai bawang...">
+                    </div>
+                </div>
+
+                <div style="padding: 15px 20px; border-top: 1px solid #eee; background: white; flex-shrink: 0;">
+                    <button class="btn-main-add" id="pd-add-btn" onclick="addToCartFromDetail()" style="width: 100%; position: relative; bottom: auto; left: auto; right: auto; pointer-events: auto;">
+                        <i class="ph-bold ph-plus"></i> <span id="pd-add-text">Tambah ke Keranjang</span> - <span id="pd-btn-price">Rp 0</span>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -1729,7 +1759,12 @@
                     <button class="btn-save-profile" onclick="saveProfile()">Simpan</button>
                 </div>
             </div>
-            <div style="background:white; padding:0 20px; box-shadow:var(--shadow-sm);">
+            <div style="background:white; padding: 20px; box-shadow:var(--shadow-sm);">
+                <!-- TOMBOL WA DIPINDAHKAN KESINI -->
+                <button class="profile-wa-btn" onclick="openAdminModal()">
+                    <i class="ph-fill ph-whatsapp-logo" style="font-size: 24px;"></i> Chat Admin Projekgo
+                </button>
+                
                 <div onclick="openPage('favorites')" style="padding:18px 0; border-bottom:1px solid #f5f5f5; display:flex; align-items:center; gap:12px; cursor:pointer;"><i class="ph-fill ph-heart" style="color:#E91E63; font-size:20px;"></i> <span style="font-weight:600; font-size:14px;">Favorit Saya</span> <i class="ph ph-caret-right" style="margin-left:auto; color:#ccc;"></i></div>
                 <div onclick="openPage('orders')" style="padding:18px 0; border-bottom:1px solid #f5f5f5; display:flex; align-items:center; gap:12px; cursor:pointer;"><i class="ph-fill ph-receipt" style="color:#2196F3; font-size:20px;"></i> <span style="font-weight:600; font-size:14px;">Riwayat Pesanan</span> <i class="ph ph-caret-right" style="margin-left:auto; color:#ccc;"></i></div>
                 <div onclick="logoutApp()" style="padding:18px 0; display:flex; align-items:center; gap:12px; cursor:pointer; color:#D32F2F;"><i class="ph-bold ph-sign-out" style="font-size:20px;"></i> <span style="font-weight:600; font-size:14px;">Keluar Akun</span> <i class="ph ph-caret-right" style="margin-left:auto; color:#ccc;"></i></div>
@@ -2059,11 +2094,7 @@
         <nav class="bottom-nav">
             <div class="nav-item active" onclick="openPage('home')" id="nav-home"><i class="ph ph-house"></i><span>Beranda</span></div>
             <div class="nav-item" onclick="openMoreMenuModal()" id="nav-more"><i class="ph ph-list"></i><span>Lainnya</span></div>
-            <div class="nav-center-item">
-                 <div class="fab-whatsapp" onclick="openAdminModal()">
-                    <i class="ph-fill ph-whatsapp-logo"></i>
-                 </div>
-            </div>
+            <!-- FAB WA DIHAPUS DARI SINI -->
             <div class="nav-item" onclick="toggleCartPopup()" id="nav-cart">
                 <i class="ph ph-shopping-cart"></i>
                 <span>Keranjang</span>
@@ -2339,6 +2370,11 @@
         const savedProfile = JSON.parse(localStorage.getItem('user_profile')) || {name: 'User Projekgo', phone: '0812-XXXX-XXXX'};
         document.getElementById('profile-name').innerText = savedProfile.name;
         document.getElementById('profile-phone').innerText = savedProfile.phone;
+        
+        const greetingNameEl = document.getElementById('greeting-name');
+        if (greetingNameEl) {
+            greetingNameEl.innerText = savedProfile.name !== 'User Projekgo' ? savedProfile.name.split(' ')[0] : 'Projekger';
+        }
 
         // --- LOGIKA HALAMAN PENDAFTARAN AWAL & SPLASH PENGGUNA LAMA ---
         const hasRegisteredProfile = localStorage.getItem('user_profile');
@@ -2453,6 +2489,9 @@
             savedProfile.phone = phone;
             document.getElementById('profile-name').innerText = name;
             document.getElementById('profile-phone').innerText = phone;
+            
+            const greetingNameElReg = document.getElementById('greeting-name');
+            if (greetingNameElReg) greetingNameElReg.innerText = name.split(' ')[0];
 
             // --- SIMPAN PROFIL KE DATABASE FIREBASE (Diikat dengan ID Login) ---
             if (currentUserUid) {
@@ -2724,7 +2763,7 @@
         }
 
         window.toggleEditProfile = () => { const box = document.getElementById('edit-profile-form'); box.style.display = box.style.display === 'block' ? 'none' : 'block'; document.getElementById('edit-name').value = savedProfile.name; document.getElementById('edit-phone').value = savedProfile.phone; }
-        window.saveProfile = () => { const name = document.getElementById('edit-name').value; const phone = document.getElementById('edit-phone').value; if(name && phone) { savedProfile.name = name; savedProfile.phone = phone; localStorage.setItem('user_profile', JSON.stringify(savedProfile)); document.getElementById('profile-name').innerText = name; document.getElementById('profile-phone').innerText = phone; document.getElementById('edit-profile-form').style.display = 'none'; showToast("Profil berhasil disimpan!"); } }
+        window.saveProfile = () => { const name = document.getElementById('edit-name').value; const phone = document.getElementById('edit-phone').value; if(name && phone) { savedProfile.name = name; savedProfile.phone = phone; localStorage.setItem('user_profile', JSON.stringify(savedProfile)); document.getElementById('profile-name').innerText = name; document.getElementById('profile-phone').innerText = phone; const gEl = document.getElementById('greeting-name'); if(gEl) gEl.innerText = name.split(' ')[0]; document.getElementById('edit-profile-form').style.display = 'none'; showToast("Profil berhasil disimpan!"); } }
 
         // --- FUNGSI LOGOUT AKUN ---
         window.logoutApp = () => {
@@ -3599,7 +3638,7 @@
             
             const vendorEl = document.getElementById('pd-vendor');
             vendorEl.innerHTML = `<img src="${vendorImg}" onerror="this.src='${FALLBACK_VENDOR_IMG}'" class="pd-vendor-img"> <span>${vendorName}</span> <i class="ph-bold ph-caret-right" style="font-size:12px; color:#ccc; margin-left:auto;"></i>`;
-            vendorEl.onclick = () => openVendorPage(item.vendor_id);
+            vendorEl.onclick = () => { closeProductDetailModal(); setTimeout(() => { openVendorPage(item.vendor_id); }, 300); };
 
             document.getElementById('pd-title').innerText = item.nama_menu; 
             document.getElementById('pd-price').innerText = "Rp " + realPrice.toLocaleString(); 
@@ -3611,7 +3650,19 @@
             if(item.is_available === false || item.is_sold_out === true) { btn.style.background = "#ccc"; btn.style.cursor = "not-allowed"; btn.onclick = () => showToast('Maaf, stok habis 🙏'); btnText.innerText = "Stok Habis"; } else { btn.style.background = "var(--primary)"; btn.style.cursor = "pointer"; btn.onclick = () => addToCartFromDetail(); btnText.innerText = "Tambah ke Keranjang"; }
             const varBox = document.getElementById('variant-section'); const varOpts = document.getElementById('pd-var-options'); varOpts.innerHTML = ''; 
             if (item.variant_options && item.variant_options.length > 0) { varBox.style.display = 'block'; document.getElementById('pd-var-title').innerText = "Pilih " + (item.variant_title || "Varian"); item.variant_options.forEach((opt, idx) => { const checked = ''; varOpts.innerHTML += `<input type="radio" name="variant" id="var-${idx}" class="radio-input" value="${opt}" ${checked}><label for="var-${idx}" class="radio-label">${opt}</label>`; }); } else { varBox.style.display = 'none'; }
-            document.getElementById('pd-note').value = ""; openPage('product-detail');
+            document.getElementById('pd-note').value = ""; 
+            
+            // --- MODIFIKASI: Buka sebagai Modal Bottom Sheet ---
+            const modal = document.getElementById('product-detail-modal');
+            modal.style.display = 'flex';
+            modal.offsetHeight; // trigger reflow
+            modal.classList.add('show');
+        }
+
+        window.closeProductDetailModal = () => {
+            const modal = document.getElementById('product-detail-modal');
+            modal.classList.remove('show');
+            setTimeout(() => { modal.style.display = 'none'; }, 300);
         }
 
         window.quickAdd = (e, id) => { e.stopPropagation(); const item = rawProducts.find(p => p.id === id); if(item.is_available === false || item.is_sold_out === true) { showToast("Maaf, stok habis 🙏"); return; } if (item.variant_options && item.variant_options.length > 0) { openVariantModal(item); } else { addToCartDirect(item, "-", ""); } }
@@ -3620,7 +3671,7 @@
         window.closeVariantModal = () => { const modal = document.getElementById('variant-modal'); modal.classList.remove('show'); setTimeout(() => { modal.style.display = 'none'; }, 300); pendingVariantItem = null; }
         window.confirmVariantAdd = () => { if (pendingVariantItem && selectedVariantValue) { addToCartDirect(pendingVariantItem, selectedVariantValue, ""); closeVariantModal(); } else { showToast("⚠️ Pilih varian dulu ya!"); } }
         function addToCartDirect(item, variant, note) { cart.push({ id: item.id, nama: item.nama_menu, harga: parseInt(item.harga), vendor: item.vendor_name || "Warung Projekgo", variant: variant, note: note }); updateCartBadge(); if(navigator.vibrate) navigator.vibrate(50); showToast("Berhasil ditambahkan!"); }
-        window.addToCartFromDetail = () => { if(!currentDetailProduct) return; if(currentDetailProduct.is_available === false || currentDetailProduct.is_sold_out === true) { showToast("Maaf, stok habis 🙏"); return; } let variant = "-"; if(document.getElementById('variant-section').style.display !== 'none') { const selectedVar = document.querySelector('input[name="variant"]:checked'); if(!selectedVar) { showToast("⚠️ Harap pilih varian dulu!"); document.getElementById('variant-section').scrollIntoView({behavior: 'smooth', block: 'center'}); const title = document.getElementById('pd-var-title'); title.style.color = 'red'; setTimeout(() => title.style.color = '#333', 1000); return; } variant = selectedVar.value; } const note = document.getElementById('pd-note').value; addToCartDirect(currentDetailProduct, variant, note); goBack(); }
+        window.addToCartFromDetail = () => { if(!currentDetailProduct) return; if(currentDetailProduct.is_available === false || currentDetailProduct.is_sold_out === true) { showToast("Maaf, stok habis 🙏"); return; } let variant = "-"; if(document.getElementById('variant-section').style.display !== 'none') { const selectedVar = document.querySelector('input[name="variant"]:checked'); if(!selectedVar) { showToast("⚠️ Harap pilih varian dulu!"); document.getElementById('variant-section').scrollIntoView({behavior: 'smooth', block: 'center'}); const title = document.getElementById('pd-var-title'); title.style.color = 'red'; setTimeout(() => title.style.color = '#333', 1000); return; } variant = selectedVar.value; } const note = document.getElementById('pd-note').value; addToCartDirect(currentDetailProduct, variant, note); closeProductDetailModal(); }
         
         function updateCartBadge(pageOverride = null) { 
             const b = document.getElementById('cart-badge'); 
