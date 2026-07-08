@@ -18,6 +18,9 @@
     <!-- MENGGUNAKAN MANIFEST FISIK (Ubah bagian ini di head) -->
     <link rel="manifest" href="manifest.json">
     
+    <!-- GOOGLE MAPS API (PENCARIAN LOKASI & JARAK) -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAAgPz5iVt7kEcd_gH2hmtHfHg2s8gJMZY&libraries=places"></script>
+    
     <title>Katalog Projekgo</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -1013,6 +1016,28 @@
         .cat-modal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px 10px; overflow-y: auto; padding-bottom: 20px; scrollbar-width: none; }
         .cat-modal-grid::-webkit-scrollbar { display: none; }
 
+        /* --- GOOGLE MAPS AUTOCOMPLETE & RIDE UI STYLES --- */
+        .pac-container { z-index: 100000 !important; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); margin-top: 5px; font-family: 'Plus Jakarta Sans', sans-serif; border: none; }
+        .pac-item { padding: 12px 15px; font-size: 13px; color: #555; border-top: 1px solid #f0f0f0; cursor: pointer; }
+        .pac-item:first-child { border-top: none; }
+        .pac-item:hover { background: #f9f9f9; }
+        .pac-item-query { font-weight: 800; color: var(--dark); font-size: 14px; margin-right: 5px; }
+        .pac-icon { display: none; }
+
+        .ride-input-group { display: flex; align-items: stretch; gap: 12px; position: relative; }
+        .ride-dots { display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 18px 0; gap: 4px; }
+        .dot-origin { width: 14px; height: 14px; background: #2196F3; border-radius: 50%; border: 3px solid #E3F2FD; }
+        .dot-line { width: 2px; flex-grow: 1; background-image: linear-gradient(to bottom, #ccc 50%, transparent 50%); background-size: 100% 8px; margin: 2px 0; }
+        .dot-dest { width: 14px; height: 14px; background: #F44336; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 2px solid #FFEBEE; margin-top: 2px; }
+        .ride-inputs { flex-grow: 1; display: flex; flex-direction: column; gap: 12px; }
+        .ride-input { width: 100%; background: #f5f5f5; border: 1px solid transparent; padding: 14px 15px; border-radius: 12px; font-size: 14px; font-weight: 600; outline: none; transition: 0.2s; color: var(--dark); font-family: inherit; }
+        .ride-input:focus { background: white; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(255, 102, 0, 0.1); }
+        .ride-input::placeholder { color: #999; font-weight: 500; }
+        .ride-tab-container { display: flex; gap: 15px; margin: 20px 0 10px 0; border-bottom: 1px solid #eee; padding-bottom: 10px; overflow-x: auto; scrollbar-width: none; }
+        .ride-tab { font-size: 13px; font-weight: 700; color: #888; cursor: pointer; white-space: nowrap; padding-bottom: 8px; position: relative; }
+        .ride-tab.active { color: var(--dark); }
+        .ride-tab.active::after { content: ''; position: absolute; bottom: -11px; left: 0; right: 0; height: 3px; background: var(--dark); border-radius: 3px; }
+
         /* --- MORE MENU MODAL STYLES --- */
         #more-menu-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 2500; align-items: flex-end; justify-content: center; backdrop-filter: blur(2px); opacity: 0; transition: opacity 0.3s; }
         #more-menu-modal.show { opacity: 1; }
@@ -1815,7 +1840,7 @@
         
         <div id="page-service-form" class="page">
             <div class="sub-header"><div class="btn-back" onclick="goBack()"><i class="ph ph-arrow-left"></i></div><div class="page-title" id="form-service-title">Form</div></div>
-            <div style="padding:20px;"><div id="dynamic-form-fields"></div><button onclick="submitServiceForm()" style="width:100%; background:#25D366; color:white; padding:15px; border:none; border-radius:12px; margin-top:20px; font-weight:700; font-size:16px; box-shadow:0 4px 15px rgba(37, 211, 102, 0.4);">Pesan ke Admin</button></div>
+            <div style="padding:20px;"><div id="dynamic-form-fields"></div><button id="generic-submit-btn" onclick="submitServiceForm()" style="width:100%; background:#25D366; color:white; padding:15px; border:none; border-radius:12px; margin-top:20px; font-weight:700; font-size:16px; box-shadow:0 4px 15px rgba(37, 211, 102, 0.4);">Pesan ke Admin</button></div>
         </div>
 
     </div>
@@ -4512,6 +4537,15 @@
             document.getElementById('search-modal').style.display = 'none';
         }
 
+        window.setDummyLocation = (val) => {
+            const destInput = document.getElementById('svc-tujuan');
+            if(destInput) {
+                destInput.value = val;
+                destInput.focus();
+                showToast("Pilih rute dari saran Google Maps agar jarak/ongkir terhitung.");
+            }
+        }
+
         window.handleSearch = (e) => {
             if(e.key === 'Enter') { 
                 const keyword = e.target.value.toLowerCase(); 
@@ -4553,56 +4587,348 @@
             }
         }
 
+        // --- GOOGLE MAPS ROUTING VARIABLES ---
+        let originPlace = null;
+        let destPlace = null;
+        let routeDistance = 0;
+        let routeDuration = '';
+        let routePrice = 0;
+
         window.openServiceForm = (svc) => {
             currentServiceType = svc; 
             document.getElementById('form-service-title').innerText = svc; 
             const container = document.getElementById('dynamic-form-fields'); 
-            let html = '';
             
-            if (svc === 'Ngojek' || svc === 'Mobil') { 
-                html += `<div class="form-group"><label class="form-label">Lokasi Jemput</label><input type="text" id="svc-jemput" class="form-input"></div><div class="form-group"><label class="form-label">Tujuan</label><input type="text" id="svc-tujuan" class="form-input"></div><div class="form-group"><label class="form-label">Jam</label><input type="text" id="svc-jam" class="form-input" placeholder="Sekarang"></div>`; 
-            } else if (svc === 'Kirim Paket') { 
-                html += `<div class="form-group"><label class="form-label">Jenis Paket</label><input type="text" id="svc-paket" class="form-input"></div><div class="form-group"><label class="form-label">Alamat Ambil</label><input type="text" id="svc-jemput" class="form-input"></div><div class="form-group"><label class="form-label">Alamat Tujuan</label><input type="text" id="svc-tujuan" class="form-input"></div><div class="form-group"><label class="form-label">Penerima</label><input type="text" id="svc-penerima" class="form-input"></div>`; 
-            } else { 
-                html += `<div class="form-group"><label class="form-label">Detail Pesanan</label><input type="text" id="svc-detail" class="form-input" placeholder="Apa yang bisa kami bantu?"></div><div class="form-group"><label class="form-label">Alamat / Lokasi</label><input type="text" id="svc-lokasi" class="form-input"></div>`; 
+            // Reset state maps
+            originPlace = null;
+            destPlace = null;
+            routeDistance = 0;
+            routeDuration = '';
+            routePrice = 0;
+            
+            let html = '';
+            const genericBtn = document.getElementById('generic-submit-btn');
+            
+            if (svc === 'Ngojek' || svc === 'Mobil' || svc === 'Kirim Paket') {
+                if(genericBtn) genericBtn.style.display = 'none';
+
+                let extraFields = '';
+                if(svc === 'Kirim Paket') {
+                    extraFields = `
+                        <div style="margin-top:15px; display:flex; flex-direction:column; gap:12px;">
+                            <input type="text" id="svc-paket" class="ride-input" placeholder="Detail Barang (Misal: Dokumen, Makanan...)">
+                            <input type="text" id="svc-penerima" class="ride-input" placeholder="Nama & No. WA Penerima">
+                        </div>
+                    `;
+                }
+
+                html = `
+                    <div style="background:white; border-radius:20px; padding:20px 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); margin-bottom:20px; border:1px solid rgba(0,0,0,0.03);">
+                        <div class="ride-input-group">
+                            <div class="ride-dots">
+                                <div class="dot-origin"></div>
+                                <div class="dot-line"></div>
+                                <div class="dot-dest"></div>
+                            </div>
+                            <div class="ride-inputs">
+                                <input type="text" id="svc-jemput" class="ride-input" placeholder="Lokasi jemput saat ini...">
+                                <input type="text" id="svc-tujuan" class="ride-input" placeholder="Cari lokasi tujuan...">
+                            </div>
+                        </div>
+                        ${extraFields}
+                    </div>
+
+                    <div id="route-summary" style="display:none; background:white; border-radius:20px; padding:20px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border:1px solid rgba(0,0,0,0.03); margin-bottom:20px; animation: slideIn 0.3s;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px dashed #eee; padding-bottom:15px; margin-bottom:15px;">
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div style="width:48px; height:48px; background:var(--primary-light); border-radius:14px; display:flex; align-items:center; justify-content:center;">
+                                    <i class="${svc==='Mobil'?'ph-fill ph-car':(svc==='Kirim Paket'?'ph-fill ph-package':'ph-fill ph-moped')}" style="font-size:28px; color:var(--primary);"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight:800; font-size:16px; color:var(--dark); margin-bottom:2px;">${svc} Prioritas</div>
+                                    <div style="font-size:12px; color:#666;">Estimasi <span id="summary-time" style="font-weight:700; color:#333;">-</span> • <span id="summary-dist" style="font-weight:700; color:#333;">-</span></div>
+                                </div>
+                            </div>
+                            <div id="summary-price" style="font-size:20px; font-weight:900; color:var(--dark);">Rp -</div>
+                        </div>
+                        <button onclick="submitServiceForm()" style="width:100%; background:linear-gradient(45deg, var(--primary), #FF9900); color:white; padding:16px; border:none; border-radius:14px; font-weight:800; font-size:16px; box-shadow:0 8px 20px rgba(255,102,0,0.3); display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition:0.2s;">
+                            Pesan ${svc} <i class="ph-bold ph-arrow-right"></i>
+                        </button>
+                    </div>
+                    
+                    <div id="loading-route" style="display:none; text-align:center; padding:30px 20px; color:#888; font-size:13px; background:white; border-radius:20px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); margin-bottom:20px;">
+                        <i class="ph-bold ph-spinner ph-spin" style="font-size:28px; color:var(--primary); margin-bottom:10px;"></i><br>Mencari rute jalan terbaik...
+                    </div>
+
+                    <div id="suggested-locations" style="padding: 0 5px;">
+                        <div class="ride-tab-container">
+                            <div class="ride-tab" onclick="switchRideTab('terakhir', this)">Terakhir</div>
+                            <div class="ride-tab active" onclick="switchRideTab('disarankan', this)">Disarankan</div>
+                            <div class="ride-tab" onclick="switchRideTab('tersimpan', this)">Tersimpan</div>
+                        </div>
+                        
+                        <div id="ride-locations-list">
+                            <div style="font-size:14px; font-weight:800; color:var(--dark); margin-top:15px; margin-bottom:10px;">Sering digunakan</div>
+                            
+                            <div style="display:flex; align-items:flex-start; gap:15px; padding:12px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" onclick="setDummyLocation('Pasar Wonokriyo Gombong')">
+                                <i class="ph-regular ph-clock-counter-clockwise" style="font-size:20px; color:#666; margin-top:2px;"></i>
+                                <div style="flex-grow:1;">
+                                    <div style="font-size:14px; font-weight:700; color:#333; margin-bottom:4px;">Pasar Wonokriyo Gombong</div>
+                                    <div style="font-size:12px; color:#888; line-height:1.4;">4.07km • Jl. Yos Sudarso, Wonokriyo, Gombong...</div>
+                                </div>
+                                <i class="ph-bold ph-dots-three-vertical" style="color:#aaa;"></i>
+                            </div>
+                            <div style="display:flex; align-items:flex-start; gap:15px; padding:12px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" onclick="setDummyLocation('Stasiun Kebumen')">
+                                <i class="ph-fill ph-map-pin" style="font-size:20px; color:#666; margin-top:2px;"></i>
+                                <div style="flex-grow:1;">
+                                    <div style="font-size:14px; font-weight:700; color:#333; margin-bottom:4px;">Stasiun Kebumen</div>
+                                    <div style="font-size:12px; color:#888; line-height:1.4;">21.47km • Jl. Stasiun, Panjer, Kebumen...</div>
+                                </div>
+                                <i class="ph-bold ph-dots-three-vertical" style="color:#aaa;"></i>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                if(genericBtn) genericBtn.style.display = 'block';
+                html = `
+                    <div class="form-group"><label class="form-label">Detail Pesanan</label><input type="text" id="svc-detail" class="form-input" placeholder="Apa yang bisa kami bantu?"></div>
+                    <div class="form-group"><label class="form-label">Alamat / Lokasi</label><input type="text" id="svc-lokasi" class="form-input"></div>
+                    <div style="margin-top:15px; margin-bottom:10px;">
+                        <button id="btn-titik-maps-svc" onclick="getCurrentLocationForMapsSvc()" style="width:100%; background:var(--primary-light); color:var(--primary); border:1px dashed var(--primary); padding:14px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:0.3s; line-height: 1.4;">
+                            <i class="ph-bold ph-map-pin" style="font-size:18px; flex-shrink:0;"></i> <span style="text-align:left;">KLIK DISINI Jika Lokasi pengantaran sama dengan lokasi kamu saat ini</span>
+                        </button>
+                        <div id="maps-status-text-svc" style="font-size:10px; color:#2E7D32; text-align:center; margin-top:6px; font-weight:700; display:none;">✅ Titik lokasi berhasil didapatkan!</div>
+                    </div>
+                `;
             }
 
-            // TAMBAHAN: Tombol titik maps untuk layanan lainnya
-            html += `
-            <div style="margin-top:15px; margin-bottom:10px;">
-                <button id="btn-titik-maps-svc" onclick="getCurrentLocationForMapsSvc()" style="width:100%; background:var(--primary-light); color:var(--primary); border:1px dashed var(--primary); padding:14px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:0.3s; line-height: 1.4;">
-                    <i class="ph-bold ph-map-pin" style="font-size:18px; flex-shrink:0;"></i> <span style="text-align:left;">KLIK DISINI Jika Lokasi pengantaran sama dengan lokasi kamu saat ini (biar rider akurat)</span>
-                </button>
-                <div id="maps-status-text-svc" style="font-size:10px; color:#2E7D32; text-align:center; margin-top:6px; font-weight:700; display:none;">✅ Titik lokasi berhasil didapatkan!</div>
-            </div>
-            `;
-
             container.innerHTML = html; 
-            localStorage.removeItem('svc_maps_temp'); // Reset map temp tiap buka form
+            localStorage.removeItem('svc_maps_temp'); 
             openPage('service-form');
+
+            if (svc === 'Ngojek' || svc === 'Mobil' || svc === 'Kirim Paket') {
+                setTimeout(() => {
+                    initGooglePlaces();
+                }, 300);
+            }
+        }
+
+        window.initGooglePlaces = () => {
+            const inputJemput = document.getElementById('svc-jemput');
+            const inputTujuan = document.getElementById('svc-tujuan');
+
+            if (!inputJemput || !inputTujuan) return;
+
+            const options = {
+                componentRestrictions: { country: "id" },
+                fields: ["formatted_address", "geometry", "name"],
+                strictBounds: false
+            };
+
+            const autoJemput = new google.maps.places.Autocomplete(inputJemput, options);
+            const autoTujuan = new google.maps.places.Autocomplete(inputTujuan, options);
+
+            autoJemput.addListener('place_changed', () => {
+                originPlace = autoJemput.getPlace();
+                if (originPlace && originPlace.name) inputJemput.value = originPlace.name;
+                calculateRoute();
+            });
+
+            autoTujuan.addListener('place_changed', () => {
+                destPlace = autoTujuan.getPlace();
+                if (destPlace && destPlace.name) inputTujuan.value = destPlace.name;
+                calculateRoute();
+            });
+        }
+
+        // FUNGSI BARU UNTUK BERGANTI TAB LOKASI
+        window.switchRideTab = (tabName, element) => {
+            // Hapus class 'active' dari semua tab, lalu tambahkan ke tab yang diklik
+            document.querySelectorAll('.ride-tab').forEach(el => el.classList.remove('active'));
+            if(element) element.classList.add('active');
+
+            const listContainer = document.getElementById('ride-locations-list');
+            if(!listContainer) return;
+
+            // Ganti isi konten berdasarkan tab yang dipilih
+            if (tabName === 'terakhir') {
+                listContainer.innerHTML = `
+                    <div style="font-size:14px; font-weight:800; color:var(--dark); margin-top:15px; margin-bottom:10px;">Riwayat Pencarian Anda</div>
+                    <div style="display:flex; align-items:flex-start; gap:15px; padding:12px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" onclick="setDummyLocation('Alun-Alun Kebumen')">
+                        <i class="ph-regular ph-clock-counter-clockwise" style="font-size:20px; color:#666; margin-top:2px;"></i>
+                        <div style="flex-grow:1;">
+                            <div style="font-size:14px; font-weight:700; color:#333; margin-bottom:4px;">Alun-Alun Kebumen</div>
+                            <div style="font-size:12px; color:#888; line-height:1.4;">Bumirejo, Kebumen...</div>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:flex-start; gap:15px; padding:12px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" onclick="setDummyLocation('RS PKU Muhammadiyah Gombong')">
+                        <i class="ph-regular ph-clock-counter-clockwise" style="font-size:20px; color:#666; margin-top:2px;"></i>
+                        <div style="flex-grow:1;">
+                            <div style="font-size:14px; font-weight:700; color:#333; margin-bottom:4px;">RS PKU Muhammadiyah Gombong</div>
+                            <div style="font-size:12px; color:#888; line-height:1.4;">Kemukus, Gombong...</div>
+                        </div>
+                    </div>
+                `;
+            } else if (tabName === 'tersimpan') {
+                listContainer.innerHTML = `
+                    <div style="font-size:14px; font-weight:800; color:var(--dark); margin-top:15px; margin-bottom:10px;">Lokasi Tersimpan</div>
+                    <div style="display:flex; align-items:flex-start; gap:15px; padding:12px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" onclick="setDummyLocation('Rumah')">
+                        <i class="ph-fill ph-house" style="font-size:20px; color:var(--primary); margin-top:2px;"></i>
+                        <div style="flex-grow:1;">
+                            <div style="font-size:14px; font-weight:700; color:#333; margin-bottom:4px;">Rumah</div>
+                            <div style="font-size:12px; color:#888; line-height:1.4;">Jl. Pahlawan No. 123...</div>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:flex-start; gap:15px; padding:12px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" onclick="setDummyLocation('Kantor')">
+                        <i class="ph-fill ph-briefcase" style="font-size:20px; color:#2196F3; margin-top:2px;"></i>
+                        <div style="flex-grow:1;">
+                            <div style="font-size:14px; font-weight:700; color:#333; margin-bottom:4px;">Kantor</div>
+                            <div style="font-size:12px; color:#888; line-height:1.4;">Jl. Yos Sudarso...</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Default: Disarankan
+                listContainer.innerHTML = `
+                    <div style="font-size:14px; font-weight:800; color:var(--dark); margin-top:15px; margin-bottom:10px;">Sering digunakan</div>
+                    <div style="display:flex; align-items:flex-start; gap:15px; padding:12px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" onclick="setDummyLocation('Pasar Wonokriyo Gombong')">
+                        <i class="ph-regular ph-clock-counter-clockwise" style="font-size:20px; color:#666; margin-top:2px;"></i>
+                        <div style="flex-grow:1;">
+                            <div style="font-size:14px; font-weight:700; color:#333; margin-bottom:4px;">Pasar Wonokriyo Gombong</div>
+                            <div style="font-size:12px; color:#888; line-height:1.4;">4.07km • Jl. Yos Sudarso, Wonokriyo, Gombong...</div>
+                        </div>
+                        <i class="ph-bold ph-dots-three-vertical" style="color:#aaa;"></i>
+                    </div>
+                    <div style="display:flex; align-items:flex-start; gap:15px; padding:12px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" onclick="setDummyLocation('Stasiun Kebumen')">
+                        <i class="ph-fill ph-map-pin" style="font-size:20px; color:#666; margin-top:2px;"></i>
+                        <div style="flex-grow:1;">
+                            <div style="font-size:14px; font-weight:700; color:#333; margin-bottom:4px;">Stasiun Kebumen</div>
+                            <div style="font-size:12px; color:#888; line-height:1.4;">21.47km • Jl. Stasiun, Panjer, Kebumen...</div>
+                        </div>
+                        <i class="ph-bold ph-dots-three-vertical" style="color:#aaa;"></i>
+                    </div>
+                `;
+            }
+        }
+
+        window.calculateRoute = () => {
+            if (!originPlace || !originPlace.geometry || !destPlace || !destPlace.geometry) {
+                return;
+            }
+
+            document.getElementById('route-summary').style.display = 'none';
+            document.getElementById('suggested-locations').style.display = 'none';
+            document.getElementById('loading-route').style.display = 'block';
+            
+            const origin = originPlace.geometry.location;
+            const destination = destPlace.geometry.location;
+
+            const service = new google.maps.DistanceMatrixService();
+            service.getDistanceMatrix({
+                origins: [origin],
+                destinations: [destination],
+                travelMode: google.maps.TravelMode.DRIVING,
+                unitSystem: google.maps.UnitSystem.METRIC,
+            }, (response, status) => {
+                document.getElementById('loading-route').style.display = 'none';
+                if (status === 'OK' && response.rows[0].elements[0].status === 'OK') {
+                    const element = response.rows[0].elements[0];
+                    const distText = element.distance.text; 
+                    const distValue = element.distance.value; 
+                    const durText = element.duration.text; 
+
+                    routeDistance = distValue / 1000; 
+                    routeDuration = durText;
+
+                    calculatePrice(routeDistance);
+
+                    document.getElementById('summary-dist').innerText = distText;
+                    document.getElementById('summary-time').innerText = durText;
+                    document.getElementById('summary-price').innerText = "Rp " + routePrice.toLocaleString('id-ID');
+                    document.getElementById('route-summary').style.display = 'block';
+                } else {
+                    showToast("Gagal menghitung jarak. Pastikan rute bisa dilalui kendaran.");
+                    document.getElementById('suggested-locations').style.display = 'block';
+                }
+            });
+        }
+
+        window.calculatePrice = (distKm) => {
+            let price = 0;
+            if (currentServiceType === 'Ngojek') {
+                if (distKm <= 3) {
+                    price = 9000; 
+                } else {
+                    price = 9000 + (Math.ceil(distKm - 3) * 2500);
+                }
+            } else if (currentServiceType === 'Mobil') {
+                if (distKm <= 4) {
+                    price = 30000; 
+                } else {
+                    price = 30000 + (Math.ceil(distKm - 4) * 5500);
+                }
+            } else if (currentServiceType === 'Kirim Paket') {
+                if (distKm <= 1) {
+                    price = 8000; 
+                } else {
+                    price = 8000 + (Math.ceil(distKm - 1) * 2600);
+                }
+            }
+            routePrice = price;
         }
 
         window.submitServiceForm = () => { 
-            let inputs = document.querySelectorAll('[id^="svc-"]'); 
             let message = `Halo Admin Projekgo, pesan jasa *${currentServiceType}*:%0A%0A`; 
-            let filled = true; 
             
-            inputs.forEach(input => { 
-                const label = input.previousElementSibling.innerText; 
-                const val = input.value.trim(); 
-                if(val === '') filled = false; 
-                message += `▪️ ${label}: ${val}%0A`; 
-            }); 
-            
-            if(!filled) { 
-                showToast("Mohon lengkapi data."); 
-                return; 
-            } 
-
-            // Cek titik maps untuk layanan
-            const svcMaps = localStorage.getItem('svc_maps_temp');
-            if (svcMaps) {
-                message += `▪️ Titik Lokasi Saya: ${svcMaps}%0A`;
+            if (currentServiceType === 'Ngojek' || currentServiceType === 'Mobil' || currentServiceType === 'Kirim Paket') {
+                const jemput = document.getElementById('svc-jemput').value;
+                const tujuan = document.getElementById('svc-tujuan').value;
+                
+                if(!jemput || !tujuan) {
+                    showToast("Mohon isi lokasi jemput dan tujuan.");
+                    return;
+                }
+                
+                message += `📍 *Jemput:* ${originPlace && originPlace.formatted_address ? originPlace.formatted_address : jemput}%0A`;
+                message += `🚩 *Tujuan:* ${destPlace && destPlace.formatted_address ? destPlace.formatted_address : tujuan}%0A`;
+                
+                if (currentServiceType === 'Kirim Paket') {
+                    const paket = document.getElementById('svc-paket').value;
+                    const penerima = document.getElementById('svc-penerima').value;
+                    if(!paket || !penerima) { showToast("Mohon lengkapi data paket & penerima."); return; }
+                    message += `📦 *Detail Paket:* ${paket}%0A`;
+                    message += `👤 *Penerima:* ${penerima}%0A`;
+                }
+                
+                if (routePrice > 0) {
+                    message += `%0A*🛣️ Estimasi Perjalanan:*%0A`;
+                    message += `Jarak: ${document.getElementById('summary-dist').innerText}%0A`;
+                    message += `Waktu: ${document.getElementById('summary-time').innerText}%0A`;
+                    message += `💰 *Estimasi Ongkir: Rp ${routePrice.toLocaleString('id-ID')}*%0A`;
+                    message += `_(Note: Harga dihitung otomatis via sistem)_%0A`;
+                }
+            } else {
+                let inputs = document.querySelectorAll('[id^="svc-"]'); 
+                let filled = true;
+                inputs.forEach(input => { 
+                    // Abaikan input ride jika terbaca
+                    if(input.id === 'svc-jemput' || input.id === 'svc-tujuan' || input.id === 'svc-paket' || input.id === 'svc-penerima') return; 
+                    const label = input.previousElementSibling ? input.previousElementSibling.innerText : input.placeholder; 
+                    let val = input.value.trim(); 
+                    if(val === '') filled = false; 
+                    message += `▪️ ${label}: ${val}%0A`; 
+                }); 
+                
+                if(!filled) { 
+                    showToast("Mohon lengkapi data."); 
+                    return; 
+                } 
+                
+                const svcMaps = localStorage.getItem('svc_maps_temp');
+                if (svcMaps) {
+                    message += `▪️ Titik Lokasi Saya: ${svcMaps}%0A`;
+                }
             }
 
             window.open(`https://wa.me/${ADMIN_WA}?text=${message}`, '_blank'); 
