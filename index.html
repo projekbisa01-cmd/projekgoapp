@@ -3744,11 +3744,32 @@
             
             const btn = document.getElementById('pd-add-btn'); const btnText = document.getElementById('pd-add-text');
             if(item.is_available === false || item.is_sold_out === true) { btn.style.background = "#ccc"; btn.style.cursor = "not-allowed"; btn.onclick = () => showToast('Maaf, stok habis 🙏'); btnText.innerText = "Stok Habis"; } else { btn.style.background = "var(--primary)"; btn.style.cursor = "pointer"; btn.onclick = () => addToCartFromDetail(); btnText.innerText = "Tambah ke Keranjang"; }
-            const varBox = document.getElementById('variant-section'); const varOpts = document.getElementById('pd-var-options'); varOpts.innerHTML = ''; 
-            if (item.variant_options && item.variant_options.length > 0) { varBox.style.display = 'block'; document.getElementById('pd-var-title').innerText = "Pilih " + (item.variant_title || "Varian"); item.variant_options.forEach((opt, idx) => { const checked = ''; varOpts.innerHTML += `<input type="radio" name="variant" id="var-${idx}" class="radio-input" value="${opt}" ${checked}><label for="var-${idx}" class="radio-label">${opt}</label>`; }); } else { varBox.style.display = 'none'; }
-            document.getElementById('pd-note').value = ""; 
-            
-            // --- MODIFIKASI: Buka sebagai Modal Bottom Sheet ---
+        
+        const varBox = document.getElementById('variant-section'); const varOpts = document.getElementById('pd-var-options'); varOpts.innerHTML = ''; 
+        
+        // LOGIKA VARIAN BARU (MENDUKUNG ARRAY OBJEK {nama, harga} DARI KOLEKSI products/{id}/varian)
+        if (item.varian && Array.isArray(item.varian) && item.varian.length > 0) { 
+            varBox.style.display = 'block'; 
+            document.getElementById('pd-var-title').innerText = "Pilih Varian / Topping"; 
+            item.varian.forEach((opt, idx) => { 
+                const varName = opt.nama || opt.name || opt.varian || 'Varian ' + (idx+1);
+                const varPrice = opt.harga ? parseInt(opt.harga) : 0;
+                const priceLabel = varPrice > 0 ? ` (+Rp ${varPrice.toLocaleString('id-ID')})` : '';
+                varOpts.innerHTML += `<input type="radio" name="variant" id="var-${idx}" class="radio-input" value="${varName}" data-price="${varPrice}" onchange="updateDetailPrice(${realPrice}, ${varPrice})"><label for="var-${idx}" class="radio-label">${varName}${priceLabel}</label>`; 
+            }); 
+        } else if (item.variant_options && item.variant_options.length > 0) { 
+            // Fallback format lama (array string biasa)
+            varBox.style.display = 'block'; 
+            document.getElementById('pd-var-title').innerText = "Pilih " + (item.variant_title || "Varian"); 
+            item.variant_options.forEach((opt, idx) => { 
+                varOpts.innerHTML += `<input type="radio" name="variant" id="var-${idx}" class="radio-input" value="${opt}" data-price="0" onchange="updateDetailPrice(${realPrice}, 0)"><label for="var-${idx}" class="radio-label">${opt}</label>`; 
+            }); 
+        } else { 
+            varBox.style.display = 'none'; 
+        }
+        document.getElementById('pd-note').value = ""; 
+        
+        // --- MODIFIKASI: Buka sebagai Modal Bottom Sheet ---
             const modal = document.getElementById('product-detail-modal');
             modal.style.display = 'flex';
             modal.offsetHeight; // trigger reflow
@@ -3761,45 +3782,108 @@
             setTimeout(() => { modal.style.display = 'none'; }, 300);
         }
 
-        window.quickAdd = (e, id) => { e.stopPropagation(); const item = rawProducts.find(p => p.id === id); if(item.is_available === false || item.is_sold_out === true) { showToast("Maaf, stok habis 🙏"); return; } if (item.variant_options && item.variant_options.length > 0) { openVariantModal(item); } else { addToCartDirect(item, "-", ""); } }
-        window.openVariantModal = (item) => { pendingVariantItem = item; selectedVariantValue = null; const modal = document.getElementById('variant-modal'); const container = document.getElementById('vm-options-container'); document.getElementById('vm-item-name').innerText = item.nama_menu; document.getElementById('vm-price-display').innerText = parseInt(item.harga).toLocaleString(); container.innerHTML = ''; item.variant_options.forEach((opt, idx) => { const isSelected = ''; container.innerHTML += `<div class="vm-radio-item ${isSelected}" onclick="selectVariantOption(this, '${opt}')"><span>${opt}</span><div class="vm-radio-circle"></div></div>`; }); modal.style.display = 'flex'; modal.offsetHeight; modal.classList.add('show'); }
-        window.selectVariantOption = (el, val) => { document.querySelectorAll('.vm-radio-item').forEach(x => x.classList.remove('selected')); el.classList.add('selected'); selectedVariantValue = val; }
-        window.closeVariantModal = () => { const modal = document.getElementById('variant-modal'); modal.classList.remove('show'); setTimeout(() => { modal.style.display = 'none'; }, 300); pendingVariantItem = null; }
-        window.confirmVariantAdd = () => { if (pendingVariantItem && selectedVariantValue) { addToCartDirect(pendingVariantItem, selectedVariantValue, ""); closeVariantModal(); } else { showToast("⚠️ Pilih varian dulu ya!"); } }
-        function addToCartDirect(item, variant, note) { cart.push({ id: item.id, nama: item.nama_menu, harga: parseInt(item.harga), vendor: item.vendor_name || "Warung Projekgo", variant: variant, note: note }); updateCartBadge(); if(navigator.vibrate) navigator.vibrate(50); showToast("Berhasil ditambahkan!"); }
-        window.addToCartFromDetail = () => { if(!currentDetailProduct) return; if(currentDetailProduct.is_available === false || currentDetailProduct.is_sold_out === true) { showToast("Maaf, stok habis 🙏"); return; } let variant = "-"; if(document.getElementById('variant-section').style.display !== 'none') { const selectedVar = document.querySelector('input[name="variant"]:checked'); if(!selectedVar) { showToast("⚠️ Harap pilih varian dulu!"); document.getElementById('variant-section').scrollIntoView({behavior: 'smooth', block: 'center'}); const title = document.getElementById('pd-var-title'); title.style.color = 'red'; setTimeout(() => title.style.color = '#333', 1000); return; } variant = selectedVar.value; } const note = document.getElementById('pd-note').value; addToCartDirect(currentDetailProduct, variant, note); closeProductDetailModal(); }
+        window.updateDetailPrice = (basePrice, variantPrice) => {
+            const total = parseInt(basePrice) + parseInt(variantPrice);
+            document.getElementById('pd-btn-price').innerText = "Rp " + total.toLocaleString('id-ID');
+        };
+
+        window.quickAdd = (e, id) => { e.stopPropagation(); const item = rawProducts.find(p => p.id === id); if(item.is_available === false || item.is_sold_out === true) { showToast("Maaf, stok habis 🙏"); return; } if ((item.varian && item.varian.length > 0) || (item.variant_options && item.variant_options.length > 0)) { openVariantModal(item); } else { addToCartDirect(item, "-", "", 0); } }
         
-        function updateCartBadge(pageOverride = null) { 
-            const b = document.getElementById('cart-badge'); 
-            const floatingBanner = document.getElementById('floating-cart-banner');
-            const activePage = pageOverride || currentPage;
+        let pendingVariantPrice = 0;
+
+        window.openVariantModal = (item) => { 
+            pendingVariantItem = item; selectedVariantValue = null; pendingVariantPrice = 0;
+            const modal = document.getElementById('variant-modal'); const container = document.getElementById('vm-options-container'); 
+            document.getElementById('vm-item-name').innerText = item.nama_menu; 
+            document.getElementById('vm-price-display').innerText = parseInt(item.harga).toLocaleString('id-ID'); 
+            container.innerHTML = ''; 
             
-            if(cart.length > 0) { 
-                b.style.display='flex'; 
-                b.innerText = cart.length; 
-                b.classList.add('has-items');
+            if (item.varian && Array.isArray(item.varian) && item.varian.length > 0) {
+                item.varian.forEach((opt, idx) => { 
+                    const varName = opt.nama || opt.name || opt.varian || 'Varian ' + (idx+1);
+                    const varPrice = opt.harga ? parseInt(opt.harga) : 0;
+                    const priceLabel = varPrice > 0 ? ` (+Rp ${varPrice.toLocaleString('id-ID')})` : '';
+                    container.innerHTML += `<div class="vm-radio-item" onclick="selectVariantOption(this, '${varName}', ${varPrice}, ${item.harga})"><span>${varName}${priceLabel}</span><div class="vm-radio-circle"></div></div>`; 
+                });
+            } else if (item.variant_options && item.variant_options.length > 0) {
+                item.variant_options.forEach((opt, idx) => { 
+                    container.innerHTML += `<div class="vm-radio-item" onclick="selectVariantOption(this, '${opt}', 0, ${item.harga})"><span>${opt}</span><div class="vm-radio-circle"></div></div>`; 
+                }); 
+            }
+            modal.style.display = 'flex'; modal.offsetHeight; modal.classList.add('show'); 
+        }
+
+        window.selectVariantOption = (el, val, varPrice, basePrice) => { 
+            document.querySelectorAll('.vm-radio-item').forEach(x => x.classList.remove('selected')); 
+            el.classList.add('selected'); 
+            selectedVariantValue = val; 
+            pendingVariantPrice = varPrice;
+            document.getElementById('vm-price-display').innerText = (parseInt(basePrice) + parseInt(varPrice)).toLocaleString('id-ID');
+        }
+
+        window.closeVariantModal = () => { const modal = document.getElementById('variant-modal'); modal.classList.remove('show'); setTimeout(() => { modal.style.display = 'none'; }, 300); pendingVariantItem = null; }
+        
+        window.confirmVariantAdd = () => { if (pendingVariantItem && selectedVariantValue) { addToCartDirect(pendingVariantItem, selectedVariantValue, "", pendingVariantPrice); closeVariantModal(); } else { showToast("⚠️ Pilih varian dulu ya!"); } }
+        
+        function addToCartDirect(item, variant, note, variantPrice = 0) { 
+            const finalPrice = parseInt(item.harga) + parseInt(variantPrice);
+            cart.push({ id: item.id, nama: item.nama_menu, harga: finalPrice, vendor: item.vendor_name || "Warung Projekgo", variant: variant, note: note }); 
+            updateCartBadge(); 
+            if(navigator.vibrate) navigator.vibrate(50); 
+            showToast("Berhasil ditambahkan!"); 
+        }
+        
+        window.addToCartFromDetail = () => { 
+            if(!currentDetailProduct) return; 
+            if(currentDetailProduct.is_available === false || currentDetailProduct.is_sold_out === true) { showToast("Maaf, stok habis 🙏"); return; } 
+            let variant = "-"; 
+            let variantPrice = 0;
+            if(document.getElementById('variant-section').style.display !== 'none') { 
+                const selectedVar = document.querySelector('input[name="variant"]:checked'); 
+                if(!selectedVar) { showToast("⚠️ Harap pilih varian dulu!"); document.getElementById('variant-section').scrollIntoView({behavior: 'smooth', block: 'center'}); const title = document.getElementById('pd-var-title'); title.style.color = 'red'; setTimeout(() => title.style.color = '#333', 1000); return; } 
+                variant = selectedVar.value; 
+                variantPrice = selectedVar.dataset.price ? parseInt(selectedVar.dataset.price) : 0;
+            } 
+            const note = document.getElementById('pd-note').value; 
+            addToCartDirect(currentDetailProduct, variant, note, variantPrice); 
+            closeProductDetailModal(); 
+        }
+
+        function updateCartBadge(pageName) {
+            const b = document.getElementById('cart-badge');
+            const floatingBanner = document.getElementById('floating-cart-banner');
+            
+            if (cart.length > 0) {
+                if (b) {
+                    b.style.display = 'flex';
+                    b.innerText = cart.length;
+                    b.classList.add('has-items');
+                }
                 
-                // Update Badge Mengambang
-                if(floatingBanner) {
-                    if (activePage === 'cart') {
+                if (floatingBanner) {
+                    if (pageName === 'cart' || currentPage === 'cart') {
                         floatingBanner.style.display = 'none';
                     } else {
                         floatingBanner.style.display = 'flex';
-                        const totalHarga = cart.reduce((sum, item) => sum + item.harga, 0);
+                        let subTotal = 0;
+                        cart.forEach(item => subTotal += item.harga);
                         document.getElementById('fcb-qty').innerText = cart.length + " Pesanan";
-                        document.getElementById('fcb-total').innerText = "Rp " + totalHarga.toLocaleString();
+                        document.getElementById('fcb-total').innerText = "Rp " + subTotal.toLocaleString();
                     }
                 }
-            } else { 
-                b.style.display='none'; 
-                b.classList.remove('has-items');
+            } else {
+                if (b) {
+                    b.style.display = 'none';
+                    b.classList.remove('has-items');
+                }
                 
                 // Sembunyikan Badge Mengambang
-                if(floatingBanner) {
+                if (floatingBanner) {
                     floatingBanner.style.display = 'none';
                 }
-            } 
+            }
         }
+        window.updateCartBadge = updateCartBadge;
 
         window.toggleFavorite = (e, id) => { e.stopPropagation(); if(favorites.includes(id)) { favorites = favorites.filter(fav => fav !== id); e.currentTarget.classList.remove('active'); } else { favorites.push(id); e.currentTarget.classList.add('active'); showToast("Disimpan ke Favorit ❤️"); } localStorage.setItem('favs', JSON.stringify(favorites)); }
         
@@ -4281,20 +4365,8 @@
             
             // 1. Susun Pesan WhatsApp
             let message = `Halo Admin Projekgo, saya mau pesan `;
-            message += orderMode === 'dine_in' ? `(Via QR Meja)%0A%0A` : `makanan:%0A%0A`;
-            message += `*Pemesan:* ${savedProfile.name} (${savedProfile.phone})%0A`;
-            
-            if (orderMode === 'dine_in') {
-                message += `*Tipe:* Makan di Tempat%0A`;
-                message += `*Meja:* ${tableNumber}%0A`;
-            } else {
-                message += `*Tipe:* Delivery (Pesan Antar)%0A`;
-                message += `*Alamat:* ${addr}%0A`;
-                if (mapsLink) message += `*Maps:* ${mapsLink}%0A`;
-            }
-            
-            if (note) message += `*Catatan:* ${note}%0A`;
-            message += `%0A*Pesanan:*%0A`;
+            message += orderMode === 'dine_in' ? `(Via QR Meja)%0A%0A` : `makanan:%0A`;
+            message += `*Pesanan:*%0A`;
 
             const grouped = {}; 
             let total = 0; 
@@ -4330,8 +4402,9 @@
                     
                     itemsSummaryText += `${item.qty}x ${item.nama}, `;
                 });
-                message += `%0A`;
             }
+            
+            message += `________________________________%0A`;
             
             let serviceFee = orderMode === 'dine_in' ? 1000 : 0;
             let finalTotal = total + serviceFee;
@@ -4344,6 +4417,18 @@
                 message += `*Total Harga Makanan: Rp ${total.toLocaleString()}*%0A`;
                 message += `_(Ongkir akan dikonfirmasi admin)_%0A%0A`;
             }
+            
+            message += `*Atas Nama:* ${savedProfile.name} (${savedProfile.phone})%0A`;
+
+            if (orderMode === 'dine_in') {
+                message += `*Tipe:* Makan di Tempat%0A`;
+                message += `*Meja:* ${tableNumber}%0A`;
+            } else {
+                message += `*Alamat:* ${addr}%0A`;
+                if (mapsLink) message += `*Maps:* ${mapsLink}%0A`;
+            }
+            
+            if (note) message += `*Catatan Tambahan:* ${note}%0A`;
             message += `Terima kasih!`;
 
             // 2. Simpan ke Riwayat Pesanan
