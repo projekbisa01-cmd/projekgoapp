@@ -4593,18 +4593,31 @@
         let routeDistance = 0;
         let routeDuration = '';
         let routePrice = 0;
+        
+        // --- TAMBAHAN VARIABEL UNTUK PIN MAPS & MODE LOKASI ---
+        let serviceMap = null;
+        let serviceMarker = null;
+        let activeMapInput = null;
+        let geocoder = null;
+        let locationInputMode = 'maps'; // Default mode adalah maps
 
         window.openServiceForm = (svc) => {
             currentServiceType = svc; 
             document.getElementById('form-service-title').innerText = svc; 
             const container = document.getElementById('dynamic-form-fields'); 
             
-            // Reset state maps
+            // Reset state maps & mode
             originPlace = null;
             destPlace = null;
             routeDistance = 0;
             routeDuration = '';
             routePrice = 0;
+            locationInputMode = 'maps';
+            
+            // Reset state peta pin
+            serviceMap = null;
+            serviceMarker = null;
+            activeMapInput = null;
             
             let html = '';
             const genericBtn = document.getElementById('generic-submit-btn');
@@ -4615,7 +4628,7 @@
                 let extraFields = '';
                 if(svc === 'Kirim Paket') {
                     extraFields = `
-                        <div style="margin-top:15px; display:flex; flex-direction:column; gap:12px;">
+                        <div style="margin-top:15px; display:flex; flex-direction:column; gap:12px; padding-top:15px; border-top:1px dashed #eee;">
                             <input type="text" id="svc-paket" class="ride-input" placeholder="Detail Barang (Misal: Dokumen, Makanan...)">
                             <input type="text" id="svc-penerima" class="ride-input" placeholder="Nama & No. WA Penerima">
                         </div>
@@ -4624,18 +4637,57 @@
 
                 html = `
                     <div style="background:white; border-radius:20px; padding:20px 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); margin-bottom:20px; border:1px solid rgba(0,0,0,0.03);">
-                        <div class="ride-input-group">
-                            <div class="ride-dots">
-                                <div class="dot-origin"></div>
-                                <div class="dot-line"></div>
-                                <div class="dot-dest"></div>
+                        
+                        <!-- TAMBAHAN: TOGGLE MODE LOKASI (MAPS / MANUAL) -->
+                        <div style="display:flex; background:#f0f0f0; border-radius:12px; padding:4px; margin-bottom:15px;">
+                            <div id="tab-mode-maps" onclick="toggleLocMode('maps')" style="flex:1; text-align:center; font-size:12px; font-weight:800; padding:10px; border-radius:10px; background:white; color:var(--primary); box-shadow:0 2px 5px rgba(0,0,0,0.05); cursor:pointer; transition:0.2s;">📍 Pakai Maps</div>
+                            <div id="tab-mode-manual" onclick="toggleLocMode('manual')" style="flex:1; text-align:center; font-size:12px; font-weight:700; padding:10px; border-radius:10px; color:#666; cursor:pointer; transition:0.2s;">✍️ Ketik Manual</div>
+                        </div>
+
+                        <!-- KONTENER MODE MAPS (Bawaan) -->
+                        <div id="mode-maps-container">
+                            <div class="ride-input-group">
+                                <div class="ride-dots">
+                                    <div class="dot-origin"></div>
+                                    <div class="dot-line"></div>
+                                    <div class="dot-dest"></div>
+                                </div>
+                                <div class="ride-inputs">
+                                    <input type="text" id="svc-jemput" class="ride-input" placeholder="Lokasi jemput saat ini...">
+                                    <input type="text" id="svc-tujuan" class="ride-input" placeholder="Cari lokasi tujuan...">
+                                </div>
                             </div>
-                            <div class="ride-inputs">
-                                <input type="text" id="svc-jemput" class="ride-input" placeholder="Lokasi jemput saat ini...">
-                                <input type="text" id="svc-tujuan" class="ride-input" placeholder="Cari lokasi tujuan...">
+                            
+                            <!-- FITUR PIN GOOGLE MAPS -->
+                            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                                <button id="btn-map-jemput" onclick="activateMapPicker('jemput')" style="flex:1; background:#f0f0f0; border:1px solid #ddd; padding:10px; border-radius:10px; font-size:12px; font-weight:700; color:#555; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:0.2s;"><i class="ph-fill ph-map-pin"></i> Pin Jemput</button>
+                                <button id="btn-map-tujuan" onclick="activateMapPicker('tujuan')" style="flex:1; background:#f0f0f0; border:1px solid #ddd; padding:10px; border-radius:10px; font-size:12px; font-weight:700; color:#555; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:0.2s;"><i class="ph-fill ph-flag-banner"></i> Pin Tujuan</button>
+                            </div>
+                            <div id="map-selection-container" style="margin-top: 15px; border-radius: 12px; overflow: hidden; height: 250px; display: none; position: relative; border: 1px solid #ddd;">
+                                <div id="service-map" style="width: 100%; height: 100%;"></div>
+                                <div style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 800; color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.15); pointer-events: none; z-index: 5;">
+                                    Geser Peta / Tap Lokasi
+                                </div>
                             </div>
                         </div>
+
+                        <!-- KONTENER MODE MANUAL (Solusi Baru) -->
+                        <div id="mode-manual-container" style="display:none;">
+                            <div style="background:#FFF3E0; border:1px dashed #FFB74D; color:#E65100; font-size:11px; padding:10px 12px; border-radius:12px; margin-bottom:15px; font-weight:600; line-height:1.4;">
+                                ℹ️ <b style="font-weight:800;">Solusi tanpa Maps:</b> Ketik alamat lengkap/patokan. Ongkos kirim akan dihitung dan diinfokan oleh Admin via WhatsApp.
+                            </div>
+                            <div style="display:flex; flex-direction:column; gap:12px;">
+                                <textarea id="svc-jemput-manual" class="ride-input" rows="2" placeholder="Ketik lokasi jemput (Cth: Depan Indomaret Alun-alun, ds. Panjer)..."></textarea>
+                                <textarea id="svc-tujuan-manual" class="ride-input" rows="2" placeholder="Ketik lokasi tujuan (Cth: Jl. Merdeka No 10, cat pagar biru)..."></textarea>
+                            </div>
+                        </div>
+
                         ${extraFields}
+                        
+                        <!-- TOMBOL SUBMIT KHUSUS MODE MANUAL -->
+                        <button id="btn-submit-manual" onclick="submitServiceForm()" style="display:none; width:100%; background:linear-gradient(45deg, var(--primary), #FF9900); color:white; padding:14px; border:none; border-radius:12px; margin-top:15px; font-weight:800; font-size:14px; box-shadow:0 4px 15px rgba(255,102,0,0.3); align-items:center; justify-content:center; gap:8px; cursor:pointer;">
+                            Pesan ${svc} via WA <i class="ph-bold ph-whatsapp-logo" style="font-size:18px;"></i>
+                        </button>
                     </div>
 
                     <div id="route-summary" style="display:none; background:white; border-radius:20px; padding:20px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border:1px solid rgba(0,0,0,0.03); margin-bottom:20px; animation: slideIn 0.3s;">
@@ -4714,6 +4766,58 @@
             }
         }
 
+        // FUNGSI BARU UNTUK BERGANTI MODE MAPS ATAU MANUAL
+        window.toggleLocMode = (mode) => {
+            locationInputMode = mode;
+            const tabMaps = document.getElementById('tab-mode-maps');
+            const tabManual = document.getElementById('tab-mode-manual');
+            const contMaps = document.getElementById('mode-maps-container');
+            const contManual = document.getElementById('mode-manual-container');
+            const btnManual = document.getElementById('btn-submit-manual');
+            const routeSummary = document.getElementById('route-summary');
+            const suggestedLoc = document.getElementById('suggested-locations');
+
+            if(mode === 'maps') {
+                // Style tab
+                tabMaps.style.background = 'white';
+                tabMaps.style.color = 'var(--primary)';
+                tabMaps.style.fontWeight = '800';
+                tabMaps.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
+                tabManual.style.background = 'transparent';
+                tabManual.style.color = '#666';
+                tabManual.style.fontWeight = '700';
+                tabManual.style.boxShadow = 'none';
+
+                // Tampil / Sembunyikan bagian
+                contMaps.style.display = 'block';
+                contManual.style.display = 'none';
+                btnManual.style.display = 'none';
+                if(suggestedLoc) suggestedLoc.style.display = 'block';
+                
+                // Kembalikan route summary jika ongkir maps sudah dihitung
+                if(routePrice > 0 && originPlace && destPlace) routeSummary.style.display = 'block';
+            } else {
+                // Style tab
+                tabManual.style.background = 'white';
+                tabManual.style.color = 'var(--primary)';
+                tabManual.style.fontWeight = '800';
+                tabManual.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
+                tabMaps.style.background = 'transparent';
+                tabMaps.style.color = '#666';
+                tabMaps.style.fontWeight = '700';
+                tabMaps.style.boxShadow = 'none';
+
+                // Tampil / Sembunyikan bagian
+                contMaps.style.display = 'none';
+                contManual.style.display = 'block';
+                btnManual.style.display = 'flex'; // Pakai flex agar icon align
+                if(suggestedLoc) suggestedLoc.style.display = 'none';
+
+                // Sembunyikan route summary otomatis karena mode manual
+                if(routeSummary) routeSummary.style.display = 'none';
+            }
+        }
+
         window.initGooglePlaces = () => {
             const inputJemput = document.getElementById('svc-jemput');
             const inputTujuan = document.getElementById('svc-tujuan');
@@ -4739,6 +4843,152 @@
                 destPlace = autoTujuan.getPlace();
                 if (destPlace && destPlace.name) inputTujuan.value = destPlace.name;
                 calculateRoute();
+            });
+
+            // TAMBAHAN: Logika untuk mendeteksi penghapusan manual pada field input
+            const handleManualClear = () => {
+                const rs = document.getElementById('route-summary');
+                const sl = document.getElementById('suggested-locations');
+                
+                if (inputJemput.value.trim() === '') originPlace = null;
+                if (inputTujuan.value.trim() === '') destPlace = null;
+                
+                // Jika salah satu kosong, reset tampilan harga dan kembalikan saran lokasi
+                if (!originPlace || !destPlace) {
+                    if (rs) rs.style.display = 'none';
+                    if (sl && locationInputMode === 'maps') sl.style.display = 'block';
+                    routePrice = 0; // Reset harga ke 0
+                }
+            };
+
+            // Pasang pendeteksi ke kedua kolom input
+            inputJemput.addEventListener('input', handleManualClear);
+            inputTujuan.addEventListener('input', handleManualClear);
+        }
+
+        // --- FUNGSI TAMBAHAN UNTUK GOOGLE MAPS PIN PICKER ---
+        window.activateMapPicker = (type) => {
+            const mapContainer = document.getElementById('map-selection-container');
+            const btnJemput = document.getElementById('btn-map-jemput');
+            const btnTujuan = document.getElementById('btn-map-tujuan');
+            
+            mapContainer.style.display = 'block';
+            activeMapInput = type;
+            
+            if(type === 'jemput') {
+                btnJemput.style.background = 'var(--primary-light)';
+                btnJemput.style.borderColor = 'var(--primary)';
+                btnJemput.style.color = 'var(--primary)';
+                btnTujuan.style.background = '#f0f0f0';
+                btnTujuan.style.borderColor = '#ddd';
+                btnTujuan.style.color = '#555';
+            } else {
+                btnTujuan.style.background = 'var(--primary-light)';
+                btnTujuan.style.borderColor = 'var(--primary)';
+                btnTujuan.style.color = 'var(--primary)';
+                btnJemput.style.background = '#f0f0f0';
+                btnJemput.style.borderColor = '#ddd';
+                btnJemput.style.color = '#555';
+            }
+
+            // Inisialisasi peta jika belum
+            if (!serviceMap) {
+                initServiceMap();
+            } else {
+                // Refresh ukuran peta agar tidak glitch ketika dari "display: none"
+                google.maps.event.trigger(serviceMap, 'resize');
+                if (serviceMarker) serviceMap.setCenter(serviceMarker.getPosition());
+            }
+        }
+
+        window.initServiceMap = () => {
+            if (typeof google === 'undefined' || !google.maps) {
+                showToast("Peta belum siap. Pastikan internet lancar.");
+                return;
+            }
+            
+            geocoder = new google.maps.Geocoder();
+            
+            // Lokasi default (Otomatis cek Gombong atau Kebumen)
+            let defaultLoc = { lat: -7.6046, lng: 109.4503 }; 
+            if (currentArea === 'Kebumen Kota') {
+                defaultLoc = { lat: -7.6688, lng: 109.6508 };
+            }
+            
+            serviceMap = new google.maps.Map(document.getElementById("service-map"), {
+                center: defaultLoc,
+                zoom: 15,
+                disableDefaultUI: true,
+                zoomControl: true,
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: true
+            });
+
+            serviceMarker = new google.maps.Marker({
+                position: defaultLoc,
+                map: serviceMap,
+                draggable: true,
+                animation: google.maps.Animation.DROP
+            });
+
+            // Klik map untuk pindah pin
+            serviceMap.addListener('click', (e) => {
+                serviceMarker.setPosition(e.latLng);
+                geocodePosition(e.latLng);
+            });
+
+            // Geser pin
+            serviceMarker.addListener('dragend', (e) => {
+                geocodePosition(e.latLng);
+            });
+
+            // Coba arahkan ke lokasi user saat ini secara otomatis
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    const myLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                    serviceMap.setCenter(myLoc);
+                    serviceMarker.setPosition(myLoc);
+                    geocodePosition(myLoc); // Otomatis baca alamat awal
+                }, () => {
+                    console.log("GPS diblokir/tidak ada.");
+                });
+            }
+        }
+
+        window.geocodePosition = (pos) => {
+            if (!geocoder) return;
+            
+            // Beri tahu user bahwa alamat sedang dibaca
+            const activeInputId = activeMapInput === 'jemput' ? 'svc-jemput' : 'svc-tujuan';
+            document.getElementById(activeInputId).value = "Membaca lokasi...";
+
+            geocoder.geocode({ location: pos }, (results, status) => {
+                if (status === 'OK' && results[0]) {
+                    const address = results[0].formatted_address;
+                    document.getElementById(activeInputId).value = address;
+                    
+                    if (activeMapInput === 'jemput') {
+                        originPlace = { geometry: { location: pos }, formatted_address: address, name: address };
+                    } else if (activeMapInput === 'tujuan') {
+                        destPlace = { geometry: { location: pos }, formatted_address: address, name: address };
+                    }
+                    
+                    // Kalkulasi otomatis kalau dua-duanya sudah terisi
+                    if(originPlace && destPlace) calculateRoute();
+                } else {
+                    document.getElementById(activeInputId).value = "Koordinat: " + pos.lat().toFixed(5) + ", " + pos.lng().toFixed(5);
+                    showToast("Nama jalan tidak ditemukan, menggunakan koordinat.");
+                    
+                    // Tetap simpan koordinat untuk kalkulasi rute
+                    const fallbackAddress = "Koordinat Map (" + pos.lat().toFixed(4) + ", " + pos.lng().toFixed(4) + ")";
+                    if (activeMapInput === 'jemput') {
+                        originPlace = { geometry: { location: pos }, formatted_address: fallbackAddress, name: fallbackAddress };
+                    } else if (activeMapInput === 'tujuan') {
+                        destPlace = { geometry: { location: pos }, formatted_address: fallbackAddress, name: fallbackAddress };
+                    }
+                    if(originPlace && destPlace) calculateRoute();
+                }
             });
         }
 
@@ -4814,6 +5064,8 @@
 
         window.calculateRoute = () => {
             if (!originPlace || !originPlace.geometry || !destPlace || !destPlace.geometry) {
+                // Pastikan summary harga benar-benar disembunyikan jika salah satu koordinat tidak valid
+                document.getElementById('route-summary').style.display = 'none';
                 return;
             }
 
@@ -4882,16 +5134,35 @@
             let message = `Halo Admin Projekgo, pesan jasa *${currentServiceType}*:%0A%0A`; 
             
             if (currentServiceType === 'Ngojek' || currentServiceType === 'Mobil' || currentServiceType === 'Kirim Paket') {
-                const jemput = document.getElementById('svc-jemput').value;
-                const tujuan = document.getElementById('svc-tujuan').value;
+                let jemput = "";
+                let tujuan = "";
                 
-                if(!jemput || !tujuan) {
-                    showToast("Mohon isi lokasi jemput dan tujuan.");
-                    return;
+                // Cek mana mode input yang sedang dipakai
+                if (locationInputMode === 'maps') {
+                    jemput = document.getElementById('svc-jemput').value;
+                    tujuan = document.getElementById('svc-tujuan').value;
+                    
+                    if(!jemput || !tujuan) {
+                        showToast("Mohon isi lokasi jemput dan tujuan.");
+                        return;
+                    }
+                    
+                    message += `📍 *Jemput (Maps):* ${originPlace && originPlace.formatted_address ? originPlace.formatted_address : jemput}%0A`;
+                    message += `🚩 *Tujuan (Maps):* ${destPlace && destPlace.formatted_address ? destPlace.formatted_address : tujuan}%0A`;
+                } else {
+                    // Mode Manual
+                    jemput = document.getElementById('svc-jemput-manual').value.trim();
+                    tujuan = document.getElementById('svc-tujuan-manual').value.trim();
+                    
+                    if(!jemput || !tujuan) {
+                        showToast("Mohon ketik manual lokasi jemput dan tujuan.");
+                        return;
+                    }
+                    
+                    message += `📍 *Jemput (Manual):* ${jemput}%0A`;
+                    message += `🚩 *Tujuan (Manual):* ${tujuan}%0A`;
+                    message += `_(Note: Pengguna memakai input manual. Mohon Admin bantu cek ongkir)_%0A`;
                 }
-                
-                message += `📍 *Jemput:* ${originPlace && originPlace.formatted_address ? originPlace.formatted_address : jemput}%0A`;
-                message += `🚩 *Tujuan:* ${destPlace && destPlace.formatted_address ? destPlace.formatted_address : tujuan}%0A`;
                 
                 if (currentServiceType === 'Kirim Paket') {
                     const paket = document.getElementById('svc-paket').value;
@@ -4901,7 +5172,8 @@
                     message += `👤 *Penerima:* ${penerima}%0A`;
                 }
                 
-                if (routePrice > 0) {
+                // Tambahkan info tarif JIKA menggunakan Maps dan ongkir berhasil dihitung
+                if (locationInputMode === 'maps' && routePrice > 0) {
                     message += `%0A*🛣️ Estimasi Perjalanan:*%0A`;
                     message += `Jarak: ${document.getElementById('summary-dist').innerText}%0A`;
                     message += `Waktu: ${document.getElementById('summary-time').innerText}%0A`;
@@ -4912,8 +5184,8 @@
                 let inputs = document.querySelectorAll('[id^="svc-"]'); 
                 let filled = true;
                 inputs.forEach(input => { 
-                    // Abaikan input ride jika terbaca
-                    if(input.id === 'svc-jemput' || input.id === 'svc-tujuan' || input.id === 'svc-paket' || input.id === 'svc-penerima') return; 
+                    // Abaikan input ride jika terbaca di mode selain ride
+                    if(input.id === 'svc-jemput' || input.id === 'svc-tujuan' || input.id === 'svc-paket' || input.id === 'svc-penerima' || input.id === 'svc-jemput-manual' || input.id === 'svc-tujuan-manual') return; 
                     const label = input.previousElementSibling ? input.previousElementSibling.innerText : input.placeholder; 
                     let val = input.value.trim(); 
                     if(val === '') filled = false; 
