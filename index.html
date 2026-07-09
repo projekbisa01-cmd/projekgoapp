@@ -3886,7 +3886,8 @@
                 }
                 
                 if (floatingBanner) {
-                    if (pageName === 'cart' || currentPage === 'cart') {
+                    // DIUBAH: Sembunyikan banner jika di halaman keranjang ATAU di halaman form layanan (Ngojek, dll)
+                    if (pageName === 'cart' || currentPage === 'cart' || pageName === 'service-form' || currentPage === 'service-form') {
                         floatingBanner.style.display = 'none';
                     } else {
                         floatingBanner.style.display = 'flex';
@@ -4612,7 +4613,7 @@
             routeDistance = 0;
             routeDuration = '';
             routePrice = 0;
-            locationInputMode = 'maps';
+            locationInputMode = 'manual'; // DIUBAH: Default jadi 'manual'
             
             // Reset state peta pin
             serviceMap = null;
@@ -4640,12 +4641,13 @@
                         
                         <!-- TAMBAHAN: TOGGLE MODE LOKASI (MAPS / MANUAL) -->
                         <div style="display:flex; background:#f0f0f0; border-radius:12px; padding:4px; margin-bottom:15px;">
-                            <div id="tab-mode-maps" onclick="toggleLocMode('maps')" style="flex:1; text-align:center; font-size:12px; font-weight:800; padding:10px; border-radius:10px; background:white; color:var(--primary); box-shadow:0 2px 5px rgba(0,0,0,0.05); cursor:pointer; transition:0.2s;">📍 Pakai Maps</div>
-                            <div id="tab-mode-manual" onclick="toggleLocMode('manual')" style="flex:1; text-align:center; font-size:12px; font-weight:700; padding:10px; border-radius:10px; color:#666; cursor:pointer; transition:0.2s;">✍️ Ketik Manual</div>
+                            <!-- DIUBAH: Tab Ketik Manual di Kiri dan Aktif Default -->
+                            <div id="tab-mode-manual" onclick="toggleLocMode('manual')" style="flex:1; text-align:center; font-size:12px; font-weight:800; padding:10px; border-radius:10px; background:white; color:var(--primary); box-shadow:0 2px 5px rgba(0,0,0,0.05); cursor:pointer; transition:0.2s;">✍️ Ketik Manual</div>
+                            <div id="tab-mode-maps" onclick="toggleLocMode('maps')" style="flex:1; text-align:center; font-size:12px; font-weight:700; padding:10px; border-radius:10px; color:#666; cursor:pointer; transition:0.2s;">📍 Pakai Maps</div>
                         </div>
 
-                        <!-- KONTENER MODE MAPS (Bawaan) -->
-                        <div id="mode-maps-container">
+                        <!-- KONTENER MODE MAPS (DIUBAH: Disembunyikan Default) -->
+                        <div id="mode-maps-container" style="display:none;">
                             <div class="ride-input-group">
                                 <div class="ride-dots">
                                     <div class="dot-origin"></div>
@@ -4660,19 +4662,23 @@
                             
                             <!-- FITUR PIN GOOGLE MAPS -->
                             <div style="display: flex; gap: 10px; margin-top: 15px;">
-                                <button id="btn-map-jemput" onclick="activateMapPicker('jemput')" style="flex:1; background:#f0f0f0; border:1px solid #ddd; padding:10px; border-radius:10px; font-size:12px; font-weight:700; color:#555; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:0.2s;"><i class="ph-fill ph-map-pin"></i> Pin Jemput</button>
-                                <button id="btn-map-tujuan" onclick="activateMapPicker('tujuan')" style="flex:1; background:#f0f0f0; border:1px solid #ddd; padding:10px; border-radius:10px; font-size:12px; font-weight:700; color:#555; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:0.2s;"><i class="ph-fill ph-flag-banner"></i> Pin Tujuan</button>
+                                <button id="btn-map-tujuan" onclick="activateMapPicker('tujuan')" style="flex:1; background:white; border:1px solid #ddd; padding:10px 15px; border-radius:25px; font-size:13px; font-weight:700; color:#333; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 5px rgba(0,0,0,0.03); transition:0.2s;">
+                                    <i class="ph-fill ph-map-pin" style="color: #4CAF50; font-size:18px;"></i> Pilih lewat peta
+                                </button>
+                                <button onclick="showToast('Fitur tambah tujuan lebih dari satu segera hadir')" style="flex:1; background:white; border:1px solid #ddd; padding:10px 15px; border-radius:25px; font-size:13px; font-weight:700; color:#333; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 5px rgba(0,0,0,0.03); transition:0.2s;">
+                                    <i class="ph-bold ph-plus-circle" style="color: #FF9800; font-size:18px;"></i> Tambah tujuan
+                                </button>
                             </div>
                             <div id="map-selection-container" style="margin-top: 15px; border-radius: 12px; overflow: hidden; height: 250px; display: none; position: relative; border: 1px solid #ddd;">
                                 <div id="service-map" style="width: 100%; height: 100%;"></div>
                                 <div style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 800; color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.15); pointer-events: none; z-index: 5;">
-                                    Geser Peta / Tap Lokasi
+                                    Geser Peta / Tap Lokasi Tujuan
                                 </div>
                             </div>
                         </div>
 
-                        <!-- KONTENER MODE MANUAL (Solusi Baru) -->
-                        <div id="mode-manual-container" style="display:none;">
+                        <!-- KONTENER MODE MANUAL (DIUBAH: Ditampilkan Default) -->
+                        <div id="mode-manual-container" style="display:block;">
                             <div style="background:#FFF3E0; border:1px dashed #FFB74D; color:#E65100; font-size:11px; padding:10px 12px; border-radius:12px; margin-bottom:15px; font-weight:600; line-height:1.4;">
                                 ℹ️ <b style="font-weight:800;">Solusi tanpa Maps:</b> Ketik alamat lengkap/patokan. Ongkos kirim akan dihitung dan diinfokan oleh Admin via WhatsApp.
                             </div>
@@ -4684,8 +4690,8 @@
 
                         ${extraFields}
                         
-                        <!-- TOMBOL SUBMIT KHUSUS MODE MANUAL -->
-                        <button id="btn-submit-manual" onclick="submitServiceForm()" style="display:none; width:100%; background:linear-gradient(45deg, var(--primary), #FF9900); color:white; padding:14px; border:none; border-radius:12px; margin-top:15px; font-weight:800; font-size:14px; box-shadow:0 4px 15px rgba(255,102,0,0.3); align-items:center; justify-content:center; gap:8px; cursor:pointer;">
+                        <!-- TOMBOL SUBMIT KHUSUS MODE MANUAL (DIUBAH: Ditampilkan Default) -->
+                        <button id="btn-submit-manual" onclick="submitServiceForm()" style="display:flex; width:100%; background:linear-gradient(45deg, var(--primary), #FF9900); color:white; padding:14px; border:none; border-radius:12px; margin-top:15px; font-weight:800; font-size:14px; box-shadow:0 4px 15px rgba(255,102,0,0.3); align-items:center; justify-content:center; gap:8px; cursor:pointer;">
                             Pesan ${svc} via WA <i class="ph-bold ph-whatsapp-logo" style="font-size:18px;"></i>
                         </button>
                     </div>
@@ -4712,7 +4718,8 @@
                         <i class="ph-bold ph-spinner ph-spin" style="font-size:28px; color:var(--primary); margin-bottom:10px;"></i><br>Mencari rute jalan terbaik...
                     </div>
 
-                    <div id="suggested-locations" style="padding: 0 5px;">
+                    <!-- DIUBAH: List suggest lokasi di-hide secara default mengikuti mode manual -->
+                    <div id="suggested-locations" style="padding: 0 5px; display:none;">
                         <div class="ride-tab-container">
                             <div class="ride-tab" onclick="switchRideTab('terakhir', this)">Terakhir</div>
                             <div class="ride-tab active" onclick="switchRideTab('disarankan', this)">Disarankan</div>
@@ -4762,6 +4769,41 @@
             if (svc === 'Ngojek' || svc === 'Mobil' || svc === 'Kirim Paket') {
                 setTimeout(() => {
                     initGooglePlaces();
+                    
+                    // --- AUTO-FILL LOKASI SAAT INI (JEMPUT) TETAP JALAN UNTUK MAPS NANTI ---
+                    const inputJemput = document.getElementById('svc-jemput');
+                    if (inputJemput && navigator.geolocation) {
+                        inputJemput.value = "Mencari lokasi saat ini...";
+                        navigator.geolocation.getCurrentPosition(
+                            (position) => {
+                                const lat = position.coords.latitude;
+                                const lng = position.coords.longitude;
+                                
+                                if (typeof google !== 'undefined' && google.maps) {
+                                    const pos = new google.maps.LatLng(lat, lng);
+                                    const geocoder = new google.maps.Geocoder();
+                                    
+                                    geocoder.geocode({ location: pos }, (results, status) => {
+                                        if (status === 'OK' && results[0]) {
+                                            inputJemput.value = results[0].formatted_address;
+                                            originPlace = { geometry: { location: pos }, formatted_address: results[0].formatted_address, name: results[0].formatted_address };
+                                            // Jika kolom tujuan sudah diisi (misal history), langsung hitung
+                                            if (destPlace && locationInputMode === 'maps') calculateRoute();
+                                        } else {
+                                            inputJemput.value = `Titik GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                                            originPlace = { geometry: { location: pos }, formatted_address: inputJemput.value, name: inputJemput.value };
+                                        }
+                                    });
+                                }
+                            },
+                            (error) => {
+                                inputJemput.value = "";
+                                inputJemput.placeholder = "Gagal melacak, ketik patokan jemput...";
+                                console.log("Gagal melacak otomatis:", error);
+                            },
+                            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                        );
+                    }
                 }, 300);
             }
         }
@@ -5021,23 +5063,7 @@
                     </div>
                 `;
             } else if (tabName === 'tersimpan') {
-                listContainer.innerHTML = `
-                    <div style="font-size:14px; font-weight:800; color:var(--dark); margin-top:15px; margin-bottom:10px;">Lokasi Tersimpan</div>
-                    <div style="display:flex; align-items:flex-start; gap:15px; padding:12px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" onclick="setDummyLocation('Rumah')">
-                        <i class="ph-fill ph-house" style="font-size:20px; color:var(--primary); margin-top:2px;"></i>
-                        <div style="flex-grow:1;">
-                            <div style="font-size:14px; font-weight:700; color:#333; margin-bottom:4px;">Rumah</div>
-                            <div style="font-size:12px; color:#888; line-height:1.4;">Jl. Pahlawan No. 123...</div>
-                        </div>
-                    </div>
-                    <div style="display:flex; align-items:flex-start; gap:15px; padding:12px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" onclick="setDummyLocation('Kantor')">
-                        <i class="ph-fill ph-briefcase" style="font-size:20px; color:#2196F3; margin-top:2px;"></i>
-                        <div style="flex-grow:1;">
-                            <div style="font-size:14px; font-weight:700; color:#333; margin-bottom:4px;">Kantor</div>
-                            <div style="font-size:12px; color:#888; line-height:1.4;">Jl. Yos Sudarso...</div>
-                        </div>
-                    </div>
-                `;
+                renderSavedLocations(); // Panggil fungsi render dinamis
             } else {
                 // Default: Disarankan
                 listContainer.innerHTML = `
@@ -5061,6 +5087,81 @@
                 `;
             }
         }
+
+        // --- FUNGSI TAMBAHAN UNTUK MANAJEMEN LOKASI TERSIMPAN ---
+        window.renderSavedLocations = () => {
+            const listContainer = document.getElementById('ride-locations-list');
+            if(!listContainer) return;
+
+            let savedLocs = JSON.parse(localStorage.getItem('user_saved_ride_locs')) || [];
+            
+            let html = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; margin-bottom:2px;">
+                    <div style="font-size:14px; font-weight:800; color:var(--dark);">Lokasi Tersimpan</div>
+                    <button onclick="addNewSavedLocation()" style="background:var(--primary-light); color:var(--primary); border:none; padding:6px 12px; border-radius:15px; font-size:12px; font-weight:800; cursor:pointer; box-shadow:0 2px 5px rgba(255,102,0,0.1);"><i class="ph-bold ph-plus"></i> Tambah</button>
+                </div>
+                <div style="font-size:11px; color:#888; margin-bottom:15px; font-style:italic;">agar kamu cepat menentukan titik</div>
+            `;
+
+            if (savedLocs.length === 0) {
+                html += `<div style="text-align:center; padding:25px 0; color:#aaa; font-size:12px; background:#f9f9f9; border-radius:12px; border:1px dashed #ddd;">Belum ada lokasi tersimpan.<br>Klik tombol <b>+ Tambah</b> untuk menyimpan.</div>`;
+            } else {
+                savedLocs.forEach((loc, index) => {
+                    let iconName = 'ph-map-pin';
+                    let iconColor = '#666';
+                    let titleLower = loc.title.toLowerCase();
+                    // Auto pilih ikon agar terlihat rapi
+                    if(titleLower.includes('rumah')) { iconName = 'ph-house'; iconColor = 'var(--primary)'; }
+                    else if(titleLower.includes('kantor') || titleLower.includes('kerja')) { iconName = 'ph-briefcase'; iconColor = '#2196F3'; }
+                    else if(titleLower.includes('kos') || titleLower.includes('asrama')) { iconName = 'ph-bed'; iconColor = '#9C27B0'; }
+
+                    html += `
+                        <div style="display:flex; align-items:flex-start; gap:15px; padding:12px 0; border-bottom:1px solid #f0f0f0; position:relative;">
+                            <div style="width:36px; height:36px; border-radius:10px; background:${iconColor}20; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                <i class="ph-fill ${iconName}" style="font-size:20px; color:${iconColor};"></i>
+                            </div>
+                            <div style="flex-grow:1; cursor:pointer;" onclick="setDummyLocation('${loc.address}')">
+                                <div style="font-size:14px; font-weight:700; color:#333; margin-bottom:2px;">${loc.title}</div>
+                                <div style="font-size:12px; color:#888; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${loc.address}</div>
+                            </div>
+                            <div style="padding:8px; cursor:pointer; color:#FF5252; opacity:0.8; transition:0.2s;" onclick="deleteSavedLocation(${index})">
+                                <i class="ph-bold ph-trash" style="font-size:18px;"></i>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            listContainer.innerHTML = html;
+        };
+
+        window.addNewSavedLocation = () => {
+            // Ambil titik lokasi yang saat ini sedang diketik user agar tidak perlu ngetik ulang
+            const currentDest = document.getElementById('svc-tujuan') ? document.getElementById('svc-tujuan').value : '';
+            
+            const title = prompt("Masukkan NAMA LOKASI\n(Contoh: Rumah, Kantor, Kosan):", "");
+            if (!title) return; // Batal jika kosong
+            
+            const address = prompt("Masukkan DETAIL ALAMAT/PATOKAN:\n(Titik ini akan disalin ke kolom pencarian otomatis)", currentDest);
+            if (!address) return;
+
+            // Simpan ke local storage
+            let savedLocs = JSON.parse(localStorage.getItem('user_saved_ride_locs')) || [];
+            savedLocs.push({ title: title, address: address });
+            localStorage.setItem('user_saved_ride_locs', JSON.stringify(savedLocs));
+            
+            if(window.showToast) window.showToast("Lokasi berhasil disimpan! 📍");
+            renderSavedLocations(); // Render ulang tab secara instan
+        };
+
+        window.deleteSavedLocation = (index) => {
+            if(confirm("Yakin ingin menghapus lokasi tersimpan ini?")) {
+                let savedLocs = JSON.parse(localStorage.getItem('user_saved_ride_locs')) || [];
+                savedLocs.splice(index, 1);
+                localStorage.setItem('user_saved_ride_locs', JSON.stringify(savedLocs));
+                renderSavedLocations();
+                if(window.showToast) window.showToast("Lokasi dihapus.");
+            }
+        };
 
         window.calculateRoute = () => {
             if (!originPlace || !originPlace.geometry || !destPlace || !destPlace.geometry) {
@@ -5147,8 +5248,23 @@
                         return;
                     }
                     
-                    message += `📍 *Jemput (Maps):* ${originPlace && originPlace.formatted_address ? originPlace.formatted_address : jemput}%0A`;
-                    message += `🚩 *Tujuan (Maps):* ${destPlace && destPlace.formatted_address ? destPlace.formatted_address : tujuan}%0A`;
+                    // --- TAMBAHAN: Ekstrak link Google Maps jika titik lokasi ada ---
+                    let originLink = "";
+                    if (originPlace && originPlace.geometry && originPlace.geometry.location) {
+                        const lat = typeof originPlace.geometry.location.lat === 'function' ? originPlace.geometry.location.lat() : originPlace.geometry.location.lat;
+                        const lng = typeof originPlace.geometry.location.lng === 'function' ? originPlace.geometry.location.lng() : originPlace.geometry.location.lng;
+                        originLink = `%0A   🔗 Link Maps: https://www.google.com/maps?q=${lat},${lng}`;
+                    }
+
+                    let destLink = "";
+                    if (destPlace && destPlace.geometry && destPlace.geometry.location) {
+                        const lat = typeof destPlace.geometry.location.lat === 'function' ? destPlace.geometry.location.lat() : destPlace.geometry.location.lat;
+                        const lng = typeof destPlace.geometry.location.lng === 'function' ? destPlace.geometry.location.lng() : destPlace.geometry.location.lng;
+                        destLink = `%0A   🔗 Link Maps: https://www.google.com/maps?q=${lat},${lng}`;
+                    }
+                    
+                    message += `📍 *Jemput (Maps):* ${originPlace && originPlace.formatted_address ? originPlace.formatted_address : jemput}${originLink}%0A`;
+                    message += `🚩 *Tujuan (Maps):* ${destPlace && destPlace.formatted_address ? destPlace.formatted_address : tujuan}${destLink}%0A`;
                 } else {
                     // Mode Manual
                     jemput = document.getElementById('svc-jemput-manual').value.trim();
