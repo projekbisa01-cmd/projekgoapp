@@ -4346,7 +4346,7 @@
                                 </div>
                             </div>
                             <div style="font-size:11px; color:#666; margin-top:8px; line-height:1.4;">
-                                ℹ️ Ongkir otomatis terhitung dari titik resto ke titik pilihanmu (8.000 untuk 1-2 km, selebihnya 2.500/km).
+                                ℹ️ Ongkir otomatis terhitung dari titik resto ke titik pilihanmu (1-2km: 8rb, 2-3km: 9rb, >3km: 2.600/km).
                             </div>
                         </div>
                     </div>
@@ -4568,8 +4568,10 @@
                     let ongkir = 0;
                     if (distKm <= 2) {
                         ongkir = 8000;
+                    } else if (distKm <= 3) {
+                        ongkir = 9000;
                     } else {
-                        ongkir = 8000 + (Math.ceil(distKm - 2) * 2500);
+                        ongkir = Math.ceil(distKm) * 2600;
                     }
                     window.checkoutOngkir = ongkir;
                     document.getElementById('checkout-ongkir-text').innerText = "Rp " + ongkir.toLocaleString('id-ID') + ` (${response.rows[0].elements[0].distance.text})`;
