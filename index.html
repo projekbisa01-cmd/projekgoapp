@@ -604,6 +604,11 @@
         .pd-action { position: fixed; bottom: 80px; left: 0; right: 0; max-width: var(--max-width); margin: 0 auto; background: transparent; padding: 0 20px; display: flex; gap: 15px; z-index: 1001; pointer-events: none; }
         .btn-main-add { pointer-events: auto; flex-grow: 1; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 14px; font-weight: 700; font-size: 16px; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 102, 0, 0.4); display: flex; align-items: center; justify-content: center; gap: 8px; }
 
+        /* --- STYLES UNTUK VARIAN GRUP --- */
+        .vg-opt-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f9f9f9; cursor: pointer; }
+        .vg-opt-row:last-child { border-bottom: none; }
+        .vg-radio { width: 22px; height: 22px; border: 2px solid #ccc; border-radius: 50%; position: relative; flex-shrink: 0; transition: 0.2s; }
+
         /* --- NEW VENDOR HEADER (UI CARD) --- */
         .vh-wrapper { position: relative; background: var(--bg); padding-bottom: 10px; }
         .vh-cover { width: 100%; height: 200px; position: relative; }
@@ -1725,42 +1730,55 @@
 
         <!-- ===== 2. DETAIL PRODUK (BOTTOM SHEET MODAL) ===== -->
         <div id="product-detail-modal" onclick="if(event.target===this) closeProductDetailModal()">
-            <div class="product-detail-sheet">
+            <div class="product-detail-sheet" style="padding: 0; overflow: hidden; background: #f9f9f9;">
                 
-                <div style="position: relative; width: 100%; height: 350px; flex-shrink: 0;">
-                    <img id="pd-img" style="width: 100%; height: 100%; object-fit: cover; border-top-left-radius: 25px; border-top-right-radius: 25px;" src="">
-                    <div onclick="closeProductDetailModal()" style="position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.9); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; z-index: 10;">
-                        <i class="ph-bold ph-x" style="font-size: 16px; color: #333;"></i>
-                    </div>
-                </div>
-
-                <div style="padding: 20px; overflow-y: auto; flex-grow: 1;">
-                    <div id="pd-vendor" class="pd-vendor" style="margin-top: 0; padding-top: 0;"></div>
-                    <div id="pd-title" class="pd-title">Nama Menu</div>
+                <!-- Area Scroll Utama (Gambar + Konten ikut ter-scroll bersamaan) -->
+                <div style="overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; width: 100%;" id="pd-scroll-area">
                     
-                    <div class="pd-price-row">
-                        <div id="pd-price" class="pd-real">Rp 0</div>
-                        <div style="display:flex; flex-direction:column;">
-                            <span class="p-label-normal">Normal</span>
-                            <span id="pd-coret" class="pd-coret">Rp 0</span>
+                    <div style="position: relative; width: 100%; height: 280px; flex-shrink: 0;">
+                        <img id="pd-img" style="width: 100%; height: 100%; object-fit: cover; border-top-left-radius: 25px; border-top-right-radius: 25px;" src="">
+                        <div onclick="closeProductDetailModal()" style="position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.9); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; z-index: 10;">
+                            <i class="ph-bold ph-x" style="font-size: 16px; color: #333;"></i>
                         </div>
-                        <div class="pd-disc-badge">Hemat 20%</div>
                     </div>
 
-                    <p id="pd-desc" style="color:#555; font-size:13px; line-height:1.6; margin-bottom:20px;">Deskripsi menu...</p>
-                    <div class="variant-box" id="variant-section" style="margin-bottom: 20px;">
-                        <div class="var-title" id="pd-var-title">Pilih Varian</div>
-                        <div class="var-opt" id="pd-var-options"></div>
-                    </div>
-                    <div style="margin-bottom:10px;">
-                        <div class="var-title">Catatan Khusus (Opsional)</div>
-                        <input type="text" id="pd-note" class="form-input" placeholder="Cth: Jangan pakai bawang...">
+                    <!-- Konten Putih yang tumpang tindih ke atas gambar -->
+                    <div style="background: white; border-top-left-radius: 24px; border-top-right-radius: 24px; margin-top: -24px; position: relative; z-index: 2; padding: 20px 0; flex-grow: 1; display: flex; flex-direction: column;">
+                        
+                        <!-- Header Detail -->
+                        <div style="padding: 0 20px;">
+                            <div id="pd-vendor" class="pd-vendor" style="margin-top: 0; padding-top: 0;"></div>
+                            <div id="pd-title" class="pd-title" style="font-size: 20px; line-height: 1.3;">Nama Menu</div>
+                            
+                            <div class="pd-price-row" style="margin-bottom: 15px;">
+                                <div id="pd-price" class="pd-real" style="font-size: 20px;">Rp 0</div>
+                                <div style="display:flex; flex-direction:column; justify-content:center;">
+                                    <span class="p-label-normal" style="color:#aaa; font-size:10px;">Harga Dasar</span>
+                                    <span id="pd-coret" class="pd-coret" style="display:none;">Rp 0</span>
+                                </div>
+                            </div>
+
+                            <p id="pd-desc" style="color:#666; font-size:13px; line-height:1.5; margin-bottom:20px;">Deskripsi menu...</p>
+                        </div>
+
+                        <!-- Varian Section -->
+                        <div class="variant-box" id="variant-section" style="margin-bottom: 0; display: none; padding: 0; background: transparent; border: none;">
+                            <div class="var-title" id="pd-var-title" style="padding: 0 20px; font-weight: 800; font-size: 16px; margin-bottom: 10px;">Pilih Varian</div>
+                            <div class="var-opt" id="pd-var-options"></div>
+                        </div>
+                        
+                        <!-- Catatan Section -->
+                        <div style="padding: 20px; border-top: 8px solid #f0f0f0; margin-top: auto;">
+                            <div style="font-weight: 800; font-size: 15px; margin-bottom: 10px; color: var(--dark);">Catatan Khusus (Opsional)</div>
+                            <input type="text" id="pd-note" class="form-input" placeholder="Cth: Jangan pakai bawang..." style="background: #f9f9f9; border: 1px solid #eee;">
+                        </div>
                     </div>
                 </div>
 
-                <div style="padding: 15px 20px; border-top: 1px solid #eee; background: white; flex-shrink: 0;">
+                <!-- Tombol Action Fix Bawah -->
+                <div style="padding: 15px 20px; background: white; flex-shrink: 0; box-shadow: 0 -4px 10px rgba(0,0,0,0.05); z-index: 5;">
                     <button class="btn-main-add" id="pd-add-btn" onclick="addToCartFromDetail()" style="width: 100%; position: relative; bottom: auto; left: auto; right: auto; pointer-events: auto;">
-                        <i class="ph-bold ph-plus"></i> <span id="pd-add-text">Tambah ke Keranjang</span> - <span id="pd-btn-price">Rp 0</span>
+                        <span id="pd-add-text">Tambah ke Keranjang</span> - <span id="pd-btn-price" style="font-weight:800;">Rp 0</span>
                     </button>
                 </div>
             </div>
@@ -3866,7 +3884,7 @@
             pdImg.src = img; 
             pdImg.onerror = function() { this.src = FALLBACK_MENU_IMG; };
             pdImg.style.cursor = 'zoom-in';
-            pdImg.onclick = () => openImageViewer(img); // Pemicu layar penuh
+            pdImg.onclick = () => openImageViewer(img); 
             
             const vendorEl = document.getElementById('pd-vendor');
             vendorEl.innerHTML = `<img src="${vendorImg}" onerror="this.src='${FALLBACK_VENDOR_IMG}'" class="pd-vendor-img"> <span>${vendorName}</span> <i class="ph-bold ph-caret-right" style="font-size:12px; color:#ccc; margin-left:auto;"></i>`;
@@ -3880,36 +3898,153 @@
             
             const btn = document.getElementById('pd-add-btn'); const btnText = document.getElementById('pd-add-text');
             if(item.is_available === false || item.is_sold_out === true) { btn.style.background = "#ccc"; btn.style.cursor = "not-allowed"; btn.onclick = () => showToast('Maaf, stok habis 🙏'); btnText.innerText = "Stok Habis"; } else { btn.style.background = "var(--primary)"; btn.style.cursor = "pointer"; btn.onclick = () => addToCartFromDetail(); btnText.innerText = "Tambah ke Keranjang"; }
-        
-        const varBox = document.getElementById('variant-section'); const varOpts = document.getElementById('pd-var-options'); varOpts.innerHTML = ''; 
-        
-        // LOGIKA VARIAN BARU (MENDUKUNG ARRAY OBJEK {nama, harga} DARI KOLEKSI products/{id}/varian)
-        if (item.varian && Array.isArray(item.varian) && item.varian.length > 0) { 
-            varBox.style.display = 'block'; 
-            document.getElementById('pd-var-title').innerText = "Pilih Varian / Topping"; 
-            item.varian.forEach((opt, idx) => { 
-                const varName = opt.nama || opt.name || opt.varian || 'Varian ' + (idx+1);
-                const varPrice = opt.harga ? parseInt(opt.harga) : 0;
-                const priceLabel = varPrice > 0 ? ` (+Rp ${varPrice.toLocaleString('id-ID')})` : '';
-                varOpts.innerHTML += `<input type="radio" name="variant" id="var-${idx}" class="radio-input" value="${varName}" data-price="${varPrice}" onchange="updateDetailPrice(${realPrice}, ${varPrice})"><label for="var-${idx}" class="radio-label">${varName}${priceLabel}</label>`; 
-            }); 
-        } else if (item.variant_options && item.variant_options.length > 0) { 
-            // Fallback format lama (array string biasa)
-            varBox.style.display = 'block'; 
-            document.getElementById('pd-var-title').innerText = "Pilih " + (item.variant_title || "Varian"); 
-            item.variant_options.forEach((opt, idx) => { 
-                varOpts.innerHTML += `<input type="radio" name="variant" id="var-${idx}" class="radio-input" value="${opt}" data-price="0" onchange="updateDetailPrice(${realPrice}, 0)"><label for="var-${idx}" class="radio-label">${opt}</label>`; 
-            }); 
-        } else { 
-            varBox.style.display = 'none'; 
-        }
-        document.getElementById('pd-note').value = ""; 
-        
-        // --- MODIFIKASI: Buka sebagai Modal Bottom Sheet ---
+            
+            const varBox = document.getElementById('variant-section'); 
+            const varOpts = document.getElementById('pd-var-options'); 
+            const varTitle = document.getElementById('pd-var-title');
+            varOpts.innerHTML = ''; 
+            window.selectedGroupVariants = {}; // Reset state pilihan varian grup
+            
+            // --- 1. LOGIKA VARIAN BERKELOMPOK (Sesuai Desain Gambar Grab/Gojek) ---
+            if (item.varian_grup && Array.isArray(item.varian_grup) && item.varian_grup.length > 0) {
+                varBox.style.display = 'block';
+                varTitle.style.display = 'none'; // Sembunyikan title bawaan
+
+                let groupsHtml = '';
+                item.varian_grup.forEach((grup, gIdx) => {
+                    const isWajib = grup.wajib !== false; // Jika tidak diisi, default Wajib
+                    const badgeHtml = isWajib 
+                        ? `<span id="badge-vg-${gIdx}" style="background:#FFEBEE; color:#D32F2F; font-size:11px; font-weight:800; padding:4px 10px; border-radius:12px;">Wajib</span>` 
+                        : `<span style="background:#f5f5f5; color:#666; font-size:11px; font-weight:800; padding:4px 10px; border-radius:12px;">Opsional</span>`;
+
+                    groupsHtml += `
+                    <div style="background:white; border-top:8px solid #f0f0f0;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding: 16px 20px; border-bottom: 1px solid #eee;">
+                            <div style="font-size:16px; font-weight:800; color:var(--dark);">${grup.nama_grup || 'Pilihan'}</div>
+                            ${badgeHtml}
+                        </div>
+                        <div style="padding: 0 20px;">
+                    `;
+
+                    if (grup.pilihan && Array.isArray(grup.pilihan)) {
+                        grup.pilihan.forEach((opt, oIdx) => {
+                            const optName = opt.nama || opt.name || 'Opsi';
+                            const optPrice = opt.harga ? parseInt(opt.harga) : 0;
+                            const priceText = optPrice > 0 ? `+${optPrice.toLocaleString('id-ID')}` : '';
+                            const isAvailable = opt.tersedia !== false;
+
+                            if (isAvailable) {
+                                groupsHtml += `
+                                <div id="vg-row-${gIdx}-${oIdx}" class="vg-opt-row" onclick="selectVariantGroup('${gIdx}', '${oIdx}', ${optPrice}, ${realPrice}, ${isWajib}, '${optName}')" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #f9f9f9; cursor: pointer;">
+                                    <div style="display:flex; align-items:center;">
+                                        <div class="vg-radio" id="vg-radio-${gIdx}-${oIdx}" style="width: 20px; height: 20px; border: 2px solid #ccc; border-radius: 50%; position: relative; flex-shrink: 0; transition: 0.2s; margin-right: 15px; display:flex; align-items:center; justify-content:center;"></div>
+                                        <span style="font-size:14px; color:#333; font-weight:400;">${optName}</span>
+                                    </div>
+                                    <span style="font-size:13px; color:#333;">${priceText}</span>
+                                </div>`;
+                            } else {
+                                groupsHtml += `
+                                <div class="vg-opt-row disabled" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #f9f9f9; opacity:0.5; pointer-events:none;">
+                                    <div style="display:flex; align-items:flex-start;">
+                                        <div class="vg-radio" style="width: 20px; height: 20px; border: 2px solid #ccc; border-radius: 50%; position: relative; flex-shrink: 0; margin-right: 15px; margin-top: 2px; background: #eee;"></div>
+                                        <div style="display:flex; flex-direction:column;">
+                                            <span style="font-size:14px; color:#333; font-weight:400;">${optName}</span>
+                                            <span style="font-size:11px; color:#999; margin-top:4px;">Nggak tersedia</span>
+                                        </div>
+                                    </div>
+                                    <span style="font-size:13px; color:#555;">${priceText}</span>
+                                </div>`;
+                            }
+                        });
+                    }
+                    groupsHtml += `</div></div>`;
+                });
+                
+                // Tambahan Tampilan UI "Pilihan lain jika nggak tersedia" ala Grab/Gojek di paling bawah
+                groupsHtml += `
+                <div style="background:white; border-top:8px solid #f0f0f0;">
+                    <div style="padding: 16px 20px;">
+                        <div style="font-size:15px; font-weight:800; color:var(--dark); margin-bottom:12px;">Pilihan lain jika nggak tersedia</div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+                            <span style="font-size:13px; color:#333;">Hubungi saya untuk penggantian</span>
+                            <i class="ph-bold ph-caret-right" style="color:#888;"></i>
+                        </div>
+                    </div>
+                </div>
+                `;
+                varOpts.innerHTML = groupsHtml;
+            } 
+            // --- 2. LOGIKA VARIAN LAMA (ARRAY OBJEK BIASA) ---
+            else if (item.varian && Array.isArray(item.varian) && item.varian.length > 0) { 
+                varBox.style.display = 'block'; 
+                varBox.style.background = '#f9f9f9';
+                varBox.style.padding = '15px';
+                varBox.style.border = '1px solid #eee';
+                varTitle.style.display = 'block';
+                varTitle.innerText = "Pilih Varian / Topping"; 
+                item.varian.forEach((opt, idx) => { 
+                    const varName = opt.nama || opt.name || opt.varian || 'Varian ' + (idx+1);
+                    const varPrice = opt.harga ? parseInt(opt.harga) : 0;
+                    const priceLabel = varPrice > 0 ? ` (+Rp ${varPrice.toLocaleString('id-ID')})` : '';
+                    varOpts.innerHTML += `<input type="radio" name="variant" id="var-${idx}" class="radio-input" value="${varName}" data-price="${varPrice}" onchange="updateDetailPrice(${realPrice}, ${varPrice})"><label for="var-${idx}" class="radio-label">${varName}${priceLabel}</label>`; 
+                }); 
+            } 
+            // --- 3. LOGIKA VARIAN LAMA (ARRAY STRING BIASA) ---
+            else if (item.variant_options && item.variant_options.length > 0) { 
+                varBox.style.display = 'block'; 
+                varBox.style.background = '#f9f9f9';
+                varBox.style.padding = '15px';
+                varBox.style.border = '1px solid #eee';
+                varTitle.style.display = 'block';
+                varTitle.innerText = "Pilih " + (item.variant_title || "Varian"); 
+                item.variant_options.forEach((opt, idx) => { 
+                    varOpts.innerHTML += `<input type="radio" name="variant" id="var-${idx}" class="radio-input" value="${opt}" data-price="0" onchange="updateDetailPrice(${realPrice}, 0)"><label for="var-${idx}" class="radio-label">${opt}</label>`; 
+                }); 
+            } else { 
+                varBox.style.display = 'none'; 
+            }
+            
+            document.getElementById('pd-note').value = ""; 
+            
             const modal = document.getElementById('product-detail-modal');
             modal.style.display = 'flex';
             modal.offsetHeight; // trigger reflow
             modal.classList.add('show');
+        }
+
+        // HELPER UNTUK MENGATUR STATE VARIAN GRUP YANG DIPILIH
+        window.selectVariantGroup = (gIdx, oIdx, optPrice, basePrice, isWajib, optName) => {
+            // Hapus pilihan sebelumnya di grup ini
+            document.querySelectorAll(`[id^="vg-row-${gIdx}-"]`).forEach(el => el.classList.remove('selected'));
+            document.querySelectorAll(`[id^="vg-radio-${gIdx}-"]`).forEach(el => {
+                el.style.borderColor = '#ccc';
+                el.innerHTML = '';
+            });
+
+            // Tandai yang dipilih
+            const row = document.getElementById(`vg-row-${gIdx}-${oIdx}`);
+            const radio = document.getElementById(`vg-radio-${gIdx}-${oIdx}`);
+            row.classList.add('selected');
+            radio.style.borderColor = '#00a35c'; // Warna Hijau Grab
+            radio.innerHTML = `<div style="width:10px; height:10px; background:#00a35c; border-radius:50%;"></div>`;
+
+            // Ubah badge jadi hijau gelap "Selesai" (Sesuai Gambar Referensi)
+            if (isWajib) {
+                const badge = document.getElementById(`badge-vg-${gIdx}`);
+                if (badge) {
+                    badge.innerText = "Selesai";
+                    badge.style.background = "#00a35c"; // Warna Hijau Grab
+                    badge.style.color = "white";
+                }
+            }
+
+            // Simpan state pilihan
+            window.selectedGroupVariants[gIdx] = { name: optName, price: optPrice, groupName: currentDetailProduct.varian_grup[gIdx].nama_grup };
+
+            // Kalkulasi Total Harga Baru
+            let totalVariantPrice = 0;
+            Object.values(window.selectedGroupVariants).forEach(val => totalVariantPrice += val.price);
+            updateDetailPrice(basePrice, totalVariantPrice);
         }
 
         window.closeProductDetailModal = () => {
@@ -3923,7 +4058,7 @@
             document.getElementById('pd-btn-price').innerText = "Rp " + total.toLocaleString('id-ID');
         };
 
-        window.quickAdd = (e, id) => { e.stopPropagation(); const item = rawProducts.find(p => p.id === id); if(item.is_available === false || item.is_sold_out === true) { showToast("Maaf, stok habis 🙏"); return; } if ((item.varian && item.varian.length > 0) || (item.variant_options && item.variant_options.length > 0)) { openVariantModal(item); } else { addToCartDirect(item, "-", "", 0); } }
+        window.quickAdd = (e, id) => { e.stopPropagation(); const item = rawProducts.find(p => p.id === id); if(item.is_available === false || item.is_sold_out === true) { showToast("Maaf, stok habis 🙏"); return; } if ((item.varian_grup && item.varian_grup.length > 0) || (item.varian && item.varian.length > 0) || (item.variant_options && item.variant_options.length > 0)) { openVariantModal(item); } else { addToCartDirect(item, "-", "", 0); } }
         
         let pendingVariantPrice = 0;
 
@@ -3934,7 +4069,12 @@
             document.getElementById('vm-price-display').innerText = parseInt(item.harga).toLocaleString('id-ID'); 
             container.innerHTML = ''; 
             
-            if (item.varian && Array.isArray(item.varian) && item.varian.length > 0) {
+            // Jika item punya varian grup, arahkan ke Detail Lengkap untuk UX yang lebih baik
+            if (item.varian_grup && Array.isArray(item.varian_grup) && item.varian_grup.length > 0) {
+                openProductDetail(item.id);
+                return;
+            }
+            else if (item.varian && Array.isArray(item.varian) && item.varian.length > 0) {
                 item.varian.forEach((opt, idx) => { 
                     const varName = opt.nama || opt.name || opt.varian || 'Varian ' + (idx+1);
                     const varPrice = opt.harga ? parseInt(opt.harga) : 0;
@@ -3974,12 +4114,49 @@
             if(currentDetailProduct.is_available === false || currentDetailProduct.is_sold_out === true) { showToast("Maaf, stok habis 🙏"); return; } 
             let variant = "-"; 
             let variantPrice = 0;
+
             if(document.getElementById('variant-section').style.display !== 'none') { 
-                const selectedVar = document.querySelector('input[name="variant"]:checked'); 
-                if(!selectedVar) { showToast("⚠️ Harap pilih varian dulu!"); document.getElementById('variant-section').scrollIntoView({behavior: 'smooth', block: 'center'}); const title = document.getElementById('pd-var-title'); title.style.color = 'red'; setTimeout(() => title.style.color = '#333', 1000); return; } 
-                variant = selectedVar.value; 
-                variantPrice = selectedVar.dataset.price ? parseInt(selectedVar.dataset.price) : 0;
+                // 1. CEK JIKA MENGGUNAKAN VARIAN GRUP BARU
+                if (currentDetailProduct.varian_grup && Array.isArray(currentDetailProduct.varian_grup) && currentDetailProduct.varian_grup.length > 0) {
+                    let missingGroups = [];
+                    currentDetailProduct.varian_grup.forEach((grup, gIdx) => {
+                        const isWajib = grup.wajib !== false;
+                        if (isWajib && !window.selectedGroupVariants[gIdx]) {
+                            missingGroups.push(grup.nama_grup || `Grup ${gIdx+1}`);
+                        }
+                    });
+
+                    // Validasi pilihan wajib
+                    if (missingGroups.length > 0) {
+                        showToast(`⚠️ Harap lengkapi pilihan: ${missingGroups.join(', ')}`);
+                        document.getElementById('variant-section').scrollIntoView({behavior: 'smooth', block: 'center'});
+                        return;
+                    }
+
+                    // Kumpulkan nama varian & harga
+                    let varNames = [];
+                    Object.values(window.selectedGroupVariants).forEach(val => {
+                        varNames.push(val.name);
+                        variantPrice += val.price;
+                    });
+                    variant = varNames.length > 0 ? varNames.join(', ') : "-";
+                } 
+                // 2. LOGIKA VARIAN LAMA
+                else {
+                    const selectedVar = document.querySelector('input[name="variant"]:checked'); 
+                    if(!selectedVar) { 
+                        showToast("⚠️ Harap pilih varian dulu!"); 
+                        document.getElementById('variant-section').scrollIntoView({behavior: 'smooth', block: 'center'}); 
+                        const title = document.getElementById('pd-var-title'); 
+                        title.style.color = 'red'; 
+                        setTimeout(() => title.style.color = '#333', 1000); 
+                        return; 
+                    } 
+                    variant = selectedVar.value; 
+                    variantPrice = selectedVar.dataset.price ? parseInt(selectedVar.dataset.price) : 0;
+                }
             } 
+            
             const note = document.getElementById('pd-note').value; 
             addToCartDirect(currentDetailProduct, variant, note, variantPrice); 
             closeProductDetailModal(); 
@@ -4362,6 +4539,11 @@
             window.checkoutLocMode = 'manual';
             window.checkoutOngkir = 0;
             window.checkoutDestPlace = null;
+            
+            // --- PERBAIKAN: RESET VARIABEL PETA AGAR TIDAK BLANK SAAT MASUK LAGI ---
+            checkoutMap = null;
+            checkoutMarker = null;
+            // ----------------------------------------------------------------------
 
             let finalTotal = subTotal + serviceFee;
             let serviceFeeRow = serviceFee > 0 ? `<div class="cost-row" style="color:var(--primary); font-weight:700;"><span>Biaya Layanan Platform</span><span>Rp ${serviceFee.toLocaleString()}</span></div>` : `<div class="cost-row"><span>Biaya Aplikasi</span><span style="color:green;">Gratis (Rp 0)</span></div>`;
@@ -5836,7 +6018,31 @@
             rawProducts = [
                 { id: "p1", vendor_id: "v1", vendor_name: "Warung Nasi Goreng Gombong", nama_menu: "Nasi Goreng Spesial", harga: 15000, is_available: true, is_promo: true, harga_coret: 20000, deskripsi: "Nasi goreng dengan telur, ayam, dan sosis.", is_priority: true, jumlah_terjual: 120, is_flash_sale: true },
                 { id: "p2", vendor_id: "v1", vendor_name: "Warung Nasi Goreng Gombong", nama_menu: "Mie Goreng Jawa", harga: 13000, is_available: true, is_promo: false, deskripsi: "Mie goreng pedas manis khas Jawa.", jumlah_terjual: 80 },
-                { id: "p3", vendor_id: "v2", vendor_name: "Ayam Geprek Kebumen", nama_menu: "Paket Geprek Nasi", harga: 12000, is_available: true, is_promo: true, harga_coret: 15000, deskripsi: "Ayam geprek pedas + Nasi hangat.", jumlah_terjual: 200, is_flash_sale: true },
+                
+                // MENGUBAH PRODUK DUMMY INI MENJADI "PAKET AYAM PENYET" AGAR BISA DITEST FITUR VARIANNYA OLEH ANDA!
+                { id: "p3", vendor_id: "v2", vendor_name: "Ayam Geprek Kebumen", nama_menu: "Paket Ayam Penyet Bakar Paha", harga: 28500, is_available: true, is_promo: true, harga_coret: 35000, deskripsi: "Nasi + Ayam Penyet Bakar Paha + Kol + Terong Goreng + Teh", jumlah_terjual: 200, is_flash_sale: true,
+                    varian_grup: [
+                        {
+                            nama_grup: "Tingkat kepedasan",
+                            wajib: true,
+                            pilihan: [
+                                { nama: "Sambal Pisah", harga: 0, tersedia: true },
+                                { nama: "Sedang", harga: 0, tersedia: true },
+                                { nama: "Pedas", harga: 0, tersedia: true }
+                            ]
+                        },
+                        {
+                            nama_grup: "Nasi",
+                            wajib: true,
+                            pilihan: [
+                                { nama: "Nasi Pedas", harga: 1500, tersedia: true },
+                                { nama: "Nasi Putih", harga: 0, tersedia: true },
+                                { nama: "Nasi Daun Jeruk", harga: 1500, tersedia: false }
+                            ]
+                        }
+                    ]
+                },
+                
                 { id: "p4", vendor_id: "v3", vendor_name: "Es Teh Solo & Snack", nama_menu: "Es Teh Jumbo", harga: 5000, is_available: true, is_promo: false, deskripsi: "Es teh manis segar ukuran jumbo.", jumlah_terjual: 300 },
                 { id: "p5", vendor_id: "v3", vendor_name: "Es Teh Solo & Snack", nama_menu: "Kentang Goreng", harga: 10000, is_available: true, is_promo: false, deskripsi: "Kentang goreng renyah dengan saus.", jumlah_terjual: 150, is_flash_sale: true },
                 { id: "p6", vendor_id: "v4", vendor_name: "Bakso Urat Masjo", nama_menu: "Bakso Urat Besar", harga: 18000, is_available: true, is_promo: true, harga_coret: 22000, deskripsi: "Bakso urat sapi asli dengan kuah kaldu segar.", is_exclusive: true, is_priority: true, jumlah_terjual: 400 }
