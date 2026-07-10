@@ -6165,20 +6165,40 @@
                     bestSellerItems.forEach(item => {
                         const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG;
                         const realPrice = parseInt(item.harga);
-                        const fakePrice = Math.ceil(realPrice * 1.2);
+                        // Bikin harga coret lebih mahal agar diskon terlihat (misal 35% lebih mahal)
+                        const fakePrice = Math.ceil(realPrice * 1.35);
+                        const discountPercent = Math.round(((fakePrice - realPrice) / fakePrice) * 100);
+                        
+                        const views = Math.floor(Math.random() * 300) + 50; 
+                        const sold = item.jumlah_terjual || (Math.floor(Math.random() * 50) + 10);
+                        const dist = (0.5 + Math.random() * 3).toFixed(1);
+                        const vendorName = item.vendor_name || "Warung Projekgo";
                         
                         cardsHtml += `
-                            <div style="width: 140px; flex-shrink: 0; cursor: pointer; background: white; border-radius: 12px; padding: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.03);" onclick="openProductDetail('${item.id}')">
-                                <div style="position:relative; width:100%; height:120px; border-radius:8px; overflow:hidden;">
+                            <div style="width: 220px; flex-shrink: 0; cursor: pointer; background: white; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.03); display: flex; flex-direction: column; overflow: hidden;" onclick="openProductDetail('${item.id}')">
+                                <div style="position:relative; width:100%; height:160px; overflow:hidden;">
                                     <img src="${img}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='${FALLBACK_MENU_IMG}'">
-                                    <div style="position:absolute; bottom:0; right:0; background: linear-gradient(45deg, #2E7D32, #4CAF50); color: white; font-size:9px; padding:4px 8px; border-top-left-radius:8px; font-weight:800;">
-                                        TERLARIS
+                                    <div style="position:absolute; top:0; left:0; background: #FF0055; color: white; font-size:10px; padding:4px 8px; border-bottom-right-radius:8px; font-weight:800; z-index:2;">
+                                        Tren
                                     </div>
                                 </div>
-                                <div style="font-size: 12px; font-weight: 700; color: var(--dark); margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 4px;">${item.nama_menu}</div>
-                                <div style="display:flex; flex-direction:column; padding: 0 4px; margin-top: 2px;">
-                                    <span style="font-size:11px; text-decoration:line-through; color:#999;">Rp${fakePrice.toLocaleString()}</span>
-                                    <span style="font-size: 14px; font-weight: 800; color: var(--primary);">Rp${realPrice.toLocaleString()}</span>
+                                <div style="padding: 12px;">
+                                    <div style="font-size: 14px; font-weight: 700; color: var(--dark); margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3;">${item.nama_menu}</div>
+                                    
+                                    <div style="font-size: 11px; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
+                                        <span style="color: #d84315; font-weight: 700;">${views}k+ tayangan</span> 
+                                        <span style="color: #888;">• ${sold}k+ penjualan bulanan</span>
+                                    </div>
+                                    
+                                    <div style="font-size: 11px; color: #888; margin-bottom: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        ${dist} km • ${vendorName}
+                                    </div>
+                                    
+                                    <div style="display:flex; align-items: baseline; gap: 6px;">
+                                        <span style="font-size: 16px; font-weight: 800; color: var(--dark);">Rp${realPrice.toLocaleString('id-ID')}</span>
+                                        <span style="font-size: 12px; text-decoration: line-through; color: #999;">Rp${fakePrice.toLocaleString('id-ID')}</span>
+                                        <span style="font-size: 12px; font-weight: 700; color: #D32F2F;">-${discountPercent}%</span>
+                                    </div>
                                 </div>
                             </div>
                         `;
