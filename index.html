@@ -4324,6 +4324,9 @@
 
                         <!-- MANUAL MODE CONTAINER (Tampilan Lama) -->
                         <div id="checkout-manual-container" style="display:block;">
+                            <div style="font-size:11px; color:#E65100; background:#FFF3E0; padding:8px; border-radius:8px; font-weight:600; margin-bottom:10px; text-align:center; border: 1px dashed #FFB74D;">
+                                ℹ️ Ongkir akan dihitung manual oleh admin yah
+                            </div>
                             <div class="addr-box" id="addr-box-container" style="margin-top:0;">
                                 <textarea id="checkout-addr" class="addr-input" rows="2" placeholder="Alamat lengkap (Wajib diisi)..."></textarea>
                             </div>
@@ -4338,15 +4341,15 @@
 
                         <!-- MAPS MODE CONTAINER -->
                         <div id="checkout-maps-container" style="display:none;">
+                            <div style="font-size:11px; color:#2E7D32; background:#E8F5E9; padding:8px; border-radius:8px; border:1px solid #C8E6C9; margin-bottom:10px; line-height:1.4; font-weight:700; text-align:center;">
+                                ℹ️ Ongkir akan dikalkulasikan otomatis oleh sistem
+                            </div>
                             <input type="text" id="checkout-maps-search" class="form-input" placeholder="Cari alamat tujuan pengantaran..." style="margin-bottom:10px;">
                             <div id="checkout-map-box" style="width:100%; height:200px; background:#eee; border-radius:12px; position:relative; overflow:hidden; border: 1px solid #ddd;">
                                 <div id="checkout-map-render" style="width:100%; height:100%;"></div>
                                 <div style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 800; color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.15); pointer-events: none; z-index: 5; text-align:center; width:max-content;">
                                     Geser Peta / Tap Lokasi Tujuan
                                 </div>
-                            </div>
-                            <div style="font-size:11px; color:#666; margin-top:8px; line-height:1.4;">
-                                ℹ️ Ongkir otomatis terhitung dari titik resto ke titik pilihanmu (1-2km: 8rb, 2-3km: 9rb, >3km: 2.600/km).
                             </div>
                         </div>
                     </div>
@@ -4573,6 +4576,10 @@
                     } else {
                         ongkir = Math.ceil(distKm) * 2600;
                     }
+                    
+                    // Membulatkan ongkir ke kelipatan 500 atau 000 terdekat
+                    ongkir = Math.round(ongkir / 500) * 500;
+
                     window.checkoutOngkir = ongkir;
                     document.getElementById('checkout-ongkir-text').innerText = "Rp " + ongkir.toLocaleString('id-ID') + ` (${response.rows[0].elements[0].distance.text})`;
                     window.updateCheckoutTotal();
