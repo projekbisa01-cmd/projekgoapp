@@ -1184,6 +1184,21 @@
             100% { opacity: 1; transform: translateY(0); }
         }
 
+        /* --- VENDOR PROFILE MODAL (DETAIL TOKO) --- */
+        #vendor-profile-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; z-index: 999999; flex-direction: column; animation: slideInRight 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); overflow-y: auto; }
+        @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        .vpm-header { padding: 15px 20px; display: flex; align-items: center; gap: 15px; position: sticky; top: 0; background: white; z-index: 10; border-bottom: 1px solid #f0f0f0; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
+        .vpm-close { font-size: 24px; cursor: pointer; color: var(--dark); transition: 0.2s; }
+        .vpm-close:active { transform: scale(0.9); }
+        .vpm-title { font-size: 18px; font-weight: 800; color: var(--dark); }
+        .vpm-map-container { width: 100%; height: 200px; background: #eee; position: relative; border-bottom: 1px solid #f0f0f0; }
+        .vpm-section { padding: 20px; border-bottom: 1px solid #f0f0f0; background: white; }
+        .vpm-section-title { font-size: 16px; font-weight: 800; color: var(--dark); display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+        .vpm-address-text { font-size: 14px; color: #444; line-height: 1.5; }
+        .vpm-hours-row { display: flex; justify-content: space-between; font-size: 14px; color: #444; margin-bottom: 10px; }
+        .vpm-hours-row:last-child { margin-bottom: 0; }
+        .vpm-achieve-card { border: 1px solid #eee; border-radius: 12px; padding: 15px; display: flex; align-items: flex-start; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+
         /* --- PWA MODAL STYLES --- */
         #pwa-install-modal {
             display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -2155,6 +2170,33 @@
                 </div>
             </div>
             <button class="ao-btn-close" onclick="closeActiveOrderModal()">Lihat Menu Pesanan Aktif</button>
+        </div>
+    </div>
+
+    <!-- MODAL VENDOR PROFILE (DETAIL TOKO) -->
+    <div id="vendor-profile-modal">
+        <div class="vpm-header">
+            <i class="ph-bold ph-x vpm-close" onclick="closeVendorProfileModal()"></i>
+            <div class="vpm-title" id="vpm-title">Nama Resto</div>
+        </div>
+        <div class="vpm-map-container" id="vpm-map">
+            <!-- Iframe Maps / Dummy Map masuk lewat JS -->
+        </div>
+        <div class="vpm-section">
+            <div class="vpm-section-title"><i class="ph-bold ph-map-pin"></i> Alamat</div>
+            <div class="vpm-address-text" id="vpm-address">Memuat alamat...</div>
+        </div>
+        <div class="vpm-section">
+            <div class="vpm-section-title"><i class="ph-bold ph-clock"></i> Jam buka</div>
+            <div id="vpm-hours">
+                <!-- Info Jam Buka -->
+            </div>
+        </div>
+        <div class="vpm-section">
+            <div class="vpm-section-title"><i class="ph-bold ph-trophy"></i> Pencapaian</div>
+            <div id="vpm-achievements" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none;">
+                <!-- Pencapaian -->
+            </div>
         </div>
     </div>
 
@@ -3139,7 +3181,7 @@
             /* ---------------------------------------- */
 
             const img = vendor.shop_photo || FALLBACK_VENDOR_IMG;
-            const bgImg = vendor.cover_photo || img; // Menggunakan shop_photo sebagai cover jika tidak ada cover_photo
+            const bgImg = vendor.cover_photo || img; 
             const fullAddress = vendor.alamat_warung || vendor.lokasi || vendor.alamat || "Detail alamat belum tersedia";
             const ratingMock = (4.5 + Math.random() * 0.4).toFixed(1);
             
@@ -3168,11 +3210,11 @@
                         ${tutupOverlay}
                         <div class="vh-btn-back" onclick="goBack()" style="z-index:10;"><i class="ph-bold ph-caret-left"></i></div>
                     </div>
-                    <div class="vh-card" style="${!isOpen ? 'background: #666; box-shadow: none;' : ''}">
+                    <div class="vh-card" style="${!isOpen ? 'background: #666; box-shadow: none;' : ''} cursor:pointer;" onclick="openVendorProfileModal('${vendor.id}')">
                         <div class="vh-logo">
                             <img src="${img}" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
                         </div>
-                        <div class="vh-btn-fav" onclick="showToast('Disimpan ke Favorit ❤️')">
+                        <div class="vh-btn-fav" onclick="event.stopPropagation(); showToast('Disimpan ke Favorit ❤️')">
                             <i class="ph-fill ph-bookmark-simple" style="${!isOpen ? 'color:#666;' : ''}"></i>
                         </div>
                         
@@ -3473,6 +3515,75 @@
 
             openPage('vendor');
         }
+
+        // --- FUNGSI MODAL PROFILE RESTO (MAPS & INFO) ---
+        window.openVendorProfileModal = (vendorId) => {
+            const vendor = allVendors.find(v => v.id === vendorId);
+            if (!vendor) return;
+
+            document.getElementById('vpm-title').innerText = vendor.nama_warung || 'Detail Resto';
+            
+            // Render Peta Menggunakan Iframe Embed Maps dengan Parameter Latitude dan Longitude
+            let mapHtml = '';
+            if (vendor.latitude && vendor.longitude) {
+                // Menampilkan iframe maps sederhana agar irit biaya token
+                mapHtml = `<iframe width="100%" height="100%" frameborder="0" style="border:0" src="https://maps.google.com/maps?q=${vendor.latitude},${vendor.longitude}&t=&z=15&ie=UTF8&iwloc=&output=embed" allowfullscreen></iframe>`;
+            } else {
+                mapHtml = `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:#888; font-size:13px; font-style:italic; background:#e0e0e0;">Titik Maps belum tersedia</div>`;
+            }
+            document.getElementById('vpm-map').innerHTML = mapHtml;
+
+            // Render Alamat
+            const fullAddress = vendor.alamat_warung || vendor.lokasi || vendor.alamat || "Detail alamat belum tersedia";
+            document.getElementById('vpm-address').innerText = fullAddress;
+
+            // Render Jam Buka (Bisa dimuat dari field jam_buka database, default manual jika kosong)
+            let hoursHtml = '';
+            if (vendor.jam_buka && typeof vendor.jam_buka === 'string') {
+                hoursHtml = `<div class="vpm-hours-row"><span>Jam Operasional</span><span>${vendor.jam_buka}</span></div>`;
+            } else {
+                hoursHtml = `
+                    <div class="vpm-hours-row"><span>Senin - Kamis</span><span>10:00 - 21:00 WIB</span></div>
+                    <div class="vpm-hours-row"><span>Jumat</span><span>13:00 - 21:00 WIB</span></div>
+                    <div class="vpm-hours-row"><span>Sabtu - Minggu</span><span>10:00 - 21:30 WIB</span></div>
+                `;
+            }
+            document.getElementById('vpm-hours').innerHTML = hoursHtml;
+
+            // Render Pencapaian / Achievements
+            const rating = vendor.rating || (4.7 + Math.random() * 0.2).toFixed(1);
+            let achieveHtml = `
+                <div class="vpm-achieve-card" style="min-width: 280px;">
+                    <div style="width: 45px; height: 45px; background: #E8F5E9; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Grab_logo.svg/1024px-Grab_logo.svg.png" style="width: 25px; height: 25px; object-fit: contain;">
+                    </div>
+                    <div>
+                        <div style="font-weight: 800; font-size: 14px; color: var(--dark);">Resto Bintang ${rating}</div>
+                        <div style="font-size: 11px; color: #666; margin-top: 4px; line-height: 1.4;">Resto pilihan dengan rating tertinggi berdasarkan ulasan pelanggan.</div>
+                    </div>
+                </div>
+                <div class="vpm-achieve-card" style="min-width: 240px;">
+                    <div style="width: 45px; height: 45px; background: #E3F2FD; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <i class="ph-fill ph-seal-check" style="color: #2196F3; font-size: 30px;"></i>
+                    </div>
+                    <div>
+                        <div style="font-weight: 800; font-size: 14px; color: var(--dark);">Terverifikasi</div>
+                        <div style="font-size: 11px; color: #666; margin-top: 4px; line-height: 1.4;">Mitra resmi yang telah bekerjasama dengan Projekgo.</div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('vpm-achievements').innerHTML = achieveHtml;
+
+            const modal = document.getElementById('vendor-profile-modal');
+            modal.style.display = 'flex';
+        };
+
+        window.closeVendorProfileModal = () => {
+            const modal = document.getElementById('vendor-profile-modal');
+            modal.style.display = 'none';
+            // Menghapus iframe agar Google Maps berhenti memuat di latar belakang saat popup ditutup
+            document.getElementById('vpm-map').innerHTML = '';
+        };
 
         window.openAllReviewsPage = () => {
             const container = document.getElementById('all-reviews-list');
@@ -4167,10 +4278,21 @@
                 
                 </div></div>`;
             }
+
+            // Menentukan vendor id utama untuk cek ongkir maps otomatis
+            window.checkoutVendorId = null;
+            if (cart.length > 0) {
+                const sampleProduct = rawProducts.find(p => p.id === cart[0].id);
+                if (sampleProduct && sampleProduct.vendor_id) window.checkoutVendorId = sampleProduct.vendor_id;
+                else {
+                    const vendorObj = allVendors.find(v => v.nama_warung === cart[0].vendor);
+                    if (vendorObj) window.checkoutVendorId = vendorObj.id;
+                }
+            }
             
             let addressSectionHtml = '';
             let deliveryCostHtml = `
-                <div style="background:#FFF3E0; color:#E65100; font-size:11px; padding:12px; margin-top:15px; border-radius:12px; border: 1px solid #FFE0B2; display:flex; flex-direction:column; gap:10px;">
+                <div id="cek-ongkir-container" style="background:#FFF3E0; color:#E65100; font-size:11px; padding:12px; margin-top:15px; border-radius:12px; border: 1px solid #FFE0B2; display:flex; flex-direction:column; gap:10px;">
                     <span style="line-height:1.4; color: #000000; font-weight: 500;">Atau mau cek Ongkirnya dulu juga bisa banget?</span>
                     <button onclick="cekOngkirDulu()" style="background:#25D366; color:white; border:none; padding:10px 14px; border-radius:10px; font-weight:800; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow: 0 4px 10px rgba(37,211,102,0.2); width:100%;">
                         <i class="ph-fill ph-whatsapp-logo" style="font-size:16px;"></i> Cek Ongkir Dulu
@@ -4193,21 +4315,51 @@
                 addressSectionHtml = `
                     <div class="cart-section" style="border-top:10px solid #f0f0f0;">
                         <div class="cv-title">📍 Alamat Pengantaran</div>
-                        <div class="addr-box" id="addr-box-container">
-                            <textarea id="checkout-addr" class="addr-input" rows="2" placeholder="Alamat lengkap (Wajib diisi)..."></textarea>
+                        
+                        <!-- CAPSULE TOGGLE PENGANTARAN -->
+                        <div style="display:flex; background:#f0f0f0; border-radius:12px; padding:4px; margin-bottom:15px;">
+                            <div id="tab-checkout-manual" onclick="toggleCheckoutLocMode('manual')" style="flex:1; text-align:center; font-size:12px; font-weight:800; padding:10px; border-radius:10px; background:white; color:var(--primary); box-shadow:0 2px 5px rgba(0,0,0,0.05); cursor:pointer; transition:0.2s;">✍️ Tulis Manual</div>
+                            <div id="tab-checkout-maps" onclick="toggleCheckoutLocMode('maps')" style="flex:1; text-align:center; font-size:12px; font-weight:700; padding:10px; border-radius:10px; color:#666; cursor:pointer; transition:0.2s;">🗺️ Pilih di Peta</div>
                         </div>
-                        <div style="font-size:11px; color:#888; margin-top:5px; margin-bottom:15px; text-align:right;">*Alamat tersimpan otomatis dimuat</div>
-                        <div style="margin-bottom:10px;">
-                            <button id="btn-titik-maps" onclick="getCurrentLocationForMaps()" style="width:100%; background:var(--primary-light); color:var(--primary); border:1px dashed var(--primary); padding:14px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:0.3s;">
-                                <i class="ph-bold ph-map-pin" style="font-size:18px;"></i> KLIK DISINI Jika tujuan pengantaran sama dengan posisi anda saat ini, |AGAR AKURAT ketika rider mengantar 
-                            </button>
-                            <div id="maps-status-text" style="font-size:10px; color:#2E7D32; text-align:center; margin-top:6px; font-weight:700; display:none;">✅ Titik lokasi diamankan! Rider lebih cepat sampai.</div>
+
+                        <!-- MANUAL MODE CONTAINER (Tampilan Lama) -->
+                        <div id="checkout-manual-container" style="display:block;">
+                            <div class="addr-box" id="addr-box-container" style="margin-top:0;">
+                                <textarea id="checkout-addr" class="addr-input" rows="2" placeholder="Alamat lengkap (Wajib diisi)..."></textarea>
+                            </div>
+                            <div style="font-size:11px; color:#888; margin-top:5px; margin-bottom:15px; text-align:right;">*Alamat tersimpan otomatis dimuat</div>
+                            <div style="margin-bottom:10px;">
+                                <button id="btn-titik-maps" onclick="getCurrentLocationForMaps()" style="width:100%; background:var(--primary-light); color:var(--primary); border:1px dashed var(--primary); padding:14px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:0.3s;">
+                                    <i class="ph-bold ph-map-pin" style="font-size:18px;"></i> KLIK DISINI Jika tujuan pengantaran sama dengan posisi anda saat ini, |AGAR AKURAT ketika rider mengantar 
+                                </button>
+                                <div id="maps-status-text" style="font-size:10px; color:#2E7D32; text-align:center; margin-top:6px; font-weight:700; display:none;">✅ Titik lokasi diamankan! Rider lebih cepat sampai.</div>
+                            </div>
+                        </div>
+
+                        <!-- MAPS MODE CONTAINER -->
+                        <div id="checkout-maps-container" style="display:none;">
+                            <input type="text" id="checkout-maps-search" class="form-input" placeholder="Cari alamat tujuan pengantaran..." style="margin-bottom:10px;">
+                            <div id="checkout-map-box" style="width:100%; height:200px; background:#eee; border-radius:12px; position:relative; overflow:hidden; border: 1px solid #ddd;">
+                                <div id="checkout-map-render" style="width:100%; height:100%;"></div>
+                                <div style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 800; color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.15); pointer-events: none; z-index: 5; text-align:center; width:max-content;">
+                                    Geser Peta / Tap Lokasi Tujuan
+                                </div>
+                            </div>
+                            <div style="font-size:11px; color:#666; margin-top:8px; line-height:1.4;">
+                                ℹ️ Ongkir otomatis terhitung dari titik resto ke titik pilihanmu (8.000 untuk 1-2 km, selebihnya 2.500/km).
+                            </div>
                         </div>
                     </div>
                 `;
             }
 
             let serviceFee = orderMode === 'dine_in' ? 1000 : 0;
+            
+            // Set initial state saat render cart
+            window.checkoutLocMode = 'manual';
+            window.checkoutOngkir = 0;
+            window.checkoutDestPlace = null;
+
             let finalTotal = subTotal + serviceFee;
             let serviceFeeRow = serviceFee > 0 ? `<div class="cost-row" style="color:var(--primary); font-weight:700;"><span>Biaya Layanan Platform</span><span>Rp ${serviceFee.toLocaleString()}</span></div>` : `<div class="cost-row"><span>Biaya Aplikasi</span><span style="color:green;">Gratis (Rp 0)</span></div>`;
 
@@ -4217,9 +4369,9 @@
                 <div class="cost-row"><span>Projekgo tidak menaikan harga </span><span style="text-decoration:line-through;">Rp ${fakeOriginalTotal.toLocaleString()}</span></div>
                 <div class="cost-row"><span>Subtotal Makanan (harga asli penjual)</span><span>Rp ${subTotal.toLocaleString()}</span></div>
                 ${serviceFeeRow}
-                <div class="cost-row"><span>Ongkir</span><span>Di Info Oleh Admin</span></div>
+                <div class="cost-row"><span>Ongkir</span><span id="checkout-ongkir-text">Di Info Oleh Admin</span></div>
         
-                <div class="cost-row total"><span>Total Pembayaran</span><span style="font-size:16px;">Rp ${finalTotal.toLocaleString()}</span></div>
+                <div class="cost-row total"><span>Total Pembayaran</span><span id="checkout-final-total" style="font-size:16px;">Rp ${finalTotal.toLocaleString()}</span></div>
                 <div class="cost-row saved"><i class="ph-fill ph-check-circle"></i> &nbsp; Anda lebih hemat Rp ${savings.toLocaleString()}</div>
                 ${deliveryCostHtml}
                 <button onclick="processCheckout()" style="width:100%; background:#25D366; color:white; padding:15px; border:none; border-radius:12px; margin-top:20px; font-weight:700; font-size:16px;">Pesan Dan Kami Antar Sekarang <i class="ph-fill ph-whatsapp-logo"></i></button>
@@ -4242,6 +4394,206 @@
                     }
                 }
             }
+        }
+
+        // --- TAMBAHAN LOGIKA OTOMATISASI PETA UNTUK CHECKOUT ---
+        window.checkoutLocMode = 'manual';
+        window.checkoutDestPlace = null;
+        window.checkoutOngkir = 0;
+        let checkoutMap = null;
+        let checkoutMarker = null;
+
+        window.toggleCheckoutLocMode = (mode) => {
+            window.checkoutLocMode = mode;
+            const tabManual = document.getElementById('tab-checkout-manual');
+            const tabMaps = document.getElementById('tab-checkout-maps');
+            const contManual = document.getElementById('checkout-manual-container');
+            const contMaps = document.getElementById('checkout-maps-container');
+            const ongkirRowText = document.getElementById('checkout-ongkir-text');
+            const cekOngkirContainer = document.getElementById('cek-ongkir-container');
+
+            if (mode === 'maps') {
+                tabMaps.style.background = 'white';
+                tabMaps.style.color = 'var(--primary)';
+                tabMaps.style.fontWeight = '800';
+                tabMaps.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
+                tabManual.style.background = 'transparent';
+                tabManual.style.color = '#666';
+                tabManual.style.fontWeight = '700';
+                tabManual.style.boxShadow = 'none';
+
+                if(contMaps) contMaps.style.display = 'block';
+                if(contManual) contManual.style.display = 'none';
+                if(cekOngkirContainer) cekOngkirContainer.style.display = 'none'; // Sembunyikan "Cek Ongkir Dulu"
+                
+                if(ongkirRowText) ongkirRowText.innerText = window.checkoutOngkir > 0 ? "Rp " + window.checkoutOngkir.toLocaleString('id-ID') : "Menghitung...";
+
+                if (!checkoutMap) {
+                    setTimeout(() => { window.initCheckoutMap(); }, 100);
+                } else {
+                    google.maps.event.trigger(checkoutMap, 'resize');
+                    if(checkoutMarker) checkoutMap.setCenter(checkoutMarker.getPosition());
+                }
+            } else {
+                tabManual.style.background = 'white';
+                tabManual.style.color = 'var(--primary)';
+                tabManual.style.fontWeight = '800';
+                tabManual.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
+                tabMaps.style.background = 'transparent';
+                tabMaps.style.color = '#666';
+                tabMaps.style.fontWeight = '700';
+                tabMaps.style.boxShadow = 'none';
+
+                if(contManual) contManual.style.display = 'block';
+                if(contMaps) contMaps.style.display = 'none';
+                if(cekOngkirContainer) cekOngkirContainer.style.display = 'flex'; // Munculkan kembali
+                
+                if(ongkirRowText) ongkirRowText.innerText = "Di Info Oleh Admin";
+            }
+            window.updateCheckoutTotal();
+        }
+
+        window.initCheckoutMap = () => {
+            if (typeof google === 'undefined' || !google.maps) {
+                showToast("Peta belum siap. Pastikan internet lancar.");
+                return;
+            }
+            
+            let defaultLoc = { lat: -7.6046, lng: 109.4503 }; 
+            if (currentArea === 'Kebumen Kota') {
+                defaultLoc = { lat: -7.6688, lng: 109.6508 };
+            }
+            
+            const mapRenderEl = document.getElementById("checkout-map-render");
+            if (!mapRenderEl) return;
+
+            checkoutMap = new google.maps.Map(mapRenderEl, {
+                center: defaultLoc,
+                zoom: 15,
+                disableDefaultUI: true,
+                zoomControl: true,
+                fullscreenControl: true
+            });
+
+            checkoutMarker = new google.maps.Marker({
+                position: defaultLoc,
+                map: checkoutMap,
+                draggable: true,
+                animation: google.maps.Animation.DROP
+            });
+
+            const geocoder = new google.maps.Geocoder();
+            
+            const geocodeCheckoutPos = (pos) => {
+                const inputSearch = document.getElementById('checkout-maps-search');
+                if(inputSearch) inputSearch.value = "Membaca lokasi...";
+                
+                geocoder.geocode({ location: pos }, (results, status) => {
+                    if (status === 'OK' && results[0]) {
+                        const address = results[0].formatted_address;
+                        if(inputSearch) inputSearch.value = address;
+                        window.checkoutDestPlace = { geometry: { location: pos }, formatted_address: address };
+                        window.calculateCheckoutOngkir(pos);
+                    } else {
+                        if(inputSearch) inputSearch.value = "Koordinat: " + pos.lat().toFixed(5) + ", " + pos.lng().toFixed(5);
+                        window.checkoutDestPlace = { geometry: { location: pos }, formatted_address: inputSearch.value };
+                        window.calculateCheckoutOngkir(pos);
+                    }
+                });
+            };
+
+            checkoutMap.addListener('click', (e) => {
+                checkoutMarker.setPosition(e.latLng);
+                geocodeCheckoutPos(e.latLng);
+            });
+
+            checkoutMarker.addListener('dragend', (e) => {
+                geocodeCheckoutPos(e.latLng);
+            });
+
+            const inputSearch = document.getElementById('checkout-maps-search');
+            if(inputSearch) {
+                const autocomplete = new google.maps.places.Autocomplete(inputSearch, {
+                    componentRestrictions: { country: "id" },
+                    fields: ["formatted_address", "geometry"]
+                });
+                autocomplete.addListener('place_changed', () => {
+                    const place = autocomplete.getPlace();
+                    if (!place.geometry) return;
+                    checkoutMap.setCenter(place.geometry.location);
+                    checkoutMarker.setPosition(place.geometry.location);
+                    window.checkoutDestPlace = place;
+                    window.calculateCheckoutOngkir(place.geometry.location);
+                });
+            }
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    const myLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                    checkoutMap.setCenter(myLoc);
+                    checkoutMarker.setPosition(myLoc);
+                    geocodeCheckoutPos(myLoc);
+                }, () => {});
+            }
+        }
+
+        window.calculateCheckoutOngkir = (destLatLng) => {
+            if(!window.checkoutVendorId) {
+                showToast("Data restoran tidak valid untuk menghitung ongkir.");
+                return;
+            }
+            const vendor = allVendors.find(v => v.id === window.checkoutVendorId);
+            if(!vendor || !vendor.latitude || !vendor.longitude) {
+                document.getElementById('checkout-ongkir-text').innerText = "Di Info Oleh Admin (Titik Resto Kosong)";
+                window.checkoutOngkir = 0;
+                window.updateCheckoutTotal();
+                return;
+            }
+            
+            const originLatLng = new google.maps.LatLng(vendor.latitude, vendor.longitude);
+            const service = new google.maps.DistanceMatrixService();
+            
+            document.getElementById('checkout-ongkir-text').innerText = "Menghitung ongkir...";
+            
+            service.getDistanceMatrix({
+                origins: [originLatLng],
+                destinations: [destLatLng],
+                travelMode: google.maps.TravelMode.DRIVING,
+                unitSystem: google.maps.UnitSystem.METRIC,
+            }, (response, status) => {
+                if (status === 'OK' && response.rows[0].elements[0].status === 'OK') {
+                    const distValue = response.rows[0].elements[0].distance.value; 
+                    const distKm = distValue / 1000;
+                    
+                    let ongkir = 0;
+                    if (distKm <= 2) {
+                        ongkir = 8000;
+                    } else {
+                        ongkir = 8000 + (Math.ceil(distKm - 2) * 2500);
+                    }
+                    window.checkoutOngkir = ongkir;
+                    document.getElementById('checkout-ongkir-text').innerText = "Rp " + ongkir.toLocaleString('id-ID') + ` (${response.rows[0].elements[0].distance.text})`;
+                    window.updateCheckoutTotal();
+                } else {
+                    document.getElementById('checkout-ongkir-text').innerText = "Gagal menghitung. Coba geser pin.";
+                    window.checkoutOngkir = 0;
+                    window.updateCheckoutTotal();
+                }
+            });
+        }
+
+        window.updateCheckoutTotal = () => {
+            let subTotal = 0;
+            cart.forEach(item => subTotal += item.harga);
+            let serviceFee = orderMode === 'dine_in' ? 1000 : 0;
+            
+            let finalTotal = subTotal + serviceFee;
+            if(window.checkoutLocMode === 'maps') {
+                finalTotal += window.checkoutOngkir;
+            }
+            
+            const totalEl = document.getElementById('checkout-final-total');
+            if(totalEl) totalEl.innerText = "Rp " + finalTotal.toLocaleString('id-ID');
         }
 
         window.updateCartItemQty = (key, change) => {
@@ -4372,21 +4724,35 @@
             const noteEl = document.getElementById('checkout-note');
             const note = noteEl ? noteEl.value.trim() : ""; 
             
-            // --- MODIFIKASI TAHAP 2: BYPASS VALIDASI ALAMAT JIKA DINE IN ---
             if (orderMode !== 'dine_in') {
-                const addrEl = document.getElementById('checkout-addr'); 
-                if(!addrEl) return; 
-                addr = addrEl.value.trim(); 
-                mapsLink = localStorage.getItem('user_maps') || ''; 
-                
-                if(!addr) { 
-                    showToast("⚠️ Alamat pengantaran wajib diisi!"); 
-                    document.getElementById('addr-box-container').style.border = "2px solid red"; 
-                    document.getElementById('addr-box-container').style.backgroundColor = "#ffebee"; 
-                    addrEl.focus(); 
-                    return; 
-                } 
-                localStorage.setItem('user_address', addr); 
+                if(window.checkoutLocMode === 'maps') {
+                    if(!window.checkoutDestPlace) {
+                        showToast("⚠️ Silakan pilih lokasi tujuan di peta!");
+                        return;
+                    }
+                    addr = document.getElementById('checkout-maps-search').value || window.checkoutDestPlace.formatted_address;
+                    if(window.checkoutDestPlace.geometry && window.checkoutDestPlace.geometry.location) {
+                        const lat = typeof window.checkoutDestPlace.geometry.location.lat === 'function' ? window.checkoutDestPlace.geometry.location.lat() : window.checkoutDestPlace.geometry.location.lat;
+                        const lng = typeof window.checkoutDestPlace.geometry.location.lng === 'function' ? window.checkoutDestPlace.geometry.location.lng() : window.checkoutDestPlace.geometry.location.lng;
+                        mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
+                    }
+                    // Simpan juga sebagai fallback manual
+                    localStorage.setItem('user_address', addr); 
+                } else {
+                    const addrEl = document.getElementById('checkout-addr'); 
+                    if(!addrEl) return; 
+                    addr = addrEl.value.trim(); 
+                    mapsLink = localStorage.getItem('user_maps') || ''; 
+                    
+                    if(!addr) { 
+                        showToast("⚠️ Alamat pengantaran wajib diisi!"); 
+                        document.getElementById('addr-box-container').style.border = "2px solid red"; 
+                        document.getElementById('addr-box-container').style.backgroundColor = "#ffebee"; 
+                        addrEl.focus(); 
+                        return; 
+                    } 
+                    localStorage.setItem('user_address', addr); 
+                }
             }
             
             // 1. Susun Pesan WhatsApp
@@ -4435,13 +4801,22 @@
             let serviceFee = orderMode === 'dine_in' ? 1000 : 0;
             let finalTotal = total + serviceFee;
 
-            if (serviceFee > 0) {
-                message += `Subtotal: Rp ${total.toLocaleString()}%0A`;
-                message += `Biaya Layanan: Rp ${serviceFee.toLocaleString()}%0A`;
+            if (orderMode !== 'dine_in' && window.checkoutLocMode === 'maps') {
+                finalTotal += window.checkoutOngkir;
+                message += `Subtotal Makanan: Rp ${total.toLocaleString()}%0A`;
+                if(serviceFee > 0) message += `Biaya Layanan: Rp ${serviceFee.toLocaleString()}%0A`;
+                message += `Ongkos Kirim: Rp ${window.checkoutOngkir.toLocaleString()}%0A`;
                 message += `*Total Bayar: Rp ${finalTotal.toLocaleString()}*%0A%0A`;
             } else {
-                message += `*Total Harga Makanan: Rp ${total.toLocaleString()}*%0A`;
-                message += `_(Ongkir akan dikonfirmasi admin)_%0A%0A`;
+                if (serviceFee > 0) {
+                    message += `Subtotal: Rp ${total.toLocaleString()}%0A`;
+                    message += `Biaya Layanan: Rp ${serviceFee.toLocaleString()}%0A`;
+                    message += `*Total Harga Sementara: Rp ${finalTotal.toLocaleString()}*%0A`;
+                    message += `_(Ongkir akan dikonfirmasi admin)_%0A%0A`;
+                } else {
+                    message += `*Total Harga Makanan: Rp ${total.toLocaleString()}*%0A`;
+                    message += `_(Ongkir akan dikonfirmasi admin)_%0A%0A`;
+                }
             }
             
             message += `*Atas Nama:* ${savedProfile.name} (${savedProfile.phone})%0A`;
