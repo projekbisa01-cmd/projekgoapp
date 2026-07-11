@@ -1284,33 +1284,97 @@
         @keyframes bounceIcon { from { transform: translateY(0); } to { transform: translateY(-4px); } }
         .process-anim-text { font-size: 11px; color: #D84315; line-height: 1.5; font-weight: 600; }
 
-        /* --- CSS KATEGORI BARU --- */
-        .menu-container {
-            width: 100%; max-width: 100%; margin: 0;
-            background: linear-gradient(180deg, #f0fce8 0%, #ffffff 120px);
-            padding: 24px 10px 10px 10px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            box-sizing: border-box;
+        /* --- CSS KATEGORI BARU (DESAIN SESUAI GAMBAR) --- */
+        .cat-box-container {
+            padding: 15px 20px;
+            background: var(--bg);
+            margin-bottom: 10px;
         }
-        .menu-grid {
-            display: grid; grid-template-columns: repeat(5, 1fr); row-gap: 20px; column-gap: 2px; justify-items: center;
-        }
-        .menu-item {
-            display: flex; flex-direction: column; align-items: center; text-decoration: none; cursor: pointer; transition: transform 0.2s; width: 100%;
-        }
-        .menu-item:active { transform: scale(0.9); }
-        .icon-container {
-            width: 48px; height: 48px; display: flex; justify-content: center; align-items: center; margin-bottom: 6px; transform: scale(0.9);
-        }
-        .menu-text {
-            font-size: 11px; color: #4b5563; font-weight: 600; text-align: center; text-transform: capitalize; line-height: 1.2;
-        }
-        .pagination {
-            display: flex; justify-content: center; align-items: center; margin-top: 24px; gap: 6px;
-        }
-        .dot { height: 4px; border-radius: 2px; background-color: #e5e7eb; }
-        .dot.active { width: 16px; background-color: #facc15; }
-        .dot.inactive { width: 8px; }
 
+        .cat-box-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: #444; /* Warna abu-abu gelap seperti di gambar */
+            margin-bottom: 15px;
+        }
+
+        .cat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4 Kolom sesuai gambar */
+            gap: 12px;
+            background: transparent;
+            padding: 0;
+            margin: 0;
+            border-radius: 0;
+        }
+
+        .cat-item-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end; /* Teks di bawah */
+            height: 90px; /* Tinggi kotak */
+            border-radius: 20px; /* Kotak melengkung */
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-decoration: none;
+            overflow: hidden; /* Agar gradien tidak keluar dari kotak */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03); /* Shadow super tipis */
+            border: 1px solid rgba(0,0,0,0.02);
+            background-color: white; /* Warna dasar atas */
+        }
+        
+        .cat-item-box:active { transform: scale(0.95); }
+
+        /* Gradien Latar Belakang Bawah (Sesuai Gambar) */
+        .cat-item-box::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50%; /* Gradien hanya di setengah bawah */
+            z-index: 1;
+        }
+
+        /* Gradien per kategori */
+        .bg-grad-sarapan::before { background: linear-gradient(to top, #e4f8d3, transparent); }
+        .bg-grad-pernasian::before { background: linear-gradient(to top, #efe4f8, transparent); }
+        .bg-grad-minuman::before { background: linear-gradient(to top, #fdece0, transparent); }
+        .bg-grad-ayam::before { background: linear-gradient(to top, #dff0fc, transparent); }
+        .bg-grad-berkuah::before { background: linear-gradient(to top, #dff0fc, transparent); }
+        .bg-grad-anekamie::before { background: linear-gradient(to top, #fdece0, transparent); }
+        .bg-grad-snack::before { background: linear-gradient(to top, #efe4f8, transparent); }
+        .bg-grad-lainnya::before { background: linear-gradient(to top, #e4f8d3, transparent); }
+        
+        /* Tambahan Gradien untuk Kategori Lainnya yang tersembunyi di modal */
+        .bg-grad-legendaris::before { background: linear-gradient(to top, #fff3e0, transparent); }
+        .bg-grad-cepatsaji::before { background: linear-gradient(to top, #ffebee, transparent); }
+        .bg-grad-makanankhas::before { background: linear-gradient(to top, #e8f5e9, transparent); }
+
+        .cat-item-box img {
+            width: 55px; /* Diperbesar dari 45px */
+            height: 55px; /* Diperbesar dari 45px */
+            object-fit: contain;
+            position: absolute;
+            top: 8px; /* Dinaikkan sedikit dari 15px agar ikon yang besar tidak menabrak teks */
+            z-index: 2;
+        }
+
+        .cat-box-text {
+            font-size: 11px;
+            font-weight: 600;
+            color: #555;
+            text-align: center;
+            line-height: 1.2;
+            margin-bottom: 12px;
+            z-index: 2;
+        }
+
+        /* Hilangkan sisa CSS Kategori Lama yang bentrok */
+        .menu-container, .menu-grid, .menu-item, .icon-container, .menu-text, .pagination, .dot { display: none !important; }
+        
         /* 1. Sarapan */
         .ic-sarapan { width: 42px; height: 36px; background: #ffffff; border-radius: 50% 60% 40% 50% / 60% 50% 50% 40%; box-shadow: 0 4px 8px rgba(0,0,0,0.05), inset -2px -4px 6px rgba(0,0,0,0.05); position: relative; }
         .ic-sarapan::before { content: ''; position: absolute; top: 10px; left: 12px; width: 18px; height: 18px; background: radial-gradient(circle at 30% 30%, #ffca28, #ff8f00); border-radius: 50%; box-shadow: inset -1px -2px 4px rgba(0,0,0,0.1); }
@@ -1700,22 +1764,11 @@
             <!-- FLASH SALE SECTION (DIPINDAH KE BAWAH BANNER KENALAN) -->
             <div id="container-flash-sale-top"></div>
 
-            <!-- KONTAINER KATEGORI MAKANAN -->
-            <div id="kategori-makanan" style="background: var(--bg); position: relative; z-index: 5;">
-                <div class="swipe-hint-box" style="display: none;">
-                    <span class="swipe-hint-text">Geser ke samping</span>
-                    <i class="ph-bold ph-caret-double-right swipe-hint-icon"></i>
-                </div>
-
-                <!-- CONTAINER KATEGORI DINAMIS -->
+            <!-- KONTAINER KATEGORI MAKANAN (DESAIN BARU) -->
+            <div class="cat-box-container" id="kategori-makanan">
+                <div class="cat-box-title">Kategori makanan</div>
                 <div class="cat-grid" id="dynamic-cat-grid">
                     <!-- Data dimuat dari JS -->
-                </div>
-                
-                <!-- Indikator Slide/Pagination bawah menu -->
-                <div style="display: flex; justify-content: center; gap: 5px; padding-bottom: 20px; border-bottom: 8px solid white;">
-                    <div style="width: 16px; height: 4px; background: #FFD600; border-radius: 4px;"></div>
-                    <div style="width: 6px; height: 4px; background: #E0E0E0; border-radius: 4px;"></div>
                 </div>
             </div>
             
@@ -4469,7 +4522,7 @@
             
             let addressSectionHtml = '';
             let deliveryCostHtml = `
-                <div id="cek-ongkir-container" style="background:#FFF3E0; color:#E65100; font-size:11px; padding:12px; margin-top:15px; border-radius:12px; border: 1px solid #FFE0B2; display:flex; flex-direction:column; gap:10px;">
+                <div id="cek-ongkir-container" style="display:none; background:#FFF3E0; color:#E65100; font-size:11px; padding:12px; margin-top:15px; border-radius:12px; border: 1px solid #FFE0B2; flex-direction:column; gap:10px;">
                     <span style="line-height:1.4; color: #000000; font-weight: 500;">Atau mau cek Ongkirnya dulu juga bisa banget?</span>
                     <button onclick="cekOngkirDulu()" style="background:#25D366; color:white; border:none; padding:10px 14px; border-radius:10px; font-weight:800; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow: 0 4px 10px rgba(37,211,102,0.2); width:100%;">
                         <i class="ph-fill ph-whatsapp-logo" style="font-size:16px;"></i> Cek Ongkir Dulu
@@ -4493,14 +4546,14 @@
                     <div class="cart-section" style="border-top:10px solid #f0f0f0;">
                         <div class="cv-title">📍 Alamat Pengantaran</div>
                         
-                        <!-- CAPSULE TOGGLE PENGANTARAN -->
+                        <!-- CAPSULE TOGGLE PENGANTARAN (Peta di Kiri) -->
                         <div style="display:flex; background:#f0f0f0; border-radius:12px; padding:4px; margin-bottom:15px;">
-                            <div id="tab-checkout-manual" onclick="toggleCheckoutLocMode('manual')" style="flex:1; text-align:center; font-size:12px; font-weight:800; padding:10px; border-radius:10px; background:white; color:var(--primary); box-shadow:0 2px 5px rgba(0,0,0,0.05); cursor:pointer; transition:0.2s;">✍️ Tulis Manual</div>
-                            <div id="tab-checkout-maps" onclick="toggleCheckoutLocMode('maps')" style="flex:1; text-align:center; font-size:12px; font-weight:700; padding:10px; border-radius:10px; color:#666; cursor:pointer; transition:0.2s;">🗺️ Pilih di Peta</div>
+                            <div id="tab-checkout-maps" onclick="toggleCheckoutLocMode('maps')" style="flex:1; text-align:center; font-size:12px; font-weight:800; padding:10px; border-radius:10px; background:white; color:var(--primary); box-shadow:0 2px 5px rgba(0,0,0,0.05); cursor:pointer; transition:0.2s;">🗺️ Pilih di Peta</div>
+                            <div id="tab-checkout-manual" onclick="toggleCheckoutLocMode('manual')" style="flex:1; text-align:center; font-size:12px; font-weight:700; padding:10px; border-radius:10px; color:#666; background:transparent; cursor:pointer; transition:0.2s;">✍️ Tulis Manual</div>
                         </div>
 
-                        <!-- MANUAL MODE CONTAINER (Tampilan Lama) -->
-                        <div id="checkout-manual-container" style="display:block;">
+                        <!-- MANUAL MODE CONTAINER (Sembunyikan Default) -->
+                        <div id="checkout-manual-container" style="display:none;">
                             <div style="font-size:11px; color:#E65100; background:#FFF3E0; padding:8px; border-radius:8px; font-weight:600; margin-bottom:10px; text-align:center; border: 1px dashed #FFB74D;">
                                 ℹ️ Ongkir akan dihitung manual oleh admin yah
                             </div>
@@ -4516,8 +4569,8 @@
                             </div>
                         </div>
 
-                        <!-- MAPS MODE CONTAINER -->
-                        <div id="checkout-maps-container" style="display:none;">
+                        <!-- MAPS MODE CONTAINER (Tampilkan Default) -->
+                        <div id="checkout-maps-container" style="display:block;">
                             <div style="font-size:11px; color:#2E7D32; background:#E8F5E9; padding:8px; border-radius:8px; border:1px solid #C8E6C9; margin-bottom:10px; line-height:1.4; font-weight:700; text-align:center;">
                                 ℹ️ Ongkir akan dikalkulasikan otomatis oleh sistem
                             </div>
@@ -4535,8 +4588,8 @@
 
             let serviceFee = orderMode === 'dine_in' ? 1000 : 0;
             
-            // Set initial state saat render cart
-            window.checkoutLocMode = 'manual';
+            // Set initial state saat render cart (Ubah ke Maps)
+            window.checkoutLocMode = 'maps';
             window.checkoutOngkir = 0;
             window.checkoutDestPlace = null;
             
@@ -4554,7 +4607,7 @@
                 <div class="cost-row"><span>Projekgo tidak menaikan harga </span><span style="text-decoration:line-through;">Rp ${fakeOriginalTotal.toLocaleString()}</span></div>
                 <div class="cost-row"><span>Subtotal Makanan (harga asli penjual)</span><span>Rp ${subTotal.toLocaleString()}</span></div>
                 ${serviceFeeRow}
-                <div class="cost-row"><span>Ongkir</span><span id="checkout-ongkir-text">Di Info Oleh Admin</span></div>
+                <div class="cost-row"><span>Ongkir</span><span id="checkout-ongkir-text">Menghitung...</span></div>
         
                 <div class="cost-row total"><span>Total Pembayaran</span><span id="checkout-final-total" style="font-size:16px;">Rp ${finalTotal.toLocaleString()}</span></div>
                 <div class="cost-row saved"><i class="ph-fill ph-check-circle"></i> &nbsp; Anda lebih hemat Rp ${savings.toLocaleString()}</div>
@@ -4578,6 +4631,9 @@
                         txtMaps.style.display = 'block';
                     }
                 }
+
+                // Inisialisasi peta secara otomatis karena mode Maps sekarang menjadi default
+                setTimeout(() => { window.initCheckoutMap(); }, 100);
             }
         }
 
@@ -4740,8 +4796,33 @@
                 return;
             }
             
-            const originLatLng = new google.maps.LatLng(vendor.latitude, vendor.longitude);
-            const service = new google.maps.DistanceMatrixService();
+            // --- OPTIMASI 1: Ambil latitude dan longitude dengan aman ---
+            const originLat = parseFloat(vendor.latitude);
+            const originLng = parseFloat(vendor.longitude);
+            const destLat = typeof destLatLng.lat === 'function' ? destLatLng.lat() : destLatLng.lat;
+            const destLng = typeof destLatLng.lng === 'function' ? destLatLng.lng() : destLatLng.lng;
+
+            // --- OPTIMASI 2: Caching Lokasi (Hasil Instan Jika Titik Sama) ---
+            // Menghemat pemakaian API Google Maps (Sangat menghemat limit kuota harian)
+            window.ongkirCache = window.ongkirCache || {};
+            // toFixed(4) mengelompokkan area jarak ~11 meter agar dianggap titik yang sama
+            const cacheKey = `${originLat},${originLng}-${destLat.toFixed(4)},${destLng.toFixed(4)}`;
+            
+            if (window.ongkirCache[cacheKey]) {
+                const cachedData = window.ongkirCache[cacheKey];
+                window.checkoutOngkir = cachedData.ongkir;
+                document.getElementById('checkout-ongkir-text').innerText = "Rp " + cachedData.ongkir.toLocaleString('id-ID') + ` (${cachedData.distText})`;
+                window.updateCheckoutTotal();
+                return; // Langsung selesai tanpa memanggil API Google (Super Cepat)
+            }
+
+            const originLatLng = new google.maps.LatLng(originLat, originLng);
+            
+            // --- OPTIMASI 3: Reusable Service Instance (Tidak Perlu Bikin Objek Baru Terus) ---
+            if (!window.distanceMatrixInstance) {
+                window.distanceMatrixInstance = new google.maps.DistanceMatrixService();
+            }
+            const service = window.distanceMatrixInstance;
             
             document.getElementById('checkout-ongkir-text').innerText = "Menghitung ongkir...";
             
@@ -4753,6 +4834,7 @@
             }, (response, status) => {
                 if (status === 'OK' && response.rows[0].elements[0].status === 'OK') {
                     const distValue = response.rows[0].elements[0].distance.value; 
+                    const distText = response.rows[0].elements[0].distance.text;
                     const distKm = distValue / 1000;
                     
                     let ongkir = 0;
@@ -4761,15 +4843,21 @@
                     } else if (distKm <= 3) {
                         ongkir = 9000;
                     } else {
-                        // PERBAIKAN: Jarak tidak lagi dibulatkan ke atas, langsung dikali tarif per-km
+                        // PERBAIKAN: Jarak langsung dikali tarif per-km
                         ongkir = distKm * 2600;
                     }
                     
-                    // Membulatkan ongkir ke kelipatan 500 atau 000 terdekat
+                    // Membulatkan ongkir ke kelipatan 500 terdekat
                     ongkir = Math.round(ongkir / 500) * 500;
 
+                    // Simpan ke Cache untuk penggunaan berikutnya
+                    window.ongkirCache[cacheKey] = {
+                        ongkir: ongkir,
+                        distText: distText
+                    };
+
                     window.checkoutOngkir = ongkir;
-                    document.getElementById('checkout-ongkir-text').innerText = "Rp " + ongkir.toLocaleString('id-ID') + ` (${response.rows[0].elements[0].distance.text})`;
+                    document.getElementById('checkout-ongkir-text').innerText = "Rp " + ongkir.toLocaleString('id-ID') + ` (${distText})`;
                     window.updateCheckoutTotal();
                 } else {
                     document.getElementById('checkout-ongkir-text').innerText = "Gagal menghitung. Coba geser pin.";
@@ -6224,21 +6312,19 @@
             // ----------------------------------------------
         }
 
+        // --- FUNGSI RENDER KATEGORI (DIPERBARUI) ---
         function renderCategories() {
             const catGrid = document.getElementById('dynamic-cat-grid');
             const catModalGrid = document.getElementById('category-modal-grid');
             if(!catGrid) return;
             catGrid.innerHTML = '';
             
-            // Terapkan class menu-grid ke kontainer agar sesuai dengan CSS baru
-            catGrid.className = 'menu-grid';
-            
             if(catModalGrid) {
                 catModalGrid.innerHTML = '';
-                catModalGrid.className = 'menu-grid';
             }
             
-            const baseCategories = ['Sarapan', 'Pernasian', 'Minuman', 'Ayam', 'Berkuah', 'Aneka Mie', 'Snack', 'Legendaris', 'Cepat Saji', 'Makanan Khas'];
+            // Urutan kategori default sesuai gambar
+            const baseCategories = ['Sarapan', 'Pernasian', 'Minuman', 'Ayam', 'Berkuah', 'Aneka Mie', 'Snack'];
             
             let extractedFromVendors = [];
             currentDisplayVendors.forEach(v => {
@@ -6252,6 +6338,7 @@
             });
             
             const uniqueCatsMap = new Map();
+            // Masukkan baseCategories lebih dulu agar urutannya tetap
             [...baseCategories, ...extractedFromVendors, ...dbCategories].forEach(c => {
                 if (typeof c === 'string' && c.trim() !== '') {
                     const lower = c.trim().toLowerCase();
@@ -6262,70 +6349,72 @@
                 }
             });
 
-            // LOGIKA BARU: MENGGUNAKAN CSS ICON MURNI
-            const cssIcons = {
-                'sarapan': '<div class="ic-sarapan"></div>',
-                'pernasian': '<div class="ic-pernasian"></div>',
-                'minuman': '<div class="ic-minuman"></div>',
-                'ayam': '<div class="ic-ayam"></div>',
-                'berkuah': '<div class="ic-berkuah"></div>',
-                'aneka mie': '<div class="ic-anekamie"></div>',
-                'snack': '<div class="ic-snack"></div>',
-                'legendaris': '<div class="ic-legendaris"></div>',
-                'cepat saji': '<div class="ic-cepatsaji"></div>',
-                'makanan khas': '<div class="ic-makanan"></div>',
-                'default': '<div class="ic-makanan"></div>' 
+            // Map untuk kelas background gradien (sesuai gambar)
+            const bgClassMap = {
+                'sarapan': 'bg-grad-sarapan',
+                'pernasian': 'bg-grad-pernasian',
+                'minuman': 'bg-grad-minuman',
+                'ayam': 'bg-grad-ayam',
+                'berkuah': 'bg-grad-berkuah',
+                'aneka mie': 'bg-grad-anekamie',
+                'snack': 'bg-grad-snack',
+                'legendaris': 'bg-grad-legendaris',
+                'cepat saji': 'bg-grad-cepatsaji',
+                'makanan khas': 'bg-grad-makanankhas'
+            };
+
+            // Karena Anda meminta desain gambar, kita asumsikan menggunakan gambar aslinya (PNG transparan)
+            // Anda perlu mengganti URL ini dengan URL gambar PNG Anda sendiri jika ada.
+            // Untuk sekarang saya pakaikan placeholder SVG yang mirip
+            const iconImgMap = {
+                'sarapan': "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='30' fill='%23F4F4F4'/%3E%3Ccircle cx='50' cy='50' r='15' fill='%23FFB300'/%3E%3C/svg%3E",
+                'pernasian': "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M20 50 Q 50 80 80 50 Z' fill='%230288D1'/%3E%3Crect x='20' y='40' width='60' height='10' fill='%23E0E0E0'/%3E%3Cline x1='15' y1='55' x2='75' y2='35' stroke='%23424242' stroke-width='4'/%3E%3C/svg%3E",
+                'minuman': "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M35 30 L65 30 L60 80 L40 80 Z' fill='%2300897B'/%3E%3Crect x='30' y='25' width='40' height='5' rx='2' fill='%23B0BEC5'/%3E%3Cline x1='50' y1='25' x2='55' y2='10' stroke='%23E53935' stroke-width='4'/%3E%3C/svg%3E",
+                'ayam': "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M45 40 Q 80 30 75 60 Q 60 70 45 55 Z' fill='%23F57C00'/%3E%3Crect x='25' y='45' width='20' height='8' rx='4' fill='%23EEEEEE'/%3E%3Ccircle cx='25' cy='45' r='5' fill='%23EEEEEE'/%3E%3Ccircle cx='25' cy='53' r='5' fill='%23EEEEEE'/%3E%3C/svg%3E",
+                'berkuah': "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M25 45 Q 50 80 75 45 Z' fill='%23D81B60'/%3E%3Cellipse cx='50' cy='45' rx='25' ry='6' fill='%23F48FB1'/%3E%3C/svg%3E",
+                'aneka mie': "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M25 50 Q 50 80 75 50 Z' fill='%23C62828'/%3E%3Cpath d='M35 45 Q 50 60 65 45' fill='none' stroke='%23FFCA28' stroke-width='4'/%3E%3Cpath d='M30 40 Q 50 55 70 40' fill='none' stroke='%23FFCA28' stroke-width='4'/%3E%3Cline x1='60' y1='25' x2='45' y2='60' stroke='%234E342E' stroke-width='4'/%3E%3Cline x1='70' y1='30' x2='55' y2='65' stroke='%234E342E' stroke-width='4'/%3E%3C/svg%3E",
+                'snack': "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='20' fill='%23EF6C00'/%3E%3Ccircle cx='45' cy='45' r='2' fill='%233E2723'/%3E%3Ccircle cx='55' cy='55' r='2' fill='%233E2723'/%3E%3Ccircle cx='42' cy='55' r='2' fill='%233E2723'/%3E%3Ccircle cx='58' cy='42' r='2' fill='%233E2723'/%3E%3Ccircle cx='50' cy='60' r='2' fill='%233E2723'/%3E%3C/svg%3E",
+                'legendaris': "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 20 L59 40 L80 43 L65 58 L69 80 L50 70 L31 80 L35 58 L20 43 L41 40 Z' fill='%23FFCA28' stroke='%23FF8F00' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E",
+                'cepat saji': "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M25 50 Q 50 20 75 50 Z' fill='%23FFB74D'/%3E%3Crect x='23' y='52' width='54' height='6' rx='3' fill='%238BC34A'/%3E%3Crect x='25' y='60' width='50' height='8' rx='4' fill='%23795548'/%3E%3Cpath d='M25 70 Q 50 85 75 70 Z' fill='%23FFB74D'/%3E%3Ccircle cx='40' cy='40' r='2' fill='%23FFF'/%3E%3Ccircle cx='60' cy='40' r='2' fill='%23FFF'/%3E%3Ccircle cx='50' cy='32' r='2' fill='%23FFF'/%3E%3C/svg%3E",
+                'makanan khas': "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 25 L70 60 L30 60 Z' fill='%23FFCA28'/%3E%3Cpath d='M25 60 Q 50 80 75 60 Z' fill='%234CAF50'/%3E%3Cpath d='M50 25 L50 60' stroke='%23FFB300' stroke-width='2'/%3E%3C/svg%3E"
             };
 
             let finalCategories = Array.from(uniqueCatsMap.entries()).map(([lowerCat, displayCat]) => {
-                const iconHtml = cssIcons[lowerCat] || cssIcons['default'];
-                return { name: displayCat, icon: iconHtml };
+                const bgClass = bgClassMap[lowerCat] || 'bg-grad-sarapan'; // Fallback
+                const iconSrc = iconImgMap[lowerCat] || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='20' fill='%23EEEEEE'/%3E%3C/svg%3E";
+                return { name: displayCat, bgClass: bgClass, icon: iconSrc };
             });
 
-            // 1. Render untuk Modal (Tampilkan Semua Kategori Penuh)
+            // 1. Render untuk Modal (Tampilkan Semua)
             finalCategories.forEach(cat => {
                 if (catModalGrid) {
                     const modalDiv = document.createElement('div');
-                    modalDiv.className = 'menu-item';
+                    modalDiv.className = `cat-item-box ${cat.bgClass}`;
                     modalDiv.onclick = () => { closeAllCategoriesModal(); openCategoryPage(cat.name); };
-                    modalDiv.innerHTML = `<div class="icon-container">${cat.icon}</div><div class="menu-text">${cat.name}</div>`;
+                    modalDiv.innerHTML = `<img src="${cat.icon}"><div class="cat-box-text">${cat.name}</div>`;
                     catModalGrid.appendChild(modalDiv);
                 }
             });
 
-            // 2. Render untuk Beranda (BATASI MAX 10 ITEM)
-            if (finalCategories.length > 10) {
-                const berandaCategories = finalCategories.slice(0, 9);
-                berandaCategories.forEach(cat => {
-                    const div = document.createElement('div');
-                    div.className = 'menu-item';
-                    div.onclick = () => openCategoryPage(cat.name);
-                    div.innerHTML = `<div class="icon-container">${cat.icon}</div><div class="menu-text">${cat.name}</div>`;
-                    catGrid.appendChild(div);
-                });
-                
-                const moreDiv = document.createElement('div');
-                moreDiv.className = 'menu-item';
-                moreDiv.onclick = () => openAllCategoriesModal();
-                // Icon untuk 'Lainnya', kita pakaikan icon Phosphor bawaan
-                moreDiv.innerHTML = `<div class="icon-container"><i class="ph-bold ph-squares-four" style="font-size: 28px; color: #ffb74d;"></i></div><div class="menu-text">Lainnya</div>`;
-                catGrid.appendChild(moreDiv);
-                
-            } else {
-                finalCategories.forEach(cat => {
-                    const div = document.createElement('div');
-                    div.className = 'menu-item';
-                    div.onclick = () => openCategoryPage(cat.name);
-                    div.innerHTML = `<div class="icon-container">${cat.icon}</div><div class="menu-text">${cat.name}</div>`;
-                    catGrid.appendChild(div);
-                });
-            }
+            // 2. Render untuk Beranda (Tepat 8 Kotak: 7 Kategori + 1 Lainnya)
+            // Ambil maksimal 7 kategori pertama
+            const berandaCategories = finalCategories.slice(0, 7);
             
-            // Terapkan background menu-container ke parent node dari catGrid agar layout fit ke layar dan gradasi bekerja maksimal
-            if (catGrid.parentElement) {
-                catGrid.parentElement.classList.add('menu-container');
-                catGrid.parentElement.style.background = ''; // Hapus style bawaan inline agar CSS gradasi bekerja
-            }
+            berandaCategories.forEach(cat => {
+                const div = document.createElement('div');
+                div.className = `cat-item-box ${cat.bgClass}`;
+                div.onclick = () => openCategoryPage(cat.name);
+                div.innerHTML = `<img src="${cat.icon}"><div class="cat-box-text">${cat.name}</div>`;
+                catGrid.appendChild(div);
+            });
+            
+            // Tambahkan kotak "Lainnya" selalu di urutan ke-8
+            const moreDiv = document.createElement('div');
+            moreDiv.className = `cat-item-box bg-grad-lainnya`;
+            moreDiv.onclick = () => openAllCategoriesModal();
+            // Icon grid kotak-kotak untuk "Lainnya" (warna orange seperti gambar)
+            moreDiv.innerHTML = `<img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='30' y='30' width='15' height='15' rx='3' fill='none' stroke='%23FFA726' stroke-width='4'/%3E%3Crect x='55' y='30' width='15' height='15' rx='3' fill='none' stroke='%23FFA726' stroke-width='4'/%3E%3Crect x='30' y='55' width='15' height='15' rx='3' fill='none' stroke='%23FFA726' stroke-width='4'/%3E%3Crect x='55' y='55' width='15' height='15' rx='3' fill='none' stroke='%23FFA726' stroke-width='4'/%3E%3C/svg%3E"><div class="cat-box-text">Lainnya</div>`;
+            catGrid.appendChild(moreDiv);
         }
         
         function renderWarungList(vends) {
