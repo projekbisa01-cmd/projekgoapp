@@ -4616,8 +4616,13 @@
                 if (!checkoutMap) {
                     setTimeout(() => { window.initCheckoutMap(); }, 100);
                 } else {
-                    google.maps.event.trigger(checkoutMap, 'resize');
-                    if(checkoutMarker) checkoutMap.setCenter(checkoutMarker.getPosition());
+                    // --- UBAH BAGIAN ELSE INI (LANGKAH 3) ---
+                    // Beri jeda 300ms agar tab selesai bergeser baru paksa peta menyesuaikan ukuran
+                    setTimeout(() => {
+                        google.maps.event.trigger(checkoutMap, 'resize');
+                        if(checkoutMarker) checkoutMap.setCenter(checkoutMarker.getPosition());
+                    }, 300);
+                    // ----------------------------------------
                 }
             } else {
                 tabManual.style.background = 'white';
@@ -4756,7 +4761,8 @@
                     } else if (distKm <= 3) {
                         ongkir = 9000;
                     } else {
-                        ongkir = Math.ceil(distKm) * 2600;
+                        // PERBAIKAN: Jarak tidak lagi dibulatkan ke atas, langsung dikali tarif per-km
+                        ongkir = distKm * 2600;
                     }
                     
                     // Membulatkan ongkir ke kelipatan 500 atau 000 terdekat
@@ -5427,6 +5433,10 @@
         }
 
         window.initGooglePlaces = () => {
+            // --- TAMBAHAN KODE (LANGKAH 1): Membersihkan sisa kotak rekomendasi lokasi ---
+            document.querySelectorAll('.pac-container').forEach(el => el.remove());
+            // --------------------------------------------------------------------------
+
             const inputJemput = document.getElementById('svc-jemput');
             const inputTujuan = document.getElementById('svc-tujuan');
 
@@ -5503,9 +5513,13 @@
             if (!serviceMap) {
                 initServiceMap();
             } else {
-                // Refresh ukuran peta agar tidak glitch ketika dari "display: none"
-                google.maps.event.trigger(serviceMap, 'resize');
-                if (serviceMarker) serviceMap.setCenter(serviceMarker.getPosition());
+                // --- UBAH BAGIAN ELSE INI (LANGKAH 2) ---
+                // Beri jeda 300ms agar animasi buka tutup selesai, baru paksa peta menyesuaikan ukuran
+                setTimeout(() => {
+                    google.maps.event.trigger(serviceMap, 'resize');
+                    if (serviceMarker) serviceMap.setCenter(serviceMarker.getPosition());
+                }, 300);
+                // ----------------------------------------
             }
         }
 
