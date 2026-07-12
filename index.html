@@ -4784,81 +4784,126 @@
         }
 
         window.calculateCheckoutOngkir = (destLatLng) => {
-            if(!window.checkoutVendorId) {
-                showToast("Data restoran tidak valid untuk menghitung ongkir.");
+            if (!cart || cart.length === 0) {
+                window.checkoutOngkir = 0;
+                window.updateCheckoutTotal();
                 return;
             }
-            const vendor = allVendors.find(v => v.id === window.checkoutVendorId);
-            if(!vendor || !vendor.latitude || !vendor.longitude) {
+
+            // 1. Ambil daftar vendor unik dari keranjang
+            const uniqueVendorNames = [...new Set(cart.map(item => item.vendor))];
+            const vendorCoords = [];
+
+            for (const vName of uniqueVendorNames) {
+                const vObj = allVendors.find(v => v.nama_warung === vName);
+                if (vObj && vObj.latitude && vObj.longitude) {
+                    vendorCoords.push(new google.maps.LatLng(parseFloat(vObj.latitude), parseFloat(vObj.longitude)));
+                } else {
+                    // Jika ada 1 saja warung yang tidak punya koordinat, fallback ke manual
+                    document.getElementById('checkout-ongkir-text').innerText = "Di Info Oleh Admin (Titik Resto Kosong)";
+                    window.checkoutOngkir = 0;
+                    window.updateCheckoutTotal();
+                    return;
+                }
+            }
+
+            if (vendorCoords.length === 0) {
                 document.getElementById('checkout-ongkir-text').innerText = "Di Info Oleh Admin (Titik Resto Kosong)";
                 window.checkoutOngkir = 0;
                 window.updateCheckoutTotal();
                 return;
             }
-            
-            // --- OPTIMASI 1: Ambil latitude dan longitude dengan aman ---
-            const originLat = parseFloat(vendor.latitude);
-            const originLng = parseFloat(vendor.longitude);
+
+            // 2. Siapkan rute berurutan (Resto A -> Resto B -> Pelanggan)
             const destLat = typeof destLatLng.lat === 'function' ? destLatLng.lat() : destLatLng.lat;
             const destLng = typeof destLatLng.lng === 'function' ? destLatLng.lng() : destLatLng.lng;
+            const customerLatLng = new google.maps.LatLng(destLat, destLng);
 
-            // --- OPTIMASI 2: Caching Lokasi (Hasil Instan Jika Titik Sama) ---
-            // Menghemat pemakaian API Google Maps (Sangat menghemat limit kuota harian)
-            window.ongkirCache = window.ongkirCache || {};
-            // toFixed(4) mengelompokkan area jarak ~11 meter agar dianggap titik yang sama
-            const cacheKey = `${originLat},${originLng}-${destLat.toFixed(4)},${destLng.toFixed(4)}`;
+            // Gabungkan titik singgah: Seluruh Restoran lalu terakhir adalah Pelanggan
+            const stops = [...vendorCoords, customerLatLng];
             
+            // Origins (Titik Asal): Dari titik index 0 sampai N-1
+            const origins = stops.slice(0, stops.length - 1);
+            // Destinations (Titik Tujuan): Dari titik index 1 sampai N
+            const destinations = stops.slice(1, stops.length);
+
+            // 3. Sistem Caching (Mengingat rute lengkap agar hemat kuota Google)
+            window.ongkirCache = window.ongkirCache || {};
+            const cacheKey = stops.map(s => `${s.lat().toFixed(4)},${s.lng().toFixed(4)}`).join('|');
+
             if (window.ongkirCache[cacheKey]) {
                 const cachedData = window.ongkirCache[cacheKey];
                 window.checkoutOngkir = cachedData.ongkir;
                 document.getElementById('checkout-ongkir-text').innerText = "Rp " + cachedData.ongkir.toLocaleString('id-ID') + ` (${cachedData.distText})`;
                 window.updateCheckoutTotal();
-                return; // Langsung selesai tanpa memanggil API Google (Super Cepat)
+                return;
             }
 
-            const originLatLng = new google.maps.LatLng(originLat, originLng);
-            
-            // --- OPTIMASI 3: Reusable Service Instance (Tidak Perlu Bikin Objek Baru Terus) ---
             if (!window.distanceMatrixInstance) {
                 window.distanceMatrixInstance = new google.maps.DistanceMatrixService();
             }
             const service = window.distanceMatrixInstance;
-            
+
             document.getElementById('checkout-ongkir-text').innerText = "Menghitung ongkir...";
-            
+
+            // Hitung Matrix untuk mendapatkan jarak A->B dan B->C sekaligus
             service.getDistanceMatrix({
-                origins: [originLatLng],
-                destinations: [destLatLng],
+                origins: origins,
+                destinations: destinations,
                 travelMode: google.maps.TravelMode.DRIVING,
                 unitSystem: google.maps.UnitSystem.METRIC,
             }, (response, status) => {
-                if (status === 'OK' && response.rows[0].elements[0].status === 'OK') {
-                    const distValue = response.rows[0].elements[0].distance.value; 
-                    const distText = response.rows[0].elements[0].distance.text;
-                    const distKm = distValue / 1000;
-                    
-                    let ongkir = 0;
-                    if (distKm <= 2) {
-                        ongkir = 8000;
-                    } else if (distKm <= 3) {
-                        ongkir = 9000;
-                    } else {
-                        // PERBAIKAN: Jarak langsung dikali tarif per-km
-                        ongkir = distKm * 2600;
+                if (status === 'OK') {
+                    let totalDistValue = 0;
+                    let isAllOk = true;
+
+                    // Jumlahkan jarak secara diagonal dari matriks (A->B, B->C, dll)
+                    for (let i = 0; i < origins.length; i++) {
+                        const element = response.rows[i].elements[i];
+                        if (element.status === 'OK') {
+                            totalDistValue += element.distance.value;
+                        } else {
+                            isAllOk = false;
+                            break;
+                        }
                     }
-                    
-                    // Membulatkan ongkir ke kelipatan 500 terdekat
-                    ongkir = Math.round(ongkir / 500) * 500;
 
-                    // Simpan ke Cache untuk penggunaan berikutnya
-                    window.ongkirCache[cacheKey] = {
-                        ongkir: ongkir,
-                        distText: distText
-                    };
+                    if (isAllOk) {
+                        const distKm = totalDistValue / 1000;
+                        let distText = distKm < 1 ? (distKm * 1000).toFixed(0) + " m" : distKm.toFixed(1) + " km";
 
-                    window.checkoutOngkir = ongkir;
-                    document.getElementById('checkout-ongkir-text').innerText = "Rp " + ongkir.toLocaleString('id-ID') + ` (${distText})`;
-                    window.updateCheckoutTotal();
+                        // 4. Kalkulasi Tarif dengan Jarak Total Berantai
+                        let baseOngkir = 0;
+                        if (distKm <= 2) {
+                            baseOngkir = 8000;
+                        } else if (distKm <= 3) {
+                            baseOngkir = 9000;
+                        } else {
+                            baseOngkir = distKm * 2600;
+                        }
+
+                        // Tambahan biaya Rp 3.000 untuk setiap ekstra restoran
+                        const extraRestoFee = (uniqueVendorNames.length - 1) * 3000;
+                        
+                        let totalOngkir = baseOngkir + extraRestoFee;
+
+                        // Pembulatan ke kelipatan 500 terdekat
+                        totalOngkir = Math.round(totalOngkir / 500) * 500;
+
+                        // Simpan ke Cache
+                        window.ongkirCache[cacheKey] = {
+                            ongkir: totalOngkir,
+                            distText: distText
+                        };
+
+                        window.checkoutOngkir = totalOngkir;
+                        document.getElementById('checkout-ongkir-text').innerText = "Rp " + totalOngkir.toLocaleString('id-ID') + ` (${distText})`;
+                        window.updateCheckoutTotal();
+                    } else {
+                        document.getElementById('checkout-ongkir-text').innerText = "Gagal menghitung sebagian rute.";
+                        window.checkoutOngkir = 0;
+                        window.updateCheckoutTotal();
+                    }
                 } else {
                     document.getElementById('checkout-ongkir-text').innerText = "Gagal menghitung. Coba geser pin.";
                     window.checkoutOngkir = 0;
@@ -6450,12 +6495,10 @@
             let topRestoInserted = false; 
             let customPromoInserted = false;
             
-            // --- LOGIKA MENU PALING LARIS DIPERBARUI SAMA PERSIS DENGAN UI EXCLUSIVE ---
             const renderBestSeller = () => {
                 if (bestSellerInserted) return;
                 if (bestSellerItems.length > 0) {
                     const promoDiv = document.createElement('div');
-                    // Style container dibuat persis dengan renderExclusiveStyle, margin disesuaikan mepet
                     promoDiv.style.cssText = "background: white; padding-bottom: 20px; border-radius: 16px; margin: 10px 8px 20px 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden;";
                     
                     let headerHtml = `
@@ -6474,7 +6517,6 @@
                     bestSellerItems.forEach(item => {
                         const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG;
                         const realPrice = parseInt(item.harga);
-                        // Bikin harga coret lebih mahal agar diskon terlihat (misal 35% lebih mahal)
                         const fakePrice = Math.ceil(realPrice * 1.35);
                         const discountPercent = Math.round(((fakePrice - realPrice) / fakePrice) * 100);
                         
@@ -6493,16 +6535,13 @@
                                 </div>
                                 <div style="padding: 12px;">
                                     <div style="font-size: 14px; font-weight: 700; color: var(--dark); margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3;">${item.nama_menu}</div>
-                                    
                                     <div style="font-size: 11px; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
                                         <span style="color: #d84315; font-weight: 700;">${views}k+ tayangan</span> 
                                         <span style="color: #888;">• ${sold}k+ penjualan bulanan</span>
                                     </div>
-                                    
                                     <div style="font-size: 11px; color: #888; margin-bottom: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                         ${dist} km • ${vendorName}
                                     </div>
-                                    
                                     <div style="display:flex; align-items: baseline; gap: 6px;">
                                         <span style="font-size: 16px; font-weight: 800; color: var(--dark);">Rp${realPrice.toLocaleString('id-ID')}</span>
                                         <span style="font-size: 12px; text-decoration: line-through; color: #999;">Rp${fakePrice.toLocaleString('id-ID')}</span>
@@ -6523,29 +6562,24 @@
             const renderBanner = () => {
                 if (bannerInserted) return;
                 const bannerDiv = document.createElement('div');
-                bannerDiv.style.padding = "0 8px 15px 8px"; // Dibuat lebih mepet layar
+                bannerDiv.style.padding = "0 8px 15px 8px"; 
                 
-                // BANNER 1 DIUBAH JADI SLIDER
                 bannerDiv.innerHTML = `
                     <div style="position:relative; border-radius:15px; box-shadow:var(--shadow-sm); overflow:hidden;">
                         <div id="auto-slider-1" style="display:flex; overflow-x:auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; width: 100%;">
-                            <!-- Gambar 1 -->
                             <img src="https://i.ibb.co.com/mr2Ltjzq/Whats-App-Image-2026-02-04-at-20-48-22.jpg" style="width:100%; height:auto; flex-shrink:0; scroll-snap-align:start; object-fit:cover; display:block;">
-                            <!-- Gambar 2 (Bisa diganti nanti) -->
                             <img src="https://i.ibb.co.com/HfPJ54g7/Desain-tanpa-judul-6.png" style="width:100%; height:auto; flex-shrink:0; scroll-snap-align:start; object-fit:cover; display:block;">
-                            <!-- Tambahkan <img> lain di sini jika ingin gambar ke 3, 4, dst -->
                         </div>
                         <a href="https://projekgo.id" target="_blank" style="position:absolute; bottom:10px; right:10px; background:rgba(255,255,255,0.95); backdrop-filter:blur(4px); color:var(--primary); padding:6px 14px; border-radius:20px; font-size:11px; font-weight:700; text-decoration:none; box-shadow:0 4px 10px rgba(0,0,0,0.15); display:flex; align-items:center; gap:5px; z-index:5; transition:transform 0.2s;"><i class="ph-bold ph-globe"></i> projekgo.id</a>
                     </div>
                 `;
                 c.appendChild(bannerDiv);
                 
-                // Logika Auto Slide Setiap 3.5 Detik
                 setInterval(() => {
                     const slider = document.getElementById('auto-slider-1');
                     if(slider) {
                         let nextScroll = slider.scrollLeft + slider.clientWidth;
-                        if (nextScroll >= slider.scrollWidth - 10) nextScroll = 0; // Kembali ke gambar pertama
+                        if (nextScroll >= slider.scrollWidth - 10) nextScroll = 0; 
                         slider.scrollTo({ left: nextScroll, behavior: 'smooth' });
                     }
                 }, 3500);
@@ -6555,10 +6589,9 @@
 
             const renderTopRatedResto = () => {
                 if (topRestoInserted) return;
-                const topVendors = foodVendors.slice(0, 3); // Ambil 3 resto saja
+                const topVendors = foodVendors.slice(0, 3); 
                 if (topVendors.length > 0) {
                     const sectionDiv = document.createElement('div');
-                    // DIUBAH: Background diganti putih
                     sectionDiv.style.cssText = "background: white; margin-bottom: 15px; margin-top: 10px; padding-bottom: 10px;";
                     sectionDiv.innerHTML = `
                         <div class="section-title" style="background: transparent; padding-top: 15px; padding-bottom: 12px; display:flex; flex-direction:column; align-items:flex-start;">
@@ -6581,7 +6614,6 @@
                         const rating = (4.7 + Math.random() * 0.2).toFixed(1);
                         const card = document.createElement('div');
                         
-                        // Style card mirip dengan desain "Resto dengan rating jempolan"
                         card.style.cssText = "min-width: 260px; background: white; border-radius: 16px; border: 1px solid #f0f0f0; box-shadow: var(--shadow-sm); overflow: hidden; flex-shrink: 0; cursor: pointer; display:flex; flex-direction:column;";
                         card.onclick = () => openVendorPage(v.id);
                         
@@ -6605,7 +6637,6 @@
                 topRestoInserted = true;
             };
 
-            // Fungsi baru: Template layout horizontal yang bisa Anda custom sambil jalan
             const renderCustomPromoScroll = (urutan) => {
                 if (customPromoInserted) return;
                 const promoItems = allProducts.filter(p => p.is_available !== false && (p.is_promo === true || parseInt(p.harga_coret) > parseInt(p.harga))).slice(0, 6);
@@ -6613,7 +6644,6 @@
                 if (promoItems.length === 0) return;
 
                 const promoDiv = document.createElement('div');
-                // DIUBAH: Background diganti putih
                 promoDiv.style.cssText = "background: white; padding: 15px 0 5px 0; margin-bottom: 0; border-bottom: 8px solid var(--bg);";
                 
                 const headerHtml = `
@@ -6633,8 +6663,6 @@
                 promoItems.forEach(item => {
                     const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG;
                     const realPrice = parseInt(item.harga);
-                    
-                    // Logika baru: Tambahan harga coret = 30% dari harga asli, ATAU minimal 3000
                     const tambahanCoret = Math.max(Math.ceil(realPrice * 0.3), 3000); 
                     const originalPrice = realPrice + tambahanCoret;
                     
@@ -6663,7 +6691,6 @@
                 });
 
                 cardsHtml += '</div>';
-
                 promoDiv.innerHTML = headerHtml + cardsHtml;
                 c.appendChild(promoDiv);
                 customPromoInserted = true;
@@ -6676,7 +6703,6 @@
                 if(vendors.length === 0) return;
                 
                 const promoDiv = document.createElement('div');
-                // DIUBAH: Background diganti putih
                 promoDiv.style.cssText = "background: white; padding-bottom: 15px; border-top: 8px solid var(--bg); border-bottom: 8px solid var(--bg);";
                 
                 let header = `
@@ -6714,7 +6740,6 @@
                 if(exclusiveItems.length === 0) return;
                 
                 const promoDiv = document.createElement('div');
-                // DIUBAH: Background diganti putih, margin disesuaikan mepet
                 promoDiv.style.cssText = "background: white; padding-bottom: 20px; border-radius: 16px; margin: 0 8px 20px 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden;";
                 
                 let header = `
@@ -6765,23 +6790,16 @@
             if (topRatedContainer) topRatedContainer.innerHTML = '';
             renderTopRatedResto();
 
-            // TAHAP 2: Batasi warung yang di-render ke layar (UI Pagination)
             const vendorsToRender = foodVendors.slice(0, window.warungRenderLimit);
 
             vendorsToRender.forEach((v, index) => {
-                // Logika memunculkan layout otomatis setiap 3 baris warung
                 if (index > 0 && index % 3 === 0) {
                     const urutanLayout = index / 3;
-                    
                     if (urutanLayout === 1) { renderBestSeller(); }
                     else if (urutanLayout === 2) { renderBanner(); }
-                    else { 
-                        // Jika ada warung yang lebih panjang (layout ke-3, ke-4 dst) akan pakai template ini
-                        renderCustomPromoScroll(urutanLayout); 
-                    }
+                    else { renderCustomPromoScroll(urutanLayout); }
                 }
 
-                // NEW: Sisipkan Resto Top Rating & Exclusive tepat setelah penjual ke-5 (index === 5)
                 if (index === 5) {
                     renderRestoTopRatingImageStyle();
                     renderExclusiveStyle();
@@ -6793,181 +6811,98 @@
                 const prices = vendorProds.map(p => parseInt(p.harga)); 
                 const minPrice = prices.length ? Math.min(...prices) : 10000; 
                 const formattedPrice = (minPrice/1000).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 1 });
-                const fakeCoret = Math.ceil((minPrice * 1.3)/1000).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 1 });
                 const rating = (4.5 + Math.random() * 0.4).toFixed(1);
-                const reviewCount = Math.floor(Math.random() * 200) + 10;
                 const dist = (0.5 + Math.random() * 2).toFixed(1); 
 
-                const statusText = s ? 'Buka' : 'Tutup';
-                const statusColor = s ? '#00C853' : '#9E9E9E'; 
-                
-                const locationInfo = v.alamat_warung ? ` - ${v.alamat_warung}` : (v.lokasi ? ` - ${v.lokasi}` : (v.alamat ? ` - ${v.alamat}` : ''));
-
-                // --- LOGIKA CATATAN TOKO (WARUNG LIST) ---
-                let catatanTokoListHtml = `
-                <div id="kontainer-catatan-list-${v.id}" style="display: ${v.catatan ? 'inline-flex' : 'none'}; background: #FFF3E0; padding: 4px 6px; border-radius: 6px; margin-top: 5px; align-items: center; gap: 4px; border: 1px solid #FFE0B2; width: fit-content;">
-                    <i class="ph-fill ph-megaphone" style="color: #FF6600; font-size: 10px;"></i>
-                    <span id="teks-catatan-list-${v.id}" style="color: #E65100; font-size: 9px; font-weight: 700;">${v.catatan || ''}</span>
-                </div>`;
-                // ----------------------------------------------
-
-                // --- LOGIKA BADGE HALAL & CERTIFIED BARU ---
-                let halalBadgeHtml = '';
-                let certifiedBadgeHtml = '';
-                let halalCombinedBadge = ''; // Untuk fallback di layout besar
-
-                if (v.is_halal === true || v.has_sertifikat_halal === true) { 
-                    halalBadgeHtml = `
-                        <img src="https://i.ibb.co.com/KjN0Wf2G/Desain-tanpa-judul-44.png" style="width: 28px; height: 28px; object-fit: contain; border-radius: 50%;">
-                    `;
-                    
-                    if (v.has_sertifikat_halal === true) {
-                        certifiedBadgeHtml = `
-                            <div style="display: flex; align-items: center; gap: 3px; background: #E8F5E9; color: #2E7D32; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px; border: 1px solid #C8E6C9;">
-                                <i class="ph-bold ph-check-circle" style="font-size: 11px;"></i> CERTIFIED
-                            </div>
-                        `;
-                    }
-
-                    // Untuk layout besar (index 10,11,12) kita gabung saja
-                    let textBersertifikat = (v.has_sertifikat_halal === true) ? '<span style="font-size: 10px; font-weight: 800; color: #2E7D32;">Bersertifikat</span>' : '';
-                    halalCombinedBadge = `
-                        <div style="display:inline-flex; align-items:center; gap:4px; background: white; padding: 2px 6px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #eee; margin-left: 2px;">
-                            <img src="https://i.ibb.co.com/KjN0Wf2G/Desain-tanpa-judul-44.png" style="width: 24px; height: 24px; object-fit: contain;">
-                            ${textBersertifikat}
-                        </div>
-                    `;
-                }
-                // -----------------------------
-
-                // --- LOGIKA BARU: Ambil 4 Nama Menu ---
+                // Teks Kategori untuk Warung (Diambil dari kata pertama menu andalannya)
                 let menuDesc = "Aneka Makanan";
                 if (vendorProds && vendorProds.length > 0) {
-                    // Ambil nama menu yang unik saja agar tidak berulang
                     const uniqueMenus = [...new Set(vendorProds.map(p => p.nama_menu))].filter(n => n && n.trim() !== '');
-                    const topMenus = uniqueMenus.slice(0, 4);
-                    menuDesc = topMenus.join(', ');
-                    if (uniqueMenus.length > 4) {
-                        menuDesc += ', dll'; // Tambahkan kata "dll" jika menu lebih dari 4
-                    }
+                    if (uniqueMenus.length > 0) menuDesc = uniqueMenus[0].split(' ')[0];
                 }
-                // --------------------------------------
 
-                // Menambahkan Badge Visual "Andalan" khusus untuk yang memiliki is_andalan = true
-                const andalanBadge = v.is_andalan ? '<span style="display:inline-flex; align-items:center; gap:3px; background:#E8F5E9; color:#2E7D32; font-size:10px; font-weight:800; padding:2px 6px; border-radius:12px; margin-left:4px; vertical-align:middle; border:1px solid #C8E6C9;"><i class="ph-fill ph-check-circle" style="font-size:12px;"></i>Andalan</span>' : '';
+                // Data Dummy untuk Layout Baru (mengikuti gambar)
+                const ratingCountText = (Math.floor(Math.random() * 900) + 100) + "+";
+                const maxPriceStr = parseInt(formattedPrice) + 10;
+                const ongkirDiskon = "4.5rb";
+                const ongkirNormal = "16.5rb";
+                const waktuAntar = Math.floor(dist * 10 + 10);
+                const fsPercent = Math.floor(Math.random() * 40) + 20;
 
                 const div = document.createElement('div');
+                div.style.cssText = "background: white; border-bottom: 1px solid #f0f0f0; padding: 15px 15px 15px 15px; margin-bottom: 0;";
                 
-                if (index === 10 || index === 11 || index === 12) {
-                    // --- LAYOUT KARTU BESAR (SEPERTI REFERENSI GAMBAR) UNTUK URUTAN 11, 12, 13 ---
-                    div.style.margin = "0 8px 20px 8px"; // DIUBAH: Margin dikurangi agar mepet pinggir layar
+                if (s) { 
+                    div.onclick = () => openVendorPage(v.id); 
                     div.style.cursor = "pointer";
-                    div.style.transition = "transform 0.2s";
-                    if (s) { div.onclick = () => openVendorPage(v.id); } 
-                    else { div.style.opacity = "0.8"; div.style.cursor = "default"; }
+                } else { 
+                    div.style.cursor = "default";
+                }
 
-                    // DIUBAH: Background diganti putih
-                    div.innerHTML = `
-                        <div style="background: white; border-radius: 16px; box-shadow: 0 6px 20px rgba(0,0,0,0.08); overflow: hidden; display: flex; flex-direction: column; width: 100%; border: 1px solid #f0f0f0; position: relative;">
-                            <div style="position: relative; width: 100%; height: 180px;">
-                                <img src="${v.cover_photo || img}" style="width: 100%; height: 100%; object-fit: cover; ${!s ? 'filter:grayscale(100%);' : ''}" onerror="this.src='${img}'">
-                                ${!s ? '<div class="badge-habis-overlay"><span class="badge-habis-text">TUTUP</span></div>' : ''}
-                                <div style="position: absolute; bottom: -12px; left: 15px; display: flex; align-items: center; gap: 6px; z-index: 2;">
-                                    <div style="background: #1B5E20; color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 800; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                                        <i class="ph-fill ph-star"></i> ${rating}
+                const imgOverlay = !s ? '<div style="position:absolute; inset:0; background:rgba(255,255,255,0.7); display:flex; align-items:center; justify-content:center; border-radius:12px;"><span style="background:rgba(0,0,0,0.8); color:white; font-size:10px; font-weight:800; padding:4px 6px; border-radius:4px;">TUTUP</span></div>' : '';
+
+                // PENERAPAN DESAIN UI BARU (PERSIS SEPERTI GAMBAR)
+                div.innerHTML = `
+                    <div style="display: flex; gap: 14px; ${!s ? 'opacity:0.6; filter:grayscale(100%);' : ''} transition: transform 0.2s;" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'" onmouseleave="this.style.transform='scale(1)'">
+                        <!-- Bagian Kiri: Foto Resto -->
+                        <div style="position: relative; width: 90px; height: 90px; flex-shrink: 0;">
+                            <img src="${img}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px; border: 1px solid #eee;" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
+                            ${imgOverlay}
+                        </div>
+
+                        <!-- Bagian Kanan: Info Text & Badge -->
+                        <div style="flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; justify-content: flex-start;">
+                            <!-- Judul -->
+                            <div style="font-size: 16px; font-weight: 800; color: #111; line-height: 1.2; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                ${v.nama_warung || 'Warung Projekgo'}
+                            </div>
+
+                            <!-- Baris Rating & Kategori -->
+                            <div style="font-size: 13px; color: #666; display: flex; align-items: center; gap: 4px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                <i class="ph-fill ph-star" style="color: #FF7300; font-size: 15px;"></i>
+                                <span style="font-weight: 700; color: #333;">${rating}</span>
+                                <span style="color: #888;">(${ratingCountText} ratings)</span>
+                                <span style="color: #ccc;">•</span>
+                                <span>${formattedPrice}rb-${maxPriceStr}rb</span>
+                                <span style="color: #ccc;">•</span>
+                                <span style="overflow: hidden; text-overflow: ellipsis;">${menuDesc}</span>
+                            </div>
+
+                            <!-- Baris Ongkir & Waktu -->
+                            <div style="font-size: 13px; color: #666; display: flex; align-items: center; gap: 4px; margin-bottom: 10px;">
+                                <i class="ph-fill ph-arrow-circle-right" style="color: #00a500; font-size: 16px;"></i>
+                                <span style="color: #00a500; font-weight: 700;">Ongkir ${ongkirDiskon}</span>
+                                <span style="text-decoration: line-through; color: #aaa;">${ongkirNormal}</span>
+                                <span style="color: #ccc;">•</span>
+                                <span>${waktuAntar}-${waktuAntar+10} min</span>
+                            </div>
+
+                            <!-- Baris Keunggulan Projekgo (Scroll Horizontal) -->
+                            <div style="display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding-bottom: 2px;">
+                                <!-- Badge Harga Asli -->
+                                <div style="border: 1px solid #eee; border-radius: 12px; padding: 6px 10px; display: flex; align-items: center; gap: 8px; white-space: nowrap; flex-shrink: 0; background: white;">
+                                    <i class="ph-fill ph-wallet" style="color: #FF8F00; font-size: 18px;"></i>
+                                    <div style="display: flex; flex-direction: column; line-height: 1.2;">
+                                        <span style="font-size: 11px; color: #333; font-weight: 600;">Harga Asli Penjual</span>
+                                        <span style="font-size: 11px; color: #FF8F00; font-weight: 700;">Lebih hemat 20-30%</span>
                                     </div>
-                                    <div style="background: white; color: var(--dark); padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #eee;">
-                                        <i class="ph-bold ph-moped"></i> ${dist}0-${dist}5 min
-                                    </div>
-                                    ${halalCombinedBadge}
-                                    <div style="background: white; color: #666; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #eee;">
-                                        ${dist} km
+                                </div>
+                                <!-- Badge Prioritas -->
+                                <div style="border: 1px solid #eee; border-radius: 12px; padding: 6px 10px; display: flex; align-items: center; gap: 8px; white-space: nowrap; flex-shrink: 0; background: white;">
+                                    <i class="ph-fill ph-moped" style="color: #2E7D32; font-size: 18px;"></i>
+                                    <div style="display: flex; flex-direction: column; line-height: 1.2;">
+                                        <span style="font-size: 11px; color: #333; font-weight: 600;">1 Pelanggan 1 Rider</span>
+                                        <span style="font-size: 11px; color: #2E7D32; font-weight: 700;">Pengantaran Prioritas</span>
                                     </div>
                                 </div>
                             </div>
-                            <div style="padding: 24px 15px 15px 15px;">
-                                <div style="font-size: 18px; font-weight: 800; color: var(--dark); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${v.nama_warung || 'Warung Projekgo'} ${andalanBadge}</div>
-                                <div style="font-size: 12px; color: #666; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Rp${formattedPrice}rb • ${menuDesc}</div>
-                                <div style="font-size:10px; color:${statusColor}; font-weight:700;">${statusText}</div>
-                                ${catatanTokoListHtml}
-                            </div>
-                            <div style="background: #FFF1F0; padding: 12px 15px; border-top: 1px solid #FFEBEB; display: flex; align-items: center; gap: 8px; color: #D32F2F; font-size: 12px; font-weight: 700;">
-                                <i class="ph-fill ph-wallet" style="background:#D32F2F; color:white; border-radius:50%; padding:3px; font-size:12px;"></i> Harga Asli Penjual (Lebih Hemat 20%)
-                            </div>
                         </div>
-                    `;
-                } else {
-                    // --- PERUBAHAN DISINI: LAYOUT SEPERTI DIGAMBAR (GROUP VENDOR SECTION) ---
-                    div.className = 'group-vendor-section';
-                    div.style.background = "white";
-                    div.style.marginBottom = "0";
-                    div.style.paddingBottom = "15px";
-                    div.style.borderBottom = "8px solid var(--bg)";
+                    </div>
+                `;
 
-                    // 1. Header Vendor
-                    const headerHTML = `
-                        <div class="group-vendor-header-styled" onclick="${s ? `openVendorPage('${v.id}')` : ''}" style="flex-direction:row; align-items:center; gap:12px; padding: 15px 20px 15px 20px; ${!s ? 'opacity:0.6; filter:grayscale(100%); cursor:default;' : 'cursor:pointer;'}">
-                            <div style="position:relative; flex-shrink:0;">
-                                <img src="${img}" loading="lazy" onerror="this.src='${FALLBACK_VENDOR_IMG}'" style="width:50px; height:50px; border-radius:12px; object-fit:cover; border:1px solid #eee; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
-                                ${!s ? '<div style="position:absolute; inset:0; background:rgba(255,255,255,0.7); display:flex; align-items:center; justify-content:center; border-radius:12px;"><span style="background:rgba(0,0,0,0.8); color:white; font-size:9px; font-weight:800; padding:2px 4px; border-radius:4px;">TUTUP</span></div>' : ''}
-                            </div>
-                            <div style="flex:1;">
-                                <div class="gvh-s-name" style="font-size:18px; font-weight:800; margin-bottom:2px; display:flex; align-items:center; gap:4px; line-height:1.2;">${v.nama_warung || 'Warung Projekgo'} ${andalanBadge}</div>
-                                <div class="gvh-s-meta"><i class="ph-fill ph-star" style="color:#FFC107;"></i> ${rating} • Aneka Makanan</div>
-                                <div class="gvh-s-deliv" style="font-size:11px; color:#666;">Mulai <span style="color:var(--primary); font-weight:700;">Rp${formattedPrice}</span></div>
-                            </div>
-                            <i class="ph-bold ph-caret-right gvh-arrow" style="color:#888; font-size:20px;"></i>
-                        </div>
-                    `;
-
-                    // 2. Horizontal Scroll untuk Produk
-                    const scrollDiv = document.createElement('div'); 
-                    scrollDiv.className = 'scroll-container'; 
-                    scrollDiv.style.padding = "0 15px";
-                    
-                    // Ambil menu untuk warung ini, prioritaskan is_priority
-                    let displayProducts = vendorProds.sort((a,b) => (b.is_priority === true ? 1 : 0) - (a.is_priority === true ? 1 : 0));
-                    
-                    // Batasi maksimal 4 menu andalan
-                    const top4Products = displayProducts.slice(0, 4);
-                    
-                    top4Products.forEach(item => { 
-                        renderHorizontalCard(scrollDiv, item); 
-                    });
-
-                    // 3. Tambahkan tombol "Selengkapnya" jika menu > 4
-                    if (vendorProds.length > 4) {
-                        const moreDiv = document.createElement('div');
-                        moreDiv.className = 'h-card';
-                        moreDiv.style.display = 'flex';
-                        moreDiv.style.flexDirection = 'column';
-                        moreDiv.style.alignItems = 'center';
-                        moreDiv.style.justifyContent = 'center';
-                        moreDiv.style.background = '#f9f9f9';
-                        moreDiv.style.boxShadow = 'none';
-                        moreDiv.style.border = '1px dashed #ccc';
-                        moreDiv.style.cursor = 'pointer';
-                        moreDiv.style.minWidth = '120px'; // Lebar disesuaikan
-                        moreDiv.onclick = () => openVendorPage(v.id);
-                        moreDiv.innerHTML = `
-                            <div style="width:40px; height:40px; border-radius:50%; background:var(--primary-light); color:var(--primary); display:flex; align-items:center; justify-content:center; margin-bottom:10px;">
-                                <i class="ph-bold ph-arrow-right" style="font-size:20px;"></i>
-                            </div>
-                            <div style="font-size:13px; font-weight:700; color:#555;">Selengkapnya</div>
-                            <div style="font-size:10px; color:#888; margin-top:4px;">${vendorProds.length - 4} Menu Lainnya</div>
-                        `;
-                        scrollDiv.appendChild(moreDiv);
-                    } else if (vendorProds.length === 0) {
-                        scrollDiv.innerHTML = `<div style="font-size:12px; color:#999; padding:10px 0; font-style:italic;">Belum ada menu.</div>`;
-                    }
-
-                    div.innerHTML = headerHTML;
-                    div.appendChild(scrollDiv);
-                }
                 c.appendChild(div);
             });
             
-            // Jaga-jaga jika daftar warung kurang dari atau sama dengan 5, widget tetap dimunculkan di akhir list
             if (foodVendors.length > 0 && foodVendors.length <= 5) {
                 renderRestoTopRatingImageStyle();
                 renderExclusiveStyle();
@@ -6976,7 +6911,6 @@
             if (!bestSellerInserted) renderBestSeller();
             if (!bannerInserted) renderBanner();
 
-            // TAHAP 2: Tambahkan tombol "Load More" jika masih ada sisa warung
             if (window.warungRenderLimit < foodVendors.length) {
                 const btnContainer = document.createElement('div');
                 btnContainer.style.padding = "20px";
@@ -6984,7 +6918,6 @@
                 btnContainer.innerHTML = `<button onclick="loadMoreWarung()" style="background:var(--primary-light); color:var(--primary); font-weight:800; border:none; padding:12px 24px; border-radius:20px; font-size:14px; cursor:pointer; box-shadow: 0 4px 10px rgba(255,102,0,0.1); transition: 0.2s;">Tampilkan Lebih Banyak <i class="ph-bold ph-caret-down"></i></button>`;
                 c.appendChild(btnContainer);
             } else if (foodVendors.length > 0) {
-                // PESAN KETIKA SUDAH MENTOK BAWAH
                 const endContainer = document.createElement('div');
                 endContainer.style.padding = "20px 15px 40px 15px";
                 endContainer.style.textAlign = "center";
