@@ -4807,570 +4807,83 @@
         }
 
         // =========================================================================================
-        // TAMBAHAN FUNGSI BARU UNTUK MODAL PENCARIAN LOKASI (HEMAT API GOOGLE MAPS)
-        // =========================================================================================
-        window.openLocationSearchModal = () => {
-            let modal = document.getElementById('location-search-modal');
-            if (!modal) {
-                // Injeksi modal ke DOM jika belum ada
-                modal = document.createElement('div');
-                modal.id = 'location-search-modal';
-                modal.style.cssText = "display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; z-index: 9999999; flex-direction: column; animation: slideInRight 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);";
-                modal.innerHTML = `
-                    <div style="padding: 15px 20px; display: flex; align-items: center; gap: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); z-index: 10;">
-                        <i class="ph-bold ph-arrow-left" style="font-size: 24px; cursor: pointer; color: #333;" onclick="closeLocationSearchModal()"></i>
-                        <i class="ph-fill ph-map-pin" style="color: #D32F2F; font-size: 24px;"></i>
-                        <div style="flex-grow: 1; border: 1px solid #ddd; border-radius: 20px; padding: 10px 15px; display: flex; align-items: center;">
-                            <input type="text" id="ls-input-search" placeholder="Antar ke" style="border: none; outline: none; width: 100%; font-size: 14px; font-family: inherit;">
-                            <i class="ph-fill ph-camera" style="color: #888; font-size: 18px; margin-left: 10px;"></i>
-                        </div>
-                    </div>
-                    <div style="display: flex; gap: 15px; padding: 15px 20px; border-bottom: 1px solid #eee;">
-                        <div id="ls-tab-terakhir" onclick="switchLsTab('terakhir')" style="font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 20px; cursor: pointer; background: #FFD1B3; color: #E65100;">Terakhir</div>
-                        <div id="ls-tab-disarankan" onclick="switchLsTab('disarankan')" style="font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 20px; cursor: pointer; color: #666;">Disarankan</div>
-                        <div id="ls-tab-tersimpan" onclick="switchLsTab('tersimpan')" style="font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 20px; cursor: pointer; color: #666;">Tersimpan</div>
-                    </div>
-                    <div id="ls-list-container" style="flex-grow: 1; overflow-y: auto; padding: 0 20px;"></div>
-                    <div style="position: absolute; bottom: 30px; left: 0; right: 0; display: flex; justify-content: center; pointer-events: none; z-index: 20;">
-                        <button onclick="activateRealMap()" style="pointer-events: auto; background: linear-gradient(90deg, #FFA726, #FF7043); color: #6d3000; border: none; padding: 12px 24px; border-radius: 30px; font-weight: 800; font-size: 14px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(255, 112, 67, 0.4); cursor: pointer; font-style: italic;">
-                            <i class="ph-fill ph-map-pin" style="color: #D32F2F; font-size: 18px;"></i>
-                            Pakai Google maps
-                        </button>
-                    </div>
-                `;
-                document.body.appendChild(modal);
-            }
+
+        // FUNGSI HITUNG ONGKIR MENGGUNAKAN RUMUS KOORDINAT MATEMATIKA (HEMAT TOKEN API)
+        window.calculateCheckoutOngkir = (destinationLocation) => {
+            if (!destinationLocation) return;
             
-            modal.style.display = 'flex';
-            window.switchLsTab('terakhir'); 
-            
-            const input = document.getElementById('ls-input-search');
-            if (!window.lsAutocompleteInitialized && typeof google !== 'undefined' && google.maps) {
-                const autocomplete = new google.maps.places.Autocomplete(input, {
-                    componentRestrictions: { country: "id" },
-                    fields: ["formatted_address", "geometry", "name"]
-                });
-                autocomplete.addListener('place_changed', () => {
-                    const place = autocomplete.getPlace();
-                    if (!place.geometry) return;
-                    
-                    window.checkoutDestPlace = place;
-                    const disp = document.getElementById('checkout-maps-search-display');
-                    if(disp) {
-                        disp.innerText = place.name || place.formatted_address;
-                        disp.style.color = '#333';
-                        disp.style.fontWeight = '700';
-                    }
-                    
-                    window.closeLocationSearchModal();
-                    window.calculateCheckoutOngkir(place.geometry.location);
-                });
-                window.lsAutocompleteInitialized = true;
-            }
-            
-            setTimeout(() => input.focus(), 300);
-        }
-
-        window.closeLocationSearchModal = () => {
-            const modal = document.getElementById('location-search-modal');
-            if(modal) modal.style.display = 'none';
-        }
-
-        window.switchLsTab = (tabName) => {
-            const inactiveStyle = "font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 20px; cursor: pointer; color: #666; background: transparent;";
-            let activeStyle = "font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 20px; cursor: pointer; background: #FFD1B3; color: #E65100;";
-            
-            // Khusus tab tersimpan, kita buat backgroundnya hijau tosca muda seperti di gambar
-            if(tabName === 'tersimpan') {
-                activeStyle = "font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 20px; cursor: pointer; background: #E8F5E9; color: #00695C;";
-            }
-            
-            document.getElementById('ls-tab-terakhir').style.cssText = inactiveStyle;
-            document.getElementById('ls-tab-disarankan').style.cssText = inactiveStyle;
-            document.getElementById('ls-tab-tersimpan').style.cssText = inactiveStyle;
-            
-            document.getElementById('ls-tab-' + tabName).style.cssText = activeStyle;
-
-            const listContainer = document.getElementById('ls-list-container');
-            if (tabName === 'terakhir') {
-                listContainer.innerHTML = `
-                    <div style="display:flex; align-items:center; gap:15px; padding:15px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" onclick="selectLsLocation('Lokasi saat ini')">
-                        <div style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-                            <i class="ph-bold ph-target" style="font-size:26px; color:#FF6600;"></i>
-                        </div>
-                        <div style="flex-grow:1;">
-                            <div style="font-size:14px; font-weight:800; color:#333; margin-bottom:2px;">Lokasi saat ini</div>
-                            <div style="font-size:12px; color:#888; line-height:1.4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Menggunakan GPS perangkat</div>
-                        </div>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:15px; padding:15px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" onclick="selectLsLocation('Pintu Masuk Pasar Wonokriyo Gombong')">
-                        <div style="width: 32px; height: 32px; background: #FF6600; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                            <i class="ph-bold ph-clock-counter-clockwise" style="font-size:18px; color:white;"></i>
-                        </div>
-                        <div style="flex-grow:1;">
-                            <div style="font-size:14px; font-weight:800; color:#333; margin-bottom:2px;">Pintu Masuk Pasar Wonokriyo Gombong</div>
-                            <div style="font-size:12px; color:#888; line-height:1.4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">4.12km • Jl. Yos Sudarso, Wonokriyo, Gombong...</div>
-                        </div>
-                        <i class="ph-bold ph-dots-three-vertical" style="color:#aaa;"></i>
-                    </div>
-                `;
-            } else if (tabName === 'disarankan') {
-                listContainer.innerHTML = `
-                    <div style="display:flex; align-items:center; gap:15px; padding:15px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" onclick="selectLsLocation('Stasiun Kebumen')">
-                        <div style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-                            <i class="ph-fill ph-map-pin" style="font-size:26px; color:#FF6600;"></i>
-                        </div>
-                        <div style="flex-grow:1;">
-                            <div style="font-size:14px; font-weight:800; color:#333; margin-bottom:2px;">Stasiun Kebumen</div>
-                            <div style="font-size:12px; color:#888; line-height:1.4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Jl. Stasiun, Panjer, Kebumen</div>
-                        </div>
-                        <i class="ph-bold ph-dots-three-vertical" style="color:#aaa;"></i>
-                    </div>
-                `;
-            } else if (tabName === 'tersimpan') {
-                window.renderLsSavedLocations();
-            }
-        }
-
-        // =========================================================================================
-        // FUNGSI UNTUK MERENDER DAN MENYIMPAN LOKASI TERSIMPAN (RUMAH, KERJA, LAINNYA)
-        // =========================================================================================
-        window.renderLsSavedLocations = () => {
-            const listContainer = document.getElementById('ls-list-container');
-            if(!listContainer) return;
-
-            let savedLocs = JSON.parse(localStorage.getItem('checkout_saved_locs')) || { rumah: null, kerja: null, lainnya: [] };
-            let html = '';
-            const iconColor = "#1976D2"; // Warna biru sesuai gambar
-
-            // 1. Tambah Baru
-            html += `
-                <div style="display:flex; align-items:center; gap:15px; padding:15px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" onclick="addNewLsSavedLocation('lainnya')">
-                    <div style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-                        <i class="ph-fill ph-plus-circle" style="font-size:26px; color:${iconColor};"></i>
-                    </div>
-                    <div style="flex-grow:1;">
-                        <div style="font-size:15px; font-weight:700; color:${iconColor};">Tambah baru</div>
-                    </div>
-                </div>
-            `;
-
-            // 2. Rumah
-            if (savedLocs.rumah) {
-                html += `
-                    <div style="display:flex; align-items:flex-start; gap:15px; padding:15px 0; border-bottom:1px solid #f0f0f0; position:relative;">
-                        <div style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor:pointer;" onclick="selectLsLocation('${savedLocs.rumah.address}')">
-                            <i class="ph-fill ph-house" style="font-size:26px; color:${iconColor};"></i>
-                        </div>
-                        <div style="flex-grow:1; cursor:pointer;" onclick="selectLsLocation('${savedLocs.rumah.address}')">
-                            <div style="font-size:15px; font-weight:700; color:#333; margin-bottom:4px;">Rumah</div>
-                            <div style="font-size:12px; color:#888; line-height:1.4; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">${savedLocs.rumah.address}</div>
-                        </div>
-                        <div style="padding:8px; cursor:pointer; color:#999;" onclick="addNewLsSavedLocation('rumah')"><i class="ph-bold ph-pencil-simple" style="font-size:18px;"></i></div>
-                    </div>
-                `;
-            } else {
-                html += `
-                    <div style="display:flex; align-items:center; gap:15px; padding:15px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" onclick="addNewLsSavedLocation('rumah')">
-                        <div style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-                            <i class="ph-fill ph-house" style="font-size:26px; color:${iconColor};"></i>
-                        </div>
-                        <div style="flex-grow:1;">
-                            <div style="font-size:15px; font-weight:700; color:${iconColor};">Tambahkan rumah</div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            // 3. Tempat Kerja
-            if (savedLocs.kerja) {
-                 html += `
-                    <div style="display:flex; align-items:flex-start; gap:15px; padding:15px 0; border-bottom:1px solid #f0f0f0; position:relative;">
-                        <div style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor:pointer;" onclick="selectLsLocation('${savedLocs.kerja.address}')">
-                            <i class="ph-fill ph-briefcase" style="font-size:26px; color:${iconColor};"></i>
-                        </div>
-                        <div style="flex-grow:1; cursor:pointer;" onclick="selectLsLocation('${savedLocs.kerja.address}')">
-                            <div style="font-size:15px; font-weight:700; color:#333; margin-bottom:4px;">Tempat kerja</div>
-                            <div style="font-size:12px; color:#888; line-height:1.4; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">${savedLocs.kerja.address}</div>
-                        </div>
-                        <div style="padding:8px; cursor:pointer; color:#999;" onclick="addNewLsSavedLocation('kerja')"><i class="ph-bold ph-pencil-simple" style="font-size:18px;"></i></div>
-                    </div>
-                `;
-            } else {
-                html += `
-                    <div style="display:flex; align-items:center; gap:15px; padding:15px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" onclick="addNewLsSavedLocation('kerja')">
-                        <div style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-                            <i class="ph-fill ph-briefcase" style="font-size:26px; color:${iconColor};"></i>
-                        </div>
-                        <div style="flex-grow:1;">
-                            <div style="font-size:15px; font-weight:700; color:${iconColor};">Tambahkan tempat kerja</div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            // 4. Lainnya
-            if (savedLocs.lainnya && savedLocs.lainnya.length > 0) {
-                savedLocs.lainnya.forEach((loc, index) => {
-                    html += `
-                        <div style="display:flex; align-items:flex-start; gap:15px; padding:15px 0; border-bottom:1px solid #f0f0f0; position:relative;">
-                            <div style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor:pointer;" onclick="selectLsLocation('${loc.address}')">
-                                <i class="ph-fill ph-map-pin" style="font-size:26px; color:#666;"></i>
-                            </div>
-                            <div style="flex-grow:1; cursor:pointer;" onclick="selectLsLocation('${loc.address}')">
-                                <div style="font-size:15px; font-weight:700; color:#333; margin-bottom:4px;">${loc.title}</div>
-                                <div style="font-size:12px; color:#888; line-height:1.4; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">${loc.address}</div>
-                            </div>
-                            <div style="padding:8px; cursor:pointer; color:#FF5252;" onclick="deleteLsSavedLocation(${index})"><i class="ph-bold ph-trash" style="font-size:18px;"></i></div>
-                        </div>
-                    `;
-                });
-            }
-
-            listContainer.innerHTML = html;
-        }
-
-        window.addNewLsSavedLocation = (type) => {
-            const currentInput = document.getElementById('ls-input-search').value;
-            
-            let title = "";
-            if (type === 'rumah') title = "Rumah";
-            else if (type === 'kerja') title = "Tempat Kerja";
-            else {
-                title = prompt("Masukkan Nama Lokasi\n(Cth: Kosan, Rumah Mertua, dll):", "");
-                if (!title) return;
-            }
-
-            const address = prompt(`Masukkan Detail Alamat untuk ${title}:\n(Alamat ini akan dipakai saat Checkout)`, currentInput);
-            if (!address) return;
-
-            let savedLocs = JSON.parse(localStorage.getItem('checkout_saved_locs')) || { rumah: null, kerja: null, lainnya: [] };
-            const newLoc = { title: title, address: address };
-
-            if (type === 'rumah') savedLocs.rumah = newLoc;
-            else if (type === 'kerja') savedLocs.kerja = newLoc;
-            else savedLocs.lainnya.push(newLoc);
-
-            localStorage.setItem('checkout_saved_locs', JSON.stringify(savedLocs));
-            if(window.showToast) window.showToast(`Lokasi ${title} berhasil disimpan!`);
-            
-            window.renderLsSavedLocations();
-        }
-
-        window.deleteLsSavedLocation = (index) => {
-            if(confirm("Yakin ingin menghapus lokasi ini?")) {
-                let savedLocs = JSON.parse(localStorage.getItem('checkout_saved_locs')) || { rumah: null, kerja: null, lainnya: [] };
-                if (savedLocs.lainnya && savedLocs.lainnya.length > index) {
-                    savedLocs.lainnya.splice(index, 1);
-                    localStorage.setItem('checkout_saved_locs', JSON.stringify(savedLocs));
-                    window.renderLsSavedLocations();
-                }
-            }
-        }
-
-        window.selectLsLocation = (locName) => {
-            if (locName === 'Lokasi saat ini') {
-                window.closeLocationSearchModal();
-                window.activateRealMap();
-                setTimeout(() => {
-                    window.getCurrentLocationForCheckoutMaps();
-                }, 500);
-                return;
-            }
-            
-            const disp = document.getElementById('checkout-maps-search-display');
-            if(disp) {
-                disp.innerText = locName;
-                disp.style.color = '#333';
-                disp.style.fontWeight = '700';
-            }
-            
-            // Set variabel destinasi (walaupun tanpa geometry lengkap) agar bisa langsung checkout via nama lokasi
-            window.checkoutDestPlace = { formatted_address: locName, name: locName };
-            
-            // Coba kalkulasi jika Geocoder Google siap
-            if (typeof google !== 'undefined' && google.maps) {
-                const geocoder = new google.maps.Geocoder();
-                geocoder.geocode({ address: locName + ", Indonesia" }, (results, status) => {
-                    if (status === 'OK' && results[0]) {
-                        window.checkoutDestPlace.geometry = results[0].geometry;
-                        if (typeof window.calculateCheckoutOngkir === 'function') {
-                            window.calculateCheckoutOngkir(results[0].geometry.location);
-                        }
-                    }
-                });
-            }
-
-            showToast("Alamat terpilih! Pastikan detail sudah benar.");
-            window.closeLocationSearchModal();
-        }
-
-        window.activateRealMap = () => {
-            window.closeLocationSearchModal();
-
-            let mapModal = document.getElementById('fullscreen-map-modal');
-            if (!mapModal) {
-                mapModal = document.createElement('div');
-                mapModal.id = 'fullscreen-map-modal';
-                mapModal.style.cssText = "display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; z-index: 9999999; flex-direction: column; animation: slideInRight 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);";
-                mapModal.innerHTML = `
-                    <div style="padding: 15px 20px; display: flex; align-items: center; gap: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); z-index: 10; background: white;">
-                        <i class="ph-bold ph-arrow-left" style="font-size: 24px; cursor: pointer; color: #333;" onclick="closeFullscreenMap()"></i>
-                        <div style="flex-grow: 1; border: 1px solid #ddd; border-radius: 20px; padding: 10px 15px; display: flex; align-items: center; background: #f9f9f9;">
-                            <i class="ph-fill ph-map-pin" style="color: #D32F2F; font-size: 18px; margin-right: 10px;"></i>
-                            <span style="color: #333; font-size: 14px; font-weight: 600;">Antar ke</span>
-                        </div>
-                        <i class="ph-bold ph-crosshair" style="font-size: 22px; cursor: pointer; color: #666;" onclick="getCurrentLocationForFSMap()"></i>
-                    </div>
-                    <div style="flex-grow: 1; position: relative;">
-                        <div id="fs-map-render" style="width: 100%; height: 100%;"></div>
-                    </div>
-                    <div style="background: white; border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 25px 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.1); z-index: 10; position: relative; margin-top: -20px;">
-                        <div style="width: 40px; height: 4px; background: #ddd; border-radius: 2px; margin: 0 auto 15px auto;"></div>
-                        <div style="display: flex; gap: 15px; align-items: flex-start; margin-bottom: 20px;">
-                            <i class="ph-fill ph-map-pin" style="font-size: 24px; color: #00897b; margin-top: 2px;"></i>
-                            <div style="flex-grow: 1; overflow: hidden;">
-                                <div id="fs-map-title" style="font-size: 16px; font-weight: 800; color: #111; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Memuat lokasi...</div>
-                                <div id="fs-map-address" style="font-size: 12px; color: #666; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">Geser peta untuk menentukan titik akurat</div>
-                            </div>
-                        </div>
-                        <button onclick="confirmFullscreenMapLocation()" style="width: 100%; background: #00a35c; color: white; border: none; padding: 16px; border-radius: 25px; font-weight: 800; font-size: 16px; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 163, 92, 0.3);">
-                            Pilih Lokasi Ini
-                        </button>
-                    </div>
-                `;
-                document.body.appendChild(mapModal);
-            }
-
-            mapModal.style.display = 'flex';
-            
-            const mapBox = document.getElementById('checkout-map-box');
-            if(mapBox) mapBox.style.display = 'none';
-
-            if (!window.fsMap) {
-                initFSMap();
-            } else {
-                setTimeout(() => {
-                    google.maps.event.trigger(window.fsMap, 'resize');
-                    if (window.fsMarker) window.fsMap.setCenter(window.fsMarker.getPosition());
-                }, 100);
-            }
-        }
-
-        window.closeFullscreenMap = () => {
-            const modal = document.getElementById('fullscreen-map-modal');
-            if (modal) modal.style.display = 'none';
-        }
-
-        window.initFSMap = () => {
-            if (typeof google === 'undefined' || !google.maps) {
-                showToast("Peta belum siap. Pastikan internet lancar.");
-                return;
-            }
-
-            let defaultLoc = { lat: -7.6046, lng: 109.4503 }; 
-            if (navigator.geolocation) {
-                showToast("Mencari titik lokasi Anda...");
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        defaultLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                        setupFSMap(defaultLoc);
-                    },
-                    () => { setupFSMap(defaultLoc); },
-                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-                );
-            } else {
-                setupFSMap(defaultLoc);
-            }
-        }
-
-        window.setupFSMap = (loc) => {
-            window.fsMap = new google.maps.Map(document.getElementById("fs-map-render"), {
-                center: loc,
-                zoom: 17,
-                disableDefaultUI: true,
-                zoomControl: false,
-                mapTypeControl: false,
-                streetViewControl: false,
-                fullscreenControl: false
-            });
-
-            window.fsMarker = new google.maps.Marker({
-                position: loc,
-                map: window.fsMap,
-                draggable: true,
-                animation: google.maps.Animation.DROP,
-                icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png' 
-            });
-
-            const updateLocationText = (position) => {
-                document.getElementById('fs-map-title').innerText = "Membaca lokasi...";
-                document.getElementById('fs-map-address').innerText = "Sedang menentukan koordinat...";
-
-                const geocoder = new google.maps.Geocoder();
-                geocoder.geocode({ location: position }, (results, status) => {
-                    if (status === 'OK' && results[0]) {
-                        window.tempSelectedPlace = {
-                            geometry: { location: position },
-                            formatted_address: results[0].formatted_address,
-                            name: results[0].address_components[0]?.short_name || 'Lokasi Terpilih'
-                        };
-                        document.getElementById('fs-map-title').innerText = window.tempSelectedPlace.name;
-                        document.getElementById('fs-map-address').innerText = window.tempSelectedPlace.formatted_address;
-                    } else {
-                        document.getElementById('fs-map-title').innerText = "Lokasi tidak diketahui";
-                        document.getElementById('fs-map-address').innerText = `Koordinat: ${position.lat().toFixed(5)}, ${position.lng().toFixed(5)}`;
-                        window.tempSelectedPlace = {
-                            geometry: { location: position },
-                            formatted_address: document.getElementById('fs-map-address').innerText,
-                            name: "Titik Peta"
-                        };
-                    }
-                });
-            };
-
-            updateLocationText(loc);
-
-            window.fsMarker.addListener('dragend', (e) => {
-                window.fsMap.panTo(e.latLng);
-                updateLocationText(e.latLng);
-            });
-
-            window.fsMap.addListener('click', (e) => {
-                window.fsMarker.setPosition(e.latLng);
-                window.fsMap.panTo(e.latLng);
-                updateLocationText(e.latLng);
-            });
-        }
-
-        window.getCurrentLocationForFSMap = () => {
-            if (navigator.geolocation && window.fsMap && window.fsMarker) {
-                showToast("Mencari titik lokasi Anda...");
-                navigator.geolocation.getCurrentPosition((pos) => {
-                    const myLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                    window.fsMap.setCenter(myLoc);
-                    window.fsMarker.setPosition(myLoc);
-                    google.maps.event.trigger(window.fsMarker, 'dragend', { latLng: new google.maps.LatLng(myLoc.lat, myLoc.lng) });
-                }, () => {
-                    showToast("Gagal mendapatkan lokasi. Pastikan GPS aktif.");
-                });
-            }
-        }
-
-        window.confirmFullscreenMapLocation = () => {
-            if (!window.tempSelectedPlace) {
-                showToast("Tunggu lokasi terbaca...");
-                return;
-            }
-
-            window.checkoutDestPlace = window.tempSelectedPlace;
-
-            const disp = document.getElementById('checkout-maps-search-display');
-            if(disp) {
-                disp.innerText = window.checkoutDestPlace.name || window.checkoutDestPlace.formatted_address;
-                disp.style.color = '#333';
-                disp.style.fontWeight = '700';
-            }
-
-            window.closeFullscreenMap();
-
-            if (typeof window.calculateCheckoutOngkir === 'function') {
-                window.calculateCheckoutOngkir(window.checkoutDestPlace.geometry.location);
-            }
-        }
-// =========================================================================================
-
-        window.updatePopupQty = (key, change) => {
-            const cacheKey = stops.map(s => `${s.lat().toFixed(4)},${s.lng().toFixed(4)}`).join('|');
-
-            if (window.ongkirCache[cacheKey]) {
-                const cachedData = window.ongkirCache[cacheKey];
-                window.checkoutOngkir = cachedData.ongkir;
-                document.getElementById('checkout-ongkir-text').innerText = "Rp " + cachedData.ongkir.toLocaleString('id-ID') + ` (${cachedData.distText})`;
-                window.updateCheckoutTotal();
-                return;
-            }
-
-            if (!window.distanceMatrixInstance) {
-                window.distanceMatrixInstance = new google.maps.DistanceMatrixService();
-            }
-            const service = window.distanceMatrixInstance;
-
             document.getElementById('checkout-ongkir-text').innerText = "Menghitung ongkir...";
 
-            // Hitung Matrix untuk mendapatkan jarak A->B dan B->C sekaligus
-            service.getDistanceMatrix({
-                origins: origins,
-                destinations: destinations,
-                travelMode: google.maps.TravelMode.DRIVING,
-                unitSystem: google.maps.UnitSystem.METRIC,
-            }, (response, status) => {
-                if (status === 'OK') {
-                    let totalDistValue = 0;
-                    let isAllOk = true;
+            // 1. Ambil koordinat tujuan (Pelanggan) dari titik peta yang dipilih
+            let destLat = typeof destinationLocation.lat === 'function' ? destinationLocation.lat() : destinationLocation.lat;
+            let destLng = typeof destinationLocation.lng === 'function' ? destinationLocation.lng() : destinationLocation.lng;
 
-                    // Jumlahkan jarak secara diagonal dari matriks (A->B, B->C, dll)
-                    for (let i = 0; i < origins.length; i++) {
-                        const element = response.rows[i].elements[i];
-                        if (element.status === 'OK') {
-                            totalDistValue += element.distance.value;
-                        } else {
-                            isAllOk = false;
-                            break;
-                        }
-                    }
+            // 2. Ambil daftar warung unik dari keranjang
+            const uniqueVendors = [...new Set(cart.map(item => item.vendor))];
+            
+            // 3. Cari titik koordinat warung (Ambil warung pertama sebagai titik asal)
+            let mainVendorObj = allVendors.find(v => v.nama_warung === uniqueVendors[0]) || allVendors.find(v => v.id === window.checkoutVendorId);
+            
+            // Default koordinat jika warung tidak punya data lat/lng (Default: Gombong)
+            let originLat = -7.6046; 
+            let originLng = 109.4503;
 
-                    if (isAllOk) {
-                        const distKm = totalDistValue / 1000;
-                        let distText = distKm < 1 ? (distKm * 1000).toFixed(0) + " m" : distKm.toFixed(1) + " km";
+            if (mainVendorObj && mainVendorObj.latitude && mainVendorObj.longitude) {
+                originLat = parseFloat(mainVendorObj.latitude);
+                originLng = parseFloat(mainVendorObj.longitude);
+            }
 
-                        // 4. Kalkulasi Tarif dengan Jarak Total Berantai
-                        let baseOngkir = 0;
-                        if (distKm <= 2) {
-                            baseOngkir = 8000;
-                        } else if (distKm <= 3) {
-                            baseOngkir = 9000;
-                        } else {
-                            baseOngkir = distKm * 2600;
-                        }
+            // 4. Rumus Haversine untuk menghitung jarak lurus dua titik koordinat (Metode Kodular)
+            const calculateHaversine = (lat1, lon1, lat2, lon2) => {
+                const R = 6371; // Radius bumi dalam kilometer
+                const dLat = (lat2 - lat1) * Math.PI / 180;
+                const dLon = (lon2 - lon1) * Math.PI / 180;
+                const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                          Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                          Math.sin(dLon/2) * Math.sin(dLon/2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                return R * c;
+            };
 
-                        // Tambahan biaya Rp 3.000 untuk setiap ekstra restoran
-                        const extraRestoFee = (uniqueVendorNames.length - 1) * 3000;
-                        
-                        let totalOngkir = baseOngkir + extraRestoFee;
+            // 5. Kalkulasi Jarak & Harga
+            // Jarak lurus dikalikan 1.3 (faktor estimasi kelokan jalan raya) agar mendekati rute asli
+            let totalDistKm = calculateHaversine(originLat, originLng, destLat, destLng) * 1.3;
+            
+            let distText = totalDistKm < 1 ? (totalDistKm * 1000).toFixed(0) + " m" : totalDistKm.toFixed(1) + " km";
 
-                        // Pembulatan ke kelipatan 500 terdekat
-                        totalOngkir = Math.round(totalOngkir / 500) * 500;
+            // Tarif Ongkir sesuai ketentuan yang ada
+            let baseOngkir = 0;
+            if (totalDistKm <= 2) {
+                baseOngkir = 8000;
+            } else if (totalDistKm <= 3) {
+                baseOngkir = 9000;
+            } else {
+                baseOngkir = totalDistKm * 2600;
+            }
 
-                        // Simpan ke Cache
-                        window.ongkirCache[cacheKey] = {
-                            ongkir: totalOngkir,
-                            distText: distText
-                        };
+            // Tambahan biaya Rp 3.000 untuk setiap ekstra restoran
+            const extraRestoFee = (uniqueVendors.length - 1) * 3000;
+            
+            let totalOngkir = baseOngkir + extraRestoFee;
 
-                        window.checkoutOngkir = totalOngkir;
-                        
-                        // --- MODIFIKASI TAMPILAN TEKS ONGKIR ---
-                        if (extraRestoFee > 0) {
-                            document.getElementById('checkout-ongkir-text').innerHTML = `Rp ${(baseOngkir).toLocaleString('id-ID')} + <span style="color:var(--primary); font-size:11px;">Rp ${extraRestoFee.toLocaleString('id-ID')} (${uniqueVendorNames.length - 1} ekstra resto)</span> = <b>Rp ${totalOngkir.toLocaleString('id-ID')}</b> <span style="font-size:10px; color:#888;">(${distText})</span>`;
-                        } else {
-                            document.getElementById('checkout-ongkir-text').innerText = "Rp " + totalOngkir.toLocaleString('id-ID') + ` (${distText})`;
-                        }
-                        // ----------------------------------------
+            // Pembulatan ke kelipatan 500 terdekat
+            totalOngkir = Math.round(totalOngkir / 500) * 500;
 
-                        window.updateCheckoutTotal();
-                    } else {
-                        document.getElementById('checkout-ongkir-text').innerText = "Gagal menghitung sebagian rute.";
-                        window.checkoutOngkir = 0;
-                        window.updateCheckoutTotal();
-                    }
+            window.checkoutOngkir = totalOngkir;
+            
+            // Perbarui tampilan UI
+            const ongkirTextEl = document.getElementById('checkout-ongkir-text');
+            if (ongkirTextEl) {
+                if (extraRestoFee > 0) {
+                    ongkirTextEl.innerHTML = `Rp ${(baseOngkir).toLocaleString('id-ID')} + <span style="color:var(--primary); font-size:11px;">Rp ${extraRestoFee.toLocaleString('id-ID')} (${uniqueVendors.length - 1} ekstra resto)</span> = <b>Rp ${totalOngkir.toLocaleString('id-ID')}</b> <span style="font-size:10px; color:#888;">(${distText})</span>`;
                 } else {
-                    document.getElementById('checkout-ongkir-text').innerText = "Gagal menghitung. Coba geser pin.";
-                    window.checkoutOngkir = 0;
-                    window.updateCheckoutTotal();
+                    ongkirTextEl.innerHTML = "Rp " + totalOngkir.toLocaleString('id-ID') + ` <span style="font-size:10px; color:#888;">(${distText})</span>`;
                 }
-            });
-        }
+            }
+
+            // Update Total Keseluruhan Pembayaran
+            window.updateCheckoutTotal();
+        };
 
         window.updateCheckoutTotal = () => {
             let subTotal = 0;
