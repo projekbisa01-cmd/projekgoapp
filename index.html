@@ -6795,7 +6795,6 @@
             const bestSellerItems = availableProducts.slice(0, 15);
             
             let bestSellerInserted = false;
-            let bannerInserted = false;
             let topRestoInserted = false; 
             let customPromoInserted = false;
             
@@ -6861,34 +6860,6 @@
                     c.appendChild(promoDiv);
                 }
                 bestSellerInserted = true;
-            };
-
-            const renderBanner = () => {
-                if (bannerInserted) return;
-                const bannerDiv = document.createElement('div');
-                bannerDiv.style.padding = "0 8px 15px 8px"; 
-                
-                bannerDiv.innerHTML = `
-                    <div style="position:relative; border-radius:15px; box-shadow:var(--shadow-sm); overflow:hidden;">
-                        <div id="auto-slider-1" style="display:flex; overflow-x:auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; width: 100%;">
-                            <img src="https://i.ibb.co.com/mr2Ltjzq/Whats-App-Image-2026-02-04-at-20-48-22.jpg" style="width:100%; height:auto; flex-shrink:0; scroll-snap-align:start; object-fit:cover; display:block;">
-                            <img src="https://i.ibb.co.com/HfPJ54g7/Desain-tanpa-judul-6.png" style="width:100%; height:auto; flex-shrink:0; scroll-snap-align:start; object-fit:cover; display:block;">
-                        </div>
-                        <a href="https://projekgo.id" target="_blank" style="position:absolute; bottom:10px; right:10px; background:rgba(255,255,255,0.95); backdrop-filter:blur(4px); color:var(--primary); padding:6px 14px; border-radius:20px; font-size:11px; font-weight:700; text-decoration:none; box-shadow:0 4px 10px rgba(0,0,0,0.15); display:flex; align-items:center; gap:5px; z-index:5; transition:transform 0.2s;"><i class="ph-bold ph-globe"></i> projekgo.id</a>
-                    </div>
-                `;
-                c.appendChild(bannerDiv);
-                
-                setInterval(() => {
-                    const slider = document.getElementById('auto-slider-1');
-                    if(slider) {
-                        let nextScroll = slider.scrollLeft + slider.clientWidth;
-                        if (nextScroll >= slider.scrollWidth - 10) nextScroll = 0; 
-                        slider.scrollTo({ left: nextScroll, behavior: 'smooth' });
-                    }
-                }, 3500);
-
-                bannerInserted = true;
             };
 
             const renderTopRatedResto = () => {
@@ -7100,7 +7071,6 @@
                 if (index > 0 && index % 3 === 0) {
                     const urutanLayout = index / 3;
                     if (urutanLayout === 1) { renderBestSeller(); }
-                    else if (urutanLayout === 2) { renderBanner(); }
                     else { renderCustomPromoScroll(urutanLayout); }
                 }
 
@@ -7213,7 +7183,6 @@
             }
 
             if (!bestSellerInserted) renderBestSeller();
-            if (!bannerInserted) renderBanner();
 
             if (window.warungRenderLimit < foodVendors.length) {
                 const btnContainer = document.createElement('div');
