@@ -33,7 +33,7 @@
             --pink-accent: #FF4D79; /* Warna pink selaras untuk kombinasi */
             --dark: #1C1C1E; /* Diperbarui: Warna gelap ala iOS */
             --gray: #9ca3af;
-            --bg: #F2F4F7; /* Diperbarui: Latar abu lembut agar card putih lebih menonjol (kedalaman) */
+            --bg: #FFFFFF; /* DIUBAH: Latar menjadi putih murni */
             --white: #ffffff;
             --shadow-sm: 0 2px 8px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02); /* Diperbarui: Shadow berlapis */
             --shadow-md: 0 8px 24px rgba(0,0,0,0.06), 0 2px 6px rgba(0,0,0,0.03); /* Diperbarui */
@@ -1785,6 +1785,95 @@
 
             <!-- FLASH SALE SECTION (DIPINDAH KE BAWAH BANNER KENALAN) -->
             <div id="container-flash-sale-top"></div>
+
+            <!-- ======================================================== -->
+            <!-- BANNER SLIDER PROMO UTAMA (TAMBAHAN BARU DI BAWAH FLASH SALE) -->
+            <!-- ======================================================== -->
+            <div style="padding: 10px 20px 20px 20px; background: var(--bg);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <div style="font-size: 16px; font-weight: 800; color: var(--dark); display: flex; align-items: center; gap: 6px;">
+                        Aktifkan Sekarang <i class="ph-fill ph-arrow-circle-right" style="color:#ccc; font-size:18px;"></i>
+                    </div>
+                </div>
+                
+                <div style="position:relative; border-radius:16px; box-shadow:0 6px 20px rgba(255, 102, 0, 0.15); overflow:hidden; border: 1px solid rgba(255,102,0,0.1);">
+                    <div id="home-promo-slider" style="display:flex; overflow-x:auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; width: 100%;">
+                        
+                        <!-- Slide 1: Promosi Makanan -->
+                        <!-- Silakan ganti URL .jpg di bawah dengan link gambarmu -->
+                        <img src="https://i.ibb.co.com/mr2Ltjzq/Whats-App-Image-2026-02-04-at-20-48-22.jpg" alt="Promo Makanan" style="width:100%; aspect-ratio: 21/10; flex-shrink:0; scroll-snap-align:start; object-fit:cover; display:block;">
+                        
+                        <!-- Slide 2: Belanja Pasar -->
+                        <!-- Silakan ganti URL .jpg di bawah dengan link gambarmu -->
+                        <img src="https://i.ibb.co.com/HfPJ54g7/Desain-tanpa-judul-6.png" alt="Belanja Pasar" style="width:100%; aspect-ratio: 21/10; flex-shrink:0; scroll-snap-align:start; object-fit:cover; display:block;">
+                        
+                        <!-- Slide 3: Titip Beli / Disuruh Apa Saja -->
+                        <!-- Silakan ganti URL .jpg di bawah dengan link gambarmu -->
+                        <img src="https://i.ibb.co.com/84PCGFDm/Whats-App-Image-2026-01-29-at-10-12-08.jpg" alt="Bisa Disuruh Apa Saja" style="width:100%; aspect-ratio: 21/10; flex-shrink:0; scroll-snap-align:start; object-fit:cover; display:block;">
+                        
+                    </div>
+                    
+                    <!-- Indikator Dots -->
+                    <div style="position:absolute; bottom:10px; left:0; right:0; display:flex; justify-content:center; gap:6px; z-index:5;">
+                        <div class="slider-dot active" style="width:16px; height:6px; background:var(--primary); border-radius:4px; transition:0.3s;"></div>
+                        <div class="slider-dot" style="width:6px; height:6px; background:rgba(255,255,255,0.9); border-radius:4px; transition:0.3s;"></div>
+                        <div class="slider-dot" style="width:6px; height:6px; background:rgba(255,255,255,0.9); border-radius:4px; transition:0.3s;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                // Logika otomatis geser ke kiri untuk banner promo utama
+                setInterval(() => {
+                    const slider = document.getElementById('home-promo-slider');
+                    if(slider) {
+                        let nextScroll = slider.scrollLeft + slider.clientWidth;
+                        // Jika sudah mentok di ujung kanan, kembali ke awal
+                        if (nextScroll >= slider.scrollWidth - 10) nextScroll = 0; 
+                        slider.scrollTo({ left: nextScroll, behavior: 'smooth' });
+                        
+                        // Logika untuk merubah warna & ukuran titik (dots) di bawah gambar
+                        const dots = slider.parentElement.querySelectorAll('.slider-dot');
+                        if(dots.length > 0) {
+                            let activeIndex = Math.round(nextScroll / slider.clientWidth);
+                            if(activeIndex >= dots.length) activeIndex = 0;
+                            dots.forEach((dot, idx) => {
+                                if(idx === activeIndex) {
+                                    dot.style.background = 'var(--primary)';
+                                    dot.style.width = '16px'; 
+                                } else {
+                                    dot.style.background = 'rgba(255,255,255,0.9)';
+                                    dot.style.width = '6px';
+                                }
+                            });
+                        }
+                    }
+                }, 3500); // Geser setiap 3.5 detik
+            </script>
+            <!-- ======================================================== -->
+
+            <!-- ======================================================== -->
+            <!-- PROMO PAKET RAMEAN / FAVORIT (TAMBAHAN BARU) -->
+            <!-- ======================================================== -->
+            <div id="container-promo-ramean" style="padding: 0 0 20px 0; background: var(--bg); display: none;">
+                <div style="padding: 0 20px; display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                    <div>
+                        <div style="font-size: 19px; font-weight: 800; color: #111; margin-bottom: 4px;">makanan favorite</div>
+                        <div style="font-size: 14px; color: #555; font-weight: 400;">Enak dimakan bersama, banyak diskonnya.</div>
+                    </div>
+                    <div onclick="openCategoryPage('Sedang Promo')" style="background: #E8F5E9; color: #2E7D32; font-weight: 800; font-size: 14px; padding: 6px 14px; border-radius: 20px; cursor: pointer; flex-shrink: 0;">
+                        See all
+                    </div>
+                </div>
+                
+                <div id="promo-ramean-scroll" style="display: flex; overflow-x: auto; gap: 12px; padding: 5px 20px 20px 20px; scrollbar-width: none; -webkit-overflow-scrolling: touch;">
+                    <!-- Card Menu Akan Otomatis Muncul Disini via JS -->
+                </div>
+            </div>
+
+            <!-- TAMBAHAN BARU: KONTAINER KARTU PROMO VERTIKAL -->
+            <div id="container-artikel-promo" style="padding: 0 0 20px 0; background: var(--bg);"></div>
+            <!-- ======================================================== -->
 
         </div> 
 
@@ -6279,48 +6368,69 @@
             if (!container) return;
             container.innerHTML = '';
             
-            const products = allProducts.filter(p => p.is_available !== false && p.is_flash_sale === true).slice(0, 5);
+            // PERBAIKAN 1: Tambah batas maksimal dari 5 menjadi 12 agar cukup untuk dibagi 2 baris
+            const products = allProducts.filter(p => p.is_available !== false && p.is_flash_sale === true).slice(0, 12);
             if(products.length === 0) return;
             
             const promoDiv = document.createElement('div');
-            // DIUBAH: Background disamakan dengan kontainer kategori makanan
-            promoDiv.style.cssText = "background: linear-gradient(180deg, #f0fce8 0%, #ffffff 120px); padding-bottom: 20px; margin-bottom: 0; border-bottom: 8px solid var(--bg); overflow: hidden;";
+            // DESAIN BARU: Background pink/merah seperti referensi gambar
+            promoDiv.style.cssText = "background: #FF4B6A; padding-bottom: 20px; margin-bottom: 0; border-bottom: 8px solid var(--bg); overflow: hidden;";
             
             let header = `
-                <div style="background: linear-gradient(135deg, #FF6B4A 0%, #FF3D00 100%); display:flex; justify-content:space-between; align-items:center; padding: 15px 20px 15px 20px; box-shadow: 0 4px 10px rgba(255, 61, 0, 0.15);">
+                <div style="display:flex; justify-content:space-between; align-items:center; padding: 15px 20px 15px 20px;">
                     <div style="display:flex; align-items:center; gap:6px;">
-                        <i class="ph-fill ph-lightning" style="background:#FFD54F; color:#FF3D00; font-size:14px; padding:4px; border-radius:4px;"></i>
-                        <span style="font-size: 16px; font-weight: 800; color: white; font-style:italic; display:flex; align-items:center; letter-spacing: -0.5px;">F<i class="ph-fill ph-lightning" style="margin:0 -1px; color:#FFD54F;"></i>ASH SALE</span>
+                        <i class="ph-fill ph-lightning" style="background:white; color:#FF4B6A; font-size:14px; padding:4px; border-radius:4px;"></i>
+                        <span style="font-size: 18px; font-weight: 800; color: white; font-style:italic; display:flex; align-items:center; letter-spacing: -0.5px;">FLASH SALE</span>
                         <div style="display:flex; gap:3px; margin-left:6px;">
-                            <span class="fs-h-val" style="background:white; color:#FF3D00; font-size:11px; font-weight:800; padding:3px 5px; border-radius:4px; line-height:1; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">00</span>
+                            <span class="fs-h-val" style="background:rgba(255,255,255,0.2); color:white; font-size:11px; font-weight:800; padding:3px 5px; border-radius:4px; line-height:1;">00</span>
                             <span style="font-weight:800; font-size:12px; color:white;">:</span>
-                            <span class="fs-m-val" style="background:white; color:#FF3D00; font-size:11px; font-weight:800; padding:3px 5px; border-radius:4px; line-height:1; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">41</span>
+                            <span class="fs-m-val" style="background:rgba(255,255,255,0.2); color:white; font-size:11px; font-weight:800; padding:3px 5px; border-radius:4px; line-height:1;">41</span>
                             <span style="font-weight:800; font-size:12px; color:white;">:</span>
-                            <span class="fs-s-val" style="background:white; color:#FF3D00; font-size:11px; font-weight:800; padding:3px 5px; border-radius:4px; line-height:1; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">01</span>
+                            <span class="fs-s-val" style="background:rgba(255,255,255,0.2); color:white; font-size:11px; font-weight:800; padding:3px 5px; border-radius:4px; line-height:1;">01</span>
                         </div>
                     </div>
-                    <div onclick="openCategoryPage('Flash Sale')" style="font-size: 13px; color: white; display:flex; align-items:center; font-weight: 700; cursor: pointer;">Lihat Semua <i class="ph-bold ph-caret-right" style="margin-left:2px;"></i></div>
+                    <div onclick="openCategoryPage('Flash Sale')" style="font-size: 13px; color: white; display:flex; align-items:center; font-weight: 700; cursor: pointer; background:rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 15px;">Semua <i class="ph-bold ph-caret-right" style="margin-left:2px;"></i></div>
                 </div>
             `;
-            let cards = `<div class="scroll-container" style="padding: 15px 20px 0 20px; gap: 12px;">`;
+            
+            // PERBAIKAN 2: Menggunakan CSS Grid untuk membentuk layout 2 baris horizontal
+            let cards = `<div style="display: grid; grid-template-rows: repeat(2, auto); grid-auto-flow: column; gap: 12px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;">`;
+            
             products.forEach(item => {
                 const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG;
                 const realPrice = parseInt(item.harga);
-                const discountPercent = Math.floor(Math.random() * 30) + 20; 
+                const fakePrice = item.harga_coret ? parseInt(item.harga_coret) : Math.ceil(realPrice * 1.3);
                 
                 cards += `
-                    <div style="width: 140px; flex-shrink: 0; cursor: pointer; background: white; border-radius: 12px; padding: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.04);" onclick="openProductDetail('${item.id}')">
-                        <div style="position:relative; width:100%; height:120px; border-radius:8px; overflow:hidden;">
-                            <img src="${img}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='${FALLBACK_MENU_IMG}'">
-                            <div style="position:absolute; top:0; right:0; background:#FFD54F; color:#D32F2F; font-size:12px; font-weight:800; padding:4px 6px; border-bottom-left-radius:8px;">
-                                -${discountPercent}%
+                    <div style="width: 150px; cursor: pointer; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative;" onclick="openProductDetail('${item.id}')">
+                        <!-- Area Gambar -->
+                        <div style="position: relative; width: 100%; height: 130px; background: #f9f9f9;">
+                            <img src="${img}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='${FALLBACK_MENU_IMG}'">
+                            <!-- Badge Label Kiri Atas -->
+                            <div style="position: absolute; top: 6px; left: 6px; background: rgba(255,255,255,0.9); color: #333; font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 12px; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <i class="ph-fill ph-storefront" style="color: #FF4B6A;"></i> <span style="white-space: nowrap; max-width: 80px; overflow: hidden; text-overflow: ellipsis;">${item.vendor_name || 'Warung'}</span>
                             </div>
                         </div>
-                        <div style="font-size: 12px; font-weight: 700; color: var(--dark); margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 4px;">${item.nama_menu}</div>
-                        <div style="font-size: 14px; font-weight: 800; color: #FF3D00; margin-top: 2px; padding: 0 4px;">Rp${realPrice.toLocaleString()}</div>
-                        <div style="background:#FFEBEB; border-radius:10px; height:14px; margin: 6px 4px 4px 4px; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;">
-                            <div style="background:linear-gradient(90deg, #FF6B4A, #FF3D00); width:${Math.floor(Math.random()*60)+10}%; height:100%; position:absolute; left:0; border-radius:10px;"></div>
-                            <span style="position:relative; font-size:9px; font-weight:800; color:white; z-index:2; text-shadow: 0 1px 1px rgba(0,0,0,0.3);">STOK TERBATAS</span>
+
+                        <!-- Garis Putus-putus Pemisah -->
+                        <div style="border-top: 2px dotted #ffcdd2; margin: 0 10px;"></div>
+
+                        <!-- Area Teks Info -->
+                        <div style="padding: 10px 10px 16px 10px; position: relative;">
+                            <div style="font-size: 12px; font-weight: 700; color: #333; line-height: 1.3; height: 31px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                <span style="color: #FF4B6A; font-weight: 800; margin-right: 4px;">Diskon</span>${item.nama_menu}
+                            </div>
+
+                            <div style="display: flex; align-items: baseline; margin-top: 8px;">
+                                <span style="color: #E53935; font-size: 10px; font-weight: 800;">Rp</span>
+                                <span style="color: #E53935; font-size: 16px; font-weight: 800; margin-right: 4px;">${realPrice.toLocaleString('id-ID')}</span>
+                                <span style="color: #aaa; font-size: 10px; text-decoration: line-through;">Rp${fakePrice.toLocaleString('id-ID')}</span>
+                            </div>
+
+                            <!-- Tombol Pesan Kanan Bawah Sesuai Gambar -->
+                            <div style="position: absolute; bottom: 0; right: 0; background: #FF4B6A; color: white; font-size: 12px; font-weight: 800; padding: 6px 14px; border-radius: 16px 0 12px 0; box-shadow: -2px -2px 5px rgba(255, 75, 106, 0.2);">
+                                Pesan
+                            </div>
                         </div>
                     </div>
                 `;
@@ -6343,6 +6453,85 @@
                     document.querySelectorAll('.fs-s-val').forEach(el => el.innerText = s.toString().padStart(2, '0'));
                 }, 1000);
             }
+        }
+
+        function renderPromoRamean() {
+            const wrapper = document.getElementById('container-promo-ramean');
+            if (!wrapper) return;
+            wrapper.innerHTML = '';
+            
+            let promoProducts = allProducts.filter(p => p.is_available !== false && (p.is_promo === true || parseInt(p.harga_coret) > parseInt(p.harga))).slice(0, 5);
+            
+            if(promoProducts.length === 0) {
+                promoProducts = allProducts.filter(p => p.is_available !== false).slice(0, 5);
+            }
+
+            // CEK STOK: Jika kosong, pastikan kontainer disembunyikan
+            if(promoProducts.length === 0) {
+                wrapper.style.display = 'none';
+                return; 
+            }
+
+            // PERBAIKAN: Tampilkan kontainer yang tadinya "display: none" menjadi "display: block"
+            // Ini akan membuat elemen muncul dan mengembalikan tinggi halaman agar bisa di-scroll dengan normal.
+            wrapper.style.display = 'block';
+
+            const promoDiv = document.createElement('div');
+            promoDiv.style.cssText = "padding: 0 0 20px 0; background: var(--bg); display: block;";
+            
+            let headerHtml = `
+                <div style="padding: 0 20px; display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                    <div>
+                        <div style="font-size: 19px; font-weight: 800; color: #111; margin-bottom: 4px;">makanan favorite</div>
+                        <div style="font-size: 14px; color: #555; font-weight: 400;">Enak dimakan bersama, banyak diskonnya.</div>
+                    </div>
+                    <div onclick="openCategoryPage('Sedang Promo')" style="background: #E8F5E9; color: #2E7D32; font-weight: 800; font-size: 14px; padding: 6px 14px; border-radius: 20px; cursor: pointer; flex-shrink: 0;">
+                        See all
+                    </div>
+                </div>
+            `;
+
+            let cardsHtml = '<div style="display: flex; overflow-x: auto; gap: 12px; padding: 5px 20px 20px 20px; scrollbar-width: none; -webkit-overflow-scrolling: touch;">';
+            
+            promoProducts.forEach(item => {
+                const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG;
+                const realPrice = parseInt(item.harga);
+                const fakePrice = item.harga_coret ? parseInt(item.harga_coret) : Math.ceil(realPrice * 1.25);
+                const discPercent = Math.round(((fakePrice - realPrice) / fakePrice) * 100);
+                const dist = (0.5 + Math.random() * 5).toFixed(2); 
+
+                cardsHtml += `
+                    <div style="min-width: 300px; max-width: 300px; background: white; border-radius: 16px; border: 1px solid #e0e0e0; box-shadow: 0 4px 15px rgba(0,0,0,0.03); display: flex; padding: 12px; gap: 14px; cursor: pointer; position: relative;" onclick="openProductDetail('${item.id}')">
+                        
+                        <div style="position: relative; width: 95px; height: 95px; border-radius: 12px; overflow: hidden; flex-shrink: 0; background: #f5f5f5;">
+                            <img src="${img}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='${FALLBACK_MENU_IMG}'">
+                            <div style="position: absolute; top: 0; left: 0; background: #E53935; color: white; font-size: 12px; font-weight: 800; padding: 4px 8px; border-radius: 0 0 10px 0;">
+                                -${discPercent}%
+                            </div>
+                        </div>
+
+                        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; overflow: hidden;">
+                            <div style="font-size: 13px; color: #555; margin-bottom: 6px;">
+                                ${dist} km • 20-30 min
+                            </div>
+                            <div style="font-size: 16px; font-weight: 800; color: #111; line-height: 1.2; margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                ${item.nama_menu}
+                            </div>
+                            <div style="font-size: 13px; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 8px;">
+                                ${item.vendor_name || 'Warung Projekgo'}
+                            </div>
+                            <div style="display: flex; align-items: baseline; gap: 8px;">
+                                <span style="font-size: 15px; font-weight: 800; color: #111;">${realPrice.toLocaleString('id-ID').replace(/,/g, '.')}</span>
+                                <span style="font-size: 13px; text-decoration: line-through; color: #999;">${fakePrice.toLocaleString('id-ID').replace(/,/g, '.')}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            cardsHtml += '</div>';
+            promoDiv.innerHTML = headerHtml + cardsHtml;
+            wrapper.appendChild(promoDiv);
         }
 
         function filterAndRenderProducts() {
@@ -6377,6 +6566,12 @@
 
             // Panggil render Flash Sale di posisi atas (menggantikan posisi Exclusive sebelumnya)
             renderFlashSaleTop();
+            
+            // TAMBAHAN: Panggil render Promo Ramean agar selalu terupdate
+            renderPromoRamean();
+
+            // TAMBAHAN BARU: Panggil fungsi render kartu promo vertikal
+            renderArtikelPromo();
             
             // TAHAP 2: Reset limit render warung setiap kali filter berubah
             window.warungRenderLimit = 6; 
@@ -6422,6 +6617,48 @@
                 }
             }
             // ----------------------------------------------
+        }
+
+        // TAMBAHAN FUNGSI BARU UNTUK MERENDER KARTU PROMO (VERTIKAL KEBUMEN/GOMBONG)
+        function renderArtikelPromo() {
+            const container = document.getElementById('container-artikel-promo');
+            if (!container) return;
+            container.innerHTML = '';
+
+            /* 
+             * DATA DUMMY: 
+             * Silakan ubah img_url, title, dan desc di bawah ini sesuai kebutuhan Anda.
+             * Url gambar saya set menggunakan placeholder warna orange (#FF6600).
+             */
+            const artikelData = [
+                {
+                    img_url: "https://placehold.co/600x300/FF6600/FFFFFF?text=Promo+Gambar+1",
+                    title: "Daftar Mitra Projekgo Anti Ribet!",
+                    desc: "Langsung daftar dengan menghubungi admin resmi kami sekarang juga!"
+                },
+                {
+                    img_url: "https://placehold.co/600x300/FF8533/FFFFFF?text=Promo+Gambar+2",
+                    title: "PRAKTIS pakai Projekgo Prioritas",
+                    desc: "Pergi ramean jadi mudah, bisa belanja atau titip apa saja secara otomatis. Coba!"
+                }
+            ];
+
+            let html = '<div style="display: flex; flex-direction: column; gap: 15px; padding: 0 20px;">';
+
+            artikelData.forEach(item => {
+                html += `
+                    <div style="background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.04); cursor: pointer;" onclick="showToast('Mengarahkan ke halaman...')">
+                        <img src="${item.img_url}" style="width: 100%; height: 160px; object-fit: cover; display: block;" onerror="this.src='https://placehold.co/600x300/FF6600/FFFFFF?text=Image+Error'">
+                        <div style="padding: 16px;">
+                            <div style="font-size: 16px; font-weight: 800; color: #111; margin-bottom: 6px; line-height: 1.3;">${item.title}</div>
+                            <div style="font-size: 13px; color: #666; line-height: 1.5;">${item.desc}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
         }
 
         // --- FUNGSI RENDER KATEGORI (DIPERBARUI) ---
