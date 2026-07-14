@@ -5215,75 +5215,160 @@
             
             document.getElementById('checkout-ongkir-text').innerText = "Menghitung ongkir...";
 
-            // 1. Ambil koordinat tujuan (Pelanggan) dari titik peta yang dipilih
+            /* ==========================================
+               LANGKAH 1: Persiapan Data Koordinat
+               ========================================== */
+            
             let destLat = typeof destinationLocation.lat === 'function' ? destinationLocation.lat() : destinationLocation.lat;
             let destLng = typeof destinationLocation.lng === 'function' ? destinationLocation.lng() : destinationLocation.lng;
+            const customerLocation = { lat: destLat, lng: destLng };
 
-            // 2. Ambil daftar warung unik dari keranjang
-            const uniqueVendors = [...new Set(cart.map(item => item.vendor))];
+            const uniqueVendorsNames = [...new Set(cart.map(item => item.vendor))];
             
-            // 3. Cari titik koordinat warung (Ambil warung pertama sebagai titik asal)
-            let mainVendorObj = allVendors.find(v => v.nama_warung === uniqueVendors[0]) || allVendors.find(v => v.id === window.checkoutVendorId);
-            
-            // Default koordinat jika warung tidak punya data lat/lng (Default: Gombong)
-            let originLat = -7.6046; 
-            let originLng = 109.4503;
+            const vendorsCoordinates = [];
+            uniqueVendorsNames.forEach(vendorName => {
+                let vendorObj = allVendors.find(v => v.nama_warung === vendorName);
+                let vLat = -7.6046; 
+                let vLng = 109.4503;
 
-            if (mainVendorObj && mainVendorObj.latitude && mainVendorObj.longitude) {
-                originLat = parseFloat(mainVendorObj.latitude);
-                originLng = parseFloat(mainVendorObj.longitude);
-            }
+                if (vendorObj && vendorObj.latitude && vendorObj.longitude) {
+                    vLat = parseFloat(vendorObj.latitude);
+                    vLng = parseFloat(vendorObj.longitude);
+                }
+                
+                vendorsCoordinates.push({
+                    name: vendorName,
+                    lat: vLat,
+                    lng: vLng
+                });
+            });
 
-            // 4. Rumus Haversine untuk menghitung jarak lurus dua titik koordinat (Metode Kodular)
-            const calculateHaversine = (lat1, lon1, lat2, lon2) => {
-                const R = 6371; // Radius bumi dalam kilometer
-                const dLat = (lat2 - lat1) * Math.PI / 180;
-                const dLon = (lon2 - lon1) * Math.PI / 180;
-                const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                          Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                          Math.sin(dLon/2) * Math.sin(dLon/2);
-                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-                return R * c;
-            };
+            /* ==========================================
+               LANGKAH 2: Membangun Logika Pencarian Rute
+               ========================================== */
+            let routeScenarios = [];
 
-            // 5. Kalkulasi Jarak & Harga
-            // Jarak lurus dikalikan 1.3 (faktor estimasi kelokan jalan raya) agar mendekati rute asli
-            let totalDistKm = calculateHaversine(originLat, originLng, destLat, destLng) * 1.3;
-            
-            let distText = totalDistKm < 1 ? (totalDistKm * 1000).toFixed(0) + " m" : totalDistKm.toFixed(1) + " km";
-
-            // Tarif Ongkir sesuai ketentuan yang ada
-            let baseOngkir = 0;
-            if (totalDistKm <= 2) {
-                baseOngkir = 8000;
-            } else if (totalDistKm <= 3) {
-                baseOngkir = 9000;
+            if (vendorsCoordinates.length === 1) {
+                routeScenarios.push({
+                    origin: { lat: vendorsCoordinates[0].lat, lng: vendorsCoordinates[0].lng },
+                    waypoints: [],
+                    destination: customerLocation,
+                    optimizeWaypoints: false 
+                });
             } else {
-                baseOngkir = totalDistKm * 2600;
-            }
+                for (let i = 0; i < vendorsCoordinates.length; i++) {
+                    let startVendor = vendorsCoordinates[i];
+                    let otherVendors = vendorsCoordinates.filter((_, index) => index !== i);
+                    
+                    let waypointsConfig = otherVendors.map(v => ({
+                        location: { lat: v.lat, lng: v.lng },
+                        stopover: true
+                    }));
 
-            // Tambahan biaya Rp 3.000 untuk setiap ekstra restoran
-            const extraRestoFee = (uniqueVendors.length - 1) * 3000;
-            
-            let totalOngkir = baseOngkir + extraRestoFee;
-
-            // Pembulatan ke kelipatan 500 terdekat
-            totalOngkir = Math.round(totalOngkir / 500) * 500;
-
-            window.checkoutOngkir = totalOngkir;
-            
-            // Perbarui tampilan UI
-            const ongkirTextEl = document.getElementById('checkout-ongkir-text');
-            if (ongkirTextEl) {
-                if (extraRestoFee > 0) {
-                    ongkirTextEl.innerHTML = `Rp ${(baseOngkir).toLocaleString('id-ID')} + <span style="color:var(--primary); font-size:11px;">Rp ${extraRestoFee.toLocaleString('id-ID')} (${uniqueVendors.length - 1} ekstra resto)</span> = <b>Rp ${totalOngkir.toLocaleString('id-ID')}</b> <span style="font-size:10px; color:#888;">(${distText})</span>`;
-                } else {
-                    ongkirTextEl.innerHTML = "Rp " + totalOngkir.toLocaleString('id-ID') + ` <span style="font-size:10px; color:#888;">(${distText})</span>`;
+                    routeScenarios.push({
+                        origin: { lat: startVendor.lat, lng: startVendor.lng },
+                        waypoints: waypointsConfig,
+                        destination: customerLocation,
+                        optimizeWaypoints: true 
+                    });
                 }
             }
 
-            // Update Total Keseluruhan Pembayaran
-            window.updateCheckoutTotal();
+            /* ==========================================
+               LANGKAH 3 & 4: Eksekusi Google Maps API & Hitung Tarif Dasar
+               ========================================== */
+            
+            const calculatePriceAndRender = (jarakTotalKm, isFallback = false) => {
+                let distText = jarakTotalKm < 1 ? (jarakTotalKm * 1000).toFixed(0) + " m" : jarakTotalKm.toFixed(1) + " km";
+
+                // --- LANGKAH 4: Menentukan Tarif Dasar ---
+                let baseOngkir = 0;
+                if (jarakTotalKm <= 2) {
+                    baseOngkir = 8000;
+                } else if (jarakTotalKm <= 3) {
+                    baseOngkir = 9000;
+                } else {
+                    baseOngkir = jarakTotalKm * 2600;
+                }
+
+                // --- LANGKAH 5: Ekstra Resto (Sementara dibiarkan sebelum dirombak di langkah 5) ---
+                const extraRestoFee = (uniqueVendorsNames.length - 1) * 3000;
+                let totalOngkir = baseOngkir + extraRestoFee;
+                totalOngkir = Math.round(totalOngkir / 500) * 500;
+
+                window.checkoutOngkir = totalOngkir;
+                
+                const ongkirTextEl = document.getElementById('checkout-ongkir-text');
+                if (ongkirTextEl) {
+                    let fallbackInfo = isFallback ? `<span style="color:#E53935; font-size:9px; margin-left:4px;">(Jarak Lurus)</span>` : ``;
+                    if (extraRestoFee > 0) {
+                        ongkirTextEl.innerHTML = `Rp ${(baseOngkir).toLocaleString('id-ID')} + <span style="color:var(--primary); font-size:11px;">Rp ${extraRestoFee.toLocaleString('id-ID')} (${uniqueVendorsNames.length - 1} ekstra resto)</span> = <b>Rp ${totalOngkir.toLocaleString('id-ID')}</b> <span style="font-size:10px; color:#888;">(${distText})</span>${fallbackInfo}`;
+                    } else {
+                        ongkirTextEl.innerHTML = "Rp " + totalOngkir.toLocaleString('id-ID') + ` <span style="font-size:10px; color:#888;">(${distText})</span>${fallbackInfo}`;
+                    }
+                }
+                window.updateCheckoutTotal();
+            };
+
+            if (typeof google === 'undefined' || !google.maps || !google.maps.DirectionsService) {
+                console.warn("Google Maps API belum siap. Menggunakan Fallback Haversine.");
+                const calculateHaversine = (lat1, lon1, lat2, lon2) => {
+                    const R = 6371; 
+                    const dLat = (lat2 - lat1) * Math.PI / 180;
+                    const dLon = (lon2 - lon1) * Math.PI / 180;
+                    const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+                    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+                };
+                let totalDistKm = calculateHaversine(vendorsCoordinates[0].lat, vendorsCoordinates[0].lng, destLat, destLng) * 1.3;
+                calculatePriceAndRender(totalDistKm, true);
+                return;
+            }
+
+            const directionsService = new google.maps.DirectionsService();
+            const routePromises = routeScenarios.map(scenario => {
+                return new Promise((resolve) => {
+                    directionsService.route({
+                        origin: scenario.origin,
+                        destination: scenario.destination,
+                        waypoints: scenario.waypoints,
+                        optimizeWaypoints: scenario.optimizeWaypoints,
+                        travelMode: google.maps.TravelMode.DRIVING
+                    }, (response, status) => {
+                        if (status === google.maps.DirectionsStatus.OK) {
+                            let totalMeters = 0;
+                            response.routes[0].legs.forEach(leg => {
+                                totalMeters += leg.distance.value;
+                            });
+                            resolve({ success: true, distanceKm: totalMeters / 1000 });
+                        } else {
+                            resolve({ success: false, status: status });
+                        }
+                    });
+                });
+            });
+
+            Promise.all(routePromises).then(results => {
+                const validRoutes = results.filter(r => r.success);
+                
+                if (validRoutes.length > 0) {
+                    // --- LANGKAH 4 (Lanjutan): Mencari skenario dengan jarak terpendek ---
+                    validRoutes.sort((a, b) => a.distanceKm - b.distanceKm);
+                    const bestDistanceKm = validRoutes[0].distanceKm;
+                    
+                    calculatePriceAndRender(bestDistanceKm, false);
+                } else {
+                    console.warn("Semua skenario Directions API gagal. Fallback ke Haversine.");
+                    const calculateHaversine = (lat1, lon1, lat2, lon2) => {
+                        const R = 6371; 
+                        const dLat = (lat2 - lat1) * Math.PI / 180;
+                        const dLon = (lon2 - lon1) * Math.PI / 180;
+                        const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+                        return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+                    };
+                    let totalDistKm = calculateHaversine(vendorsCoordinates[0].lat, vendorsCoordinates[0].lng, destLat, destLng) * 1.3;
+                    calculatePriceAndRender(totalDistKm, true);
+                }
+            });
         };
 
         window.updateCheckoutTotal = () => {
