@@ -1928,16 +1928,20 @@
                         if(foodLoc) foodLoc.innerText = "Melacak otomatis...";
                         
                         navigator.geolocation.getCurrentPosition(
-                            (position) => {
-                                const lat = position.coords.latitude;
-                                const lng = position.coords.longitude;
-                                const mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
-                                
-                                // Simpan Link Titik Koordinat asli (Berguna untuk Kalkulasi Jarak di Checkout nanti)
-                                localStorage.setItem('user_maps', mapsLink);
+                        (position) => {
+                            const lat = position.coords.latitude;
+                            const lng = position.coords.longitude;
+                            const mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
+                            
+                            // Simpan Link Titik Koordinat asli (Berguna untuk Kalkulasi Jarak di Checkout nanti)
+                            localStorage.setItem('user_maps', mapsLink);
 
-                                // 3. Ambil Nama Jalan Jika Geocoder Google Aktif
-                                if (typeof google !== 'undefined' && google.maps) {
+                            // EKSEKUSI LANGKAH 1: Amankan Data Koordinat Mutlak
+                            localStorage.setItem('user_lat', lat);
+                            localStorage.setItem('user_lng', lng);
+
+                            // 3. Ambil Nama Jalan Jika Geocoder Google Aktif
+                            if (typeof google !== 'undefined' && google.maps) {
                                     const geocoder = new google.maps.Geocoder();
                                     const pos = { lat: lat, lng: lng };
                                     geocoder.geocode({ location: pos }, (results, status) => {
@@ -4973,22 +4977,31 @@
             const titleEl = document.getElementById('checkout-maps-search-title');
             const descEl = document.getElementById('checkout-maps-search-desc');
             
-            if (!fromModal && localStorage.getItem('user_address') && localStorage.getItem('user_lat') && localStorage.getItem('user_lng')) {
-                const addr = localStorage.getItem('user_address');
-                const lat = parseFloat(localStorage.getItem('user_lat'));
-                const lng = parseFloat(localStorage.getItem('user_lng'));
+            // EKSEKUSI LANGKAH 2: Panggil titik koordinat valid yang sudah diamankan di Langkah 1
+            const savedLat = localStorage.getItem('user_lat');
+            const savedLng = localStorage.getItem('user_lng');
+            const savedAddr = localStorage.getItem('user_address') || "Titik Lokasi GPS";
+
+            if (!fromModal && savedLat && savedLng) {
+                const lat = parseFloat(savedLat);
+                const lng = parseFloat(savedLng);
                 
                 if (titleEl) {
                     titleEl.innerText = "Lokasi Saat Ini";
-                    descEl.innerText = addr;
+                    descEl.innerText = savedAddr;
                 }
                 
+                // Suntikkan angka desimal mutlak (lat & lng) agar Maps tidak perlu menebak dari teks alamat
                 window.checkoutDestPlace = {
                     geometry: { location: { lat: () => lat, lng: () => lng } },
-                    formatted_address: addr,
-                    name: addr
+                    formatted_address: savedAddr,
+                    name: savedAddr
                 };
-                document.getElementById('checkout-maps-search').value = addr;
+                
+                const searchInput = document.getElementById('checkout-maps-search');
+                if (searchInput) searchInput.value = savedAddr;
+                
+                // Langsung hitung ongkir menggunakan koordinat mutlak
                 calculateCheckoutOngkir(window.checkoutDestPlace.geometry.location);
                 return;
             }
@@ -5025,10 +5038,36 @@
                                         formatted_address: address,
                                         name: address
                                     };
-                                    document.getElementById('checkout-maps-search').value = address;
+                                    const searchInput = document.getElementById('checkout-maps-search');
+                                    if (searchInput) searchInput.value = address;
+                                    
+                                    calculateCheckoutOngkir(pos);
+                                } else {
+                                    // PENGAMAN: Jika teks alamat gagal dilacak, tetap pakai titik angkanya!
+                                    if(titleEl) {
+                                        titleEl.innerText = "Lokasi Saat Ini";
+                                        descEl.innerText = "Menggunakan Titik Koordinat";
+                                    }
+                                    window.checkoutDestPlace = {
+                                        geometry: { location: pos },
+                                        formatted_address: "Titik GPS Pengguna",
+                                        name: "Lokasi GPS"
+                                    };
                                     calculateCheckoutOngkir(pos);
                                 }
                             });
+                        } else {
+                            // PENGAMAN: Jika API Google Maps lambat, tetap amankan titik angkanya!
+                            if(titleEl) {
+                                titleEl.innerText = "Lokasi Saat Ini";
+                                descEl.innerText = "Menggunakan Titik Koordinat";
+                            }
+                            window.checkoutDestPlace = {
+                                geometry: { location: pos },
+                                formatted_address: "Titik GPS Pengguna",
+                                name: "Lokasi GPS"
+                            };
+                            calculateCheckoutOngkir(pos);
                         }
                         
                         if (fromModal) {
@@ -5217,7 +5256,8 @@
                 return;
             }
             
-            document.getElementById('checkout-ongkir-text').innerText = "Menghitung ongkir...";
+            // EKSEKUSI LANGKAH 4: UI Loading Spinner yang lebih jelas
+            document.getElementById('checkout-ongkir-text').innerHTML = `<span style="color:#2196F3; font-weight:700; display:flex; align-items:center; gap:6px;"><i class="ph-bold ph-spinner ph-spin" style="font-size:16px;"></i> Menghitung rute motor...</span>`;
 
             /* ==========================================
                LANGKAH 1: Persiapan Data Koordinat
@@ -5231,12 +5271,25 @@
             const vendorsCoordinates = [];
             uniqueVendorsNames.forEach(vendorName => {
                 let vendorObj = allVendors.find(v => v.nama_warung === vendorName);
+                
+                // Fallback default: Alun-Alun Gombong
                 let vLat = -7.6046; 
                 let vLng = 109.4503;
 
                 if (vendorObj && vendorObj.latitude && vendorObj.longitude) {
-                    vLat = parseFloat(vendorObj.latitude);
-                    vLng = parseFloat(vendorObj.longitude);
+                    // EKSEKUSI LANGKAH 3: Validasi Ketat Koordinat Warung (Konversi & Cegah NaN)
+                    const parsedLat = parseFloat(vendorObj.latitude);
+                    const parsedLng = parseFloat(vendorObj.longitude);
+                    
+                    // Cek apakah hasil konversi benar-benar angka desimal valid (bukan NaN)
+                    if (!isNaN(parsedLat) && !isNaN(parsedLng)) {
+                        vLat = parsedLat;
+                        vLng = parsedLng;
+                    } else {
+                        console.warn(`[Fail-Safe] Koordinat warung ${vendorName} cacat/teks. Memakai titik fallback Gombong.`);
+                    }
+                } else {
+                    console.warn(`[Fail-Safe] Koordinat warung ${vendorName} kosong. Memakai titik fallback Gombong.`);
                 }
                 
                 vendorsCoordinates.push({ name: vendorName, lat: vLat, lng: vLng });
@@ -5351,7 +5404,8 @@
                         destination: scenario.destination,
                         waypoints: scenario.waypoints,
                         optimizeWaypoints: scenario.optimizeWaypoints,
-                        travelMode: google.maps.TravelMode.DRIVING
+                        travelMode: google.maps.TravelMode.DRIVING,
+                        avoidTolls: true // EKSEKUSI LANGKAH 4: Hindari jalan tol untuk akurasi rute motor
                     }, (response, status) => {
                         if (status === google.maps.DirectionsStatus.OK) {
                             let totalMeters = 0;
