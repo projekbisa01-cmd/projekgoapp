@@ -4809,68 +4809,6 @@
             const fakeOriginalTotal = Math.ceil(subTotal * 1.2); const savings = fakeOriginalTotal - subTotal;
             let html = '';
 
-            // --- TAMBAHAN UI DELIVERY MARKETING (DI ATAS DAFTAR PESANAN) ---
-            if (orderMode !== 'dine_in') {
-                html += `
-                <div class="cart-section" style="padding: 15px 20px 5px 20px; border-bottom: 8px solid #f0f0f0; margin-bottom: 0;">
-                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
-                        <img src="https://i.ibb.co.com/jvHntgSj/Desain-tanpa-judul-69.png"  style="width: 45px; height: 45px; object-fit: contain;">
-                        <div style="font-weight: 800; font-size: 16px; color: var(--dark);">Delivery</div>
-                    </div>
-
-                    <!-- Option 1: Hemat Express (Active) -->
-                    <div style="border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0; padding: 15px 0; position: relative;">
-                        <!-- Badge Hemat -->
-                        <div style="position: absolute; top: 4px; left: 0; background: #FF6600; color: white; font-size: 9px; font-weight: 800; padding: 2px 8px; border-radius: 4px; z-index: 2;">Hemat</div>
-                        
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <span style="font-weight: 800; font-size: 16px; color: var(--dark);">Express</span>
-                                <span style="background: #f5f5f5; color: #666; font-size: 11px; padding: 3px 8px; border-radius: 12px; font-weight: 600;">25 min</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <span id="ui-ongkir-coret-express" style="text-decoration: line-through; color: #888; font-size: 13px; font-weight: 500;">...</span>
-                                <span id="ui-ongkir-real-express" style="font-weight: 800; font-size: 20px; color: var(--dark);">...</span>
-                                <!-- Radio Active -->
-                                <div style="width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--dark); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                    <div style="width: 10px; height: 10px; border-radius: 50%; background: #FF6600;"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div style="font-size: 10px; color: #4CAF50; font-style: italic; margin-top: 8px; line-height: 1.4; padding-right: 15px;">
-                            Semua pengantaran projekgo diantar prioritas,langsung diantar,1 rider 1 pelanggan, cepat,hemat dan tepat
-                        </div>
-                    </div>
-
-                    <!-- Option 2: Reguler (Disabled) -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f0f0f0; opacity: 0.6;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="font-weight: 700; font-size: 15px; color: var(--dark); text-decoration: line-through;">Reguler</span>
-                            <span style="background: #f5f5f5; color: #666; font-size: 11px; padding: 3px 8px; border-radius: 12px; font-weight: 600; text-decoration: line-through;">30-40 min</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span id="ui-ongkir-coret-reguler" style="font-weight: 800; font-size: 15px; color: var(--dark); text-decoration: line-through;">...</span>
-                            <!-- Radio Inactive -->
-                            <div style="width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #888; flex-shrink: 0;"></div>
-                        </div>
-                    </div>
-
-                    <!-- Option 3: Hemat (Disabled) -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; opacity: 0.6;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="font-weight: 700; font-size: 15px; color: var(--dark); text-decoration: line-through;">Hemat</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span id="ui-ongkir-coret-hemat" style="font-weight: 800; font-size: 15px; color: var(--dark); text-decoration: line-through;">...</span>
-                            <!-- Radio Inactive -->
-                            <div style="width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #888; flex-shrink: 0;"></div>
-                        </div>
-                    </div>
-                </div>
-                `;
-            }
-            // --------------------------------------------------------------
-
             for(const [vendor, items] of Object.entries(grouped)) {
                 const consolidatedItems = [];
                 items.forEach(item => { const key = item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase(); const existing = consolidatedItems.find(i => i._key === key); if (existing) { existing.qty++; existing.totalItemPrice += item.harga; } else { consolidatedItems.push({ ...item, _key: key, qty: 1, totalItemPrice: item.harga }); } });
@@ -4966,7 +4904,7 @@
                 deliveryCostHtml = ''; 
             } else {
                 addressSectionHtml = `
-                    <div class="cart-section" style="border-top:10px solid #f0f0f0;">
+                    <div class="cart-section" style="border-top:10px solid #f0f0f0; padding-bottom: 5px;">
                         <div class="cv-title">📍 Alamat Pengantaran</div>
                         
                         <!-- CAPSULE TOGGLE PENGANTARAN (Peta di Kiri) -->
@@ -4999,7 +4937,7 @@
                             </div>
                             
                             <!-- Input Palsu Pemanggil Modal Peta Baru -->
-                            <div onclick="openLocationSearchModal()" style="background: white; border: 1px solid #ddd; padding: 12px 15px; border-radius: 12px; display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); transition: 0.2s;">
+                            <div onclick="openLocationSearchModal()" style="background: white; border: 1px solid #ddd; padding: 12px 15px; border-radius: 12px; display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); transition: 0.2s;">
                                 <i class="ph-fill ph-map-pin" style="color: #E53935; font-size: 22px;"></i>
                                 <div style="display: flex; flex-direction: column; flex-grow: 1; overflow: hidden;">
                                     <span id="checkout-maps-search-title" style="color: var(--dark); font-size: 14px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Mencari lokasi saat ini...</span>
@@ -5011,6 +4949,63 @@
                             <input type="hidden" id="checkout-maps-search" class="form-input">
                         </div>
                     </div>
+                `;
+            }
+
+            let deliveryOptionsHtml = '';
+            if (orderMode !== 'dine_in') {
+                deliveryOptionsHtml = `
+                <div class="cart-section" style="padding: 0 20px 20px 20px; margin-bottom: 0;">
+                    <!-- Option 1: Hemat Express (Active) -->
+                    <div style="border-bottom: 1px solid #f0f0f0; padding: 15px 0 10px 0; position: relative;">
+                        <!-- Badge Hemat (Diubah ke Rekomendasi Projekgo) -->
+                        <div style="position: absolute; top: 0px; left: 0; background: #FF6600; color: white; font-size: 9px; font-weight: 800; padding: 2px 8px; border-radius: 4px; z-index: 2;">Rekomendasi Projekgo</div>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-weight: 800; font-size: 16px; color: var(--dark);">Express</span>
+                                <span style="background: #f5f5f5; color: #666; font-size: 11px; padding: 3px 8px; border-radius: 12px; font-weight: 600;">25 min</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span id="ui-ongkir-coret-express" style="text-decoration: line-through; color: #888; font-size: 13px; font-weight: 500;">...</span>
+                                <span id="ui-ongkir-real-express" style="font-weight: 800; font-size: 18px; color: var(--dark);">...</span>
+                                <!-- Radio Active -->
+                                <div style="width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--dark); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <div style="width: 10px; height: 10px; border-radius: 50%; background: #FF6600;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="font-size: 10px; color: #4CAF50; font-style: italic; margin-top: 6px; line-height: 1.4; padding-right: 15px;">
+                            Semua pengantaran projekgo diantar prioritas,langsung diantar,1 rider 1 pelanggan, cepat,hemat dan tepat
+                        </div>
+                    </div>
+
+                    <!-- Option 2: Reguler (Disabled) -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0; opacity: 0.5;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-weight: 700; font-size: 15px; color: var(--dark); text-decoration: line-through;">Reguler</span>
+                            <span style="background: #f5f5f5; color: #666; font-size: 10px; padding: 3px 8px; border-radius: 12px; font-weight: 600; text-decoration: line-through;">30-40 min</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span id="ui-ongkir-coret-reguler" style="font-weight: 700; font-size: 14px; color: var(--dark); text-decoration: line-through;">...</span>
+                            <!-- Radio Inactive -->
+                            <div style="width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #999; flex-shrink: 0;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Option 3: Hemat (Disabled - Ditambah estimasi waktu) -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; opacity: 0.5;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-weight: 700; font-size: 15px; color: var(--dark); text-decoration: line-through;">Hemat</span>
+                            <span style="background: #f5f5f5; color: #666; font-size: 10px; padding: 3px 8px; border-radius: 12px; font-weight: 600; text-decoration: line-through;">45-60 min</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span id="ui-ongkir-coret-hemat" style="font-weight: 700; font-size: 14px; color: var(--dark); text-decoration: line-through;">...</span>
+                            <!-- Radio Inactive -->
+                            <div style="width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #999; flex-shrink: 0;"></div>
+                        </div>
+                    </div>
+                </div>
                 `;
             }
 
@@ -5028,6 +5023,7 @@
             let serviceFeeRow = serviceFee > 0 ? `<div class="cost-row" style="color:var(--primary); font-weight:700;"><span>Biaya Layanan Platform</span><span>Rp ${serviceFee.toLocaleString()}</span></div>` : `<div class="cost-row"><span>Biaya Aplikasi</span><span style="color:green;">Gratis (Rp 0)</span></div>`;
 
             html += `${addressSectionHtml}
+            ${deliveryOptionsHtml}
             <div class="cart-section" style="border-top:10px solid #f0f0f0;">
                 <div class="cv-title">Rincian Pembayaran</div>
                 <div class="cost-row"><span>Projekgo tidak menaikan harga </span><span style="text-decoration:line-through;">Rp ${fakeOriginalTotal.toLocaleString()}</span></div>
@@ -5722,9 +5718,9 @@
                     uiRealExpress.innerText = totalOngkir.toLocaleString('id-ID');
                     
                     // Buat harga coret fiktif (strategi marketing psikologis)
-                    const fakeExpress = totalOngkir + 2000;
-                    const fakeReguler = totalOngkir + 7000;
-                    const fakeHemat = totalOngkir + 2000;
+                    const fakeReguler = totalOngkir + 5000; // Harga Reguler normal
+                    const fakeExpress = fakeReguler + 4000; // Harga Coret Express dibuat lebih besar dari Reguler
+                    const fakeHemat = totalOngkir + 1000;   // Harga Hemat
 
                     uiCoretExpress.innerText = fakeExpress.toLocaleString('id-ID');
                     if (uiCoretReguler) uiCoretReguler.innerText = fakeReguler.toLocaleString('id-ID');
@@ -7450,12 +7446,12 @@
              */
             const artikelData = [
                 {
-                    img_url: "https://placehold.co/600x300/FF6600/FFFFFF?text=Promo+Gambar+1",
+                    img_url: "https://i.ibb.co.com/jvBDYvvf/Tanpa-judul-800-x-500-piksel-2.png" ,
                     title: "Daftar Mitra Projekgo Anti Ribet!",
                     desc: "Langsung daftar dengan menghubungi admin resmi kami sekarang juga!"
                 },
                 {
-                    img_url: "https://i.ibb.co.com/RTBXNY1R/Whats-App-Image-2026-07-14-at-23-15-43.jpg",
+                    img_url: "https://i.ibb.co.com/xS42n57c/Tanpa-judul-800-x-500-piksel-1.png"  ,
                     title: "PRAKTIS pakai Projekgo Prioritas",
                     desc: "jadi mudah, bisa belanja atau titip apa saja secara otomatis. Coba!"
                 }
