@@ -5100,6 +5100,134 @@
             }
         };
 
+        // --- EKSEKUSI LANGKAH 1: SESI TOKEN & AUTOCOMPLETE MANUAL ---
+        window.mapsAutocompleteService = null;
+        window.mapsPlacesService = null;
+        window.mapsSessionToken = null;
+
+        function initManualMapsServices() {
+            if (typeof google !== 'undefined' && google.maps && google.maps.places) {
+                if (!window.mapsAutocompleteService) window.mapsAutocompleteService = new google.maps.places.AutocompleteService();
+                // Buat Token Sesi Baru
+                if (!window.mapsSessionToken) window.mapsSessionToken = new google.maps.places.AutocompleteSessionToken();
+                // PlacesService butuh elemen HTML untuk inisialisasi
+                if (!window.mapsPlacesService) {
+                    const dummyDiv = document.createElement('div');
+                    window.mapsPlacesService = new google.maps.places.PlacesService(dummyDiv);
+                }
+            }
+        }
+
+        // --- EKSEKUSI LANGKAH 3: FUNGSI CACHING & RIWAYAT ---
+        window.saveRecentLocation = (name, address, lat, lng) => {
+            if(!lat || !lng) return;
+            let history = JSON.parse(localStorage.getItem('user_recent_locations')) || [];
+            // Hapus duplikat jika alamat sudah pernah ada di riwayat
+            history = history.filter(loc => loc.address !== address);
+            // Tambahkan ke urutan paling atas
+            history.unshift({ name: name || address, address: address, lat: lat, lng: lng });
+            // Batasi hanya menyimpan 5 riwayat terakhir agar memori ringan
+            if (history.length > 5) history.pop();
+            localStorage.setItem('user_recent_locations', JSON.stringify(history));
+        };
+
+        window.selectHistoryLocation = (name, address, lat, lng, target) => {
+            // Bypass API: Langsung rakit objek lokasi menggunakan koordinat tersimpan
+            const locObj = {
+                geometry: { location: { lat: () => parseFloat(lat), lng: () => parseFloat(lng) } },
+                formatted_address: address,
+                name: name
+            };
+
+            if (target === 'checkout') {
+                const titleEl = document.getElementById('checkout-maps-search-title');
+                const descEl = document.getElementById('checkout-maps-search-desc');
+                if (titleEl) { titleEl.innerText = name || "Lokasi Tujuan"; descEl.innerText = address; }
+                
+                window.checkoutDestPlace = locObj;
+                document.getElementById('checkout-maps-search').value = address;
+                
+                // Langsung hitung ongkir tanpa memanggil Maps API
+                calculateCheckoutOngkir(locObj.geometry.location);
+                closeLocationSearchModal();
+            } else {
+                // Untuk form layanan (Ngojek/Mobil/Paket)
+                const realTarget = target || window.currentRideInputTarget || 'tujuan';
+                const inputId = realTarget === 'jemput' ? 'svc-jemput' : 'svc-tujuan';
+                const inputEl = document.getElementById(inputId);
+                
+                if (inputEl) inputEl.value = name;
+                if (realTarget === 'jemput') originPlace = locObj;
+                if (realTarget === 'tujuan') destPlace = locObj;
+                
+                // Langsung hitung rute tanpa memanggil Maps API
+                calculateRoute();
+                const suggestLoc = document.getElementById('suggested-locations');
+                if (suggestLoc) suggestLoc.style.display = 'none';
+            }
+        };
+
+        // Fungsi manual untuk mengamankan lokasi pilihan pelanggan
+        window.selectManualPrediction = (placeId, target) => {
+            if (!window.mapsPlacesService) return;
+
+            if (target === 'checkout') {
+                const list = document.getElementById('loc-search-results');
+                if(list) list.innerHTML = `<div style="padding: 20px; text-align:center; color:var(--primary); font-weight:bold;"><i class="ph-bold ph-spinner ph-spin"></i> Mengambil detail lokasi...</div>`;
+            } else {
+                const listContainer = document.getElementById('ride-locations-list');
+                if(listContainer) listContainer.innerHTML = `<div style="padding: 20px; text-align:center; color:var(--primary); font-weight:bold;"><i class="ph-bold ph-spinner ph-spin"></i> Mengambil detail lokasi...</div>`;
+            }
+
+            window.mapsPlacesService.getDetails({
+                placeId: placeId,
+                fields: ['name', 'geometry', 'formatted_address'],
+                sessionToken: window.mapsSessionToken // Kirim token untuk mengakhiri sesi
+            }, (place, status) => {
+                // RESET TOKEN SETELAH MEMILIH ALAMAT (Tagihan Dihitung 1x Transaksi per Sesi)
+                if (google.maps && google.maps.places) {
+                    window.mapsSessionToken = new google.maps.places.AutocompleteSessionToken();
+                }
+
+                if (status === google.maps.places.PlacesServiceStatus.OK && place && place.geometry) {
+                    
+                    // TAMBAHAN LANGKAH 3: Simpan titik yang dipilih ke riwayat memori perangkat
+                    const pLat = place.geometry.location.lat();
+                    const pLng = place.geometry.location.lng();
+                    window.saveRecentLocation(place.name, place.formatted_address, pLat, pLng);
+
+                    if (target === 'checkout') {
+                        const titleEl = document.getElementById('checkout-maps-search-title');
+                        const descEl = document.getElementById('checkout-maps-search-desc');
+                        
+                        if (titleEl) {
+                            titleEl.innerText = place.name || "Lokasi Tujuan";
+                            descEl.innerText = place.formatted_address;
+                        }
+                        
+                        window.checkoutDestPlace = place;
+                        document.getElementById('checkout-maps-search').value = place.formatted_address;
+                        calculateCheckoutOngkir(place.geometry.location);
+                        closeLocationSearchModal();
+                    } else if (target === 'jemput' || target === 'tujuan') {
+                        const inputId = target === 'jemput' ? 'svc-jemput' : 'svc-tujuan';
+                        const inputEl = document.getElementById(inputId);
+                        if (inputEl) inputEl.value = place.name;
+
+                        if (target === 'jemput') originPlace = place;
+                        if (target === 'tujuan') destPlace = place;
+
+                        calculateRoute();
+                        const suggestLoc = document.getElementById('suggested-locations');
+                        if (suggestLoc) suggestLoc.style.display = 'none';
+                    }
+                } else {
+                    if(window.showToast) window.showToast("Gagal mengambil detail lokasi dari Google.");
+                    if (target === 'checkout') closeLocationSearchModal();
+                }
+            });
+        };
+
         window.openLocationSearchModal = () => {
             const modal = document.getElementById('location-search-modal');
             if(modal) {
@@ -5107,32 +5235,54 @@
                 document.getElementById('loc-search-list-view').style.display = 'flex';
                 document.getElementById('loc-map-picker-view').style.display = 'none';
                 
+                initManualMapsServices(); // Aktifkan layanan manual
+
                 const input = document.getElementById('loc-search-input');
-                if (input && !window.locSearchAutocomplete) {
-                    if (typeof google !== 'undefined' && google.maps) {
-                        window.locSearchAutocomplete = new google.maps.places.Autocomplete(input, {
-                            componentRestrictions: { country: "id" },
-                            fields: ["formatted_address", "geometry", "name"],
-                        });
+                if (input && !input.dataset.manualListener) {
+                    input.dataset.manualListener = 'true'; // Penanda agar event listener tidak dobel
+                    
+                    input.addEventListener('input', (e) => {
+                        const val = e.target.value;
+                        const list = document.getElementById('loc-search-results');
                         
-                        window.locSearchAutocomplete.addListener('place_changed', () => {
-                            const place = window.locSearchAutocomplete.getPlace();
-                            if (!place.geometry || !place.geometry.location) return;
-                            
-                            const titleEl = document.getElementById('checkout-maps-search-title');
-                            const descEl = document.getElementById('checkout-maps-search-desc');
-                            
-                            if (titleEl) {
-                                titleEl.innerText = place.name || "Lokasi Tujuan";
-                                descEl.innerText = place.formatted_address;
-                            }
-                            
-                            window.checkoutDestPlace = place;
-                            document.getElementById('checkout-maps-search').value = place.formatted_address;
-                            calculateCheckoutOngkir(place.geometry.location);
-                            closeLocationSearchModal();
-                        });
-                    }
+                        if (!val) {
+                            switchLocTab('terakhir'); 
+                            return;
+                        }
+
+                        if (window.mapsAutocompleteService) {
+                            window.mapsAutocompleteService.getPlacePredictions({
+                                input: val,
+                                componentRestrictions: { country: "id" },
+                                sessionToken: window.mapsSessionToken // Kirim sesi aktif
+                            }, (predictions, status) => {
+                                if (status !== google.maps.places.PlacesServiceStatus.OK || !predictions) {
+                                    list.innerHTML = `<div style="padding: 15px; text-align:center; color:#888;">Lokasi tidak ditemukan</div>`;
+                                    return;
+                                }
+
+                                let html = '';
+                                predictions.forEach(p => {
+                                    html += `
+                                    <div style="display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee; cursor: pointer; gap: 15px;"
+                                         onclick="selectManualPrediction('${p.place_id}', 'checkout')">
+                                        <i class="ph-fill ph-map-pin" style="font-size: 24px; color: #888;"></i>
+                                        <div style="flex-grow: 1; overflow:hidden;">
+                                            <div style="font-size: 14px; font-weight: 700; color: var(--dark); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.structured_formatting.main_text}</div>
+                                            <div style="font-size: 12px; color: #888; margin-top: 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.structured_formatting.secondary_text}</div>
+                                        </div>
+                                    </div>
+                                    `;
+                                });
+                                
+                                // Matikan tab aktif saat ada hasil
+                                document.querySelectorAll('#loc-search-list-view .loc-tab').forEach(el => {
+                                    el.style.borderBottom = 'none'; el.style.color = '#888';
+                                });
+                                list.innerHTML = html;
+                            });
+                        }
+                    });
                 }
                 setTimeout(() => { if(input) input.focus(); }, 300);
             }
@@ -5153,7 +5303,7 @@
             
             const list = document.getElementById('loc-search-results');
             if (tabName === 'terakhir') {
-                list.innerHTML = `
+                let html = `
                     <div style="display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee; cursor: pointer; gap: 15px;" onclick="autoFetchCheckoutLocation(true)">
                         <i class="ph-bold ph-target" style="font-size: 24px; color: #FF9800;"></i>
                         <div style="flex-grow: 1;">
@@ -5162,6 +5312,27 @@
                         </div>
                     </div>
                 `;
+                
+                // TAMBAHAN LANGKAH 3: Panggil riwayat dari localStorage untuk tab checkout
+                let history = JSON.parse(localStorage.getItem('user_recent_locations')) || [];
+                if(history.length > 0) {
+                    html += `<div style="font-size:14px; font-weight:800; color:var(--dark); margin-top:15px; margin-bottom:10px;">Riwayat Pencarian Anda</div>`;
+                    history.forEach(loc => {
+                        const safeName = loc.name.replace(/'/g, "\\'");
+                        const safeAddr = loc.address.replace(/'/g, "\\'");
+                        html += `
+                        <div style="display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee; cursor: pointer; gap: 15px;"
+                             onclick="selectHistoryLocation('${safeName}', '${safeAddr}', ${loc.lat}, ${loc.lng}, 'checkout')">
+                            <i class="ph-regular ph-clock-counter-clockwise" style="font-size: 24px; color: #888;"></i>
+                            <div style="flex-grow: 1; overflow:hidden;">
+                                <div style="font-size: 14px; font-weight: 700; color: var(--dark); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${loc.name}</div>
+                                <div style="font-size: 12px; color: #888; margin-top: 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${loc.address}</div>
+                            </div>
+                        </div>
+                        `;
+                    });
+                }
+                list.innerHTML = html;
             } else if (tabName === 'disarankan') {
                 list.innerHTML = `<div style="padding: 20px 0; font-size: 13px; color: #888; text-align: center;">Menampilkan saran lokasi terdekat...</div>`;
             } else if (tabName === 'tersimpan') {
@@ -5255,6 +5426,9 @@
             localStorage.setItem('user_address', tempPickerAddress);
             localStorage.setItem('user_lat', tempPickerLocation.lat());
             localStorage.setItem('user_lng', tempPickerLocation.lng());
+            
+            // TAMBAHAN LANGKAH 3: Simpan titik pin peta ke riwayat memori
+            window.saveRecentLocation(tempPickerAddress, tempPickerAddress, tempPickerLocation.lat(), tempPickerLocation.lng());
             
             calculateCheckoutOngkir(tempPickerLocation);
             closeLocationSearchModal();
@@ -5904,24 +6078,32 @@
                                     <div class="dot-dest"></div>
                                 </div>
                                 <div class="ride-inputs">
-                                    <input type="text" id="svc-jemput" class="ride-input" placeholder="Lokasi jemput saat ini...">
-                                    <input type="text" id="svc-tujuan" class="ride-input" placeholder="Cari lokasi tujuan...">
+                                    <!-- MODIFIKASI: Input & Tombol Peta Berdampingan Sesuai Permintaan -->
+                                    <div style="display: flex; gap: 8px;">
+                                        <input type="text" id="svc-jemput" class="ride-input" placeholder="Lokasi jemput saat ini..." style="flex-grow: 1;">
+                                        <button id="btn-map-jemput" onclick="activateMapPicker('jemput')" style="width: 48px; flex-shrink: 0; background: white; border: 1px solid #ddd; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;">
+                                            <i class="ph-fill ph-map-pin" style="color: #2196F3; font-size: 24px;"></i>
+                                        </button>
+                                    </div>
+                                    <div style="display: flex; gap: 8px;">
+                                        <input type="text" id="svc-tujuan" class="ride-input" placeholder="Cari lokasi tujuan..." style="flex-grow: 1;">
+                                        <button id="btn-map-tujuan" onclick="activateMapPicker('tujuan')" style="width: 48px; flex-shrink: 0; background: white; border: 1px solid #ddd; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;">
+                                            <i class="ph-fill ph-map-pin" style="color: #F44336; font-size: 24px;"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             
-                            <!-- FITUR PIN GOOGLE MAPS -->
-                            <div style="display: flex; gap: 10px; margin-top: 15px;">
-                                <button id="btn-map-tujuan" onclick="activateMapPicker('tujuan')" style="flex:1; background:white; border:1px solid #ddd; padding:10px 15px; border-radius:25px; font-size:13px; font-weight:700; color:#333; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 5px rgba(0,0,0,0.03); transition:0.2s;">
-                                    <i class="ph-fill ph-map-pin" style="color: #4CAF50; font-size:18px;"></i> Pilih lewat peta
-                                </button>
-                                <button onclick="showToast('Fitur tambah tujuan lebih dari satu segera hadir')" style="flex:1; background:white; border:1px solid #ddd; padding:10px 15px; border-radius:25px; font-size:13px; font-weight:700; color:#333; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 5px rgba(0,0,0,0.03); transition:0.2s;">
-                                    <i class="ph-bold ph-plus-circle" style="color: #FF9800; font-size:18px;"></i> Tambah tujuan
-                                </button>
-                            </div>
-                            <div id="map-selection-container" style="margin-top: 15px; border-radius: 12px; overflow: hidden; height: 250px; display: none; position: relative; border: 1px solid #ddd;">
-                                <div id="service-map" style="width: 100%; height: 100%;"></div>
-                                <div style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 800; color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.15); pointer-events: none; z-index: 5;">
-                                    Geser Peta / Tap Lokasi Tujuan
+                            <!-- PETA MUNCUL DI SINI SAAT TOMBOL PETA DI KLIK -->
+                            <div id="map-selection-container" style="margin-top: 15px; border-radius: 12px; overflow: hidden; display: none; flex-direction: column; border: 1px solid #ddd;">
+                                <div style="height: 250px; width: 100%; position: relative;">
+                                    <div id="service-map" style="width: 100%; height: 100%;"></div>
+                                    <div style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 800; color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.15); pointer-events: none; z-index: 5;">
+                                        Geser Peta untuk Menentukan Titik
+                                    </div>
+                                </div>
+                                <div style="background: white; padding: 12px; border-top: 1px solid #eee;">
+                                    <button onclick="confirmServiceMapLocation()" style="width: 100%; background: var(--primary); color: white; padding: 12px; border: none; border-radius: 10px; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 4px 10px rgba(255,102,0,0.3);">Gunakan Lokasi Ini</button>
                                 </div>
                             </div>
                         </div>
@@ -6110,35 +6292,76 @@
         }
 
         window.initGooglePlaces = () => {
-            // --- TAMBAHAN KODE (LANGKAH 1): Membersihkan sisa kotak rekomendasi lokasi ---
             document.querySelectorAll('.pac-container').forEach(el => el.remove());
-            // --------------------------------------------------------------------------
 
             const inputJemput = document.getElementById('svc-jemput');
             const inputTujuan = document.getElementById('svc-tujuan');
 
             if (!inputJemput || !inputTujuan) return;
 
-            const options = {
-                componentRestrictions: { country: "id" },
-                fields: ["formatted_address", "geometry", "name"],
-                strictBounds: false
+            initManualMapsServices(); // Aktifkan layanan manual
+            
+            let rideSearchTimeout; // EKSEKUSI LANGKAH 2: Variabel Timer Debounce untuk form layanan
+
+            const handleInput = (e, targetType) => {
+                const val = e.target.value;
+                const listContainer = document.getElementById('ride-locations-list');
+                const suggestWrap = document.getElementById('suggested-locations');
+
+                if (!val) {
+                    if(suggestWrap) suggestWrap.style.display = 'block';
+                    switchRideTab('disarankan');
+                    return;
+                }
+
+                if(suggestWrap) suggestWrap.style.display = 'block';
+                document.querySelectorAll('.ride-tab').forEach(el => el.classList.remove('active'));
+                
+                // Indikator loading saat user mengetik
+                listContainer.innerHTML = `<div style="padding: 15px; text-align:center; color:#888;"><i class="ph-bold ph-spinner ph-spin"></i> Menunggu...</div>`;
+
+                clearTimeout(rideSearchTimeout); // Batalkan API Call jika ada ketikan baru
+
+                // Tunda 600ms
+                rideSearchTimeout = setTimeout(() => {
+                    if (window.mapsAutocompleteService) {
+                        window.mapsAutocompleteService.getPlacePredictions({
+                            input: val,
+                            componentRestrictions: { country: "id" },
+                            sessionToken: window.mapsSessionToken // Kirim sesi aktif
+                        }, (predictions, status) => {
+                            if (status !== google.maps.places.PlacesServiceStatus.OK || !predictions) {
+                                listContainer.innerHTML = `<div style="padding: 15px; text-align:center; color:#888;">Lokasi tidak ditemukan</div>`;
+                                return;
+                            }
+
+                            let html = `<div style="font-size:14px; font-weight:800; color:var(--dark); margin-top:15px; margin-bottom:10px;">Hasil Pencarian</div>`;
+                            predictions.forEach(p => {
+                                html += `
+                                <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; cursor: pointer; gap: 15px;"
+                                     onclick="selectManualPrediction('${p.place_id}', '${targetType}')">
+                                    <i class="ph-fill ph-map-pin" style="font-size: 20px; color: #888;"></i>
+                                    <div style="flex-grow: 1; overflow:hidden;">
+                                        <div style="font-size: 14px; font-weight: 700; color: var(--dark); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.structured_formatting.main_text}</div>
+                                        <div style="font-size: 12px; color: #888; margin-top: 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.structured_formatting.secondary_text}</div>
+                                    </div>
+                                </div>
+                                `;
+                            });
+                            listContainer.innerHTML = html;
+                        });
+                    }
+                }, 600); // Batas waktu debounce 600ms
             };
 
-            const autoJemput = new google.maps.places.Autocomplete(inputJemput, options);
-            const autoTujuan = new google.maps.places.Autocomplete(inputTujuan, options);
-
-            autoJemput.addListener('place_changed', () => {
-                originPlace = autoJemput.getPlace();
-                if (originPlace && originPlace.name) inputJemput.value = originPlace.name;
-                calculateRoute();
-            });
-
-            autoTujuan.addListener('place_changed', () => {
-                destPlace = autoTujuan.getPlace();
-                if (destPlace && destPlace.name) inputTujuan.value = destPlace.name;
-                calculateRoute();
-            });
+            if (!inputJemput.dataset.manualListener) {
+                inputJemput.dataset.manualListener = 'true';
+                inputJemput.addEventListener('input', (e) => handleInput(e, 'jemput'));
+            }
+            if (!inputTujuan.dataset.manualListener) {
+                inputTujuan.dataset.manualListener = 'true';
+                inputTujuan.addEventListener('input', (e) => handleInput(e, 'tujuan'));
+            }
 
             // TAMBAHAN: Logika untuk mendeteksi penghapusan manual pada field input
             const handleManualClear = () => {
@@ -6159,45 +6382,74 @@
             // Pasang pendeteksi ke kedua kolom input
             inputJemput.addEventListener('input', handleManualClear);
             inputTujuan.addEventListener('input', handleManualClear);
+
+            // TAMBAHAN LANGKAH 3: Deteksi field mana yang sedang aktif disentuh (Jemput / Tujuan)
+            inputJemput.addEventListener('focus', () => { window.currentRideInputTarget = 'jemput'; });
+            inputTujuan.addEventListener('focus', () => { window.currentRideInputTarget = 'tujuan'; });
         }
 
-        // --- FUNGSI TAMBAHAN UNTUK GOOGLE MAPS PIN PICKER ---
+        // --- FUNGSI TAMBAHAN UNTUK GOOGLE MAPS PIN PICKER (DIPERBARUI UI NYA) ---
         window.activateMapPicker = (type) => {
             const mapContainer = document.getElementById('map-selection-container');
             const btnJemput = document.getElementById('btn-map-jemput');
             const btnTujuan = document.getElementById('btn-map-tujuan');
             
-            mapContainer.style.display = 'block';
+            mapContainer.style.display = 'flex'; // Menggunakan flex agar layout rapi ke bawah
             activeMapInput = type;
             
+            // Logic rubah warna tombol
             if(type === 'jemput') {
                 btnJemput.style.background = 'var(--primary-light)';
                 btnJemput.style.borderColor = 'var(--primary)';
-                btnJemput.style.color = 'var(--primary)';
-                btnTujuan.style.background = '#f0f0f0';
+                btnJemput.querySelector('i').style.color = 'var(--primary)';
+                
+                btnTujuan.style.background = 'white';
                 btnTujuan.style.borderColor = '#ddd';
-                btnTujuan.style.color = '#555';
+                btnTujuan.querySelector('i').style.color = '#F44336';
             } else {
                 btnTujuan.style.background = 'var(--primary-light)';
                 btnTujuan.style.borderColor = 'var(--primary)';
-                btnTujuan.style.color = 'var(--primary)';
-                btnJemput.style.background = '#f0f0f0';
+                btnTujuan.querySelector('i').style.color = 'var(--primary)';
+                
+                btnJemput.style.background = 'white';
                 btnJemput.style.borderColor = '#ddd';
-                btnJemput.style.color = '#555';
+                btnJemput.querySelector('i').style.color = '#2196F3';
             }
 
             // Inisialisasi peta jika belum
             if (!serviceMap) {
                 initServiceMap();
             } else {
-                // --- UBAH BAGIAN ELSE INI (LANGKAH 2) ---
-                // Beri jeda 300ms agar animasi buka tutup selesai, baru paksa peta menyesuaikan ukuran
+                // Beri jeda agar animasi selesai, lalu sesuaikan ulang map
                 setTimeout(() => {
                     google.maps.event.trigger(serviceMap, 'resize');
                     if (serviceMarker) serviceMap.setCenter(serviceMarker.getPosition());
                 }, 300);
-                // ----------------------------------------
             }
+        }
+        
+        // FUNGSI BARU UNTUK MENUTUP PETA SAAT SELESAI PILIH LOKASI
+        window.confirmServiceMapLocation = () => {
+            const mapContainer = document.getElementById('map-selection-container');
+            const btnJemput = document.getElementById('btn-map-jemput');
+            const btnTujuan = document.getElementById('btn-map-tujuan');
+            
+            // Sembunyikan peta
+            mapContainer.style.display = 'none';
+            
+            // Kembalikan warna tombol seperti semula
+            if(btnJemput) { 
+                btnJemput.style.background = 'white'; 
+                btnJemput.style.borderColor = '#ddd'; 
+                btnJemput.querySelector('i').style.color = '#2196F3';
+            }
+            if(btnTujuan) { 
+                btnTujuan.style.background = 'white'; 
+                btnTujuan.style.borderColor = '#ddd'; 
+                btnTujuan.querySelector('i').style.color = '#F44336';
+            }
+            
+            if(window.showToast) window.showToast("Lokasi berhasil dipilih! 📍");
         }
 
         window.initServiceMap = () => {
@@ -6302,42 +6554,52 @@
 
             // Ganti isi konten berdasarkan tab yang dipilih
             if (tabName === 'terakhir') {
-                listContainer.innerHTML = `
-                    <div style="font-size:14px; font-weight:800; color:var(--dark); margin-top:15px; margin-bottom:10px;">Riwayat Pencarian Anda</div>
-                    <div style="display:flex; align-items:flex-start; gap:15px; padding:12px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" onclick="setDummyLocation('Alun-Alun Kebumen')">
+                
+                // TAMBAHAN LANGKAH 3: Render riwayat pencarian di form layanan
+                let history = JSON.parse(localStorage.getItem('user_recent_locations')) || [];
+                if(history.length === 0) {
+                    listContainer.innerHTML = `<div style="padding: 20px 0; font-size: 13px; color: #888; text-align: center;">Belum ada riwayat pencarian.</div>`;
+                    return;
+                }
+                
+                let html = `<div style="font-size:14px; font-weight:800; color:var(--dark); margin-top:15px; margin-bottom:10px;">Riwayat Pencarian Anda</div>`;
+                history.forEach(loc => {
+                    const safeName = loc.name.replace(/'/g, "\\'");
+                    const safeAddr = loc.address.replace(/'/g, "\\'");
+                    html += `
+                    <div style="display:flex; align-items:flex-start; gap:15px; padding:12px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" 
+                         onclick="selectHistoryLocation('${safeName}', '${safeAddr}', ${loc.lat}, ${loc.lng}, null)">
                         <i class="ph-regular ph-clock-counter-clockwise" style="font-size:20px; color:#666; margin-top:2px;"></i>
-                        <div style="flex-grow:1;">
-                            <div style="font-size:14px; font-weight:700; color:#333; margin-bottom:4px;">Alun-Alun Kebumen</div>
-                            <div style="font-size:12px; color:#888; line-height:1.4;">Bumirejo, Kebumen...</div>
+                        <div style="flex-grow:1; overflow:hidden;">
+                            <div style="font-size:14px; font-weight:700; color:#333; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${loc.name}</div>
+                            <div style="font-size:12px; color:#888; line-height:1.4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${loc.address}</div>
                         </div>
                     </div>
-                    <div style="display:flex; align-items:flex-start; gap:15px; padding:12px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" onclick="setDummyLocation('RS PKU Muhammadiyah Gombong')">
-                        <i class="ph-regular ph-clock-counter-clockwise" style="font-size:20px; color:#666; margin-top:2px;"></i>
-                        <div style="flex-grow:1;">
-                            <div style="font-size:14px; font-weight:700; color:#333; margin-bottom:4px;">RS PKU Muhammadiyah Gombong</div>
-                            <div style="font-size:12px; color:#888; line-height:1.4;">Kemukus, Gombong...</div>
-                        </div>
-                    </div>
-                `;
+                    `;
+                });
+                listContainer.innerHTML = html;
+
             } else if (tabName === 'tersimpan') {
                 renderSavedLocations(); // Panggil fungsi render dinamis
             } else {
-                // Default: Disarankan
+                // Default: Disarankan (Diperbarui dengan Caching Bypass API)
                 listContainer.innerHTML = `
                     <div style="font-size:14px; font-weight:800; color:var(--dark); margin-top:15px; margin-bottom:10px;">Sering digunakan</div>
-                    <div style="display:flex; align-items:flex-start; gap:15px; padding:12px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" onclick="setDummyLocation('Pasar Wonokriyo Gombong')">
+                    <div style="display:flex; align-items:flex-start; gap:15px; padding:12px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" 
+                         onclick="selectHistoryLocation('Pasar Wonokriyo Gombong', 'Jl. Yos Sudarso, Wonokriyo, Gombong', -7.607447, 109.447547, null)">
                         <i class="ph-regular ph-clock-counter-clockwise" style="font-size:20px; color:#666; margin-top:2px;"></i>
                         <div style="flex-grow:1;">
                             <div style="font-size:14px; font-weight:700; color:#333; margin-bottom:4px;">Pasar Wonokriyo Gombong</div>
-                            <div style="font-size:12px; color:#888; line-height:1.4;">4.07km • Jl. Yos Sudarso, Wonokriyo, Gombong...</div>
+                            <div style="font-size:12px; color:#888; line-height:1.4;">Jl. Yos Sudarso, Wonokriyo, Gombong...</div>
                         </div>
                         <i class="ph-bold ph-dots-three-vertical" style="color:#aaa;"></i>
                     </div>
-                    <div style="display:flex; align-items:flex-start; gap:15px; padding:12px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" onclick="setDummyLocation('Stasiun Kebumen')">
+                    <div style="display:flex; align-items:flex-start; gap:15px; padding:12px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" 
+                         onclick="selectHistoryLocation('Stasiun Kebumen', 'Jl. Stasiun, Panjer, Kebumen', -7.674900, 109.664400, null)">
                         <i class="ph-fill ph-map-pin" style="font-size:20px; color:#666; margin-top:2px;"></i>
                         <div style="flex-grow:1;">
                             <div style="font-size:14px; font-weight:700; color:#333; margin-bottom:4px;">Stasiun Kebumen</div>
-                            <div style="font-size:12px; color:#888; line-height:1.4;">21.47km • Jl. Stasiun, Panjer, Kebumen...</div>
+                            <div style="font-size:12px; color:#888; line-height:1.4;">Jl. Stasiun, Panjer, Kebumen...</div>
                         </div>
                         <i class="ph-bold ph-dots-three-vertical" style="color:#aaa;"></i>
                     </div>
