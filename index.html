@@ -1772,7 +1772,31 @@
                         <span style="font-size: 11px; font-weight: 700; color: #333; text-align: center; line-height: 1.1;">Bantuin</span>
                     </div>
 
-                    <!-- 8. Lainnya -->
+                    <!-- 8. Service Hp -->
+                    <div onclick="openComingSoon('Service Hp')" style="display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; transition: transform 0.1s;" onmousedown="this.style.transform='scale(0.92)'" onmouseup="this.style.transform='scale(1)'" onmouseleave="this.style.transform='scale(1)'">
+                        <div style="width: 55px; height: 55px; background: transparent; display: flex; align-items: center; justify-content: center;">
+                            <img src="https://i.ibb.co.com/5g5xtSVz/Desain-tanpa-judul-75.png" style="width: 55px; height: 55px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15));">
+                        </div>
+                        <span style="font-size: 11px; font-weight: 700; color: #333; text-align: center; line-height: 1.1;">Service Hp</span>
+                    </div>
+
+                    <!-- 9. Tukang -->
+                    <div onclick="openComingSoon('Tukang')" style="display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; transition: transform 0.1s;" onmousedown="this.style.transform='scale(0.92)'" onmouseup="this.style.transform='scale(1)'" onmouseleave="this.style.transform='scale(1)'">
+                        <div style="width: 55px; height: 55px; background: transparent; display: flex; align-items: center; justify-content: center;">
+                            <img src="https://i.ibb.co.com/j9j2QHbx/Desain-tanpa-judul-73.png" style="width: 55px; height: 55px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15));">
+                        </div>
+                        <span style="font-size: 11px; font-weight: 700; color: #333; text-align: center; line-height: 1.1;">Tukang</span>
+                    </div>
+
+                    <!-- 10. Cleaning -->
+                    <div onclick="openComingSoon('Cleaning')" style="display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; transition: transform 0.1s;" onmousedown="this.style.transform='scale(0.92)'" onmouseup="this.style.transform='scale(1)'" onmouseleave="this.style.transform='scale(1)'">
+                        <div style="width: 55px; height: 55px; background: transparent; display: flex; align-items: center; justify-content: center;">
+                            <img src="https://i.ibb.co.com/vxpJ053j/Desain-tanpa-judul-72.png" style="width: 55px; height: 55px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15));">
+                        </div>
+                        <span style="font-size: 11px; font-weight: 700; color: #333; text-align: center; line-height: 1.1;">Cleaning</span>
+                    </div>
+
+                    <!-- 11. Lainnya -->
                     <div onclick="openMoreMenuModal()" style="display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; transition: transform 0.1s;" onmousedown="this.style.transform='scale(0.92)'" onmouseup="this.style.transform='scale(1)'" onmouseleave="this.style.transform='scale(1)'">
                         <div style="width: 55px; height: 55px; background: transparent; display: flex; align-items: center; justify-content: center;">
                             <i class="ph-bold ph-dots-nine" style="font-size: 42px; color: #777; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15));"></i>
@@ -2156,6 +2180,21 @@
         <div id="page-service-form" class="page">
             <div class="sub-header"><div class="btn-back" onclick="goBack()"><i class="ph ph-arrow-left"></i></div><div class="page-title" id="form-service-title">Form</div></div>
             <div style="padding:20px;"><div id="dynamic-form-fields"></div><button id="generic-submit-btn" onclick="submitServiceForm()" style="width:100%; background:#25D366; color:white; padding:15px; border:none; border-radius:12px; margin-top:20px; font-weight:700; font-size:16px; box-shadow:0 4px 15px rgba(37, 211, 102, 0.4);">Pesan ke Admin</button></div>
+        </div>
+
+        <!-- ===== HALAMAN COMING SOON ===== -->
+        <div id="page-coming-soon" class="page" style="display: none; background: white; min-height: 100vh;">
+            <div class="sub-header">
+                <div class="btn-back" onclick="goBack()"><i class="ph ph-arrow-left"></i></div>
+                <div class="page-title" id="coming-soon-title">Layanan</div>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 70vh; text-align: center; padding: 20px;">
+                <div style="font-size: 80px; margin-bottom: 20px; animation: bounceIcon 1s infinite alternate;">
+                    <i class="ph-fill ph-rocket-launch" style="color: var(--primary);"></i>
+                </div>
+                <h3 style="color: var(--dark); font-weight: 800; font-size: 20px; margin: 0 0 10px 0;">Segera Hadir!</h3>
+                <p style="color: #666; font-size: 14px; line-height: 1.5; margin: 0;">Layanan <b id="coming-soon-name" style="color: var(--primary);"></b> masih dalam tahap persiapan.<br>Ditunggu kehadirannya yah! ✨</p>
+            </div>
         </div>
 
     </div>
@@ -6024,6 +6063,13 @@
         let activeMapInput = null;
         let geocoder = null;
         let locationInputMode = 'maps'; // Default mode adalah maps
+
+        // FUNGSI UNTUK HALAMAN COMING SOON
+        window.openComingSoon = (svcName) => {
+            document.getElementById('coming-soon-title').innerText = svcName;
+            document.getElementById('coming-soon-name').innerText = svcName;
+            openPage('coming-soon');
+        };
 
         window.openServiceForm = (svc) => {
             currentServiceType = svc; 
