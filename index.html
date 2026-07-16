@@ -3323,6 +3323,14 @@
         window.goBack = () => { window.history.back(); }
         
         window.onpopstate = (e) => { 
+            // TAMBAHAN: Tutup popup rincian pesanan jika tombol back fisik HP ditekan
+            const cartModal = document.getElementById('cart-popup-modal');
+            if (cartModal && cartModal.classList.contains('show')) {
+                cartModal.classList.remove('show');
+                setTimeout(() => { cartModal.style.display = 'none'; }, 300);
+                return; // Hentikan fungsi di sini agar tidak memuat ulang/pindah halaman
+            }
+
             const dest = e.state ? e.state.page : 'home';
             currentPage = dest;
             renderPage(dest, true); 
@@ -4579,6 +4587,8 @@
             closeProductDetailModal(); 
         }
 
+        let cartBannerTimer = null; // Variabel global untuk timer banner
+
         function updateCartBadge(pageName) {
             const b = document.getElementById('cart-badge');
             const floatingBanner = document.getElementById('floating-cart-banner');
@@ -4600,6 +4610,13 @@
                         cart.forEach(item => subTotal += item.harga);
                         document.getElementById('fcb-qty').innerText = cart.length + " Pesanan";
                         document.getElementById('fcb-total').innerText = "Rp " + subTotal.toLocaleString();
+                        
+                        // --- TAMBAHAN LOGIKA HILANG OTOMATIS 3 DETIK ---
+                        if (cartBannerTimer) clearTimeout(cartBannerTimer);
+                        cartBannerTimer = setTimeout(() => {
+                            floatingBanner.style.display = 'none';
+                        }, 3000);
+                        // -----------------------------------------------
                     }
                 }
             } else {
@@ -4637,12 +4654,20 @@
             modal.style.display = 'flex';
             modal.offsetHeight; 
             modal.classList.add('show');
+            
+            // TAMBAHAN: Buat jejak histori sementara agar tombol back HP bisa mendeteksi popup ini
+            window.history.pushState({ popup: 'cart' }, '', '');
         }
 
         window.closeCartPopup = () => {
             const modal = document.getElementById('cart-popup-modal');
             modal.classList.remove('show');
             setTimeout(() => { modal.style.display = 'none'; }, 300);
+            
+            // TAMBAHAN: Bersihkan histori sementara jika ditutup secara manual (lewat tombol X atau klik luar)
+            if (window.history.state && window.history.state.popup === 'cart') {
+                window.history.back();
+            }
         }
 
         window.renderCartPopupItems = () => {
