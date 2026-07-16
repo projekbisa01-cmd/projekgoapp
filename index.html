@@ -4872,6 +4872,9 @@
 
             // Menentukan vendor id utama untuk cek ongkir maps otomatis
             window.checkoutVendorId = null;
+            let numVendors = Object.keys(grouped).length;
+            let extraRestoFee = numVendors > 1 ? (numVendors - 1) * 3000 : 0;
+
             if (cart.length > 0) {
                 const sampleProduct = rawProducts.find(p => p.id === cart[0].id);
                 if (sampleProduct && sampleProduct.vendor_id) window.checkoutVendorId = sampleProduct.vendor_id;
@@ -5020,21 +5023,35 @@
             window.checkoutMarker = null;
 
             let finalTotal = subTotal + serviceFee;
-            let serviceFeeRow = serviceFee > 0 ? `<div class="cost-row" style="color:var(--primary); font-weight:700;"><span>Biaya Layanan Platform</span><span>Rp ${serviceFee.toLocaleString()}</span></div>` : `<div class="cost-row"><span>Biaya Aplikasi</span><span style="color:green;">Gratis (Rp 0)</span></div>`;
+            if (orderMode !== 'dine_in') {
+                finalTotal += extraRestoFee;
+            }
 
+            let serviceFeeRow = serviceFee > 0 ? `<div class="cost-row" style="color:var(--primary); font-weight:700;"><span>Biaya Layanan Platform</span><span>Rp ${serviceFee.toLocaleString()}</span></div>` : `<div class="cost-row"><span>Biaya Aplikasi</span><span style="color:green;">Gratis (Rp 0)</span></div>`;
+            
+            let extraVendorRow = (orderMode !== 'dine_in' && extraRestoFee > 0) ? `<div class="cost-row"><span>Tambahan ongkir karena pembelian di ${numVendors} warung berbeda</span><span>Rp ${extraRestoFee.toLocaleString('id-ID')}</span></div>` : '';
+
+            // TAMBAHAN: padding-bottom ditambah di div cart-section terakhir agar isi tidak tertutup tombol sticky
             html += `${addressSectionHtml}
             ${deliveryOptionsHtml}
-            <div class="cart-section" style="border-top:10px solid #f0f0f0;">
+            <div class="cart-section" style="border-top:10px solid #f0f0f0; padding-bottom: 110px;">
                 <div class="cv-title">Rincian Pembayaran</div>
                 <div class="cost-row"><span>Projekgo tidak menaikan harga </span><span style="text-decoration:line-through;">Rp ${fakeOriginalTotal.toLocaleString()}</span></div>
                 <div class="cost-row"><span>Subtotal Makanan (harga asli penjual)</span><span>Rp ${subTotal.toLocaleString()}</span></div>
                 ${serviceFeeRow}
-                <div class="cost-row"><span>Ongkir</span><span id="checkout-ongkir-text">Menghitung...</span></div>
+                <div class="cost-row"><span>Ongkir EXPRESS tetap HEMAT</span><span id="checkout-ongkir-text">Menghitung...</span></div>
+                ${extraVendorRow}
         
                 <div class="cost-row total"><span>Total Pembayaran</span><span id="checkout-final-total" style="font-size:16px;">Rp ${finalTotal.toLocaleString()}</span></div>
                 <div class="cost-row saved"><i class="ph-fill ph-check-circle"></i> &nbsp; Anda lebih hemat Rp ${savings.toLocaleString()}</div>
                 ${deliveryCostHtml}
-                <button onclick="processCheckout()" style="width:100%; background:#25D366; color:white; padding:15px; border:none; border-radius:12px; margin-top:20px; font-weight:700; font-size:16px;">Pesan Dan Kami Antar Sekarang <i class="ph-fill ph-whatsapp-logo"></i></button>
+            </div>
+            
+            <!-- STICKY BUTTON CONTAINER -->
+            <div style="position: fixed; bottom: 0; left: 0; right: 0; max-width: var(--max-width); margin: 0 auto; background: white; padding: 15px 20px; box-shadow: 0 -4px 15px rgba(0,0,0,0.05); z-index: 2000; border-top-left-radius: 20px; border-top-right-radius: 20px; padding-bottom: max(15px, env(safe-area-inset-bottom));">
+                <button onclick="processCheckout()" style="width:100%; background:#25D366; color:white; padding:15px; border:none; border-radius:14px; font-weight:800; font-size:16px; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: transform 0.2s;" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform='scale(1)'">
+                    Pesan Dan Kami Antar Sekarang <i class="ph-bold ph-whatsapp-logo" style="font-size: 20px;"></i>
+                </button>
             </div>`;
             
             container.innerHTML = html; 
@@ -5675,11 +5692,8 @@
                     baseOngkir = jarakTotalKm * 2600;
                 }
 
-                // --- LANGKAH 5: Menambahkan Biaya Ekstra Resto & Pembulatan ---
-                const jumlahResto = uniqueVendorsNames.length;
-                const extraRestoFee = (jumlahResto > 1) ? (jumlahResto - 1) * 3000 : 0;
-                
-                let totalOngkir = baseOngkir + extraRestoFee;
+                // --- LANGKAH 5: Pembulatan (Biaya Ekstra Resto Dipindah ke Rincian Pembayaran) ---
+                let totalOngkir = baseOngkir;
                 
                 // Membulatkan total akhir ke kelipatan 500 terdekat
                 totalOngkir = Math.round(totalOngkir / 500) * 500;
@@ -5697,14 +5711,10 @@
 
                 window.checkoutOngkir = totalOngkir;
                 
-                // PEMBARUAN UI: Menampilkan breakdown
+                // PEMBARUAN UI: Menampilkan ongkir dasar
                 const ongkirTextEl = document.getElementById('checkout-ongkir-text');
                 if (ongkirTextEl) {
-                    if (extraRestoFee > 0) {
-                        ongkirTextEl.innerHTML = `Rp ${(baseOngkir).toLocaleString('id-ID')} + <span style="color:var(--primary); font-size:11px;">Rp ${extraRestoFee.toLocaleString('id-ID')} (${jumlahResto - 1} ekstra resto)</span> = <b>Rp ${totalOngkir.toLocaleString('id-ID')}</b> <span style="font-size:10px; color:#888;">(${distText})</span>`;
-                    } else {
-                        ongkirTextEl.innerHTML = "Rp " + totalOngkir.toLocaleString('id-ID') + ` <span style="font-size:10px; color:#888;">(${distText})</span>`;
-                    }
+                    ongkirTextEl.innerHTML = "Rp " + totalOngkir.toLocaleString('id-ID') + ` <span style="font-size:10px; color:#888;">(${distText})</span>`;
                 }
 
                 // --- TAMBAHAN UPDATE UI MARKETING DELIVERY ---
@@ -5784,10 +5794,18 @@
 
         window.updateCheckoutTotal = () => {
             let subTotal = 0;
-            cart.forEach(item => subTotal += item.harga);
+            const grouped = {};
+            cart.forEach(item => { if(!grouped[item.vendor]) grouped[item.vendor] = []; grouped[item.vendor].push(item); subTotal += item.harga; });
+            
             let serviceFee = orderMode === 'dine_in' ? 1000 : 0;
             
+            let numVendors = Object.keys(grouped).length;
+            let extraRestoFee = numVendors > 1 ? (numVendors - 1) * 3000 : 0;
+
             let finalTotal = subTotal + serviceFee;
+            if (orderMode !== 'dine_in') {
+                finalTotal += extraRestoFee;
+            }
             if(window.checkoutLocMode === 'maps') {
                 finalTotal += window.checkoutOngkir;
             }
@@ -5996,10 +6014,17 @@
                 });
             }
             
+            let numVendors = Object.keys(grouped).length;
+            let extraRestoFee = numVendors > 1 ? (numVendors - 1) * 3000 : 0;
+
             message += `________________________________%0A`;
             
             let serviceFee = orderMode === 'dine_in' ? 1000 : 0;
             let finalTotal = total + serviceFee;
+
+            if (orderMode !== 'dine_in') {
+                finalTotal += extraRestoFee;
+            }
 
             if (orderMode !== 'dine_in' && window.checkoutLocMode === 'maps') {
                 finalTotal += window.checkoutOngkir;
@@ -6008,19 +6033,23 @@
                 
                 if (window.checkoutOngkir > 0) {
                     message += `Ongkos Kirim: Rp ${window.checkoutOngkir.toLocaleString()}%0A`;
+                    if (extraRestoFee > 0) message += `Tambahan Ongkir (${numVendors} warung): Rp ${extraRestoFee.toLocaleString()}%0A`;
                     message += `*Total Bayar: Rp ${finalTotal.toLocaleString()}*%0A%0A`;
                 } else {
                     message += `*Ongkos Kirim: (Dihitung manual oleh admin)*%0A`;
+                    if (extraRestoFee > 0) message += `Tambahan Ongkir (${numVendors} warung): Rp ${extraRestoFee.toLocaleString()}%0A`;
                     message += `*Total Harga Sementara: Rp ${finalTotal.toLocaleString()}*%0A%0A`;
                 }
             } else {
                 if (serviceFee > 0) {
                     message += `Subtotal: Rp ${total.toLocaleString()}%0A`;
                     message += `Biaya Layanan: Rp ${serviceFee.toLocaleString()}%0A`;
+                    if (extraRestoFee > 0) message += `Tambahan Ongkir (${numVendors} warung): Rp ${extraRestoFee.toLocaleString()}%0A`;
                     message += `*Total Harga Sementara: Rp ${finalTotal.toLocaleString()}*%0A`;
                     message += `_(Ongkir akan dikonfirmasi admin)_%0A%0A`;
                 } else {
                     message += `*Total Harga Makanan: Rp ${total.toLocaleString()}*%0A`;
+                    if (extraRestoFee > 0) message += `Tambahan Ongkir (${numVendors} warung): Rp ${extraRestoFee.toLocaleString()}%0A`;
                     message += `_(Ongkir akan dikonfirmasi admin)_%0A%0A`;
                 }
             }
@@ -6055,6 +6084,7 @@
 
             // 3. Kosongkan Keranjang
             cart = [];
+            localStorage.removeItem('projekgo_cart'); // TAMBAHAN: Bersihkan keranjang lokal saat berhasil checkout
             updateCartBadge();
 
             // 4. Arahkan ke WhatsApp dengan proteksi error
@@ -7446,7 +7476,7 @@
              */
             const artikelData = [
                 {
-                    img_url: "https://i.ibb.co.com/jvBDYvvf/Tanpa-judul-800-x-500-piksel-2.png" ,
+                    img_url: "https://i.ibb.co.com/0VBbLDd1/Salinan-dari-Tanpa-judul-800-x-500-piksel.png"  ,
                     title: "Daftar Mitra Projekgo Anti Ribet!",
                     desc: "Langsung daftar dengan menghubungi admin resmi kami sekarang juga!"
                 },
@@ -8090,6 +8120,54 @@
         // Jalankan pemasangan Skeleton terlebih dahulu, baru load data
         showSkeletons();
         loadData();
+
+        // --- FITUR AUTO HIDE NAVBAR SAAT SCROLL ---
+        let lastScrollY = window.scrollY;
+        let scrollTimer = null;
+        
+        window.addEventListener('scroll', () => {
+            const currentScrollY = window.scrollY;
+            const navContainer = document.querySelector('.bottom-nav-container');
+            const floatCart = document.getElementById('floating-cart-banner');
+            
+            // TAMBAHAN: Tangkap elemen search bar Beranda & Food
+            const homeSearch = document.getElementById('sticky-search-wrapper');
+            const foodSearch = document.getElementById('food-sticky-search-wrapper');
+            
+            // Hapus timer jika user masih terus scroll
+            if(scrollTimer !== null) clearTimeout(scrollTimer);
+            
+            if (currentScrollY > lastScrollY && currentScrollY > 50) {
+                // User scroll ke bawah: Sembunyikan Navbar & Cart Banner ke bawah layar (+ Y)
+                if (navContainer) navContainer.style.transform = 'translateY(150%)';
+                if (floatCart) floatCart.style.transform = 'translateY(250%)';
+                
+                // TAMBAHAN: Sembunyikan Search bar ke atas layar (- Y) khusus di halamannya
+                if (homeSearch && currentPage === 'home') homeSearch.style.transform = 'translateY(-150%)';
+                if (foodSearch && currentPage === 'food') foodSearch.style.transform = 'translateY(-150%)';
+            } else {
+                // User scroll ke atas: Munculkan kembali dengan halus
+                if (navContainer) navContainer.style.transform = 'translateY(0)';
+                if (floatCart) floatCart.style.transform = 'translateY(0)';
+                
+                // TAMBAHAN: Munculkan Search bar kembali
+                if (homeSearch) homeSearch.style.transform = 'translateY(0)';
+                if (foodSearch) foodSearch.style.transform = 'translateY(0)';
+            }
+            
+            lastScrollY = currentScrollY;
+            
+            // Atur timer, jika selama 500ms tidak ada aktivitas scroll (berhenti), maka munculkan semua
+            scrollTimer = setTimeout(() => {
+                if (navContainer) navContainer.style.transform = 'translateY(0)';
+                if (floatCart) floatCart.style.transform = 'translateY(0)';
+                
+                // TAMBAHAN: Munculkan Search bar kembali jika berhenti scroll
+                if (homeSearch) homeSearch.style.transform = 'translateY(0)';
+                if (foodSearch) foodSearch.style.transform = 'translateY(0)';
+            }, 500);
+        }, { passive: true });
+        // ------------------------------------------
 
     </script>
 </body>
