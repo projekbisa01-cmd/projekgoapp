@@ -4649,72 +4649,121 @@
             const container = document.getElementById('cp-items-container');
             container.innerHTML = '';
             
-            const consolidated = [];
-            let total = 0;
-            
-            cart.forEach(item => {
-                const key = item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase();
-                const existing = consolidated.find(i => i._key === key);
-                if (existing) {
-                    existing.qty++;
-                    existing.totalPrice += item.harga;
-                } else {
-                    consolidated.push({ ...item, _key: key, qty: 1, totalPrice: item.harga });
-                }
-                total += item.harga;
-            });
-
-            if (consolidated.length === 0) {
+            if (cart.length === 0) {
                 closeCartPopup();
                 return;
             }
 
-            consolidated.forEach(item => {
-                const varText = (item.variant && item.variant !== '-') ? `• Varian: ${item.variant}` : '';
-                const noteText = (item.note) ? `• Catatan: ${item.note}` : '';
-                
-                const div = document.createElement('div');
-                div.className = 'cp-item';
-                div.innerHTML = `
-                    <div class="cp-item-info">
-                        <div class="cp-item-name">${item.nama}</div>
-                        <div class="cp-item-meta">${item.vendor} ${varText} ${noteText}</div>
-                        <div class="cp-item-price">Rp ${(item.totalPrice).toLocaleString()}</div>
-                    </div>
-                    <div class="cp-qty-box">
-                        <div class="cp-btn-qty" onclick="updatePopupQty('${item._key}', -1)">-</div>
-                        <div class="cp-qty-val">${item.qty}</div>
-                        <div class="cp-btn-qty" onclick="updatePopupQty('${item._key}', 1)">+</div>
-                    </div>
-                    <i class="ph-bold ph-trash cp-btn-del" onclick="removeAllPopupItem('${item._key}')"></i>
-                `;
-                container.appendChild(div);
+            // Kelompokkan item berdasarkan warung (vendor)
+            const grouped = {};
+            let total = 0;
+            
+            cart.forEach(item => {
+                if(!grouped[item.vendor]) grouped[item.vendor] = [];
+                grouped[item.vendor].push(item);
+                total += item.harga;
             });
+
+            const vendorNames = Object.keys(grouped);
+            const numVendors = vendorNames.length;
+
+            // Render setiap warung beserta item-itemnya
+            vendorNames.forEach((vendor, index) => {
+                const items = grouped[vendor];
+                const consolidatedItems = [];
+                
+                items.forEach(item => {
+                    const key = item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase();
+                    const existing = consolidatedItems.find(i => i._key === key);
+                    if (existing) {
+                        existing.qty++;
+                        existing.totalPrice += item.harga;
+                    } else {
+                        consolidatedItems.push({ ...item, _key: key, qty: 1, totalPrice: item.harga });
+                    }
+                });
+
+                const vendorGroupDiv = document.createElement('div');
+                // Garis pemisah jika ada lebih dari 1 warung dan bukan warung terakhir
+                if (index < numVendors - 1) {
+                    vendorGroupDiv.style.borderBottom = "1px solid #f0f0f0";
+                    vendorGroupDiv.style.paddingBottom = "15px";
+                    vendorGroupDiv.style.marginBottom = "15px";
+                } else {
+                    vendorGroupDiv.style.marginBottom = "5px";
+                }
+
+                // Header Nama Warung (Icon Orange)
+                let html = `
+                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:15px;">
+                        <i class="ph-fill ph-storefront" style="color:#FF6600; font-size:18px;"></i>
+                        <span style="font-size:12px; color:#888; font-weight:500;">${vendor}</span>
+                    </div>
+                `;
+
+                // List Menu di bawah warung tersebut
+                consolidatedItems.forEach(item => {
+                    const varText = (item.variant && item.variant !== '-') ? `<div style="font-size:11px; color:#888; margin-top:2px;">${item.variant}</div>` : '';
+                    const noteText = (item.note) ? `<div style="font-size:11px; color:#888; margin-top:2px;">Catatan: ${item.note}</div>` : '';
+                    
+                    html += `
+                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px;">
+                            <div style="flex:1; padding-right:10px;">
+                                <div style="font-weight:700; font-size:14px; color:var(--dark); line-height:1.3;">${item.nama}</div>
+                                <div style="font-weight:800; font-size:13px; color:var(--dark); margin-top:4px;">Rp ${(item.totalPrice).toLocaleString('id-ID')}</div>
+                                ${varText}
+                                ${noteText}
+                            </div>
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div class="cp-qty-box" style="background:transparent; padding:0; display:flex; align-items:center; gap:8px;">
+                                    <div class="cp-btn-qty" onclick="updatePopupQty('${item._key}', -1)" style="width:26px; height:26px; background:#f9f9f9; border:1px solid #eee; border-radius:6px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#333; font-weight:700;">-</div>
+                                    <div class="cp-qty-val" style="font-size:13px; font-weight:700; min-width:16px; text-align:center;">${item.qty}</div>
+                                    <div class="cp-btn-qty" onclick="updatePopupQty('${item._key}', 1)" style="width:26px; height:26px; background:#f9f9f9; border:1px solid #eee; border-radius:6px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#333; font-weight:700;">+</div>
+                                </div>
+                                <i class="ph-bold ph-trash" style="color:#FF5252; font-size:20px; cursor:pointer;" onclick="removeAllPopupItem('${item._key}')"></i>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                vendorGroupDiv.innerHTML = html;
+                container.appendChild(vendorGroupDiv);
+            });
+
+            // Notifikasi tambahan jika warung berbeda
+            if (numVendors > 1) {
+                const warningDiv = document.createElement('div');
+                warningDiv.style.cssText = "font-size:11px; color:#00C853; font-style:italic; line-height:1.4; margin-top:5px; margin-bottom:15px;";
+                warningDiv.innerText = "Tambahan Ongkir diberlakukan Karena ada warung yang berbeda,dengan tambahan 3.000 per warung";
+                container.appendChild(warningDiv);
+            }
             
             let serviceFee = orderMode === 'dine_in' ? 1000 : 0;
             let finalTotal = total + serviceFee;
             
             if (serviceFee > 0) {
                 const serviceDiv = document.createElement('div');
-                serviceDiv.className = 'cp-item';
-                serviceDiv.style.borderBottom = 'none';
-                serviceDiv.style.paddingBottom = '0';
+                serviceDiv.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding-top:10px; border-top:1px dashed #f0f0f0;";
                 serviceDiv.innerHTML = `
-                    <div class="cp-item-info">
-                        <div class="cp-item-name" style="color:var(--primary);"><i class="ph-fill ph-receipt"></i> Biaya Layanan Platform</div>
-                    </div>
-                    <div class="cp-item-price" style="font-weight:800; color:var(--dark);">Rp ${serviceFee.toLocaleString()}</div>
+                    <div style="color:var(--primary); font-size:13px; font-weight:700;"><i class="ph-fill ph-receipt"></i> Biaya Layanan Platform</div>
+                    <div style="font-weight:800; color:var(--dark); font-size:13px;">Rp ${serviceFee.toLocaleString('id-ID')}</div>
                 `;
                 container.appendChild(serviceDiv);
             }
             
-            document.getElementById('cp-total-price').innerText = "Rp " + finalTotal.toLocaleString();
+            // Ubah teks "Total Estimasi" menjadi "Total Estimasi Harga Makanan" via JS
+            const totalLabels = document.querySelectorAll('.cp-total-row span');
+            if (totalLabels.length > 0) {
+                totalLabels[0].innerText = "Total Estimasi Harga Makanan";
+            }
+            
+            document.getElementById('cp-total-price').innerText = "Rp " + finalTotal.toLocaleString('id-ID');
 
             const savings = Math.ceil(total * 1.2) - total;
             const savingsBadge = document.getElementById('cp-savings-badge');
             if (savingsBadge) {
                 if (savings > 0) {
-                    savingsBadge.innerHTML = `<i class="ph-fill ph-check-circle" style="font-size:16px;"></i> Anda lebih hemat Rp ${savings.toLocaleString()}`;
+                    savingsBadge.innerHTML = `<i class="ph-fill ph-check-circle" style="font-size:16px;"></i> Anda lebih hemat Rp ${savings.toLocaleString('id-ID')}`;
                     savingsBadge.style.display = 'flex';
                 } else {
                     savingsBadge.style.display = 'none';
@@ -4837,7 +4886,16 @@
                 }
                 // -----------------------------------------------------------------------------------
                 
-                html += `<div class="cart-section" style="padding-bottom: 15px; margin-bottom: 0;"><div class="cart-vendor-group" style="border:none; margin-bottom:0; padding-bottom:0;"><div class="cv-title"><i class="ph-fill ph-storefront"></i> ${vendor}</div>${consolidatedItems.map((item) => { 
+                // 1. PERUBAHAN UI HEADER VENDOR (Garis bawah orange & Ikon Orange)
+                html += `<div class="cart-section" style="padding-bottom: 15px; margin-bottom: 0;">
+                <div class="cart-vendor-group" style="border:none; margin-bottom:0; padding-bottom:0;">
+                    <div class="cv-title" style="display: inline-flex; align-items: center; gap: 8px; border-bottom: 2px solid #FF6600; padding-bottom: 4px; margin-bottom: 15px;">
+                        <i class="ph-fill ph-storefront" style="color: #FF6600; font-size: 22px;"></i> 
+                        <span style="font-weight: 900; font-size: 16px; text-transform: uppercase;">${vendor}</span>
+                    </div>`;
+
+                // 2. PERUBAHAN UI LIST MENU (Minimalis, Padat, Hemat Ruang)
+                html += consolidatedItems.map((item) => { 
                     let metaText = ""; 
                     if(item.variant && item.variant !== '-') { metaText += item.variant; } 
                     if(item.note) { metaText += (metaText ? ` (${item.note})` : `Catatan: ${item.note}`); }
@@ -4847,35 +4905,36 @@
                     const itemPricePerUnit = item.totalItemPrice / item.qty;
                     
                     return `
-                    <div style="display: flex; flex-direction: column; padding: 15px 0; border-bottom: 1px solid #eee;">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-                            <div style="flex: 1; padding-right: 15px;">
-                                <div style="font-weight: 700; font-size: 15px; color: #333; margin-bottom: 4px; line-height: 1.3;">${item.nama}</div>
-                                <div style="font-size: 14px; color: #666;">${itemPricePerUnit.toLocaleString('id-ID')}</div>
+                    <div style="display: flex; gap: 15px; padding: 12px 0; border-bottom: 1px dashed #eee;">
+                        <img src="${imgUrl}" style="width: 70px; height: 70px; border-radius: 8px; object-fit: cover; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;" onerror="this.src='${FALLBACK_MENU_IMG}'">
+                        <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between; padding: 2px 0;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                                <div style="font-weight: 700; font-size: 14px; color: #333; line-height: 1.2;">${item.nama}</div>
+                                <div style="font-size: 13px; color: #888; white-space: nowrap; margin-left: 10px;">${itemPricePerUnit.toLocaleString('id-ID')}</div>
                             </div>
-                            <img src="${imgUrl}" style="width: 70px; height: 70px; border-radius: 12px; object-fit: cover; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" onerror="this.src='${FALLBACK_MENU_IMG}'">
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <button onclick="promptNote('${item._key}')" style="background: white; border: 1px solid #e0e0e0; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; color: #333; display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                                <i class="ph-bold ph-pencil-simple" style="font-size:14px;"></i> Catatan
-                            </button>
-                            
-                            <div style="display: flex; align-items: center; gap: 14px;">
-                                <div onclick="updateCartItemQty('${item._key}', -1)" style="width: 26px; height: 26px; border: 1.5px solid #2E7D32; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #2E7D32; font-weight: bold; cursor: pointer; user-select: none;">-</div>
-                                <span style="font-size: 14px; font-weight: 700; color: #333; min-width: 14px; text-align: center;">${item.qty}</span>
-                                <div onclick="updateCartItemQty('${item._key}', 1)" style="width: 26px; height: 26px; border: 1.5px solid #2E7D32; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #2E7D32; font-weight: bold; cursor: pointer; user-select: none;">+</div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div onclick="updateCartItemQty('${item._key}', -1)" style="width: 24px; height: 24px; border: 1.5px solid #4CAF50; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #4CAF50; font-weight: bold; cursor: pointer; user-select: none;">-</div>
+                                    <span style="font-size: 14px; font-weight: 700; color: #333; min-width: 14px; text-align: center;">${item.qty}</span>
+                                    <div onclick="updateCartItemQty('${item._key}', 1)" style="width: 24px; height: 24px; border: 1.5px solid #4CAF50; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #4CAF50; font-weight: bold; cursor: pointer; user-select: none;">+</div>
+                                </div>
+                                <button onclick="promptNote('${item._key}')" style="background: white; border: 1px solid #ddd; padding: 4px 12px; border-radius: 15px; font-size: 11px; font-weight: 600; color: #555; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                    <i class="ph-bold ph-pencil-simple"></i> Catatan
+                                </button>
                             </div>
+                            ${metaText ? `<div style="font-size:10px; color:#888; margin-top:6px; font-style:italic;">${metaText}</div>` : ''}
                         </div>
-                        ${metaText ? `<div style="font-size:11px; color:#888; margin-top:10px; background:#f9f9f9; padding:8px; border-radius:8px;">${metaText}</div>` : ''}
                     </div>`; 
-                }).join('')}
+                }).join('');
                 
+                // Bagian "Ada lagi yang mau dibeli?"
+                html += `
                 <div style="display:flex; justify-content:space-between; align-items:center; padding-top:15px; margin-top:5px;">
                     <div>
-                        <div style="font-weight:700; font-size:14px; color:var(--dark); margin-bottom: 2px;">Ada lagi yang mau dibeli?</div>
-                        <div style="font-size:12px; color:#666;">Masih bisa nambah menu lain, ya.</div>
+                        <div style="font-weight:700; font-size:13px; color:var(--dark); margin-bottom: 2px;">Ada lagi yang mau dibeli?</div>
+                        <div style="font-size:11px; color:#888;">Masih bisa nambah menu lain, ya.</div>
                     </div>
-                    <button onclick="openVendorPage('${targetVendorId}')" style="background:white; color:#2E7D32; border:1px solid #2E7D32; padding:6px 16px; border-radius:20px; font-weight:700; font-size:12px; cursor:pointer;">Tambah</button>
+                    <button onclick="openVendorPage('${targetVendorId}')" style="background:white; color:#FF6600; border:1px solid #FF6600; padding:6px 18px; border-radius:15px; font-weight:700; font-size:12px; cursor:pointer;">Tambah</button>
                 </div>
                 
                 </div></div>`;
@@ -4968,11 +5027,12 @@
 
             let deliveryOptionsHtml = '';
             if (orderMode !== 'dine_in') {
+                // 3. PERUBAHAN UI DROPDOWN ONGKIR (Meringkas opsi standar & hemat)
                 deliveryOptionsHtml = `
                 <div class="cart-section" style="padding: 0 20px 20px 20px; margin-bottom: 0;">
                     <!-- Option 1: Hemat Express (Active) -->
-                    <div style="border-bottom: 1px solid #f0f0f0; padding: 15px 0 10px 0; position: relative;">
-                        <!-- Badge Hemat (Diubah ke Rekomendasi Projekgo) -->
+                    <div style="border-bottom: 1px solid #f0f0f0; padding: 15px 0 10px 0; position: relative; cursor: pointer;" onclick="const opts = document.getElementById('other-delivery-options'); const arrow = document.getElementById('deliv-arrow'); if(opts.style.display === 'none'){ opts.style.display = 'block'; arrow.style.transform = 'rotate(180deg)'; } else { opts.style.display = 'none'; arrow.style.transform = 'rotate(0deg)'; }">
+                        <!-- Badge Hemat -->
                         <div style="position: absolute; top: 0px; left: 0; background: #FF6600; color: white; font-size: 9px; font-weight: 800; padding: 2px 8px; border-radius: 4px; z-index: 2;">Rekomendasi Projekgo</div>
                         
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
@@ -4989,34 +5049,38 @@
                                 </div>
                             </div>
                         </div>
-                        <div style="font-size: 10px; color: #4CAF50; font-style: italic; margin-top: 6px; line-height: 1.4; padding-right: 15px;">
-                            Semua pengantaran projekgo diantar prioritas,langsung diantar,1 rider 1 pelanggan, cepat,hemat dan tepat
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                            <div style="font-size: 10px; color: #4CAF50; font-style: italic; margin-top: 6px; line-height: 1.4; padding-right: 15px; flex: 1;">
+                                Semua pengantaran projekgo diantar prioritas,langsung diantar,1 rider 1 pelanggan, cepat,hemat dan tepat
+                            </div>
+                            <i id="deliv-arrow" class="ph-bold ph-caret-down" style="color: #aaa; transition: transform 0.2s; padding-bottom: 2px;"></i>
                         </div>
                     </div>
 
-                    <!-- Option 2: Reguler (Disabled) -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0; opacity: 0.5;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="font-weight: 700; font-size: 15px; color: var(--dark); text-decoration: line-through;">Reguler</span>
-                            <span style="background: #f5f5f5; color: #666; font-size: 10px; padding: 3px 8px; border-radius: 12px; font-weight: 600; text-decoration: line-through;">30-40 min</span>
+                    <!-- WRAPPER UNTUK OPSI LAIN (Hidden by Default) -->
+                    <div id="other-delivery-options" style="display: none; padding-top: 10px;">
+                        <!-- Option 2: Reguler (Disabled) -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0; opacity: 0.5;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-weight: 700; font-size: 15px; color: var(--dark); text-decoration: line-through;">Reguler</span>
+                                <span style="background: #f5f5f5; color: #666; font-size: 10px; padding: 3px 8px; border-radius: 12px; font-weight: 600; text-decoration: line-through;">30-40 min</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span id="ui-ongkir-coret-reguler" style="font-weight: 700; font-size: 14px; color: var(--dark); text-decoration: line-through;">...</span>
+                                <div style="width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #999; flex-shrink: 0;"></div>
+                            </div>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span id="ui-ongkir-coret-reguler" style="font-weight: 700; font-size: 14px; color: var(--dark); text-decoration: line-through;">...</span>
-                            <!-- Radio Inactive -->
-                            <div style="width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #999; flex-shrink: 0;"></div>
-                        </div>
-                    </div>
 
-                    <!-- Option 3: Hemat (Disabled - Ditambah estimasi waktu) -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; opacity: 0.5;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="font-weight: 700; font-size: 15px; color: var(--dark); text-decoration: line-through;">Hemat</span>
-                            <span style="background: #f5f5f5; color: #666; font-size: 10px; padding: 3px 8px; border-radius: 12px; font-weight: 600; text-decoration: line-through;">45-60 min</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span id="ui-ongkir-coret-hemat" style="font-weight: 700; font-size: 14px; color: var(--dark); text-decoration: line-through;">...</span>
-                            <!-- Radio Inactive -->
-                            <div style="width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #999; flex-shrink: 0;"></div>
+                        <!-- Option 3: Hemat (Disabled) -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; opacity: 0.5;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-weight: 700; font-size: 15px; color: var(--dark); text-decoration: line-through;">Hemat</span>
+                                <span style="background: #f5f5f5; color: #666; font-size: 10px; padding: 3px 8px; border-radius: 12px; font-weight: 600; text-decoration: line-through;">45-60 min</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span id="ui-ongkir-coret-hemat" style="font-weight: 700; font-size: 14px; color: var(--dark); text-decoration: line-through;">...</span>
+                                <div style="width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #999; flex-shrink: 0;"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -5040,7 +5104,7 @@
 
             let serviceFeeRow = serviceFee > 0 ? `<div class="cost-row" style="color:var(--primary); font-weight:700;"><span>Biaya Layanan Platform</span><span>Rp ${serviceFee.toLocaleString()}</span></div>` : `<div class="cost-row"><span>Biaya Aplikasi</span><span style="color:green;">Gratis (Rp 0)</span></div>`;
             
-            let extraVendorRow = (orderMode !== 'dine_in' && extraRestoFee > 0) ? `<div class="cost-row"><span>Tambahan ongkir pembelian di ${numVendors} warung berbeda</span><span>Rp ${extraRestoFee.toLocaleString('id-ID')}</span></div>` : '';
+            let extraVendorRow = (orderMode !== 'dine_in' && extraRestoFee > 0) ? `<div class="cost-row"><span>Tambahan pembelian di ${numVendors} warung berbeda</span><span>Rp ${extraRestoFee.toLocaleString('id-ID')}</span></div>` : '';
 
             // TAMBAHAN: padding-bottom ditambah di div cart-section terakhir agar isi tidak tertutup tombol sticky
             html += `${addressSectionHtml}
@@ -5082,7 +5146,7 @@
             </div>
             
             <!-- STICKY BUTTON CONTAINER -->
-            <div style="position: fixed; bottom: 0; left: 0; right: 0; max-width: var(--max-width); margin: 0 auto; background: white; padding: 15px 20px; box-shadow: 0 -4px 15px rgba(0,0,0,0.05); z-index: 2000; border-top-left-radius: 20px; border-top-right-radius: 20px; padding-bottom: max(15px, env(safe-area-inset-bottom));">
+            <div style="position: fixed; bottom: 0; left: 0; right: 0; max-width: var(--max-width); margin: 0 auto; background: white; padding: 15px 20px; box-shadow: 0 -4px 15px rgba(0,0,0,0.05); z-index: 2000; border-top-left-radius: 20px; border-top-right-radius: 20px; padding-bottom: max(15px, env(safe-area-bottom));">
                 <button onclick="processCheckout()" style="width:100%; background:#25D366; color:white; padding:15px; border:none; border-radius:14px; font-weight:800; font-size:16px; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: transform 0.2s;" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform='scale(1)'">
                     Pesan Dan Kami Antar Sekarang <i class="ph-bold ph-whatsapp-logo" style="font-size: 20px;"></i>
                 </button>
