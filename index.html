@@ -2874,7 +2874,7 @@
         });
 
         // DATA STORE
-        let rawProducts = [], allProducts = [], allVendors = [], allReviews = [], allMainCategories = [], cart = [], favorites = JSON.parse(localStorage.getItem('favs')) || [];
+        let rawProducts = [], allProducts = [], allVendors = [], allReviews = [], allMainCategories = [], cart = JSON.parse(localStorage.getItem('projekgo_cart')) || [], favorites = JSON.parse(localStorage.getItem('favs')) || [];
         let currentDetailProduct = null, currentServiceType = "", pendingVariantItem = null, selectedVariantValue = null, currentReviewOrderId = null;
         let currentVendorIdForReviews = null; 
         
@@ -4517,6 +4517,10 @@
         function addToCartDirect(item, variant, note, variantPrice = 0) { 
             const finalPrice = parseInt(item.harga) + parseInt(variantPrice);
             cart.push({ id: item.id, nama: item.nama_menu, harga: finalPrice, vendor: item.vendor_name || "Warung Projekgo", variant: variant, note: note }); 
+            
+            // --- TAMBAHAN: Simpan ke cache lokal setiap kali ditambah ---
+            localStorage.setItem('projekgo_cart', JSON.stringify(cart)); 
+            
             updateCartBadge(); 
             if(navigator.vibrate) navigator.vibrate(50); 
             showToast("Berhasil ditambahkan!"); 
@@ -4737,6 +4741,9 @@
                 }
             }
             
+            // --- TAMBAHAN: Update cache saat qty diubah di popup ---
+            localStorage.setItem('projekgo_cart', JSON.stringify(cart));
+            
             updateCartBadge();
             if (cart.length === 0) {
                 closeCartPopup();
@@ -4750,6 +4757,10 @@
                 const itemKey = item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase();
                 return itemKey !== key;
             });
+            
+            // --- TAMBAHAN: Update cache saat item dihapus di popup ---
+            localStorage.setItem('projekgo_cart', JSON.stringify(cart));
+            
             updateCartBadge();
             if (cart.length === 0) {
                 closeCartPopup();
@@ -5029,7 +5040,7 @@
 
             let serviceFeeRow = serviceFee > 0 ? `<div class="cost-row" style="color:var(--primary); font-weight:700;"><span>Biaya Layanan Platform</span><span>Rp ${serviceFee.toLocaleString()}</span></div>` : `<div class="cost-row"><span>Biaya Aplikasi</span><span style="color:green;">Gratis (Rp 0)</span></div>`;
             
-            let extraVendorRow = (orderMode !== 'dine_in' && extraRestoFee > 0) ? `<div class="cost-row"><span>Tambahan ongkir karena pembelian di ${numVendors} warung berbeda</span><span>Rp ${extraRestoFee.toLocaleString('id-ID')}</span></div>` : '';
+            let extraVendorRow = (orderMode !== 'dine_in' && extraRestoFee > 0) ? `<div class="cost-row"><span>Tambahan ongkir pembelian di ${numVendors} warung berbeda</span><span>Rp ${extraRestoFee.toLocaleString('id-ID')}</span></div>` : '';
 
             // TAMBAHAN: padding-bottom ditambah di div cart-section terakhir agar isi tidak tertutup tombol sticky
             html += `${addressSectionHtml}
@@ -5044,6 +5055,29 @@
         
                 <div class="cost-row total"><span>Total Pembayaran</span><span id="checkout-final-total" style="font-size:16px;">Rp ${finalTotal.toLocaleString()}</span></div>
                 <div class="cost-row saved"><i class="ph-fill ph-check-circle"></i> &nbsp; Anda lebih hemat Rp ${savings.toLocaleString()}</div>
+                
+                <!-- TAMBAHAN: INFO METODE PEMBAYARAN & QRIS -->
+                <div style="background:#f0f9ff; padding:15px; border-radius:12px; margin-top:15px; border:1px solid #bbdefb;">
+                    <div style="font-weight:800; color:#0d47a1; font-size:14px; margin-bottom:5px; display:flex; align-items:center; gap:6px;">
+                        <i class="ph-fill ph-wallet"></i> Info Pembayaran
+                    </div>
+                    <div style="font-size:12px; color:#1565c0; line-height:1.5; margin-bottom:12px; font-weight:500;">
+                        Kamu bisa bayar <b>TUNAI</b> ke rider saat pesanan sampai, atau <b>TRANSFER</b> via QRIS.
+                    </div>
+                    <button onclick="const qc = document.getElementById('qris-container'); qc.style.display = qc.style.display === 'none' ? 'block' : 'none';" style="background:white; color:#0d47a1; border:1px solid #1e88e5; padding:10px; border-radius:10px; font-weight:800; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; width:100%; box-shadow:0 2px 5px rgba(30,136,229,0.1);">
+                        <i class="ph-bold ph-qr-code" style="font-size:16px;"></i> Tampilkan QRIS Projekgo
+                    </button>
+                    <div id="qris-container" style="display:none; margin-top:15px; text-align:center; padding-top:15px; border-top:1px dashed #bbdefb;">
+                        <img src="https://i.ibb.co.com/Q38N4DB5/QRIS-5.jpg" style="width:100%; max-width:200px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.1); margin-bottom:12px;">
+                        <br>
+                        <a href="https://i.ibb.co.com/Q38N4DB5/QRIS-5.jpg" target="_blank" download="QRIS_Projekgo.jpg" style="background:#1e88e5; color:white; padding:10px 16px; border-radius:10px; font-weight:800; font-size:12px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; box-shadow:0 4px 10px rgba(30,136,229,0.3);">
+                            <i class="ph-bold ph-download-simple"></i> Download / Buka QRIS
+                        </a>
+                        <div style="font-size:10px; color:#1565c0; margin-top:8px; font-style:italic;">Bila transfer, kirim buktinya ke Admin via WhatsApp ya!</div>
+                    </div>
+                </div>
+                <!-- END INFO METODE PEMBAYARAN -->
+
                 ${deliveryCostHtml}
             </div>
             
@@ -5828,6 +5862,10 @@
                 });
                 if (item) cart.push({...item}); 
             }
+            
+            // --- TAMBAHAN: Update cache saat qty diubah di halaman keranjang utama ---
+            localStorage.setItem('projekgo_cart', JSON.stringify(cart));
+            
             updateCartBadge();
             renderCartPage(); 
         }
@@ -5863,6 +5901,9 @@
                  const itemKey = cartItem.id + '|' + cartItem.variant + '|' + (cartItem.note || '').trim().toLowerCase();
                  if(itemKey === currentEditingNoteKey) cartItem.note = newNote;
             });
+            
+            // --- TAMBAHAN: Update cache saat catatan diubah ---
+            localStorage.setItem('projekgo_cart', JSON.stringify(cart));
             
             renderCartPage();
             closeNoteModal();
