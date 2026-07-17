@@ -1700,7 +1700,42 @@
 
         <!-- KONTAINER AKSES CEPAT LAYANAN LAINNYA (DIUBAH JADI GRID 2 BARIS SCROLL) -->
         <div id="akses-cepat-layanan-lainnya" style="background: var(--bg); border-top-left-radius: 20px; border-top-right-radius: 20px; margin-top: -20px; position: relative; z-index: 5; padding: 25px 0 15px 0;">
-            
+
+            <!-- TAMBAHAN: 3 Kartu Menu Cepat Atas Kategori Layanan -->
+            <div style="display: flex; justify-content: center; gap: 10px; padding: 0 20px 20px 20px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;">
+                
+                <!-- Card 1: Simpan Nomer -->
+                <a href="https://wa.me/62882008667068" target="_blank" style="text-decoration: none; display: flex; align-items: center; gap: 8px; background: white; border: 1px solid #DCE775; border-radius: 8px; padding: 8px 12px; flex: 0 0 auto; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                    <div style="font-size: 26px; color: #444; display: flex; align-items: center; justify-content: center;"><i class="ph ph-whatsapp-logo"></i></div>
+                    <div style="display: flex; flex-direction: column; line-height: 1.1;">
+                        <span style="font-size: 11px; color: #777; font-style: italic;">simpan</span>
+                        <span style="font-size: 11px; color: #333; font-style: italic; font-weight: 800;">Nomer Admin</span>
+                    </div>
+                </a>
+
+                <!-- Card 2: Katalog WA -->
+                <a href="https://wa.me/c/62882008667068" target="_blank" style="text-decoration: none; display: flex; align-items: center; gap: 8px; background: white; border: 1px solid #DCE775; border-radius: 8px; padding: 8px 12px; flex: 0 0 auto; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                    <div style="font-size: 26px; color: #444; display: flex; align-items: center; justify-content: center;"><i class="ph ph-notebook"></i></div>
+                    <div style="display: flex; flex-direction: column; line-height: 1.1;">
+                        <span style="font-size: 11px; color: #777; font-style: italic;">katalog</span>
+                        <span style="font-size: 11px; color: #333; font-style: italic; font-weight: 800;">WHATSAPP</span>
+                    </div>
+                </a>
+
+                <!-- Card 3: Saran Masukan -->
+                <div onclick="openAdminModal()" style="cursor: pointer; display: flex; align-items: center; gap: 8px; background: white; border: 1px solid #DCE775; border-radius: 8px; padding: 8px 12px; flex: 0 0 auto; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                    <div style="font-size: 26px; color: #444; display: flex; align-items: center; justify-content: center; position: relative;">
+                        <i class="ph ph-lightbulb"></i>
+                        <div style="position: absolute; width: 12px; height: 12px; background: #FFF59D; border-radius: 50%; z-index: -1; top: 4px; right: 2px;"></div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; line-height: 1.1;">
+                        <span style="font-size: 11px; color: #777; font-style: italic;">saran dan</span>
+                        <span style="font-size: 11px; color: #333; font-style: italic; font-weight: 800;">masukan</span>
+                    </div>
+                </div>
+
+            </div>
+
             <!-- TAMBAHAN: Judul Kategori layanan -->
             <h3 style="font-size: 18px; font-weight: 800; color: #222; margin: 0 20px 10px 20px; font-family: 'Plus Jakarta Sans', sans-serif;">Kategori layanan</h3>
 
@@ -5158,11 +5193,16 @@
                 <div class="cost-row"><span>Projekgo tidak menaikan harga </span><span style="text-decoration:line-through;">Rp ${fakeOriginalTotal.toLocaleString()}</span></div>
                 <div class="cost-row"><span>Subtotal Makanan (harga asli penjual)</span><span>Rp ${subTotal.toLocaleString()}</span></div>
                 ${serviceFeeRow}
-                <div class="cost-row"><span>Ongkir EXPRESS tetap HEMAT</span><span id="checkout-ongkir-text">Menghitung...</span></div>
+                <div class="cost-row"><span>Pengantaran Express</span><span id="checkout-ongkir-text">Menghitung...</span></div>
                 ${extraVendorRow}
         
                 <div class="cost-row total"><span>Total Pembayaran</span><span id="checkout-final-total" style="font-size:16px;">Rp ${finalTotal.toLocaleString()}</span></div>
-                <div class="cost-row saved"><i class="ph-fill ph-check-circle"></i> &nbsp; Anda lebih hemat Rp ${savings.toLocaleString()}</div>
+                
+                <div id="checkout-savings-container" style="display:flex; flex-direction:column; gap:6px; margin-top:10px;">
+                    <div class="cost-row saved" style="margin-top:0; border: 1px solid #C8E6C9;"><i class="ph-fill ph-check-circle"></i> &nbsp; Anda lebih hemat Rp ${savings.toLocaleString('id-ID')}</div>
+                    <div class="cost-row saved" id="checkout-ongkir-saved" style="display:none; margin-top:0; border: 1px solid #C8E6C9;"><i class="ph-fill ph-check-circle"></i> &nbsp; Anda juga lebih hemat ongkir Rp 9.000</div>
+                    <div class="cost-row saved" id="checkout-total-saved" style="display:none; margin-top:0; border: 1px solid #4CAF50; color: #2E7D32; font-weight:800; background:#E8F5E9;"><i class="ph-fill ph-star"></i> &nbsp; Total penghematan kamu Rp ${savings.toLocaleString('id-ID')}</div>
+                </div>
                 
                 <!-- TAMBAHAN: INFO METODE PEMBAYARAN & QRIS -->
                 <div style="background:#f0f9ff; padding:15px; border-radius:12px; margin-top:15px; border:1px solid #bbdefb;">
@@ -5822,6 +5862,7 @@
                     return;
                 }
 
+                // distText sekarang disembunyikan sesuai permintaan
                 let distText = jarakTotalKm < 1 ? (jarakTotalKm * 1000).toFixed(0) + " m" : jarakTotalKm.toFixed(1) + " km";
 
                 // --- LANGKAH 4: Menentukan Tarif Dasar ---
@@ -5852,12 +5893,6 @@
                 }
 
                 window.checkoutOngkir = totalOngkir;
-                
-                // PEMBARUAN UI: Menampilkan ongkir dasar
-                const ongkirTextEl = document.getElementById('checkout-ongkir-text');
-                if (ongkirTextEl) {
-                    ongkirTextEl.innerHTML = "Rp " + totalOngkir.toLocaleString('id-ID') + ` <span style="font-size:10px; color:#888;">(${distText})</span>`;
-                }
 
                 // --- TAMBAHAN UPDATE UI MARKETING DELIVERY ---
                 const uiRealExpress = document.getElementById('ui-ongkir-real-express');
@@ -5865,20 +5900,25 @@
                 const uiCoretReguler = document.getElementById('ui-ongkir-coret-reguler');
                 const uiCoretHemat = document.getElementById('ui-ongkir-coret-hemat');
 
+                const fakeReguler = totalOngkir + 5000; // Harga Reguler normal
+                const fakeExpress = fakeReguler + 4000; // Harga Coret Express dibuat lebih besar dari Reguler
+                const fakeHemat = totalOngkir + 1000;   // Harga Hemat
+
                 if (uiRealExpress) {
                     // Update harga real yang dibayar pelanggan
                     uiRealExpress.innerText = totalOngkir.toLocaleString('id-ID');
                     
-                    // Buat harga coret fiktif (strategi marketing psikologis)
-                    const fakeReguler = totalOngkir + 5000; // Harga Reguler normal
-                    const fakeExpress = fakeReguler + 4000; // Harga Coret Express dibuat lebih besar dari Reguler
-                    const fakeHemat = totalOngkir + 1000;   // Harga Hemat
-
                     uiCoretExpress.innerText = fakeExpress.toLocaleString('id-ID');
                     if (uiCoretReguler) uiCoretReguler.innerText = fakeReguler.toLocaleString('id-ID');
                     if (uiCoretHemat) uiCoretHemat.innerText = fakeHemat.toLocaleString('id-ID');
                 }
                 // ----------------------------------------------
+                
+                // PEMBARUAN UI: Menampilkan ongkir dasar (Diubah sesuai instruksi: Jarak dihilangkan, diganti harga coret fakeExpress)
+                const ongkirTextEl = document.getElementById('checkout-ongkir-text');
+                if (ongkirTextEl) {
+                    ongkirTextEl.innerHTML = "Rp " + totalOngkir.toLocaleString('id-ID') + ` <span style="font-size:12px; color:#aaa; text-decoration:line-through; margin-left:6px;">Rp ${fakeExpress.toLocaleString('id-ID')}</span>`;
+                }
 
                 window.updateCheckoutTotal();
             };
@@ -5948,12 +5988,39 @@
             if (orderMode !== 'dine_in') {
                 finalTotal += extraRestoFee;
             }
+            
+            let ongkirSavings = 0;
+            
             if(window.checkoutLocMode === 'maps') {
                 finalTotal += window.checkoutOngkir;
+                // Berdasarkan perhitungan Express (Ongkir Normal = Total Ongkir + 9000 harga coret)
+                if (window.checkoutOngkir > 0) {
+                    ongkirSavings = 9000;
+                }
             }
             
             const totalEl = document.getElementById('checkout-final-total');
             if(totalEl) totalEl.innerText = "Rp " + finalTotal.toLocaleString('id-ID');
+            
+            // --- UPDATE PENGHEMATAN DINAMIS ---
+            const foodSavings = Math.ceil(subTotal * 1.2) - subTotal;
+            const totalSavings = foodSavings + ongkirSavings;
+            
+            const ongkirSavedEl = document.getElementById('checkout-ongkir-saved');
+            const totalSavedEl = document.getElementById('checkout-total-saved');
+            
+            if(ongkirSavedEl && totalSavedEl) {
+                if(ongkirSavings > 0) {
+                    ongkirSavedEl.innerHTML = `<i class="ph-fill ph-check-circle"></i> &nbsp; Anda juga lebih hemat ongkir Rp ${ongkirSavings.toLocaleString('id-ID')}`;
+                    ongkirSavedEl.style.display = 'flex';
+                    
+                    totalSavedEl.innerHTML = `<i class="ph-fill ph-star"></i> &nbsp; Total penghematan kamu Rp ${totalSavings.toLocaleString('id-ID')}`;
+                    totalSavedEl.style.display = 'flex';
+                } else {
+                    ongkirSavedEl.style.display = 'none';
+                    totalSavedEl.style.display = 'none';
+                }
+            }
         }
 
         window.updateCartItemQty = (key, change) => {
