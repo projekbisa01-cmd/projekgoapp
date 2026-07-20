@@ -3374,14 +3374,6 @@
                 return; // Stop disini, modal sudah tertutup tanpa pindah halaman
             }
 
-            // TAMBAHAN: Cek jika tombol Back HP ditekan saat modal detail produk terbuka
-            const productDetailModal = document.getElementById('product-detail-modal');
-            if (productDetailModal && productDetailModal.classList.contains('show')) {
-                productDetailModal.classList.remove('show');
-                setTimeout(() => { productDetailModal.style.display = 'none'; }, 300);
-                return; // Stop disini, modal sudah tertutup tanpa pindah halaman
-            }
-
             // 3. Normal page routing
             const dest = e.state && e.state.page ? e.state.page : 'home';
             currentPage = dest;
@@ -4483,9 +4475,6 @@
             modal.style.display = 'flex';
             modal.offsetHeight; // trigger reflow
             modal.classList.add('show');
-            
-            // Tambahkan history state agar tombol back HP bisa ditangkap
-            window.history.pushState({ isModal: true, name: 'productDetail' }, '', '');
         }
 
         // HELPER UNTUK MENGATUR STATE VARIAN GRUP YANG DIPILIH
@@ -4525,16 +4514,8 @@
 
         window.closeProductDetailModal = () => {
             const modal = document.getElementById('product-detail-modal');
-            if (modal.classList.contains('show')) {
-                modal.classList.remove('show');
-                setTimeout(() => { modal.style.display = 'none'; }, 300);
-                
-                // Kembalikan history jika ditutup manual agar histori browser tetap bersih
-                if (window.history.state && window.history.state.isModal) {
-                    window.isClosingPopup = true; 
-                    window.history.back();
-                }
-            }
+            modal.classList.remove('show');
+            setTimeout(() => { modal.style.display = 'none'; }, 300);
         }
 
         window.updateDetailPrice = (basePrice, variantPrice) => {
@@ -5217,11 +5198,10 @@
         
                 <div class="cost-row total"><span>Total Pembayaran</span><span id="checkout-final-total" style="font-size:16px;">Rp ${finalTotal.toLocaleString()}</span></div>
                 
-                <div id="checkout-savings-container" style="margin-top:10px;">
-                    <div class="cost-row saved" style="margin-top:0; border: 1px dashed #4CAF50; color: #2E7D32; font-weight:800; background:#E8F5E9; padding: 12px; display:flex; flex-direction:column; align-items:center; gap:4px; border-radius: 12px;">
-                        <div id="checkout-savings-main"><i class="ph-fill ph-star"></i> &nbsp; Total Penghematan: Rp ${savings.toLocaleString('id-ID')}</div>
-                        <div id="checkout-savings-detail" style="font-size:10px; font-weight:600; color:#4CAF50;">(Harga Asli Penjual)</div>
-                    </div>
+                <div id="checkout-savings-container" style="display:flex; flex-direction:column; gap:6px; margin-top:10px;">
+                    <div class="cost-row saved" style="margin-top:0; border: 1px solid #C8E6C9;"><i class="ph-fill ph-check-circle"></i> &nbsp; Anda lebih hemat Rp ${savings.toLocaleString('id-ID')}</div>
+                    <div class="cost-row saved" id="checkout-ongkir-saved" style="display:none; margin-top:0; border: 1px solid #C8E6C9;"><i class="ph-fill ph-check-circle"></i> &nbsp; Anda juga lebih hemat ongkir Rp 9.000</div>
+                    <div class="cost-row saved" id="checkout-total-saved" style="display:none; margin-top:0; border: 1px solid #4CAF50; color: #2E7D32; font-weight:800; background:#E8F5E9;"><i class="ph-fill ph-star"></i> &nbsp; Total penghematan kamu Rp ${savings.toLocaleString('id-ID')}</div>
                 </div>
                 
                 <!-- TAMBAHAN: INFO METODE PEMBAYARAN & QRIS -->
@@ -5279,50 +5259,196 @@
             }
         }
 
-        window.updateCheckoutTotal = () => {
-            let subTotal = 0;
-            const grouped = {};
-            cart.forEach(item => { if(!grouped[item.vendor]) grouped[item.vendor] = []; grouped[item.vendor].push(item); subTotal += item.harga; });
-            
-            let serviceFee = orderMode === 'dine_in' ? 1000 : 0;
-            
-            let numVendors = Object.keys(grouped).length;
-            let extraRestoFee = numVendors > 1 ? (numVendors - 1) * 3000 : 0;
+        // =========================================================================================
 
-            let finalTotal = subTotal + serviceFee;
-            if (orderMode !== 'dine_in') {
-                finalTotal += extraRestoFee;
-            }
+        // --- LOGIKA "PILIH PETA" DI HALAMAN KONFIRMASI PESANAN (CHECKOUT) ---
+        // =========================================================================================
+
+        window.toggleCheckoutLocMode = (mode) => {
+            window.checkoutLocMode = mode;
+            const tabMaps = document.getElementById('tab-checkout-maps');
+            const tabManual = document.getElementById('tab-checkout-manual');
+            const contMaps = document.getElementById('checkout-maps-container');
+            const contManual = document.getElementById('checkout-manual-container');
             
-            let ongkirSavings = 0;
-            
-            if(window.checkoutLocMode === 'maps') {
-                finalTotal += window.checkoutOngkir;
-                // Berdasarkan perhitungan Express (Ongkir Normal = Total Ongkir + 9000 harga coret)
-                if (window.checkoutOngkir > 0) {
-                    ongkirSavings = 9000;
-                }
-            }
-            
-            const totalEl = document.getElementById('checkout-final-total');
-            if(totalEl) totalEl.innerText = "Rp " + finalTotal.toLocaleString('id-ID');
-            
-            // --- UPDATE PENGHEMATAN DINAMIS ---
-            const foodSavings = Math.ceil(subTotal * 1.2) - subTotal;
-            const totalSavings = foodSavings + ongkirSavings;
-            
-            const mainSavedEl = document.getElementById('checkout-savings-main');
-            const detailSavedEl = document.getElementById('checkout-savings-detail');
-            
-            if(mainSavedEl && detailSavedEl) {
-                mainSavedEl.innerHTML = `<i class="ph-fill ph-star"></i> &nbsp; Total Penghematan: Rp ${totalSavings.toLocaleString('id-ID')}`;
+            if(mode === 'maps') {
+                tabMaps.style.background = 'white';
+                tabMaps.style.color = 'var(--primary)';
+                tabMaps.style.fontWeight = '800';
+                tabMaps.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
                 
-                if(ongkirSavings > 0) {
-                    detailSavedEl.innerHTML = `(Hemat Makanan Rp ${foodSavings.toLocaleString('id-ID')} + Ongkir Rp ${ongkirSavings.toLocaleString('id-ID')})`;
-                    detailSavedEl.style.display = 'block';
-                } else {
-                    detailSavedEl.innerHTML = `(Harga Asli Penjual, Hemat Rp ${foodSavings.toLocaleString('id-ID')})`;
-                    detailSavedEl.style.display = 'block';
+                tabManual.style.background = 'transparent';
+                tabManual.style.color = '#666';
+                tabManual.style.fontWeight = '700';
+                tabManual.style.boxShadow = 'none';
+                
+                contMaps.style.display = 'block';
+                contManual.style.display = 'none';
+                
+                if (window.checkoutDestPlace && window.checkoutDestPlace.geometry) {
+                    calculateCheckoutOngkir(window.checkoutDestPlace.geometry.location);
+                }
+            } else {
+                tabManual.style.background = 'white';
+                tabManual.style.color = 'var(--primary)';
+                tabManual.style.fontWeight = '800';
+                tabManual.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
+                
+                tabMaps.style.background = 'transparent';
+                tabMaps.style.color = '#666';
+                tabMaps.style.fontWeight = '700';
+                tabMaps.style.boxShadow = 'none';
+                
+                contMaps.style.display = 'none';
+                contManual.style.display = 'block';
+                
+                window.checkoutOngkir = 0;
+                const ongkirText = document.getElementById('checkout-ongkir-text');
+                if(ongkirText) ongkirText.innerText = "Dihitung manual oleh admin";
+                
+                // --- RESET UI MARKETING SAAT MODE MANUAL ---
+                const uiRealExpress = document.getElementById('ui-ongkir-real-express');
+                if (uiRealExpress) {
+                    uiRealExpress.innerText = "...";
+                    document.getElementById('ui-ongkir-coret-express').innerText = "...";
+                    document.getElementById('ui-ongkir-coret-reguler').innerText = "...";
+                    document.getElementById('ui-ongkir-coret-hemat').innerText = "...";
+                }
+                // -----------------------------------------
+
+                updateCheckoutTotal();
+            }
+        };
+
+        window.autoFetchCheckoutLocation = (fromModal = false) => {
+            const titleEl = document.getElementById('checkout-maps-search-title');
+            const descEl = document.getElementById('checkout-maps-search-desc');
+            
+            // EKSEKUSI LANGKAH 2: Panggil titik koordinat valid yang sudah diamankan di Langkah 1
+            const savedLat = localStorage.getItem('user_lat');
+            const savedLng = localStorage.getItem('user_lng');
+            const savedAddr = localStorage.getItem('user_address') || "Titik Lokasi GPS";
+
+            if (!fromModal && savedLat && savedLng) {
+                const lat = parseFloat(savedLat);
+                const lng = parseFloat(savedLng);
+                
+                if (titleEl) {
+                    titleEl.innerText = "Lokasi Saat Ini";
+                    descEl.innerText = savedAddr;
+                }
+                
+                // Suntikkan angka desimal mutlak (lat & lng) agar Maps tidak perlu menebak dari teks alamat
+                window.checkoutDestPlace = {
+                    geometry: { location: { lat: () => lat, lng: () => lng } },
+                    formatted_address: savedAddr,
+                    name: savedAddr
+                };
+                
+                const searchInput = document.getElementById('checkout-maps-search');
+                if (searchInput) searchInput.value = savedAddr;
+                
+                // Langsung hitung ongkir menggunakan koordinat mutlak
+                calculateCheckoutOngkir(window.checkoutDestPlace.geometry.location);
+                return;
+            }
+
+            if (navigator.geolocation) {
+                if (titleEl) {
+                    titleEl.innerText = "Melacak...";
+                    descEl.innerText = "Mengambil data GPS";
+                }
+                
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        const pos = { lat: lat, lng: lng };
+                        
+                        localStorage.setItem('user_lat', lat);
+                        localStorage.setItem('user_lng', lng);
+
+                        if (typeof google !== 'undefined' && google.maps) {
+                            const geocoder = new google.maps.Geocoder();
+                            geocoder.geocode({ location: pos }, (results, status) => {
+                                if (status === 'OK' && results[0]) {
+                                    const address = results[0].formatted_address;
+                                    localStorage.setItem('user_address', address);
+                                    
+                                    if(titleEl) {
+                                        titleEl.innerText = "Lokasi Saat Ini";
+                                        descEl.innerText = address;
+                                    }
+                                    
+                                    window.checkoutDestPlace = {
+                                        geometry: { location: pos },
+                                        formatted_address: address,
+                                        name: address
+                                    };
+                                    const searchInput = document.getElementById('checkout-maps-search');
+                                    if (searchInput) searchInput.value = address;
+                                    
+                                    calculateCheckoutOngkir(pos);
+                                } else {
+                                    // PENGAMAN: Jika teks alamat gagal dilacak, tetap pakai titik angkanya!
+                                    if(titleEl) {
+                                        titleEl.innerText = "Lokasi Saat Ini";
+                                        descEl.innerText = "Menggunakan Titik Koordinat";
+                                    }
+                                    window.checkoutDestPlace = {
+                                        geometry: { location: pos },
+                                        formatted_address: "Titik GPS Pengguna",
+                                        name: "Lokasi GPS"
+                                    };
+                                    calculateCheckoutOngkir(pos);
+                                }
+                            });
+                        } else {
+                            // PENGAMAN: Jika API Google Maps lambat, tetap amankan titik angkanya!
+                            if(titleEl) {
+                                titleEl.innerText = "Lokasi Saat Ini";
+                                descEl.innerText = "Menggunakan Titik Koordinat";
+                            }
+                            window.checkoutDestPlace = {
+                                geometry: { location: pos },
+                                formatted_address: "Titik GPS Pengguna",
+                                name: "Lokasi GPS"
+                            };
+                            calculateCheckoutOngkir(pos);
+                        }
+                        
+                        if (fromModal) {
+                            closeLocationSearchModal();
+                            if(window.showToast) window.showToast("Lokasi berhasil diperbarui! 📍");
+                        }
+                    },
+                    (error) => {
+                        console.error("GPS Error:", error);
+                        if(titleEl) {
+                            titleEl.innerText = "Pilih Lokasi Pengantaran";
+                            descEl.innerText = "Gagal melacak, ketuk untuk mencari";
+                        }
+                        if (fromModal && window.showToast) window.showToast("Gagal melacak! Aktifkan GPS/Lokasi perangkat.");
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            }
+        };
+
+        // --- EKSEKUSI LANGKAH 1: SESI TOKEN & AUTOCOMPLETE MANUAL ---
+        window.mapsAutocompleteService = null;
+        window.mapsPlacesService = null;
+        window.mapsSessionToken = null;
+
+        function initManualMapsServices() {
+            if (typeof google !== 'undefined' && google.maps && google.maps.places) {
+                if (!window.mapsAutocompleteService) window.mapsAutocompleteService = new google.maps.places.AutocompleteService();
+                // Buat Token Sesi Baru
+                if (!window.mapsSessionToken) window.mapsSessionToken = new google.maps.places.AutocompleteSessionToken();
+                // PlacesService butuh elemen HTML untuk inisialisasi
+                if (!window.mapsPlacesService) {
+                    const dummyDiv = document.createElement('div');
+                    window.mapsPlacesService = new google.maps.places.PlacesService(dummyDiv);
                 }
             }
         }
