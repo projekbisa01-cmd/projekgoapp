@@ -5336,10 +5336,8 @@
         
                 <div class="cost-row total"><span>Total Pembayaran</span><span id="checkout-final-total" style="font-size:16px;">Rp ${finalTotal.toLocaleString()}</span></div>
                 
-                <div id="checkout-savings-container" style="display:flex; flex-direction:column; gap:6px; margin-top:10px;">
-                    <div class="cost-row saved" style="margin-top:0; border: 1px solid #C8E6C9;"><i class="ph-fill ph-check-circle"></i> &nbsp; Anda lebih hemat Rp ${savings.toLocaleString('id-ID')}</div>
-                    <div class="cost-row saved" id="checkout-ongkir-saved" style="display:none; margin-top:0; border: 1px solid #C8E6C9;"><i class="ph-fill ph-check-circle"></i> &nbsp; Anda juga lebih hemat ongkir Rp 9.000</div>
-                    <div class="cost-row saved" id="checkout-total-saved" style="display:none; margin-top:0; border: 1px solid #4CAF50; color: #2E7D32; font-weight:800; background:#E8F5E9;"><i class="ph-fill ph-star"></i> &nbsp; Total penghematan kamu Rp ${savings.toLocaleString('id-ID')}</div>
+                <div id="checkout-savings-container" style="margin-top:15px;">
+                    <!-- Konten Penghematan Dinamis Dibuat oleh updateCheckoutTotal -->
                 </div>
                 
                 <!-- TAMBAHAN: INFO METODE PEMBAYARAN & QRIS -->
@@ -5395,6 +5393,9 @@
                 // Otomatis tarik lokasi saat ini untuk kalkulasi ongkir awal tanpa memuat peta
                 setTimeout(() => { window.autoFetchCheckoutLocation(); }, 100);
             }
+            
+            // Panggil updateCheckoutTotal untuk merender badge hemat pada saat pertama kali dimuat
+            window.updateCheckoutTotal();
         }
 
         // =========================================================================================
@@ -6140,23 +6141,33 @@
             const totalEl = document.getElementById('checkout-final-total');
             if(totalEl) totalEl.innerText = "Rp " + finalTotal.toLocaleString('id-ID');
             
-            // --- UPDATE PENGHEMATAN DINAMIS ---
+            // --- UPDATE PENGHEMATAN DINAMIS (JADIKAN 1 KONTAINER) ---
             const foodSavings = Math.ceil(subTotal * 1.2) - subTotal;
             const totalSavings = foodSavings + ongkirSavings;
             
-            const ongkirSavedEl = document.getElementById('checkout-ongkir-saved');
-            const totalSavedEl = document.getElementById('checkout-total-saved');
+            const savingsContainer = document.getElementById('checkout-savings-container');
             
-            if(ongkirSavedEl && totalSavedEl) {
-                if(ongkirSavings > 0) {
-                    ongkirSavedEl.innerHTML = `<i class="ph-fill ph-check-circle"></i> &nbsp; Anda juga lebih hemat ongkir Rp ${ongkirSavings.toLocaleString('id-ID')}`;
-                    ongkirSavedEl.style.display = 'flex';
+            if (savingsContainer) {
+                if (totalSavings > 0) {
+                    let html = `<div style="background:#E8F5E9; border: 1px dashed #4CAF50; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">`;
                     
-                    totalSavedEl.innerHTML = `<i class="ph-fill ph-star"></i> &nbsp; Total penghematan kamu Rp ${totalSavings.toLocaleString('id-ID')}`;
-                    totalSavedEl.style.display = 'flex';
+                    if (foodSavings > 0) {
+                        html += `<div style="display:flex; align-items:center; gap:6px; font-size:12px; color:#2E7D32;"><i class="ph-fill ph-check-circle"></i> Hemat harga makanan Rp ${foodSavings.toLocaleString('id-ID')}</div>`;
+                    }
+                    if (ongkirSavings > 0) {
+                        html += `<div style="display:flex; align-items:center; gap:6px; font-size:12px; color:#2E7D32;"><i class="ph-fill ph-check-circle"></i> Hemat ongkos kirim Rp ${ongkirSavings.toLocaleString('id-ID')}</div>`;
+                    }
+                    
+                    html += `<div style="border-top:1px dashed #A5D6A7; padding-top:8px; margin-top:4px; display:flex; align-items:center; justify-content:space-between; font-size:13px; font-weight:800; color:#1B5E20;">
+                        <span style="display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-star" style="color:#FFC107;"></i> Total Penghematan</span>
+                        <span>Rp ${totalSavings.toLocaleString('id-ID')}</span>
+                    </div></div>`;
+                    
+                    savingsContainer.innerHTML = html;
+                    savingsContainer.style.display = 'block';
                 } else {
-                    ongkirSavedEl.style.display = 'none';
-                    totalSavedEl.style.display = 'none';
+                    savingsContainer.style.display = 'none';
+                    savingsContainer.innerHTML = '';
                 }
             }
         }
