@@ -5711,6 +5711,20 @@
                 
                 initManualMapsServices(); // Aktifkan layanan manual
 
+                // --- TAMBAHAN UNTUK DETEKSI KEYBOARD & SESUAIKAN POSISI TOMBOL ---
+                if (window.visualViewport) {
+                    window.visualViewport.addEventListener('resize', function() {
+                        const wrapper = document.getElementById('btn-pakai-maps-wrapper');
+                        if (wrapper && modal.style.display === 'flex') {
+                            // Menghitung tinggi keyboard yang muncul
+                            const offset = window.innerHeight - window.visualViewport.height;
+                            // Mendorong tombol ke atas keyboard dengan tambahan jarak aman 30px
+                            wrapper.style.bottom = (offset + 30) + 'px';
+                        }
+                    });
+                }
+                // -----------------------------------------------------------------
+
                 const input = document.getElementById('loc-search-input');
                 if (input && !input.dataset.manualListener) {
                     input.dataset.manualListener = 'true'; // Penanda agar event listener tidak dobel
@@ -5844,6 +5858,7 @@
                     zoom: 16,
                     disableDefaultUI: true,
                     zoomControl: false,
+                    gestureHandling: 'greedy' // INI TAMBAHANNYA: Agar bisa geser 1 jari
                 });
                 
                 locPickerGeocoder = new google.maps.Geocoder();
@@ -7041,7 +7056,8 @@
                 zoomControl: true,
                 mapTypeControl: false,
                 streetViewControl: false,
-                fullscreenControl: true
+                fullscreenControl: true,
+                gestureHandling: 'greedy' // INI TAMBAHANNYA: Agar bisa geser 1 jari
             });
 
             serviceMarker = new google.maps.Marker({
