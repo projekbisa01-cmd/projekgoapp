@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulator Pembanding Ongkir</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .card-shadow {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="text-gray-800 p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold text-orange-600">Simulator Pembanding Ongkir</h1>
+            <p class="text-gray-500 mt-2">Bandingkan Logika Lama (Saat Ini) dengan Logika Baru</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <div class="col-span-1 bg-white p-6 rounded-2xl card-shadow h-fit sticky top-4">
+                <h2 class="text-xl font-bold mb-4 border-b pb-2">Parameter Input</h2>
+                
+                <div class="mb-5">
+                    <label class="block text-sm font-semibold mb-2 text-gray-700">Jarak Pengantaran (KM)</label>
+                    <input type="number" id="input_jarak" step="0.1" value="4.5" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 bg-gray-50" oninput="hitungOngkir()">
+                </div>
+
+                <div class="mb-5 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                    <h3 class="font-bold text-blue-800 mb-2 text-sm">Tarif Custom (Logika Baru)</h3>
+                    
+                    <label class="block text-xs font-semibold mb-1 text-gray-600 mt-3">Tarif / KM (Checkout Makanan)</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-3 text-gray-500">Rp</span>
+                        <input type="number" id="input_custom_co" value="2000" class="w-full p-2 pl-9 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 bg-white" oninput="hitungOngkir()">
+                    </div>
+
+                    <label class="block text-xs font-semibold mb-1 text-gray-600 mt-3">Tarif / KM (Ngojek)</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-3 text-gray-500">Rp</span>
+                        <input type="number" id="input_custom_oj" value="2000" class="w-full p-2 pl-9 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 bg-white" oninput="hitungOngkir()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-span-1 lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- LAYAR 1: LOGIKA LAMA -->
+                <div class="bg-white rounded-2xl card-shadow overflow-hidden border border-gray-200">
+                    <div class="bg-gray-700 text-white p-4 text-center">
+                        <h2 class="text-lg font-bold">Layar 1: Logika Saat Ini</h2>
+                        <p class="text-xs text-gray-300 font-medium">Algoritma di Canvas</p>
+                    </div>
+                    
+                    <div class="p-5">
+                        <!-- Checkout Lama -->
+                        <div class="mb-6">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold">🛒</div>
+                                <h3 class="font-bold text-gray-800">Checkout (Makanan)</h3>
+                            </div>
+                            <div class="text-3xl font-extrabold text-gray-900 mb-1" id="lama_co_price">Rp 0</div>
+                            <div class="text-xs text-gray-500 bg-gray-50 p-2 rounded-lg" id="lama_co_rumus">Rumus...</div>
+                        </div>
+
+                        <hr class="border-dashed mb-6">
+
+                        <!-- Ngojek Lama -->
+                        <div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600 font-bold">🛵</div>
+                                <h3 class="font-bold text-gray-800">Ngojek</h3>
+                            </div>
+                            <div class="text-3xl font-extrabold text-gray-900 mb-1" id="lama_oj_price">Rp 0</div>
+                            <div class="text-xs text-gray-500 bg-gray-50 p-2 rounded-lg" id="lama_oj_rumus">Rumus...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LAYAR 2: LOGIKA BARU -->
+                <div class="bg-white rounded-2xl card-shadow overflow-hidden border-2 border-blue-500 relative">
+                    <div class="absolute top-0 right-0 bg-blue-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg">PROPOSED</div>
+                    <div class="bg-blue-600 text-white p-4 text-center">
+                        <h2 class="text-lg font-bold">Layar 2: Logika Baru</h2>
+                        <p class="text-xs text-blue-100 font-medium">Bisa di-Custom</p>
+                    </div>
+                    
+                    <div class="p-5">
+                        <!-- Checkout Baru -->
+                        <div class="mb-6">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold">🛒</div>
+                                <h3 class="font-bold text-gray-800">Checkout (Makanan)</h3>
+                            </div>
+                            <div class="flex items-end gap-2 mb-1">
+                                <div class="text-3xl font-extrabold text-blue-700" id="baru_co_price">Rp 0</div>
+                                <div class="text-sm font-bold mb-1" id="selisih_co"></div>
+                            </div>
+                            <div class="text-xs text-gray-500 bg-blue-50 p-2 rounded-lg border border-blue-100" id="baru_co_rumus">Rumus...</div>
+                        </div>
+
+                        <hr class="border-dashed mb-6">
+
+                        <!-- Ngojek Baru -->
+                        <div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600 font-bold">🛵</div>
+                                <h3 class="font-bold text-gray-800">Ngojek</h3>
+                            </div>
+                            <div class="flex items-end gap-2 mb-1">
+                                <div class="text-3xl font-extrabold text-blue-700" id="baru_oj_price">Rp 0</div>
+                                <div class="text-sm font-bold mb-1" id="selisih_oj"></div>
+                            </div>
+                            <div class="text-xs text-gray-500 bg-blue-50 p-2 rounded-lg border border-blue-100" id="baru_oj_rumus">Rumus...</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function formatRp(angka) {
+            return "Rp " + angka.toLocaleString('id-ID');
+        }
+
+        function hitungOngkir() {
+            let jarak = parseFloat(document.getElementById('input_jarak').value);
+            if (isNaN(jarak) || jarak < 0) jarak = 0;
+
+            let customCo = parseFloat(document.getElementById('input_custom_co').value) || 0;
+            let customOj = parseFloat(document.getElementById('input_custom_oj').value) || 0;
+
+            // ==========================================
+            // LOGIKA LAMA (Sesuai Artefak)
+            // ==========================================
+            let lamaCo = 0;
+            let lamaCoRumus = "";
+            if (jarak <= 2) {
+                lamaCo = 8000;
+                lamaCoRumus = `0 - 2 km (Flat) = Rp 8.000`;
+            } else if (jarak <= 3) {
+                lamaCo = 9000;
+                lamaCoRumus = `> 2 - 3 km (Flat) = Rp 9.000`;
+            } else {
+                lamaCo = jarak * 2600;
+                lamaCoRumus = `${jarak} km × Rp 2.600 = ${formatRp(lamaCo)}`;
+            }
+            // Pembulatan ke 500 terdekat
+            let lamaCoFinal = Math.round(lamaCo / 500) * 500;
+            if (jarak > 3) {
+                lamaCoRumus += `<br>Dibulatkan kelipatan Rp500 = <b>${formatRp(lamaCoFinal)}</b>`;
+            }
+
+            let lamaOj = 0;
+            let lamaOjRumus = "";
+            if (jarak <= 3) {
+                lamaOj = 9000;
+                lamaOjRumus = `0 - 3 km (Flat) = Rp 9.000`;
+            } else {
+                let sisaKm = Math.ceil(jarak - 3);
+                lamaOj = 9000 + (sisaKm * 2500);
+                lamaOjRumus = `Flat 3km (9.000) + Sisa ${sisaKm}km × 2.500 = <b>${formatRp(lamaOj)}</b>`;
+            }
+
+
+            // ==========================================
+            // LOGIKA BARU (Usulan Anda)
+            // ==========================================
+            let baruCo = 0;
+            let baruCoRumus = "";
+            if (jarak <= 2) {
+                baruCo = 8000;
+                baruCoRumus = `0 - 2 km (Flat) = Rp 8.000`;
+            } else if (jarak <= 3) {
+                baruCo = 9000;
+                baruCoRumus = `> 2 - 3 km (Flat) = Rp 9.000`;
+            } else {
+                let sisaKmReal = (jarak - 3); // Jarak asli tanpa dibulatkan
+                let extraHitungan = sisaKmReal * customCo;
+                baruCo = 9000 + extraHitungan;
+                baruCoRumus = `Flat 3km (9.000) + Sisa ${sisaKmReal.toFixed(2)}km × ${customCo} = ${formatRp(baruCo)}`;
+            }
+            // Tetap lakukan pembulatan 500 agar uang kembalian tidak repot
+            let baruCoFinal = Math.round(baruCo / 500) * 500;
+            if (jarak > 3) {
+                baruCoRumus += `<br>Dibulatkan kelipatan Rp500 = <b>${formatRp(baruCoFinal)}</b>`;
+            }
+
+            let baruOj = 0;
+            let baruOjRumus = "";
+            if (jarak <= 3) {
+                baruOj = 9000;
+                baruOjRumus = `0 - 3 km (Flat) = Rp 9.000`;
+            } else {
+                let sisaKmOj = Math.ceil(jarak - 3); // Ojek biasanya membulatkan sisa KM keatas
+                baruOj = 9000 + (sisaKmOj * customOj);
+                baruOjRumus = `Flat 3km (9.000) + Sisa ${sisaKmOj}km × ${customOj} = <b>${formatRp(baruOj)}</b>`;
+            }
+
+            // ==========================================
+            // UPDATE UI DOM
+            // ==========================================
+            document.getElementById('lama_co_price').innerText = formatRp(lamaCoFinal);
+            document.getElementById('lama_co_rumus').innerHTML = lamaCoRumus;
+
+            document.getElementById('lama_oj_price').innerText = formatRp(lamaOj);
+            document.getElementById('lama_oj_rumus').innerHTML = lamaOjRumus;
+
+            document.getElementById('baru_co_price').innerText = formatRp(baruCoFinal);
+            document.getElementById('baru_co_rumus').innerHTML = baruCoRumus;
+
+            document.getElementById('baru_oj_price').innerText = formatRp(baruOj);
+            document.getElementById('baru_oj_rumus').innerHTML = baruOjRumus;
+
+            // Hitung Selisih
+            updateSelisih('selisih_co', baruCoFinal, lamaCoFinal);
+            updateSelisih('selisih_oj', baruOj, lamaOj);
+        }
+
+        function updateSelisih(elementId, baru, lama) {
+            let el = document.getElementById(elementId);
+            let selisih = baru - lama;
+            
+            if (selisih < 0) {
+                el.innerText = `(Lebih murah ${formatRp(Math.abs(selisih))})`;
+                el.className = "text-sm font-bold mb-1 text-green-600";
+            } else if (selisih > 0) {
+                el.innerText = `(Lebih mahal ${formatRp(selisih)})`;
+                el.className = "text-sm font-bold mb-1 text-red-500";
+            } else {
+                el.innerText = "(Harga Sama)";
+                el.className = "text-sm font-bold mb-1 text-gray-400";
+            }
+        }
+
+        // Panggil pertama kali saat halaman dimuat
+        window.onload = hitungOngkir;
+    </script>
+</body>
+</html>
