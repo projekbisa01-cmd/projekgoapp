@@ -2170,10 +2170,15 @@
         <div id="product-detail-modal" onclick="if(event.target===this) closeProductDetailModal()">
             <div class="product-detail-sheet" style="padding: 0; overflow: hidden; background: #ffffff;">
                 
+                <style>
+                    /* Menyembunyikan scrollbar agar UI Pop-Up terlihat seperti Native App (Metode Kodular) */
+                    #pd-scroll-area::-webkit-scrollbar { display: none; }
+                </style>
                 <!-- Area Scroll Utama (Gambar + Konten ikut ter-scroll bersamaan) -->
-                <div style="overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; width: 100%;" id="pd-scroll-area">
+                <div style="overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; width: 100%; scrollbar-width: none; -webkit-overflow-scrolling: touch;" id="pd-scroll-area">
                     
-                    <div style="position: relative; width: 100%; height: 280px; flex-shrink: 0;">
+                    <!-- Tinggi gambar disesuaikan agar konten lebih banyak terlihat (fit to screen) -->
+                    <div style="position: relative; width: 100%; height: 240px; flex-shrink: 0;">
                         <img id="pd-img" style="width: 100%; height: 100%; object-fit: cover; border-top-left-radius: 25px; border-top-right-radius: 25px;" src="">
                         <div onclick="closeProductDetailModal()" style="position: absolute; top: 15px; right: 15px; background: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; z-index: 10;">
                             <i class="ph-bold ph-x" style="font-size: 16px; color: #333;"></i>
@@ -6094,6 +6099,25 @@
                 // -----------------------------------------------------------------
 
                 const input = document.getElementById('loc-search-input');
+                
+                // --- BACKUP: DETEKSI FOCUS INPUT UNTUK ANDROID LAMA ---
+                if (input) {
+                    input.addEventListener('focus', () => {
+                        const wrapper = document.getElementById('btn-pakai-maps-wrapper');
+                        // Asumsi tinggi keyboard jika visualViewport tidak didukung
+                        if(wrapper && !window.visualViewport) {
+                            wrapper.style.bottom = '350px'; 
+                        }
+                    });
+                    input.addEventListener('blur', () => {
+                        const wrapper = document.getElementById('btn-pakai-maps-wrapper');
+                        if(wrapper && !window.visualViewport) {
+                            wrapper.style.bottom = '30px'; 
+                        }
+                    });
+                }
+                // -----------------------------------------------------------------
+
                 if (input && !input.dataset.manualListener) {
                     input.dataset.manualListener = 'true'; // Penanda agar event listener tidak dobel
                     
