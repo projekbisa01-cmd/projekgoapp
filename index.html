@@ -21,6 +21,9 @@
     <!-- GOOGLE MAPS API (PENCARIAN LOKASI & JARAK) -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAAgPz5iVt7kEcd_gH2hmtHfHg2s8gJMZY&libraries=places"></script>
     
+    <!-- SWEETALERT2 (POP-UP KONFIRMASI) -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <title>Katalog Projekgo</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -1887,76 +1890,100 @@
             <div id="container-flash-sale-top"></div>
 
             <!-- ======================================================== -->
-            <!-- BANNER SLIDER PROMO UTAMA (TAMBAHAN BARU DI BAWAH FLASH SALE) -->
-            <!-- ======================================================== -->
-            <div style="padding: 10px 20px 20px 20px; background: var(--bg);">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                    <div style="font-size: 16px; font-weight: 800; color: var(--dark); display: flex; align-items: center; gap: 6px;">
-                        Aktifkan Sekarang <i class="ph-fill ph-arrow-circle-right" style="color:#ccc; font-size:18px;"></i>
-                    </div>
-                </div>
-                
-                <div style="position:relative; border-radius:16px; box-shadow:0 6px 20px rgba(255, 102, 0, 0.15); overflow:hidden; border: 1px solid rgba(255,102,0,0.1);">
-                    <div id="home-promo-slider" style="display:flex; overflow-x:auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; width: 100%;">
-                        
-                        <!-- Slide 1: Promosi Makanan -->
-                        <!-- Silakan ganti URL .jpg di bawah dengan link gambarmu -->
-                        <img src="https://i.ibb.co.com/mr2Ltjzq/Whats-App-Image-2026-02-04-at-20-48-22.jpg" alt="Promo Makanan" style="width:100%; height: 200px; flex-shrink:0; scroll-snap-align:start; object-fit:contain; background:#f9f9f9; display:block;">
-                        
-                        <!-- Slide 2: Belanja Pasar -->
-                        <!-- Silakan ganti URL .jpg di bawah dengan link gambarmu -->
-                        <img src="https://i.ibb.co.com/HfPJ54g7/Desain-tanpa-judul-6.png" alt="Belanja Pasar" style="width:100%; height: 200px; flex-shrink:0; scroll-snap-align:start; object-fit:contain; background:#f9f9f9; display:block;">
-                        
-                        <!-- Slide 3: Titip Beli / Disuruh Apa Saja -->
-                        <!-- Silakan ganti URL .jpg di bawah dengan link gambarmu -->
-                        <img src="https://i.ibb.co.com/84PCGFDm/Whats-App-Image-2026-01-29-at-10-12-08.jpg" alt="Bisa Disuruh Apa Saja" style="width:100%; height: 200px; flex-shrink:0; scroll-snap-align:start; object-fit:contain; background:#f9f9f9; display:block;">
-                        
-                    </div>
-                    
-                    <!-- Indikator Dots -->
-                    <div style="position:absolute; bottom:10px; left:0; right:0; display:flex; justify-content:center; gap:6px; z-index:5;">
-                        <div class="slider-dot active" style="width:16px; height:6px; background:var(--primary); border-radius:4px; transition:0.3s;"></div>
-                        <div class="slider-dot" style="width:6px; height:6px; background:rgba(255,255,255,0.9); border-radius:4px; transition:0.3s;"></div>
-                        <div class="slider-dot" style="width:6px; height:6px; background:rgba(255,255,255,0.9); border-radius:4px; transition:0.3s;"></div>
-                    </div>
+        <!-- BANNER SLIDER PROMO UTAMA (TAMBAHAN BARU DI BAWAH FLASH SALE) -->
+        <!-- ======================================================== -->
+        <div style="padding: 10px 20px 20px 20px; background: var(--bg);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <div style="font-size: 16px; font-weight: 800; color: var(--dark); display: flex; align-items: center; gap: 6px;">
+                    Aktifkan Sekarang <i class="ph-fill ph-arrow-circle-right" style="color:#ccc; font-size:18px;"></i>
                 </div>
             </div>
+            
+            <div style="position:relative; border-radius:16px; box-shadow:0 6px 20px rgba(255, 102, 0, 0.15); overflow:hidden; border: 1px solid rgba(255,102,0,0.1);">
+                <div id="home-promo-slider" style="display:flex; overflow-x:auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; width: 100%;">
+                    
+                    <!-- Slide 1: Promosi Makanan -->
+                    <!-- Silakan ganti URL .jpg di bawah dengan link gambarmu -->
+                    <img src="https://i.ibb.co.com/mr2Ltjzq/Whats-App-Image-2026-02-04-at-20-48-22.jpg" alt="Promo Makanan" style="width:100%; height: 200px; flex-shrink:0; scroll-snap-align:start; object-fit:contain; background:#f9f9f9; display:block;">
+                    
+                    <!-- Slide 2: Belanja Pasar -->
+                    <!-- Silakan ganti URL .jpg di bawah dengan link gambarmu -->
+                    <img src="https://i.ibb.co.com/HfPJ54g7/Desain-tanpa-judul-6.png" alt="Belanja Pasar" style="width:100%; height: 200px; flex-shrink:0; scroll-snap-align:start; object-fit:contain; background:#f9f9f9; display:block;">
+                    
+                    <!-- Slide 3: Titip Beli / Disuruh Apa Saja -->
+                    <!-- Silakan ganti URL .jpg di bawah dengan link gambarmu -->
+                    <img src="https://i.ibb.co.com/84PCGFDm/Whats-App-Image-2026-01-29-at-10-12-08.jpg" alt="Bisa Disuruh Apa Saja" style="width:100%; height: 200px; flex-shrink:0; scroll-snap-align:start; object-fit:contain; background:#f9f9f9; display:block;">
+                    
+                </div>
+                
+                <!-- Indikator Dots -->
+                <div style="position:absolute; bottom:10px; left:0; right:0; display:flex; justify-content:center; gap:6px; z-index:5;">
+                    <div class="slider-dot active" style="width:16px; height:6px; background:var(--primary); border-radius:4px; transition:0.3s;"></div>
+                    <div class="slider-dot" style="width:6px; height:6px; background:rgba(255,255,255,0.9); border-radius:4px; transition:0.3s;"></div>
+                    <div class="slider-dot" style="width:6px; height:6px; background:rgba(255,255,255,0.9); border-radius:4px; transition:0.3s;"></div>
+                </div>
+            </div>
+        </div>
 
-            <script>
-                // Logika otomatis geser ke kiri untuk banner promo utama
-                setInterval(() => {
-                    const slider = document.getElementById('home-promo-slider');
-                    if(slider) {
-                        let nextScroll = slider.scrollLeft + slider.clientWidth;
-                        // Jika sudah mentok di ujung kanan, kembali ke awal
-                        if (nextScroll >= slider.scrollWidth - 10) nextScroll = 0; 
-                        slider.scrollTo({ left: nextScroll, behavior: 'smooth' });
-                        
-                        // Logika untuk merubah warna & ukuran titik (dots) di bawah gambar
-                        const dots = slider.parentElement.querySelectorAll('.slider-dot');
-                        if(dots.length > 0) {
-                            let activeIndex = Math.round(nextScroll / slider.clientWidth);
-                            if(activeIndex >= dots.length) activeIndex = 0;
-                            dots.forEach((dot, idx) => {
-                                if(idx === activeIndex) {
-                                    dot.style.background = 'var(--primary)';
-                                    dot.style.width = '16px'; 
-                                } else {
-                                    dot.style.background = 'rgba(255,255,255,0.9)';
-                                    dot.style.width = '6px';
-                                }
-                            });
-                        }
+        <script>
+            // Logika otomatis geser ke kiri untuk banner promo utama
+            setInterval(() => {
+                const slider = document.getElementById('home-promo-slider');
+                if(slider) {
+                    let nextScroll = slider.scrollLeft + slider.clientWidth;
+                    // Jika sudah mentok di ujung kanan, kembali ke awal
+                    if (nextScroll >= slider.scrollWidth - 10) nextScroll = 0; 
+                    slider.scrollTo({ left: nextScroll, behavior: 'smooth' });
+                    
+                    // Logika untuk merubah warna & ukuran titik (dots) di bawah gambar
+                    const dots = slider.parentElement.querySelectorAll('.slider-dot');
+                    if(dots.length > 0) {
+                        let activeIndex = Math.round(nextScroll / slider.clientWidth);
+                        if(activeIndex >= dots.length) activeIndex = 0;
+                        dots.forEach((dot, idx) => {
+                            if(idx === activeIndex) {
+                                dot.style.background = 'var(--primary)';
+                                dot.style.width = '16px'; 
+                            } else {
+                                dot.style.background = 'rgba(255,255,255,0.9)';
+                                dot.style.width = '6px';
+                            }
+                        });
                     }
-                }, 3500); // Geser setiap 3.5 detik
-            </script>
-            <!-- ======================================================== -->
+                }
+            }, 3500); // Geser setiap 3.5 detik
+        </script>
+        <!-- ======================================================== -->
 
-            <!-- ======================================================== -->
-            <!-- PROMO PAKET RAMEAN / FAVORIT (TAMBAHAN BARU) -->
-            <!-- ======================================================== -->
-            <div id="container-promo-ramean" style="padding: 0 0 30px 0; background: var(--bg); display: none;">
-                <div style="padding: 0 20px; display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+        <!-- ======================================================== -->
+        <!-- PENJUAL DISEKITAR KAMU (TAMBAHAN BARU) -->
+        <!-- ======================================================== -->
+        <div id="container-penjual-sekitar" style="padding: 0 0 20px 0; background: var(--bg);">
+            <div style="padding: 0 20px; display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px;">
+                <div>
+                    <div style="font-size: 19px; font-weight: 800; color: #111;">Penjual disekitar kamu.</div>
+                </div>
+            </div>
+            
+            <div style="background: linear-gradient(180deg, #A85959 0%, #D86B6B 100%); padding: 15px 0 20px 0; position: relative;">
+                <div id="penjual-sekitar-scroll" style="display: flex; overflow-x: auto; gap: 15px; padding: 0 15px; scrollbar-width: none; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory;">
+                    <!-- Card Penjual Akan Otomatis Muncul Disini via JS -->
+                </div>
+                
+                <div style="display: flex; justify-content: center; margin-top: 15px;">
+                    <button onclick="openPage('food')" style="background: white; color: #111; font-weight: 800; font-size: 14px; border: none; padding: 10px 24px; border-radius: 20px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                        Jelajahi lainnya
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- ======================================================== -->
+
+        <!-- ======================================================== -->
+        <!-- PROMO PAKET RAMEAN / FAVORIT (TAMBAHAN BARU) -->
+        <!-- ======================================================== -->
+        <div id="container-promo-ramean" style="padding: 0 0 30px 0; background: var(--bg); display: none;">
+            <div style="padding: 0 20px; display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
                     <div>
                         <div style="font-size: 19px; font-weight: 800; color: #111; margin-bottom: 4px;">makanan favorite</div>
                         <div style="font-size: 14px; color: #555; font-weight: 400;">Enak dimakan bersama, banyak diskonnya.</div>
@@ -4906,12 +4933,14 @@
         }
 
        window.toggleCartPopup = () => {
-            if (cart.length === 0) {
-                showToast("Keranjang masih kosong");
-                return;
+            // DIHAPUS: Pencegahan buka halaman jika keranjang kosong agar halaman tetap muncul
+            
+            // Otomatis centang semua item saat pertama kali dibuka (hanya jika ada isi)
+            if (cart.length > 0) {
+                selectedCartKeys = cart.map(item => item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase());
+            } else {
+                selectedCartKeys = [];
             }
-            // Otomatis centang semua item saat pertama kali dibuka
-            selectedCartKeys = cart.map(item => item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase());
             
             // Render halaman keranjang baru
             renderMyCartPage(); 
@@ -4959,10 +4988,38 @@
             container.innerHTML = '';
             
             if (cart.length === 0) {
-                container.innerHTML = '<div style="padding: 50px 20px; text-align: center; color: #888;">Keranjang belanja Anda kosong.</div>';
+                // TAMPILAN ANIMASI KERANJANG KOSONG
+                container.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; height: 60vh;">
+                        <div style="width: 120px; height: 120px; background: #FFF0E5; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; box-shadow: 0 10px 20px rgba(255, 102, 0, 0.1); animation: floatCartEmpty 3s ease-in-out infinite;">
+                            <i class="ph-fill ph-shopping-cart" style="font-size: 60px; color: var(--primary);"></i>
+                        </div>
+                        <h3 style="font-size: 18px; font-weight: 800; color: var(--dark); margin: 0 0 10px 0;">Keranjang Masih Kosong</h3>
+                        <p style="font-size: 13px; color: #666; line-height: 1.5; margin: 0;">keranjang kamu belum terisi nih.<br>yuk gas, agar projekgo bisa anter dengan cepat dan tepat 🛵💨</p>
+                        <button onclick="openPage('home')" style="margin-top: 25px; background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 20px; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 102, 0, 0.3); transition: transform 0.2s;" onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1)'">Mulai Belanja</button>
+                        <style>
+                            @keyframes floatCartEmpty {
+                                0%, 100% { transform: translateY(0); }
+                                50% { transform: translateY(-15px); }
+                            }
+                        </style>
+                    </div>
+                `;
                 document.getElementById('my-cart-total-price').innerText = "Rp0";
-                document.getElementById('btn-my-cart-checkout').innerText = "Checkout (0)";
-                document.getElementById('my-cart-savings-badge').style.display = 'none';
+                
+                const btnCheckout = document.getElementById('btn-my-cart-checkout');
+                if (btnCheckout) {
+                    btnCheckout.innerText = "Checkout (0)";
+                    btnCheckout.style.background = "#ccc";
+                    btnCheckout.style.cursor = "not-allowed";
+                }
+                
+                const savingsBadge = document.getElementById('my-cart-savings-badge');
+                if (savingsBadge) savingsBadge.style.display = 'none';
+                
+                const cbAll = document.getElementById('cb-select-all');
+                if (cbAll) cbAll.checked = false;
+                
                 return;
             }
 
@@ -5140,32 +5197,91 @@
         };
 
         window.updateMyCartQty = (key, change) => {
+            const itemKeyCheck = (item) => (item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase()) === key;
+
             if (change === -1) {
-                const index = cart.findIndex(item => {
-                     return (item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase()) === key;
-                });
-                if (index !== -1) cart.splice(index, 1);
+                // Hitung ada berapa jumlah (qty) item ini di dalam keranjang
+                const occurrences = cart.filter(itemKeyCheck).length;
+                
+                if (occurrences === 1) {
+                    // Jika jumlah tinggal 1 dan diklik minus (menjadi 0), tampilkan pop-up konfirmasi
+                    Swal.fire({
+                        title: 'Yakin mau menghapus pilihan kamu?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#E53935',
+                        cancelButtonColor: '#999',
+                        confirmButtonText: 'Ya, hapus',
+                        cancelButtonText: 'Batal',
+                        reverseButtons: true,
+                        customClass: {
+                            popup: 'swal-custom-popup',
+                            title: 'swal-custom-title'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            const index = cart.findIndex(itemKeyCheck);
+                            if (index !== -1) cart.splice(index, 1);
+                            
+                            // Hapus juga dari status checked jika dihapus
+                            selectedCartKeys = selectedCartKeys.filter(k => k !== key);
+                            
+                            localStorage.setItem('projekgo_cart', JSON.stringify(cart));
+                            updateCartBadge();
+                            renderMyCartPage();
+                        }
+                    });
+                    return; // Stop fungsi agar tidak langsung terhapus
+                } else {
+                    // Jika qty > 1, langsung kurangi tanpa pop-up
+                    const index = cart.findIndex(itemKeyCheck);
+                    if (index !== -1) cart.splice(index, 1);
+                }
             } else if (change === 1) {
-                const item = cart.find(item => {
-                     return (item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase()) === key;
-                });
+                const item = cart.find(itemKeyCheck);
                 if (item) cart.push({...item}); 
             }
+            
             localStorage.setItem('projekgo_cart', JSON.stringify(cart));
             updateCartBadge();
             renderMyCartPage(); 
         };
 
         window.removeMyCartItem = (key) => {
-            cart = cart.filter(item => {
-                return (item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase()) !== key;
+            // Tampilkan pop-up konfirmasi SweetAlert2 sebelum menghapus
+            Swal.fire({
+                title: 'Yakin mau menghapus pilihan kamu?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#E53935',
+                cancelButtonColor: '#999',
+                confirmButtonText: 'Ya, hapus',
+                cancelButtonText: 'Batal',
+                reverseButtons: true, // Tombol Batal di kiri, Ya di kanan
+                customClass: {
+                    popup: 'swal-custom-popup',
+                    title: 'swal-custom-title'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Jika diklik 'Ya', jalankan proses penghapusan
+                    cart = cart.filter(item => {
+                        return (item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase()) !== key;
+                    });
+                    
+                    // Hapus juga dari status checked jika dihapus
+                    selectedCartKeys = selectedCartKeys.filter(k => k !== key);
+                    
+                    localStorage.setItem('projekgo_cart', JSON.stringify(cart));
+                    updateCartBadge();
+                    renderMyCartPage();
+                    
+                    // Jika keranjang kosong setelah dihapus, otomatis kembali atau render tampilan kosong
+                    if(cart.length === 0) {
+                        renderMyCartPage(); 
+                    }
+                }
             });
-            // Hapus juga dari status checked jika dihapus
-            selectedCartKeys = selectedCartKeys.filter(k => k !== key);
-            
-            localStorage.setItem('projekgo_cart', JSON.stringify(cart));
-            updateCartBadge();
-            renderMyCartPage();
         };
 
         window.proceedFromMyCart = () => {
@@ -5188,22 +5304,47 @@
         };
 
         window.updatePopupQty = (key, change) => {
+            const itemKeyCheck = (item) => (item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase()) === key;
+
             if (change === -1) {
-                const index = cart.findIndex(item => {
-                     const itemKey = item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase();
-                     return itemKey === key;
-                });
-                if (index !== -1) {
-                    cart.splice(index, 1);
+                const occurrences = cart.filter(itemKeyCheck).length;
+
+                if (occurrences === 1) {
+                    Swal.fire({
+                        title: 'Yakin mau menghapus pilihan kamu?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#E53935',
+                        cancelButtonColor: '#999',
+                        confirmButtonText: 'Ya, hapus',
+                        cancelButtonText: 'Batal',
+                        reverseButtons: true,
+                        customClass: {
+                            popup: 'swal-custom-popup',
+                            title: 'swal-custom-title'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            const index = cart.findIndex(itemKeyCheck);
+                            if (index !== -1) cart.splice(index, 1);
+
+                            localStorage.setItem('projekgo_cart', JSON.stringify(cart));
+                            updateCartBadge();
+                            if (cart.length === 0) {
+                                closeCartPopup();
+                            } else {
+                                if (typeof renderCartPopupItems === 'function') renderCartPopupItems();
+                            }
+                        }
+                    });
+                    return; // Stop fungsi agar tidak langsung terhapus
+                } else {
+                    const index = cart.findIndex(itemKeyCheck);
+                    if (index !== -1) cart.splice(index, 1);
                 }
             } else if (change === 1) {
-                const item = cart.find(item => {
-                     const itemKey = item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase();
-                     return itemKey === key;
-                });
-                if (item) {
-                    cart.push({...item}); 
-                }
+                const item = cart.find(itemKeyCheck);
+                if (item) cart.push({...item}); 
             }
             
             // --- TAMBAHAN: Update cache saat qty diubah di popup ---
@@ -5213,25 +5354,49 @@
             if (cart.length === 0) {
                 closeCartPopup();
             } else {
-                renderCartPopupItems();
+                if (typeof renderCartPopupItems === 'function') renderCartPopupItems();
             }
         }
 
         window.removeAllPopupItem = (key) => {
-            cart = cart.filter(item => {
-                const itemKey = item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase();
-                return itemKey !== key;
+            // Tampilkan pop-up konfirmasi SweetAlert2 sebelum menghapus
+            Swal.fire({
+                title: 'Yakin mau menghapus pilihan kamu?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#E53935',
+                cancelButtonColor: '#999',
+                confirmButtonText: 'Ya, hapus',
+                cancelButtonText: 'Batal',
+                reverseButtons: true,
+                customClass: {
+                    popup: 'swal-custom-popup',
+                    title: 'swal-custom-title'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Jalankan fungsi hapus sama seperti removeMyCartItem
+                    cart = cart.filter(item => {
+                        return (item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase()) !== key;
+                    });
+                    
+                    selectedCartKeys = selectedCartKeys.filter(k => k !== key);
+                    
+                    localStorage.setItem('projekgo_cart', JSON.stringify(cart));
+                    updateCartBadge();
+                    
+                    // Refresh tampilan tergantung mana yang sedang terbuka
+                    if (document.getElementById('page-my-cart').style.display === 'block') {
+                         renderMyCartPage();
+                    } else if (typeof renderCartPopupItems === 'function') {
+                         if (cart.length === 0) {
+                             closeCartPopup();
+                         } else {
+                             renderCartPopupItems();
+                         }
+                    }
+                }
             });
-            
-            // --- TAMBAHAN: Update cache saat item dihapus di popup ---
-            localStorage.setItem('projekgo_cart', JSON.stringify(cart));
-            
-            updateCartBadge();
-            if (cart.length === 0) {
-                closeCartPopup();
-            } else {
-                renderCartPopupItems(); // Mengamankan jika fungsi ini masih dipanggil oleh bagian lain
-            }
         }
 
         window.proceedToCheckout = () => {
@@ -5561,6 +5726,13 @@
                 ${deliveryCostHtml}
             </div>
             
+            <!-- Tambahkan style untuk SweetAlert agar lebih pas dengan desain UI HP (opsional) -->
+            <style>
+                .swal-custom-popup { border-radius: 20px !important; padding: 20px !important; width: 85% !important; max-width: 320px !important; }
+                .swal-custom-title { font-size: 18px !important; font-family: 'Plus Jakarta Sans', sans-serif !important; }
+                .swal2-confirm, .swal2-cancel { border-radius: 12px !important; font-weight: 700 !important; font-size: 14px !important; padding: 10px 20px !important; }
+            </style>
+
             <!-- STICKY BUTTON CONTAINER -->
             <div style="position: fixed; bottom: 0; left: 0; right: 0; max-width: var(--max-width); margin: 0 auto; background: white; padding: 15px 20px; box-shadow: 0 -4px 15px rgba(0,0,0,0.05); z-index: 2000; border-top-left-radius: 20px; border-top-right-radius: 20px; padding-bottom: max(15px, env(safe-area-bottom));">
                 <button onclick="processCheckout()" style="width:100%; background:#25D366; color:white; padding:15px; border:none; border-radius:14px; font-weight:800; font-size:16px; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: transform 0.2s;" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform='scale(1)'">
@@ -6384,17 +6556,52 @@
         }
 
         window.updateCartItemQty = (key, change) => {
+            const itemKeyCheck = (item) => (item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase()) === key;
+
             if (change === -1) {
-                const index = cart.findIndex(item => {
-                     const itemKey = item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase();
-                     return itemKey === key;
-                });
-                if (index !== -1) cart.splice(index, 1);
+                const occurrences = cart.filter(itemKeyCheck).length;
+
+                if (occurrences === 1) {
+                    Swal.fire({
+                        title: 'Yakin mau menghapus pilihan kamu?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#E53935',
+                        cancelButtonColor: '#999',
+                        confirmButtonText: 'Ya, hapus',
+                        cancelButtonText: 'Batal',
+                        reverseButtons: true,
+                        customClass: {
+                            popup: 'swal-custom-popup',
+                            title: 'swal-custom-title'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            const index = cart.findIndex(itemKeyCheck);
+                            if (index !== -1) cart.splice(index, 1);
+                            
+                            // Amankan pesanan yang tidak dicentang saat merubah jumlah di checkout
+                            let cartToSave = cart;
+                            if (window.fullBackupCart) {
+                                const uncheckedItems = window.fullBackupCart.filter(backupItem => {
+                                    const bKey = backupItem.id + '|' + backupItem.variant + '|' + (backupItem.note || '').trim().toLowerCase();
+                                    return !selectedCartKeys.includes(bKey); 
+                                });
+                                cartToSave = [...cart, ...uncheckedItems];
+                            }
+                            localStorage.setItem('projekgo_cart', JSON.stringify(cartToSave));
+                            
+                            updateCartBadge();
+                            renderCartPage();
+                        }
+                    });
+                    return; // Stop fungsi agar tidak langsung terhapus
+                } else {
+                    const index = cart.findIndex(itemKeyCheck);
+                    if (index !== -1) cart.splice(index, 1);
+                }
             } else if (change === 1) {
-                const item = cart.find(item => {
-                     const itemKey = item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase();
-                     return itemKey === key;
-                });
+                const item = cart.find(itemKeyCheck);
                 if (item) cart.push({...item}); 
             }
             
@@ -8062,6 +8269,9 @@
             // Segera hilangkan splash screen setelah UI beranda siap (data dimuat)
             window.initSplashScreen();
 
+            // Panggil render Penjual Disekitar Kamu
+            renderPenjualSekitar();
+
             // --- LOGIKA TANGKAP PARAMETER URL (warung) ---
             if (!window.hasCheckedUrl) {
                 window.hasCheckedUrl = true; // Pastikan pengecekan URL hanya berjalan 1x saat awal dimuat
@@ -8127,6 +8337,111 @@
 
             html += '</div>';
             container.innerHTML = html;
+        }
+
+        // --- FUNGSI RENDER PENJUAL DISEKITAR KAMU ---
+        function renderPenjualSekitar() {
+            const scrollContainer = document.getElementById('penjual-sekitar-scroll');
+            if (!scrollContainer) return;
+            
+            // Ambil maksimal 5 warung yang sedang buka
+            const openVendors = currentDisplayVendors.filter(v => (v.status || 'BUKA').toUpperCase() === 'BUKA').slice(0, 5);
+            
+            if (openVendors.length === 0) {
+                document.getElementById('container-penjual-sekitar').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('container-penjual-sekitar').style.display = 'block';
+            let cardsHtml = '';
+            
+            openVendors.forEach(vendor => {
+                const imgVendor = vendor.shop_photo || FALLBACK_VENDOR_IMG;
+                const rating = vendor.rating || (4.5 + Math.random() * 0.4).toFixed(1);
+                // Jarak random untuk dummy
+                const dist = (0.5 + Math.random() * 20).toFixed(1);
+                const address = vendor.alamat_warung || vendor.lokasi || currentArea;
+                // Ambil 3 produk pertama dari warung ini
+                const vendorProducts = allProducts.filter(p => p.vendor_id === vendor.id && p.is_available !== false).slice(0, 3);
+                
+                // Cari rentang harga
+                const prices = allProducts.filter(p => p.vendor_id === vendor.id).map(p => parseInt(p.harga));
+                let priceRange = "Rp 15.000";
+                if (prices.length > 0) {
+                    const minP = Math.min(...prices);
+                    const maxP = Math.max(...prices);
+                    priceRange = minP === maxP ? `Rp ${(minP/1000).toLocaleString('id-ID')}rb` : `Rp ${(minP/1000).toLocaleString('id-ID')}-${(maxP/1000).toLocaleString('id-ID')}rb`;
+                }
+
+                // Header Card
+                let cardHtml = `
+                    <div style="min-width: 320px; max-width: 320px; background: white; border-radius: 20px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); scroll-snap-align: start; flex-shrink: 0; display: flex; flex-direction: column;">
+                        
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; cursor: pointer;" onclick="openVendorPage('${vendor.id}')">
+                            <img src="${imgVendor}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid #eee;" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
+                            <div style="flex-grow: 1; overflow: hidden;">
+                                <div style="font-weight: 800; font-size: 15px; color: var(--dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${vendor.nama_warung}</div>
+                            </div>
+                        </div>
+
+                        <div style="font-size: 11px; color: var(--dark); font-weight: 600; display: flex; align-items: center; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;">
+                            <i class="ph-fill ph-star" style="color: #FFC107;"></i> ${rating}
+                            <span style="color: #ccc;">|</span>
+                            ${priceRange}
+                            <span style="color: #ccc;">|</span>
+                            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;">${address} • ${dist} km</span>
+                        </div>
+                        
+                        <div style="font-size: 10px; color: #666; margin-bottom: 15px; display: flex; gap: 6px; flex-wrap: wrap;">
+                            <span style="background: #f5f5f5; padding: 2px 6px; border-radius: 4px;">6:00 AM - 9:00 PM</span>
+                            <span style="background: #f5f5f5; padding: 2px 6px; border-radius: 4px;">${extractCategories(vendor.kategori_utama)[0] || 'Restoran'}</span>
+                        </div>
+                        
+                        <div style="border-top: 1px dashed #eee; margin: 0 -15px 12px -15px;"></div>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 12px; flex-grow: 1;">
+                `;
+
+                // Item Products
+                if (vendorProducts.length > 0) {
+                    vendorProducts.forEach((item, idx) => {
+                        const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG;
+                        const realPrice = parseInt(item.harga);
+                        const fakePrice = item.harga_coret ? parseInt(item.harga_coret) : Math.ceil(realPrice * 1.35);
+                        const discPercent = Math.round(((fakePrice - realPrice) / fakePrice) * 100);
+                        
+                        // Fake rank
+                        const rankLabel = idx === 0 ? "1 terlaris teratas di Ayam" : (idx === 1 ? "Pas untuk camilan dan sharing" : "3 terlaris teratas di Ayam");
+
+                        cardHtml += `
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <img src="${img}" style="width: 60px; height: 60px; border-radius: 12px; object-fit: cover; flex-shrink: 0;" onerror="this.src='${FALLBACK_MENU_IMG}'">
+                                <div style="flex-grow: 1; overflow: hidden;">
+                                    <div style="font-size: 13px; font-weight: 700; color: #333; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.nama_menu}</div>
+                                    <div style="font-size: 10px; color: #E65100; font-weight: 600; margin-bottom: 4px;">${rankLabel}</div>
+                                    <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
+                                        <span style="font-weight: 800; font-size: 13px; color: var(--dark);">Rp${realPrice.toLocaleString('id-ID')}</span>
+                                        <span style="font-size: 10px; color: #999; text-decoration: line-through;">Rp${fakePrice.toLocaleString('id-ID')}</span>
+                                    </div>
+                                    <div style="font-size: 10px; color: #D32F2F; font-weight: 600;">${discPercent}% diskon pesanan per...</div>
+                                </div>
+                                <button onclick="openProductDetail('${item.id}')" style="background: #FF0055; color: white; font-weight: 700; font-size: 12px; border: none; border-radius: 15px; padding: 6px 14px; cursor: pointer; flex-shrink: 0;">Lihat</button>
+                            </div>
+                        `;
+                    });
+                } else {
+                    cardHtml += `<div style="text-align: center; color: #999; font-size: 12px; padding: 20px 0;">Belum ada menu yang bisa ditampilkan.</div>`;
+                }
+
+                cardHtml += `
+                        </div>
+                    </div>
+                `;
+                
+                cardsHtml += cardHtml;
+            });
+            
+            scrollContainer.innerHTML = cardsHtml;
         }
 
         // --- FUNGSI RENDER KATEGORI (DIPERBARUI) ---
