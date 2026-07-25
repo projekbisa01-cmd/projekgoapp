@@ -7950,6 +7950,13 @@
                         let d = doc.data();
                         d.shop_photo = fixImgUrl(d.shop_photo);
                         d.cover_photo = fixImgUrl(d.cover_photo);
+                        
+                        // --- EKSEKUSI LANGKAH 2: Menangkap data sertifikasi halal ---
+                        // Memastikan tipe data berupa boolean (true/false) agar mencegah error (null/undefined)
+                        d.is_halal = d.is_halal === true;
+                        d.has_sertifikat_halal = d.has_sertifikat_halal === true;
+                        // -------------------------------------------------------------
+                        
                         allVendors.push({id: doc.id, ...d});
                     });
                     
@@ -8011,10 +8018,10 @@
         // --- FUNGSI DATA DUMMY (FALLBACK JIKA FIREBASE OFFLINE/ERROR) ---
         function loadMockData() {
             allVendors = [
-                { id: "v1", nama_warung: "Warung Nasi Goreng Gombong", area: "Gombong", kategori_utama: ["Pernasian", "Aneka Mie"], is_andalan: true, status: "BUKA", rating: 4.8 },
-                { id: "v2", nama_warung: "Ayam Geprek Kebumen", area: "Kebumen Kota", kategori_utama: ["Ayam", "Cepat Saji"], is_andalan: false, status: "BUKA", rating: 4.5 },
-                { id: "v3", nama_warung: "Es Teh Solo & Snack", area: "Gombong", kategori_utama: ["Minuman", "Snack"], is_andalan: true, status: "BUKA", rating: 4.9 },
-                { id: "v4", nama_warung: "Bakso Urat Masjo", area: "Gombong", kategori_utama: ["Berkuah"], is_andalan: true, status: "BUKA", rating: 4.7 }
+                { id: "v1", nama_warung: "Warung Nasi Goreng Gombong", area: "Gombong", kategori_utama: ["Pernasian", "Aneka Mie"], is_andalan: true, status: "BUKA", rating: 4.8, is_halal: true, has_sertifikat_halal: true },
+                { id: "v2", nama_warung: "Ayam Geprek Kebumen", area: "Kebumen Kota", kategori_utama: ["Ayam", "Cepat Saji"], is_andalan: false, status: "BUKA", rating: 4.5, is_halal: true, has_sertifikat_halal: false },
+                { id: "v3", nama_warung: "Es Teh Solo & Snack", area: "Gombong", kategori_utama: ["Minuman", "Snack"], is_andalan: true, status: "BUKA", rating: 4.9, is_halal: false, has_sertifikat_halal: false },
+                { id: "v4", nama_warung: "Bakso Urat Masjo", area: "Gombong", kategori_utama: ["Berkuah"], is_andalan: true, status: "BUKA", rating: 4.7, is_halal: true, has_sertifikat_halal: false }
             ];
 
             rawProducts = [
@@ -8905,6 +8912,15 @@
                 const waktuAntar = Math.floor(dist * 10 + 10);
                 const fsPercent = Math.floor(Math.random() * 40) + 20;
 
+                // --- EKSEKUSI LANGKAH 3 & 4: LOGIKA BADGE HALAL ---
+                let halalBadgeHtml = '';
+                if (v.has_sertifikat_halal) {
+                    halalBadgeHtml = `<div style="display:inline-flex; align-items:center; gap:4px; background:#E8F5E9; color:#2E7D32; font-size:9px; font-weight:800; padding:4px 6px; border-radius:6px; border:1px solid #C8E6C9;"><i class="ph-fill ph-seal-check"></i> Bersertifikat Halal</div>`;
+                } else if (v.is_halal) {
+                    halalBadgeHtml = `<div style="display:inline-flex; align-items:center; gap:4px; background:#f9f9f9; color:#555; font-size:9px; font-weight:800; padding:4px 6px; border-radius:6px; border:1px solid #eee;"><i class="ph-fill ph-check-circle" style="color:#4CAF50;"></i> Halal</div>`;
+                }
+                // --------------------------------------------------
+
                 const div = document.createElement('div');
                 div.style.cssText = "background: white; border-bottom: 1px solid #f0f0f0; padding: 15px 15px 15px 15px; margin-bottom: 0;";
                 
@@ -8938,6 +8954,9 @@
                             <div style="font-size: 14px; font-weight: 500; color: #111; line-height: 1.2; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                 ${v.nama_warung || 'Warung Projekgo'}
                             </div>
+
+                            <!-- EKSEKUSI LANGKAH 4: Penempatan Badge Halal di UI -->
+                            ${halalBadgeHtml ? `<div style="margin-bottom: 4px;">${halalBadgeHtml}</div>` : ''}
 
                             <!-- Baris Rating & Kategori -->
                             <div style="font-size: 13px; color: #666; display: flex; align-items: center; gap: 4px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
