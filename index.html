@@ -1355,6 +1355,7 @@
         .bg-grad-legendaris::before { background: linear-gradient(to top, #fff3e0, transparent); }
         .bg-grad-cepatsaji::before { background: linear-gradient(to top, #ffebee, transparent); }
         .bg-grad-makanankhas::before { background: linear-gradient(to top, #e8f5e9, transparent); }
+        .bg-grad-halal::before { background: linear-gradient(to top, #e8f5e9, transparent); }
 
         .cat-item-box img {
             width: 55px; /* Diperbesar dari 45px */
@@ -4345,6 +4346,13 @@
             } else if (cat === 'Top Rating') {
                 const topVendorsIds = currentDisplayVendors.slice(0, 10).map(v => v.id);
                 filteredItems = allProducts.filter(p => topVendorsIds.includes(p.vendor_id));
+            } else if (cat === 'Halal') {
+                // TAHAP 3 & 4: LOGIKA FILTER HALAL
+                // Cari warung yang halal atau punya sertifikat
+                const halalVendors = currentDisplayVendors.filter(v => v.is_halal === true || v.has_sertifikat_halal === true);
+                const halalVendorIds = halalVendors.map(v => v.id);
+                // Ambil menu HANYA dari warung yang halal
+                filteredItems = allProducts.filter(p => halalVendorIds.includes(p.vendor_id));
             } else { 
                 const targetCat = (cat || '').toLowerCase().trim();
                 const matchingVendors = currentDisplayVendors.filter(v => {
@@ -4388,7 +4396,7 @@
                         renderPcard(c, item);
                     });
                 } else {
-                    // Kategori Lain: Dikelompokkan per warung
+                    // Kategori Lain (termasuk Halal): Dikelompokkan per warung
                     const grouped = {};
                     filteredItems.forEach(item => { 
                         const vName = item.vendor_name || "Warung Projekgo"; 
@@ -4440,14 +4448,28 @@
                 }
                 if (vendorObj && vendorObj.shop_photo) { vendorImg = vendorObj.shop_photo; }
 
+                // --- EKSEKUSI LANGKAH TERAKHIR: LOGIKA BADGE HALAL DI HEADER KATEGORI ---
+                let halalBadgeHtml = '';
+                if (vendorObj) {
+                    if (vendorObj.has_sertifikat_halal) {
+                        halalBadgeHtml = `<span style="background:#FFF3E0; color:#E65100; font-size:9px; font-weight:800; padding:3px 6px; border-radius:6px; margin-left:6px; border:1px solid #FFE0B2; display:inline-flex; align-items:center; gap:3px;"><i class="ph-fill ph-seal-check"></i> Bersertifikat Halal</span>`;
+                    } else if (vendorObj.is_halal) {
+                        halalBadgeHtml = `<span style="background:#FFF3E0; color:#E65100; font-size:9px; font-weight:800; padding:3px 6px; border-radius:6px; margin-left:6px; border:1px solid #FFE0B2; display:inline-flex; align-items:center; gap:3px;"><i class="ph-fill ph-check-circle" style="color:#E65100;"></i> Halal</span>`;
+                    }
+                }
+                // ------------------------------------------------------------------------
+
                 const groupDiv = document.createElement('div'); 
                 groupDiv.className = 'group-vendor-section'; 
                 
+                // Tambahkan 'display:flex; align-items:center; flex-wrap:wrap;' agar badge tidak turun berantakan
                 const headerHTML = `
                     <div class="group-vendor-header-styled" onclick="openVendorPage('${vId}')" style="flex-direction:row; align-items:center; gap:12px; padding-bottom:10px;">
                         <img src="${vendorImg}" loading="lazy" onerror="this.src='${FALLBACK_VENDOR_IMG}'" style="width:50px; height:50px; border-radius:8px; object-fit:cover; border:1px solid #eee;">
                         <div style="flex:1;">
-                            <div class="gvh-s-name" style="font-size:18px; font-weight:800; margin-bottom:2px;">${vendorName}</div>
+                            <div class="gvh-s-name" style="font-size:18px; font-weight:800; margin-bottom:2px; display:flex; align-items:center; flex-wrap:wrap;">
+                                ${vendorName} ${halalBadgeHtml}
+                            </div>
                             <div class="gvh-s-meta"><i class="ph-fill ph-star" style="color:#FFC107;"></i> ${rating} • Aneka Makanan</div>
                             <div class="gvh-s-deliv" style="font-size:11px; color:#666;">Mulai <span style="color:var(--primary); font-weight:700;">Rp${formattedPrice}</span></div>
                         </div>
@@ -8486,8 +8508,8 @@
                 catModalGrid.innerHTML = '';
             }
             
-            // Urutan kategori default sesuai gambar
-            const baseCategories = ['Sarapan', 'Pernasian', 'Minuman', 'Ayam', 'Berkuah', 'Aneka Mie', 'Snack'];
+            // TAHAP 2: Urutan kategori default sesuai gambar (Kategori 'Halal' dimasukkan ke dalam opsi utama)
+            const baseCategories = ['Sarapan', 'Pernasian', 'Minuman', 'Ayam', 'Berkuah', 'Aneka Mie', 'Halal', 'Snack'];
             
             let extractedFromVendors = [];
             currentDisplayVendors.forEach(v => {
@@ -8523,12 +8545,10 @@
                 'snack': 'bg-grad-snack',
                 'legendaris': 'bg-grad-legendaris',
                 'cepat saji': 'bg-grad-cepatsaji',
-                'makanan khas': 'bg-grad-makanankhas'
+                'makanan khas': 'bg-grad-makanankhas',
+                'halal': 'bg-grad-halal'
             };
 
-            // Karena Anda meminta desain gambar, kita asumsikan menggunakan gambar aslinya (PNG transparan)
-            // Anda perlu mengganti URL ini dengan URL gambar PNG Anda sendiri jika ada.
-            // Untuk sekarang saya pakaikan placeholder SVG yang mirip
             const iconImgMap = {
                 'sarapan': "https://i.ibb.co.com/kVR7fprr/Desain-tanpa-judul-61.png",
                 'pernasian': "https://i.ibb.co.com/DDSkjJ5m/Desain-tanpa-judul-56.png",
@@ -8539,7 +8559,8 @@
                 'snack': "https://i.ibb.co.com/spbzfHGF/Desain-tanpa-judul-57.png",
                 'legendaris': "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 20 L59 40 L80 43 L65 58 L69 80 L50 70 L31 80 L35 58 L20 43 L41 40 Z' fill='%23FFCA28' stroke='%23FF8F00' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E",
                 'cepat saji': "https://i.ibb.co.com/C40BFB7/Desain-tanpa-judul-60.png",
-                'makanan khas': "https://i.ibb.co.com/vxPXXHSJ/Desain-tanpa-judul-64.png"
+                'makanan khas': "https://i.ibb.co.com/vxPXXHSJ/Desain-tanpa-judul-64.png",
+                'halal': "https://i.ibb.co.com/GQ7T7bqV/Desain-tanpa-judul-74.png"
             };
 
             let finalCategories = Array.from(uniqueCatsMap.entries()).map(([lowerCat, displayCat]) => {
@@ -8915,9 +8936,9 @@
                 // --- EKSEKUSI LANGKAH 3 & 4: LOGIKA BADGE HALAL ---
                 let halalBadgeHtml = '';
                 if (v.has_sertifikat_halal) {
-                    halalBadgeHtml = `<div style="display:inline-flex; align-items:center; gap:4px; background:#E8F5E9; color:#2E7D32; font-size:9px; font-weight:800; padding:4px 6px; border-radius:6px; border:1px solid #C8E6C9;"><i class="ph-fill ph-seal-check"></i> Bersertifikat Halal</div>`;
+                    halalBadgeHtml = `<div style="display:inline-flex; align-items:center; gap:4px; background:#FFF3E0; color:#E65100; font-size:9px; font-weight:800; padding:4px 6px; border-radius:6px; border:1px solid #FFE0B2;"><i class="ph-fill ph-seal-check"></i> Bersertifikat Halal</div>`;
                 } else if (v.is_halal) {
-                    halalBadgeHtml = `<div style="display:inline-flex; align-items:center; gap:4px; background:#f9f9f9; color:#555; font-size:9px; font-weight:800; padding:4px 6px; border-radius:6px; border:1px solid #eee;"><i class="ph-fill ph-check-circle" style="color:#4CAF50;"></i> Halal</div>`;
+                    halalBadgeHtml = `<div style="display:inline-flex; align-items:center; gap:4px; background:#FFF3E0; color:#E65100; font-size:9px; font-weight:800; padding:4px 6px; border-radius:6px; border:1px solid #FFE0B2;"><i class="ph-fill ph-check-circle" style="color:#E65100;"></i> Halal</div>`;
                 }
                 // --------------------------------------------------
 
