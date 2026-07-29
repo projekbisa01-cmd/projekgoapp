@@ -2024,7 +2024,7 @@
             </div>
 
             <!-- SEARCH BAR STICKY WRAPPER -->
-            <div id="food-sticky-search-wrapper" style="position: -webkit-sticky; position: sticky; top: 10px; z-index: 101; padding: 0 20px; margin-top: -65px; margin-bottom: 20px; pointer-events: none;">
+            <div id="food-sticky-search-wrapper" style="position: -webkit-sticky; position: sticky; top: 0; z-index: 101; padding: 10px 20px; margin-top: -65px; margin-bottom: 20px; pointer-events: none; transition: background-color 0.3s, transform 0.3s;">
                 <div onclick="openSearchModal()" style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 14px 20px; border-radius: 30px; cursor: pointer; box-shadow: 0 6px 20px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.05); transition: transform 0.2s; pointer-events: auto;" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform='scale(1)'">
                     <i class="ph-bold ph-magnifying-glass" style="color: #FF0000; font-size: 20px;"></i>
                     <span style="color: #888; font-size: 14px; font-weight: 600;">Cari menu atau warung</span>
@@ -2124,7 +2124,7 @@
             <div id="container-top-rated"></div>
             
             <!-- TAMBAHAN LANGKAH 1: UI FILTER AREA WARUNG -->
-            <div style="position: -webkit-sticky; position: sticky; top: 65px; z-index: 100; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 15px 0 5px 0; border-bottom: 1px solid rgba(0,0,0,0.04); margin-bottom: 5px;">
+            <div id="food-area-filter-wrapper" style="position: -webkit-sticky; position: sticky; top: 65px; z-index: 100; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 15px 0 5px 0; border-bottom: 1px solid rgba(0,0,0,0.04); margin-bottom: 5px; transition: transform 0.3s;">
                 <div style="font-size: 14px; font-weight: 800; color: #111; margin-left: 20px; margin-bottom: 10px;">Filter Wilayah:</div>
                 <div style="display:flex; overflow-x:auto; gap:10px; padding: 0 20px 10px 20px; scrollbar-width:none; -webkit-overflow-scrolling:touch;" id="food-area-filters">
                     
@@ -9262,6 +9262,22 @@
             const homeSearch = document.getElementById('sticky-search-wrapper');
             const foodSearch = document.getElementById('food-sticky-search-wrapper');
             
+            // TAMBAHAN BARU: Tangkap elemen Filter Wilayah
+            const foodAreaFilter = document.getElementById('food-area-filter-wrapper');
+            
+            // LOGIKA BARU: Ganti background Search Bar di halaman Food menjadi putih saat di-scroll
+            if (foodSearch && currentPage === 'food') {
+                if (currentScrollY > 20) { 
+                    // Saat discroll sedikit ke bawah, background wrapper jadi putih pekat
+                    foodSearch.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+                    foodSearch.style.borderBottom = '1px solid rgba(0,0,0,0.04)';
+                } else {
+                    // Saat di paling atas, kembali transparan agar menyatu dengan background merah
+                    foodSearch.style.backgroundColor = 'transparent';
+                    foodSearch.style.borderBottom = 'none';
+                }
+            }
+
             // Hapus timer jika user masih terus scroll
             if(scrollTimer !== null) clearTimeout(scrollTimer);
             
@@ -9270,17 +9286,19 @@
                 if (navContainer) navContainer.style.transform = 'translateY(150%)';
                 if (floatCart) floatCart.style.transform = 'translateY(250%)';
                 
-                // TAMBAHAN: Sembunyikan Search bar ke atas layar (- Y) khusus di halamannya
+                // TAMBAHAN: Sembunyikan Search bar & Filter Wilayah ke atas layar (- Y) khusus di halamannya
                 if (homeSearch && currentPage === 'home') homeSearch.style.transform = 'translateY(-150%)';
                 if (foodSearch && currentPage === 'food') foodSearch.style.transform = 'translateY(-150%)';
+                if (foodAreaFilter && currentPage === 'food') foodAreaFilter.style.transform = 'translateY(-200%)';
             } else {
                 // User scroll ke atas: Munculkan kembali dengan halus
                 if (navContainer) navContainer.style.transform = 'translateY(0)';
                 if (floatCart) floatCart.style.transform = 'translateY(0)';
                 
-                // TAMBAHAN: Munculkan Search bar kembali
+                // TAMBAHAN: Munculkan Search bar & Filter Wilayah kembali
                 if (homeSearch) homeSearch.style.transform = 'translateY(0)';
                 if (foodSearch) foodSearch.style.transform = 'translateY(0)';
+                if (foodAreaFilter) foodAreaFilter.style.transform = 'translateY(0)';
             }
             
             lastScrollY = currentScrollY;
@@ -9290,9 +9308,10 @@
                 if (navContainer) navContainer.style.transform = 'translateY(0)';
                 if (floatCart) floatCart.style.transform = 'translateY(0)';
                 
-                // TAMBAHAN: Munculkan Search bar kembali jika berhenti scroll
+                // TAMBAHAN: Munculkan Search bar & Filter Wilayah kembali jika berhenti scroll
                 if (homeSearch) homeSearch.style.transform = 'translateY(0)';
                 if (foodSearch) foodSearch.style.transform = 'translateY(0)';
+                if (foodAreaFilter) foodAreaFilter.style.transform = 'translateY(0)';
             }, 500);
         }, { passive: true });
         // ------------------------------------------
