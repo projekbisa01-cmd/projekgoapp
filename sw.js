@@ -1,4 +1,4 @@
-const CACHE_NAME = 'projekgo-cache-v4'; // Versi dinaikkan
+const CACHE_NAME = 'projekgo-cache-v8'; // Versi dinaikkan
 const urlsToCache = [
   '/',
   '/index.html',
