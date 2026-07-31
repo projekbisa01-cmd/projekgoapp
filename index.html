@@ -2638,8 +2638,8 @@
             <i class="ph-bold ph-arrow-left" style="font-size: 24px; cursor: pointer; color: var(--dark);" onclick="closeLocationSearchModal()"></i>
             <div style="flex-grow: 1; position: relative;">
                 <i class="ph-fill ph-map-pin" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #E53935; font-size: 18px;"></i>
-                <input type="text" id="loc-search-input" placeholder="Antar ke..." style="width: 100%; padding: 12px 12px 12px 38px; border: 1px solid #4CAF50; border-radius: 20px; font-size: 14px; outline: none; font-family: inherit;">
-                <i class="ph-fill ph-camera" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #666; font-size: 18px;"></i>
+                <input type="text" id="loc-search-input" placeholder="Antar ke..." onkeypress="if(event.key === 'Enter') executeLocationSearch()" style="width: 100%; padding: 12px 12px 12px 38px; border: 1px solid #4CAF50; border-radius: 20px; font-size: 14px; outline: none; font-family: inherit;">
+                <i class="ph-bold ph-magnifying-glass" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #FF6600; font-size: 20px; cursor: pointer;" onclick="executeLocationSearch()"></i>
             </div>
         </div>
         
@@ -2660,7 +2660,7 @@
                  </div>
             </div>
 
-            <div style="position: fixed; bottom: 30px; left: 0; right: 0; display: flex; justify-content: center; pointer-events: none;">
+            <div id="btn-pakai-maps-wrapper" style="position: fixed; bottom: 30px; left: 0; right: 0; display: flex; justify-content: center; pointer-events: none; transition: bottom 0.2s ease-out;">
                 <button onclick="showLocMapPicker()" style="pointer-events: auto; background: linear-gradient(90deg, #FFB74D, #FF9800); border: none; padding: 12px 24px; border-radius: 30px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4); cursor: pointer;">
                     <i class="ph-fill ph-map-pin" style="color: white; font-size: 18px;"></i>
                     <span style="color: white; font-weight: 800; font-size: 14px; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">Pakai Google maps</span>
@@ -6187,11 +6187,46 @@
                     },
                     (error) => {
                         console.error("GPS Error:", error);
-                        if(titleEl) {
-                            titleEl.innerText = "Pilih Lokasi Pengantaran";
-                            descEl.innerText = "Gagal melacak, ketuk untuk mencari";
+                        
+                        // --- EKSEKUSI LANGKAH 3.1: SISTEM CADANGAN JIKA GAGAL MELACAK ---
+                        const fallbackLat = localStorage.getItem('user_lat');
+                        const fallbackLng = localStorage.getItem('user_lng');
+                        const fallbackAddr = localStorage.getItem('user_address') || "Titik GPS Tersimpan";
+
+                        if (fallbackLat && fallbackLng) {
+                            // JIKA ADA DI MEMORI: Gunakan data lama (Bypass Error)
+                            const lat = parseFloat(fallbackLat);
+                            const lng = parseFloat(fallbackLng);
+                            
+                            if (titleEl) {
+                                titleEl.innerText = "Lokasi Tersimpan (GPS Off)";
+                                descEl.innerText = fallbackAddr;
+                            }
+                            
+                            window.checkoutDestPlace = {
+                                geometry: { location: { lat: () => lat, lng: () => lng } },
+                                formatted_address: fallbackAddr,
+                                name: fallbackAddr
+                            };
+                            
+                            const searchInput = document.getElementById('checkout-maps-search');
+                            if (searchInput) searchInput.value = fallbackAddr;
+                            
+                            calculateCheckoutOngkir(window.checkoutDestPlace.geometry.location);
+                            
+                            if (fromModal) {
+                                closeLocationSearchModal();
+                                if(window.showToast) window.showToast("Sinyal GPS lemah. Menggunakan lokasi tersimpan terakhir! 📍");
+                            }
+                        } else {
+                            // JIKA KOSONG SAMA SEKALI: Tampilkan error gagal melacak
+                            if(titleEl) {
+                                titleEl.innerText = "Pilih Lokasi Pengantaran";
+                                descEl.innerText = "Gagal melacak, ketuk untuk mencari";
+                            }
+                            if (fromModal && window.showToast) window.showToast("Gagal melacak! Aktifkan GPS/Lokasi perangkat dan beri izin browser.");
                         }
-                        if (fromModal && window.showToast) window.showToast("Gagal melacak! Aktifkan GPS/Lokasi perangkat.");
+                        // --- AKHIR EKSEKUSI LANGKAH 3.1 ---
                     },
                     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
                 );
@@ -6369,55 +6404,69 @@
                 }
                 // -----------------------------------------------------------------
 
-                if (input && !input.dataset.manualListener) {
-                    input.dataset.manualListener = 'true'; // Penanda agar event listener tidak dobel
-                    
-                    input.addEventListener('input', (e) => {
-                        const val = e.target.value;
-                        const list = document.getElementById('loc-search-results');
-                        
-                        if (!val) {
-                            switchLocTab('terakhir'); 
-                            return;
-                        }
+                // PERUBAHAN LANGKAH 1.2: 
+                // Logika input.addEventListener('input') yang lama (Auto-search) TELAH DIHAPUS.
+                // Sekarang hanya menunggu aksi klik tombol/Enter dari Langkah 1.3 nanti.
 
-                        if (window.mapsAutocompleteService) {
-                            window.mapsAutocompleteService.getPlacePredictions({
-                                input: val,
-                                componentRestrictions: { country: "id" },
-                                sessionToken: window.mapsSessionToken // Kirim sesi aktif
-                            }, (predictions, status) => {
-                                if (status !== google.maps.places.PlacesServiceStatus.OK || !predictions) {
-                                    list.innerHTML = `<div style="padding: 15px; text-align:center; color:#888;">Lokasi tidak ditemukan</div>`;
-                                    return;
-                                }
-
-                                let html = '';
-                                predictions.forEach(p => {
-                                    html += `
-                                    <div style="display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee; cursor: pointer; gap: 15px;"
-                                         onclick="selectManualPrediction('${p.place_id}', 'checkout')">
-                                        <i class="ph-fill ph-map-pin" style="font-size: 24px; color: #888;"></i>
-                                        <div style="flex-grow: 1; overflow:hidden;">
-                                            <div style="font-size: 14px; font-weight: 700; color: var(--dark); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.structured_formatting.main_text}</div>
-                                            <div style="font-size: 12px; color: #888; margin-top: 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.structured_formatting.secondary_text}</div>
-                                        </div>
-                                    </div>
-                                    `;
-                                });
-                                
-                                // Matikan tab aktif saat ada hasil
-                                document.querySelectorAll('#loc-search-list-view .loc-tab').forEach(el => {
-                                    el.style.borderBottom = 'none'; el.style.color = '#888';
-                                });
-                                list.innerHTML = html;
-                            });
-                        }
-                    });
-                }
                 setTimeout(() => { if(input) input.focus(); }, 300);
             }
         };
+
+        // --- TAMBAHAN LANGKAH 1.3: FUNGSI PENCARIAN LOKASI MANUAL ---
+        window.executeLocationSearch = () => {
+            const input = document.getElementById('loc-search-input');
+            if (!input) return;
+            
+            const val = input.value.trim();
+            const listContainer = document.getElementById('loc-search-results');
+            
+            if (!val) {
+                // Jika kosong, kembalikan ke tab riwayat/tersimpan
+                switchLocTab('terakhir'); 
+                return;
+            }
+
+            // Ubah tampilan tab agar tidak ada yang terlihat aktif (karena sedang dalam mode pencarian)
+            document.querySelectorAll('#loc-search-list-view .loc-tab').forEach(el => {
+                el.style.borderBottom = 'none';
+                el.style.color = '#888';
+            });
+            
+            // Tampilkan indikator loading agar pengguna tahu sistem sedang bekerja
+            listContainer.innerHTML = `<div style="padding: 20px; text-align:center; color:var(--primary); font-weight:bold;"><i class="ph-bold ph-spinner ph-spin"></i> Mencari lokasi...</div>`;
+
+            // Eksekusi pemanggilan API Google Maps Autocomplete
+            if (window.mapsAutocompleteService) {
+                window.mapsAutocompleteService.getPlacePredictions({
+                    input: val,
+                    componentRestrictions: { country: "id" },
+                    sessionToken: window.mapsSessionToken
+                }, (predictions, status) => {
+                    if (status !== google.maps.places.PlacesServiceStatus.OK || !predictions) {
+                        listContainer.innerHTML = `<div style="padding: 20px; text-align:center; color:#888;">Lokasi tidak ditemukan. Coba kata kunci lain.</div>`;
+                        return;
+                    }
+
+                    let html = `<div style="font-size:14px; font-weight:800; color:var(--dark); margin-top:15px; margin-bottom:10px;">Hasil Pencarian</div>`;
+                    predictions.forEach(p => {
+                        html += `
+                        <div style="display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee; cursor: pointer; gap: 15px;"
+                             onclick="selectManualPrediction('${p.place_id}', 'checkout')">
+                            <i class="ph-fill ph-map-pin" style="font-size: 24px; color: #888;"></i>
+                            <div style="flex-grow: 1; overflow:hidden;">
+                                <div style="font-size: 14px; font-weight: 700; color: var(--dark); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.structured_formatting.main_text}</div>
+                                <div style="font-size: 12px; color: #888; margin-top: 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.structured_formatting.secondary_text}</div>
+                            </div>
+                        </div>
+                        `;
+                    });
+                    listContainer.innerHTML = html;
+                });
+            } else {
+                listContainer.innerHTML = `<div style="padding: 20px; text-align:center; color:#D32F2F;">Layanan Maps belum siap. Coba lagi sebentar.</div>`;
+            }
+        };
+        // -------------------------------------------------------------
 
         window.closeLocationSearchModal = () => {
             const modal = document.getElementById('location-search-modal');
