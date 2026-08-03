@@ -8746,6 +8746,12 @@
                     title: "PRAKTIS pakai Projekgo Prioritas",
                     desc: "jadi mudah, bisa belanja atau titip apa saja secara otomatis. Coba!",
                     action: "window.open('https://wa.me/6281292802623?text=Halo%20Admin%2C%20saya%20mau%20tanya%20soal%20Projekgo%20Prioritas', '_blank')"
+                },
+                {
+                    img_url: "https://i.ibb.co.com/Xkp6gBGT/Salinan-dari-Tanpa-judul-800-x-500-piksel-2.png",
+                    title: "Cari Warung Terdekat",
+                    desc: "Temukan berbagai makanan lezat di sekitar lokasimu sekarang!",
+                    action: "bukaWarungTerdekat()"
                 }
             ];
 
@@ -9009,6 +9015,28 @@
     };
     // --- AKHIR TAMBAHAN LANGKAH 2 ---
     
+    // --- FUNGSI BUKA WARUNG TERDEKAT (EKSEKUSI LANGKAH 1) ---
+    window.bukaWarungTerdekat = () => {
+        window.openPage('food'); // 1. Buka halaman food
+        
+        setTimeout(() => {
+            // 2. Cari elemen tombol filter 'Terdekat'
+            const pills = document.querySelectorAll('.food-filter-pill');
+            let targetPill = null;
+            pills.forEach(pill => {
+                if (pill.innerText.includes('Terdekat')) {
+                    targetPill = pill;
+                }
+            });
+            
+            // 3. Jika ketemu, eksekusi filternya
+            if (targetPill) {
+                window.filterFoodArea('Terdekat', targetPill);
+            }
+        }, 300); // Jeda 300ms menunggu render halaman selesai
+    };
+    // --------------------------------------------------------
+
     // --- TAMBAHAN LANGKAH 3: FUNGSI HITUNG JARAK (HAVERSINE FORMULA) ---
     // Fungsi ini akan mengukur jarak lurus (garis ditarik) antara dua titik koordinat bumi dalam hitungan Kilometer (km)
     window.calculateDistance = (lat1, lon1, lat2, lon2) => {
