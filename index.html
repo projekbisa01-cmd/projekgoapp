@@ -2469,13 +2469,13 @@
                 <div onclick="window.open('https://wa.me/62882008667068', '_blank')" style="padding:16px 0; border-bottom:1px solid #f5f5f5; display:flex; align-items:center; gap:12px; cursor:pointer;">
                     <i class="ph-fill ph-headset" style="color:#00BCD4; font-size:22px;"></i> <span style="font-weight:600; font-size:14px; color:#333;">Bantuan & Laporan</span> <i class="ph-bold ph-caret-right" style="margin-left:auto; color:#ccc;"></i>
                 </div>
-                <div onclick="showToast('sedang tahap pengembangan di tunggu yah fiturnya')" style="padding:16px 0; border-bottom:1px solid #f5f5f5; display:flex; align-items:center; gap:12px; cursor:pointer;">
+                <div onclick="showToast('sedang tahap pengembangan di tunggu yah fiturnya')" style="display:none; padding:16px 0; border-bottom:1px solid #f5f5f5; align-items:center; gap:12px; cursor:pointer;">
                     <i class="ph-fill ph-translate" style="color:#607D8B; font-size:22px;"></i> <span style="font-weight:600; font-size:14px; color:#333;">Bahasa</span> <i class="ph-bold ph-caret-right" style="margin-left:auto; color:#ccc;"></i>
                 </div>
                 <div onclick="window.open('https://katalog.projekgo.id/privasi', '_blank')" style="padding:16px 0; border-bottom:1px solid #f5f5f5; display:flex; align-items:center; gap:12px; cursor:pointer;">
                     <i class="ph-fill ph-shield-check" style="color:#9C27B0; font-size:22px;"></i> <span style="font-weight:600; font-size:14px; color:#333;">Kebijakan Privasi</span> <i class="ph-bold ph-caret-right" style="margin-left:auto; color:#ccc;"></i>
                 </div>
-                <div onclick="showToast('sedang tahap pengembangan di tunggu yah fiturnya')" style="padding:16px 0; border-bottom:1px solid #f5f5f5; display:flex; align-items:center; gap:12px; cursor:pointer;">
+                <div onclick="showToast('sedang tahap pengembangan di tunggu yah fiturnya')" style="display:none; padding:16px 0; border-bottom:1px solid #f5f5f5; align-items:center; gap:12px; cursor:pointer;">
                     <i class="ph-fill ph-star" style="color:#FFC107; font-size:22px;"></i> <span style="font-weight:600; font-size:14px; color:#333;">Beri Rating Projekgo</span> <i class="ph-bold ph-caret-right" style="margin-left:auto; color:#ccc;"></i>
                 </div>
 
@@ -5345,6 +5345,7 @@
 
             const container = document.getElementById('my-cart-items-container');
             container.style.padding = '0'; // Menghilangkan padding kiri kanan agar garis pemisah bisa full layar
+            container.style.background = 'transparent'; // Biarkan warna background parent (#fafafa) terlihat
             container.innerHTML = '';
             
             if (cart.length === 0) {
@@ -5357,12 +5358,6 @@
                         <h3 style="font-size: 18px; font-weight: 800; color: var(--dark); margin: 0 0 10px 0;">Keranjang Masih Kosong</h3>
                         <p style="font-size: 13px; color: #666; line-height: 1.5; margin: 0;">keranjang kamu belum terisi nih.<br>yuk gas, agar projekgo bisa anter dengan cepat dan tepat 🛵💨</p>
                         <button onclick="openPage('home')" style="margin-top: 25px; background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 20px; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 102, 0, 0.3); transition: transform 0.2s;" onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1)'">Mulai Belanja</button>
-                        <style>
-                            @keyframes floatCartEmpty {
-                                0%, 100% { transform: translateY(0); }
-                                50% { transform: translateY(-15px); }
-                            }
-                        </style>
                     </div>
                 `;
                 document.getElementById('my-cart-total-price').innerText = "Rp0";
@@ -5412,16 +5407,41 @@
                 // Cek apakah SEMUA item di warung ini dicentang
                 const allVendorItemsChecked = consolidatedItems.every(i => selectedCartKeys.includes(i._key));
 
-                // --- PEMISAH TEBAL ANTAR WARUNG (8px solid) ---
+                // --- CARI ID VENDOR UNTUK NAVIGASI KETIKA NAMA DIKLIK ---
+                let targetVendorId = vendor; 
+                if (consolidatedItems.length > 0) {
+                    const sampleProduct = rawProducts.find(p => p.id === consolidatedItems[0].id);
+                    if (sampleProduct && sampleProduct.vendor_id) {
+                        targetVendorId = sampleProduct.vendor_id;
+                    } else {
+                        const vendorObj = allVendors.find(v => v.nama_warung === vendor);
+                        if (vendorObj) targetVendorId = vendorObj.id;
+                    }
+                }
+
+                // --- UI BARU: BLOK TOKO / WARUNG ---
                 html += `
-                <div style="padding: 20px 15px 10px 15px; border-bottom: 8px solid #f0f0f0; background: white;">
+                <div style="background: white; margin-bottom: 12px; padding-bottom: 18px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                    
                     <!-- HEADER WARUNG -->
-                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #FF6600;">
+                    <div style="display: flex; align-items: center; padding: 15px; border-bottom: 2px solid #E65100; gap: 12px;">
+                        
+                        <!-- Checkbox Toko (Tetap di kiri, terpisah dari area klik navigasi) -->
                         <input type="checkbox" style="width: 18px; height: 18px; accent-color: #E53935; cursor: pointer; flex-shrink: 0;" 
                                onchange="toggleSelectVendor(this, '${vendor}')" ${allVendorItemsChecked ? 'checked' : ''}>
-                        <i class="ph-fill ph-storefront" style="color: #FF6600; font-size: 18px;"></i>
-                        <span style="font-weight: 800; font-size: 14px; color: var(--dark); text-transform: uppercase;">${vendor}</span>
+                        
+                        <!-- Area Nama & Arrow yang bisa diklik untuk pergi ke halaman warung -->
+                        <div onclick="openVendorPage('${targetVendorId}')" style="display: flex; align-items: center; justify-content: space-between; flex-grow: 1; cursor: pointer;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class="ph-fill ph-storefront" style="color: #E65100; font-size: 18px;"></i>
+                                <span style="font-weight: 800; font-size: 14px; color: var(--dark); text-transform: uppercase;">${vendor}</span>
+                            </div>
+                            <i class="ph-bold ph-caret-right" style="color: #555; font-size: 14px;"></i>
+                        </div>
                     </div>
+                    
+                    <!-- LIST ITEM -->
+                    <div style="padding: 0 15px;">
                 `;
 
                 consolidatedItems.forEach(item => {
@@ -5431,44 +5451,66 @@
                     const product = rawProducts.find(p => p.id === item.id);
                     const imgUrl = product && product.foto_url && product.foto_url.length > 5 ? product.foto_url : FALLBACK_MENU_IMG;
                     
-                    // --- STRUKTUR ITEM DENGAN GAMBAR ---
+                    // --- UI BARU: KARTU ITEM ---
                     html += `
-                    <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 15px;">
-                        <input type="checkbox" class="cb-item-${vendor.replace(/\s+/g, '-')}" value="${item._key}" 
-                               style="width: 18px; height: 18px; margin-top: 20px; accent-color: #E53935; cursor: pointer; flex-shrink: 0;" 
-                               onchange="toggleSelectItem(this)" ${isChecked ? 'checked' : ''}>
-                        
-                        <img src="${imgUrl}" style="width: 60px; height: 60px; border-radius: 10px; object-fit: cover; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" onerror="this.src='${FALLBACK_MENU_IMG}'">
-
-                        <div style="flex: 1; padding-top: 2px; overflow: hidden;">
-                            <div style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 4px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.nama}</div>
-                            <div style="font-weight: 800; font-size: 14px; color: #111;">Rp ${(item.totalPrice).toLocaleString('id-ID')}</div>
-                            ${(item.variant && item.variant !== '-') ? `<div style="font-size:11px; color:#888; margin-top:4px;">${item.variant}</div>` : ''}
-                            ${(item.note) ? `<div style="font-size:11px; color:#888; margin-top:2px;">Catatan: ${item.note}</div>` : ''}
-                        </div>
-
-                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 10px; flex-shrink: 0; padding-top: 2px;">
-                            <div onclick="removeMyCartItem('${item._key}')" style="cursor: pointer; padding: 2px;">
-                                <i class="ph-bold ph-trash" style="color: #E53935; font-size: 18px;"></i>
+                        <div style="display: flex; align-items: stretch; gap: 12px; padding: 15px 0; border-bottom: 1px dashed #eee;">
+                            
+                            <!-- CHECKBOX KIRI -->
+                            <div style="display: flex; align-items: center;">
+                                <input type="checkbox" class="cb-item-${vendor.replace(/\s+/g, '-')}" value="${item._key}" 
+                                       style="width: 18px; height: 18px; accent-color: #E53935; cursor: pointer; flex-shrink: 0;" 
+                                       onchange="toggleSelectItem(this)" ${isChecked ? 'checked' : ''}>
                             </div>
-                            <div style="display: flex; align-items: center; background: #f9f9f9; border-radius: 6px; border: 1px solid #eee; overflow: hidden;">
-                                <div onclick="updateMyCartQty('${item._key}', -1)" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #666; font-weight: bold; background: white;">-</div>
-                                <div style="font-size: 13px; font-weight: 700; width: 22px; text-align: center;">${item.qty}</div>
-                                <div onclick="updateMyCartQty('${item._key}', 1)" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #666; font-weight: bold; background: white;">+</div>
+                            
+                            <!-- GAMBAR PRODUK -->
+                            <img src="${imgUrl}" style="width: 65px; height: 65px; border-radius: 12px; object-fit: cover; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" onerror="this.src='${FALLBACK_MENU_IMG}'">
+
+                            <!-- DETAIL PRODUK & AKSI KANAN -->
+                            <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                                
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
+                                    <div style="font-size: 13px; font-weight: 600; color: #333; line-height: 1.3;">${item.nama}</div>
+                                    <!-- ICON TONG SAMPAH -->
+                                    <i class="ph-regular ph-trash" onclick="removeMyCartItem('${item._key}')" style="color: #E53935; font-size: 18px; cursor: pointer; flex-shrink: 0;"></i>
+                                </div>
+                                
+                                <div style="font-weight: 800; font-size: 14px; color: #111; margin-top: 4px;">Rp ${(item.totalPrice).toLocaleString('id-ID')}</div>
+                                
+                                ${(item.variant && item.variant !== '-') ? `<div style="font-size:11px; color:#888; margin-top:2px;">${item.variant}</div>` : ''}
+                                ${(item.note) ? `<div style="font-size:11px; color:#888; margin-top:2px;">Catatan: ${item.note}</div>` : ''}
+
+                                <!-- KONTROL QTY -->
+                                <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
+                                    <div style="display: flex; align-items: center; border: 1px solid #ddd; border-radius: 6px; background: white; overflow: hidden;">
+                                        <div onclick="updateMyCartQty('${item._key}', -1)" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #555; font-weight: bold; user-select: none;">-</div>
+                                        <div style="font-size: 13px; font-weight: 700; width: 30px; text-align: center; border-left: 1px solid #ddd; border-right: 1px solid #ddd; line-height: 28px;">${item.qty}</div>
+                                        <div onclick="updateMyCartQty('${item._key}', 1)" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #555; font-weight: bold; user-select: none;">+</div>
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
-                    </div>
                     `;
                 });
 
-                html += `</div>`; // Tutup div per warung
+                html += `
+                    </div> <!-- Tutup container item -->
+                    
+                    <!-- FOOTER INFO TEXT -->
+                    <div style="display: flex; align-items: flex-start; gap: 8px; padding: 15px 15px 0 15px; color: #999; font-size: 11px; font-style: italic; line-height: 1.4;">
+                        <i class="ph-bold ph-ticket" style="color: #FF6600; font-size: 18px; margin-top: 1px;"></i>
+                        <span>Harga makanan <b>HARGA ASLI</b> & Tidak ada biaya Aplikasi<br>Pengiriman langsung diantar (prioritas 1 rider 1 pelanggan)</span>
+                    </div>
+
+                </div> <!-- Tutup wrapper warung -->
+                `;
             });
 
             // Teks Info Tambahan Ongkir jika warung berbeda
             if (vendorNames.length > 1) {
                 html += `
-                <div style="font-size:12px; color:#00BFA5; font-style:italic; line-height:1.4; padding: 15px; text-align: center;">
-                    Tambahan Ongkir diberlakukan Karena ada warung yang berbeda,dengan tambahan 3.000 per warung
+                <div style="font-size:12px; color:#00BFA5; font-style:italic; line-height:1.4; padding: 0 15px 20px 15px; text-align: center;">
+                    Ada Tambahan sedikit untuk Ongkir, Jika kamu pesan lebih dari 1 warung, dengan tambahan Rp 3.000 per warung (TETAP LEBIH HEMAT)
                 </div>`;
             }
 
@@ -5479,43 +5521,47 @@
         window.calculateMyCartTotal = () => {
             let selectedTotal = 0;
             let selectedCount = 0;
-            let savings = 0;
 
-            // Pastikan Cek All menyesuaikan
+            // Sinkronisasi status Checkbox "Semua" di Action Bar bawah
             const uniqueKeysInCart = [...new Set(cart.map(i => i.id + '|' + i.variant + '|' + (i.note || '').trim().toLowerCase()))];
             const cbAll = document.getElementById('cb-select-all');
             if(cbAll) {
                 cbAll.checked = uniqueKeysInCart.length > 0 && selectedCartKeys.length === uniqueKeysInCart.length;
             }
 
+            // Hitung subtotal dan jumlah item berdasarkan item yang dicentang saja
             cart.forEach(item => {
                 const key = item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase();
                 if (selectedCartKeys.includes(key)) {
                     selectedTotal += item.harga;
-                    selectedCount++; // Hitung per item unit (bukan per jenis)
+                    selectedCount++; // Hitung total kuantitas unit yang dipilih
                 }
             });
 
-            // Update UI Harga Bawah
-            document.getElementById('my-cart-total-price').innerText = "Rp" + selectedTotal.toLocaleString('id-ID');
-            const btnCheckout = document.getElementById('btn-my-cart-checkout');
-            btnCheckout.innerText = `Checkout (${selectedCount})`;
+            // Update UI Harga Total Bawah
+            const totalPriceEl = document.getElementById('my-cart-total-price');
+            if (totalPriceEl) totalPriceEl.innerText = "Rp " + selectedTotal.toLocaleString('id-ID');
             
-            // Desain tombol mati jika tidak ada yang dicentang
-            if(selectedCount === 0) {
-                btnCheckout.style.background = "#ccc";
-                btnCheckout.style.cursor = "not-allowed";
-            } else {
-                btnCheckout.style.background = "#E53935";
-                btnCheckout.style.cursor = "pointer";
+            // Update Tombol Checkout (X) dan desain disable/enable
+            const btnCheckout = document.getElementById('btn-my-cart-checkout');
+            if (btnCheckout) {
+                btnCheckout.innerText = `Checkout (${selectedCount})`;
+                if(selectedCount === 0) {
+                    btnCheckout.style.background = "#ccc";
+                    btnCheckout.style.cursor = "not-allowed";
+                } else {
+                    btnCheckout.style.background = "#E53935"; // Warna merah sesuai gambar
+                    btnCheckout.style.cursor = "pointer";
+                }
             }
 
             // Hitung Penghematan
-            savings = Math.ceil(selectedTotal * 1.2) - selectedTotal;
+            const savings = Math.ceil(selectedTotal * 1.2) - selectedTotal;
             const savingsBadge = document.getElementById('my-cart-savings-badge');
             if (savingsBadge) {
                 if (savings > 0 && selectedCount > 0) {
-                    document.getElementById('my-cart-savings-val').innerText = "Rp " + savings.toLocaleString('id-ID');
+                    const savingsValEl = document.getElementById('my-cart-savings-val');
+                    if (savingsValEl) savingsValEl.innerText = "Rp " + savings.toLocaleString('id-ID');
                     savingsBadge.style.display = 'block';
                 } else {
                     savingsBadge.style.display = 'none';
@@ -5564,33 +5610,8 @@
                 const occurrences = cart.filter(itemKeyCheck).length;
                 
                 if (occurrences === 1) {
-                    // Jika jumlah tinggal 1 dan diklik minus (menjadi 0), tampilkan pop-up konfirmasi
-                    Swal.fire({
-                        title: 'Yakin mau menghapus pilihan kamu?',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#E53935',
-                        cancelButtonColor: '#999',
-                        confirmButtonText: 'Ya, hapus',
-                        cancelButtonText: 'Batal',
-                        reverseButtons: true,
-                        customClass: {
-                            popup: 'swal-custom-popup',
-                            title: 'swal-custom-title'
-                        }
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            const index = cart.findIndex(itemKeyCheck);
-                            if (index !== -1) cart.splice(index, 1);
-                            
-                            // Hapus juga dari status checked jika dihapus
-                            selectedCartKeys = selectedCartKeys.filter(k => k !== key);
-                            
-                            localStorage.setItem('projekgo_cart', JSON.stringify(cart));
-                            updateCartBadge();
-                            renderMyCartPage();
-                        }
-                    });
+                    // Jika jumlah tinggal 1 dan diklik minus (menjadi 0), arahkan ke fungsi hapus agar muncul popup konfirmasi yang seragam
+                    window.removeMyCartItem(key);
                     return; // Stop fungsi agar tidak langsung terhapus
                 } else {
                     // Jika qty > 1, langsung kurangi tanpa pop-up
@@ -5608,7 +5629,7 @@
         };
 
         window.removeMyCartItem = (key) => {
-            // Tampilkan pop-up konfirmasi SweetAlert2 sebelum menghapus
+            // Tampilkan pop-up konfirmasi SweetAlert2 sebelum menghapus via icon tong sampah
             Swal.fire({
                 title: 'Yakin mau menghapus pilihan kamu?',
                 icon: 'warning',
@@ -5629,17 +5650,12 @@
                         return (item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase()) !== key;
                     });
                     
-                    // Hapus juga dari status checked jika dihapus
+                    // Hapus juga dari status checked (yang tercentang merah) jika dihapus
                     selectedCartKeys = selectedCartKeys.filter(k => k !== key);
                     
                     localStorage.setItem('projekgo_cart', JSON.stringify(cart));
                     updateCartBadge();
-                    renderMyCartPage();
-                    
-                    // Jika keranjang kosong setelah dihapus, otomatis kembali atau render tampilan kosong
-                    if(cart.length === 0) {
-                        renderMyCartPage(); 
-                    }
+                    renderMyCartPage(); // Merender ulang dan otomatis kembali mode kosong jika keranjang habis
                 }
             });
         };
