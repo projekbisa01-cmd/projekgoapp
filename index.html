@@ -2442,7 +2442,22 @@
         <div id="page-profile" class="page">
             <div style="background:white; padding:30px; text-align:center; margin-bottom:10px; position:relative; box-shadow:var(--shadow-sm);">
                 <div onclick="toggleEditProfile()" style="position:absolute; top:15px; right:20px; color:var(--primary); font-size:12px; font-weight:700; cursor:pointer;"><i class="ph-fill ph-pencil-simple"></i> Edit</div>
-                <i class="ph ph-user-circle" style="font-size:70px; color:#ddd;"></i>
+                
+                <!-- AREA FOTO PROFIL INTERAKTIF (LANGKAH 1) -->
+                <div style="position: relative; display: inline-block; cursor: pointer;" onclick="document.getElementById('profile-image-input').click()">
+                    <!-- Container Gambar / Ikon -->
+                    <div style="width: 80px; height: 80px; border-radius: 50%; background: #f9f9f9; border: 2px solid #FFF0E5; display: flex; align-items: center; justify-content: center; overflow: hidden; margin: 0 auto; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                        <img id="profile-image-display" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                        <i id="profile-icon-default" class="ph ph-user-circle" style="font-size:65px; color:#ddd;"></i>
+                    </div>
+                    <!-- Badge Kamera -->
+                    <div style="position: absolute; bottom: 0; right: 0; background: var(--primary); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+                        <i class="ph-fill ph-camera" style="font-size: 14px;"></i>
+                    </div>
+                    <!-- Input File Tersembunyi (Akan ditangkap oleh JS di Langkah 2) -->
+                    <input type="file" id="profile-image-input" accept="image/*" style="display: none;" onchange="handleProfileImageUpload(event)">
+                </div>
+                
                 <h3 style="margin:10px 0 0 0;" id="profile-name">User Projekgo</h3>
                 <p style="margin:5px 0 0 0; color:#666; font-size:14px;" id="profile-phone">0812-XXXX-XXXX</p>
                 <div id="edit-profile-form" class="profile-edit-box">
@@ -3340,6 +3355,22 @@
             greetingNameEl.innerText = savedProfile.name !== 'User Projekgo' ? savedProfile.name.split(' ')[0] : 'Projekger';
         }
 
+        // --- TAMBAHAN LANGKAH 3: MEMUAT FOTO PROFIL SAAT APLIKASI DIBUKA ---
+        const savedProfileImage = localStorage.getItem('user_profile_image');
+        if (savedProfileImage) {
+            // Beri jeda sedikit (requestAnimationFrame) untuk memastikan elemen HTML (DOM) profil sudah ter-render
+            requestAnimationFrame(() => {
+                const displayImg = document.getElementById('profile-image-display');
+                const defaultIcon = document.getElementById('profile-icon-default');
+                if (displayImg && defaultIcon) {
+                    displayImg.src = savedProfileImage;
+                    displayImg.style.display = 'block';
+                    defaultIcon.style.display = 'none';
+                }
+            });
+        }
+        // -------------------------------------------------------------------
+
         // --- LOGIKA HALAMAN PENDAFTARAN AWAL & SPLASH PENGGUNA LAMA ---
         const hasRegisteredProfile = localStorage.getItem('user_profile');
         
@@ -3928,6 +3959,74 @@
 
         window.toggleEditProfile = () => { const box = document.getElementById('edit-profile-form'); box.style.display = box.style.display === 'block' ? 'none' : 'block'; document.getElementById('edit-name').value = savedProfile.name; document.getElementById('edit-phone').value = savedProfile.phone; }
         window.saveProfile = () => { const name = document.getElementById('edit-name').value; const phone = document.getElementById('edit-phone').value; if(name && phone) { savedProfile.name = name; savedProfile.phone = phone; localStorage.setItem('user_profile', JSON.stringify(savedProfile)); document.getElementById('profile-name').innerText = name; document.getElementById('profile-phone').innerText = phone; const gEl = document.getElementById('greeting-name'); if(gEl) gEl.innerText = name.split(' ')[0]; document.getElementById('edit-profile-form').style.display = 'none'; showToast("Profil berhasil disimpan!"); } }
+
+        // --- AREA FOTO PROFIL INTERAKTIF (LANGKAH 2: FUNGSI KOMPRESI & SIMPAN FOTO) ---
+        window.handleProfileImageUpload = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Validasi file harus berupa gambar
+            if (!file.type.startsWith('image/')) {
+                showToast("Maaf, file yang dipilih bukan gambar!");
+                return;
+            }
+
+            // Membaca file dan memproses kompresi
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (e) => {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = () => {
+                    // Siapkan Canvas untuk mengompres gambar
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 400; // Resolusi maksimal dipotong ke 400px (Sangat aman & ringan)
+                    const MAX_HEIGHT = 400;
+                    let width = img.width;
+                    let height = img.height;
+
+                    // Mengatur rasio agar proporsional
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Konversi ke format JPEG dengan kualitas 70% (0.7) untuk sangat menghemat ruang
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+
+                    // Simpan hasil kompresi ke Local Storage HP
+                    try {
+                        localStorage.setItem('user_profile_image', compressedDataUrl);
+                        
+                        // Tampilkan foto di UI secara langsung
+                        const displayImg = document.getElementById('profile-image-display');
+                        const defaultIcon = document.getElementById('profile-icon-default');
+                        if (displayImg && defaultIcon) {
+                            displayImg.src = compressedDataUrl;
+                            displayImg.style.display = 'block';
+                            defaultIcon.style.display = 'none';
+                        }
+                        showToast("Foto profil berhasil diperbarui!");
+                    } catch (error) {
+                        console.error("Gagal menyimpan foto:", error);
+                        showToast("Memori HP penuh, gagal menyimpan foto.");
+                    }
+                };
+            };
+        };
+        // -----------------------------------------------------------------------------
 
         // --- FUNGSI LOGOUT AKUN ---
         window.logoutApp = () => {
