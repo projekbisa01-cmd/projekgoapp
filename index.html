@@ -2143,52 +2143,65 @@
                         }
                     }
 
-                    // 2. Jika memori kosong, lacak titik koordinat pengguna (Metode GPS Device Native)
+                    // 2. Jika memori kosong atau di-refresh, lacak titik koordinat pengguna (Metode GPS Device Native)
                     if (navigator.geolocation) {
-                        if(foodLoc) foodLoc.innerText = "Melacak otomatis...";
+                        if(foodLoc) foodLoc.innerText = "Melacak akurat...";
                         
                         navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                            const lat = position.coords.latitude;
-                            const lng = position.coords.longitude;
-                            const mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
-                            
-                            // Simpan Link Titik Koordinat asli (Berguna untuk Kalkulasi Jarak di Checkout nanti)
-                            localStorage.setItem('user_maps', mapsLink);
+                            (position) => {
+                                const lat = position.coords.latitude;
+                                const lng = position.coords.longitude;
+                                const mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
+                                
+                                // EKSEKUSI LANGKAH 1: Amankan Data Koordinat Mutlak Langsung ke Memori
+                                localStorage.setItem('user_maps', mapsLink);
+                                localStorage.setItem('user_lat', lat);
+                                localStorage.setItem('user_lng', lng);
 
-                            // EKSEKUSI LANGKAH 1: Amankan Data Koordinat Mutlak
-                            localStorage.setItem('user_lat', lat);
-                            localStorage.setItem('user_lng', lng);
-
-                            // 3. Ambil Nama Jalan Jika Geocoder Google Aktif
-                            if (typeof google !== 'undefined' && google.maps) {
+                                // 3. Terjemahkan titik koordinat menjadi teks Nama Jalan (Geocoder)
+                                if (typeof google !== 'undefined' && google.maps && google.maps.Geocoder) {
                                     const geocoder = new google.maps.Geocoder();
                                     const pos = { lat: lat, lng: lng };
+                                    
                                     geocoder.geocode({ location: pos }, (results, status) => {
                                         if (status === 'OK' && results[0]) {
                                             const address = results[0].formatted_address;
                                             localStorage.setItem('user_address', address);
+                                            
+                                            // Tambahan: Simpan ke riwayat agar mudah diakses di halaman pencarian nanti
+                                            if(window.saveRecentLocation) {
+                                                window.saveRecentLocation("Lokasi Saya Saat Ini", address, lat, lng);
+                                            }
+                                            
                                             if(foodLoc) foodLoc.innerText = address.length > 25 ? address.substring(0, 25) + "..." : address;
                                         } else {
-                                            const fallback = `Titik GPS Anda (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+                                            const fallback = `Lokasi GPS (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
                                             localStorage.setItem('user_address', fallback);
-                                            if(foodLoc) foodLoc.innerText = "Titik GPS tersimpan";
+                                            if(foodLoc) foodLoc.innerText = "Titik GPS diamankan";
                                         }
                                     });
                                 } else {
-                                    const fallback = `Titik GPS Anda (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+                                    const fallback = `Lokasi GPS (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
                                     localStorage.setItem('user_address', fallback);
-                                    if(foodLoc) foodLoc.innerText = "Titik GPS tersimpan";
+                                    if(foodLoc) foodLoc.innerText = "Titik GPS diamankan";
                                 }
                                 
-                                if(forceRefresh && window.showToast) window.showToast("Lokasi berhasil diperbarui! 📍");
+                                if(forceRefresh && window.showToast) window.showToast("Lokasi akurat berhasil diamankan! 📍");
                             },
                             (error) => {
-                                console.error("GPS Error:", error);
-                                if(foodLoc) foodLoc.innerText = "Gagal Melacak, Tap Disini";
-                                if(forceRefresh && window.showToast) window.showToast("Gagal melacak! Aktifkan GPS/Lokasi perangkat.");
+                                console.warn("GPS Error/Lemah:", error.message);
+                                // Fallback jika sinyal lemah: Gunakan alamat lama jika ada
+                                const lastSaved = localStorage.getItem('user_address');
+                                if (lastSaved) {
+                                    if(foodLoc) foodLoc.innerText = lastSaved.length > 25 ? lastSaved.substring(0, 25) + "..." : lastSaved;
+                                    if(forceRefresh && window.showToast) window.showToast("Menggunakan lokasi tersimpan terakhir.");
+                                } else {
+                                    if(foodLoc) foodLoc.innerText = "Gagal melacak, tap disini";
+                                    if(forceRefresh && window.showToast) window.showToast("Sinyal GPS lemah! Coba di area terbuka.");
+                                }
                             },
-                            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                            // Penyesuaian konfigurasi agar lebih stabil (Timeout 15 detik, Cache 5 detik)
+                            { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
                         );
                     } else {
                         if(foodLoc) foodLoc.innerText = "GPS Tidak Didukung";
@@ -6055,11 +6068,11 @@
                 <div style="width:100px; height:100px; background:#FFF0E5; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:20px; box-shadow:0 10px 25px rgba(255,102,0,0.2); animation: rocketLaunchAnim 2.5s ease-in-out forwards;">
                     <i class="ph-fill ph-rocket-launch" style="font-size:55px; color:#FF6600;"></i>
                 </div>
-                <h3 style="font-size:20px; font-weight:800; color:#111; margin:0 0 10px 0;">Menyiapkan Pesananmu...</h3>
-                <p style="font-size:13px; color:#555; line-height:1.5; margin:0 0 20px 0;">Mohon periksa kembali detail pesanan<br>dan pastikan alamat tujuan kamu sudah benar!</p>
+                <h3 style="font-size:20px; font-weight:800; color:#111; margin:0 0 10px 0;"></h3>
+                <p style="font-size:13px; color:#555; line-height:1.5; margin:0 0 20px 0;"></p>
                 <div style="background:#f9f9f9; border:1px dashed #FFB74D; border-radius:12px; padding:12px 15px; width:100%; max-width:320px; text-align:left;">
                     <div style="font-size:11px; color:#FF6600; font-weight:800; margin-bottom:6px; display:flex; align-items:center; gap:4px;">
-                        <i class="ph-fill ph-map-pin"></i> Alamat Pengantaran Terakhir:
+                        <i class="ph-fill ph-map-pin"></i> Lokasi saat ini:
                     </div>
                     <div style="font-size:13px; color:#333; font-weight:600; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
                         ${savedAddr}
@@ -6735,7 +6748,7 @@
             const list = document.getElementById('loc-search-results');
             if (tabName === 'terakhir') {
                 let html = `
-                    <div style="display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee; cursor: pointer; gap: 15px;" onclick="autoFetchCheckoutLocation(true)">
+                    <div style="display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee; cursor: pointer; gap: 15px; transition: transform 0.2s;" onmousedown="this.style.transform='scale(0.96)'" onmouseup="this.style.transform='scale(1)'" onmouseleave="this.style.transform='scale(1)'" onclick="autoFetchCheckoutLocation(true)">
                         <i class="ph-bold ph-target" style="font-size: 24px; color: #FF9800;"></i>
                         <div style="flex-grow: 1;">
                             <div style="font-size: 15px; font-weight: 700; color: var(--dark);">Lokasi saat ini</div>
@@ -7314,6 +7327,122 @@
             window.open(`https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(textWA)}`, '_blank');
         }
 
+        // --- TAMBAHAN LANGKAH 2: FUNGSI AUTOFETCH LOKASI CHECKOUT ---
+        window.autoFetchCheckoutLocation = (forceGPS = false) => {
+            const titleEl = document.getElementById('checkout-maps-search-title');
+            const descEl = document.getElementById('checkout-maps-search-desc');
+            const searchInput = document.getElementById('checkout-maps-search');
+            
+            // 1. Jika tidak dipaksa GPS (baru buka halaman) dan memori alamat sudah ada dari halaman Food
+            if (!forceGPS) {
+                const savedLat = localStorage.getItem('user_lat');
+                const savedLng = localStorage.getItem('user_lng');
+                const savedAddr = localStorage.getItem('user_address');
+                
+                if (savedLat && savedLng && savedAddr) {
+                    // Gunakan data dari memori (Hasil temuan halaman Food)
+                    if (titleEl) titleEl.innerText = "Lokasi Pengantaran";
+                    if (descEl) descEl.innerText = savedAddr;
+                    if (searchInput) searchInput.value = savedAddr;
+                    
+                    const latVal = parseFloat(savedLat);
+                    const lngVal = parseFloat(savedLng);
+                    
+                    window.checkoutDestPlace = {
+                        geometry: { location: { lat: latVal, lng: lngVal } },
+                        formatted_address: savedAddr,
+                        name: savedAddr
+                    };
+                    
+                    // Langsung kalkulasi ongkir tanpa loading GPS ulang
+                    calculateCheckoutOngkir(window.checkoutDestPlace.geometry.location);
+                    return; 
+                }
+            }
+
+            // 2. Jika dipaksa (tombol "Lokasi saat ini" ditekan) atau memori kosong, lacak GPS
+            if (!navigator.geolocation) {
+                if (window.showToast) window.showToast("GPS Tidak Didukung Browser");
+                return;
+            }
+
+            if (titleEl) titleEl.innerText = "Melacak Lokasi...";
+            if (descEl) descEl.innerText = "Mohon tunggu sebentar, sedang mencari sinyal GPS";
+            
+            // Efek visual saat ditekan dari modal
+            if (forceGPS) {
+                closeLocationSearchModal();
+                if (window.showToast) window.showToast("Mencari titik akurat Anda... 📍");
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    
+                    localStorage.setItem('user_lat', lat);
+                    localStorage.setItem('user_lng', lng);
+                    
+                    if (typeof google !== 'undefined' && google.maps && google.maps.Geocoder) {
+                        const geocoder = new google.maps.Geocoder();
+                        const pos = { lat: lat, lng: lng };
+                        
+                        geocoder.geocode({ location: pos }, (results, status) => {
+                            let finalAddress = `Titik GPS (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
+                            let finalName = "Lokasi Saya Saat Ini";
+                            
+                            if (status === 'OK' && results[0]) {
+                                finalAddress = results[0].formatted_address;
+                                // Ambil bagian awal alamat (misal: nama jalan/area) sebagai judul
+                                const addressParts = finalAddress.split(',');
+                                if(addressParts.length > 0) finalName = addressParts[0];
+                            }
+                            
+                            localStorage.setItem('user_address', finalAddress);
+                            
+                            if (titleEl) titleEl.innerText = finalName;
+                            if (descEl) descEl.innerText = finalAddress;
+                            if (searchInput) searchInput.value = finalAddress;
+                            
+                            window.checkoutDestPlace = {
+                                geometry: { location: pos },
+                                formatted_address: finalAddress,
+                                name: finalName
+                            };
+                            
+                            calculateCheckoutOngkir(window.checkoutDestPlace.geometry.location);
+                        });
+                    } else {
+                        // Fallback jika Google Maps API gagal dimuat
+                        const fallbackAddress = `Titik GPS (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
+                        localStorage.setItem('user_address', fallbackAddress);
+                        
+                        if (titleEl) titleEl.innerText = "Lokasi GPS";
+                        if (descEl) descEl.innerText = fallbackAddress;
+                        if (searchInput) searchInput.value = fallbackAddress;
+                        
+                        window.checkoutDestPlace = {
+                            geometry: { location: { lat: lat, lng: lng } },
+                            formatted_address: fallbackAddress,
+                            name: "Lokasi GPS"
+                        };
+                        calculateCheckoutOngkir(window.checkoutDestPlace.geometry.location);
+                    }
+                },
+                (error) => {
+                    console.warn("Gagal melacak GPS di Checkout:", error);
+                    if (titleEl) titleEl.innerText = "Gagal Mendapatkan Lokasi";
+                    if (descEl) descEl.innerText = "Sinyal GPS lemah atau diblokir. Sentuh untuk cari manual.";
+                    if (window.showToast && forceGPS) window.showToast("Gagal melacak. Pastikan GPS aktif!");
+                    
+                    // Fallback ke ongkir manual jika gagal total
+                    calculateCheckoutOngkir(null); 
+                },
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
+            );
+        };
+        // -------------------------------------------------------------
+
         window.getCurrentLocationForMaps = () => {
             if (!navigator.geolocation) {
                 showToast("⚠️ Browser Anda tidak mendukung pelacakan GPS.");
@@ -7349,6 +7478,79 @@
                 { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
         }
+
+        // --- TAMBAHAN BARU: FUNGSI TOGGLE MODE LOKASI CHECKOUT ---
+        window.toggleCheckoutLocMode = (mode) => {
+            window.checkoutLocMode = mode;
+            const tabMaps = document.getElementById('tab-checkout-maps');
+            const tabManual = document.getElementById('tab-checkout-manual');
+            const contMaps = document.getElementById('checkout-maps-container');
+            const contManual = document.getElementById('checkout-manual-container');
+            const ongkirTextEl = document.getElementById('checkout-ongkir-text');
+
+            if (mode === 'maps') {
+                // Style tab Maps
+                if (tabMaps) {
+                    tabMaps.style.background = 'white';
+                    tabMaps.style.color = 'var(--primary)';
+                    tabMaps.style.fontWeight = '800';
+                    tabMaps.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
+                }
+                if (tabManual) {
+                    tabManual.style.background = 'transparent';
+                    tabManual.style.color = '#666';
+                    tabManual.style.fontWeight = '700';
+                    tabManual.style.boxShadow = 'none';
+                }
+
+                // Show/Hide container
+                if (contMaps) contMaps.style.display = 'block';
+                if (contManual) contManual.style.display = 'none';
+
+                // Hitung ulang ongkir dengan Maps jika titik tujuan sudah ada
+                if (window.checkoutDestPlace && window.checkoutDestPlace.geometry) {
+                    const loc = typeof window.checkoutDestPlace.geometry.location.lat === 'function' ? window.checkoutDestPlace.geometry.location : window.checkoutDestPlace.geometry.location;
+                    calculateCheckoutOngkir(loc);
+                } else {
+                    if (ongkirTextEl) ongkirTextEl.innerHTML = `<span style="color:#E65100; font-weight:700;">Lokasi belum ditentukan</span>`;
+                }
+
+            } else {
+                // Style tab Manual
+                if (tabManual) {
+                    tabManual.style.background = 'white';
+                    tabManual.style.color = 'var(--primary)';
+                    tabManual.style.fontWeight = '800';
+                    tabManual.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
+                }
+                if (tabMaps) {
+                    tabMaps.style.background = 'transparent';
+                    tabMaps.style.color = '#666';
+                    tabMaps.style.fontWeight = '700';
+                    tabMaps.style.boxShadow = 'none';
+                }
+
+                // Show/Hide container
+                if (contMaps) contMaps.style.display = 'none';
+                if (contManual) contManual.style.display = 'block';
+
+                // Reset Ongkir karena mode manual
+                window.checkoutOngkir = 0;
+                if (ongkirTextEl) {
+                    ongkirTextEl.innerHTML = `<span style="color:#E65100; font-weight:700;">Dihitung manual oleh admin</span>`;
+                }
+                
+                // Perbarui juga UI harga express coret di tab opsi pengantaran
+                const uiRealExpress = document.getElementById('ui-ongkir-real-express');
+                const uiCoretExpress = document.getElementById('ui-ongkir-coret-express');
+                if (uiRealExpress) uiRealExpress.innerText = "Manual";
+                if (uiCoretExpress) uiCoretExpress.innerText = "-";
+
+                // Kalkulasi ulang total akhir (akan meniadakan biaya ongkir dari total bayar sementara)
+                window.updateCheckoutTotal();
+            }
+        };
+        // ---------------------------------------------------------
 
         window.processCheckout = () => {
             if(!checkOperationalStatus()) return; 
@@ -7739,6 +7941,11 @@
                                     <button onclick="confirmServiceMapLocation()" style="width: 100%; background: var(--primary); color: white; padding: 12px; border: none; border-radius: 10px; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 4px 10px rgba(255,102,0,0.3);">Gunakan Lokasi Ini</button>
                                 </div>
                             </div>
+
+                            <!-- TAMBAHAN LANGKAH 1: TOMBOL PEMICU MANUAL MAPS -->
+                            <button id="btn-trigger-maps" onclick="triggerRouteCalculation()" style="width: 100%; background: linear-gradient(45deg, #FFB74D, #FF9800); color: white; border: none; border-radius: 12px; padding: 14px; font-weight: 800; font-size: 14px; margin-top: 15px; cursor: pointer; box-shadow: 0 4px 10px rgba(255, 152, 0, 0.3); display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                Cek Ongkir / Lanjut <i class="ph-bold ph-arrow-right"></i>
+                            </button>
                         </div>
 
                         <!-- KONTENER MODE MANUAL (DIUBAH: Ditampilkan Default) -->
@@ -8426,10 +8633,15 @@
                     price = 9000 + (Math.ceil(distKm - 3) * 2500);
                 }
             } else if (currentServiceType === 'Mobil') {
-                if (distKm <= 4) {
+                if (distKm <= 3) {
+                    price = 25000;
+                } else if (distKm <= 4) {
                     price = 30000; 
                 } else {
-                    price = 30000 + (Math.ceil(distKm - 4) * 5500);
+                    let sisaKm = distKm - 4;
+                    let hargaLebihan = sisaKm * 5500;
+                    let hargaLebihanBulat = Math.ceil(hargaLebihan / 500) * 500;
+                    price = 30000 + hargaLebihanBulat;
                 }
             } else if (currentServiceType === 'Kirim Paket') {
                 if (distKm <= 1) {
@@ -8440,6 +8652,56 @@
             }
             routePrice = price;
         }
+
+        // --- FUNGSI BARU: VALIDASI & BYPASS RUTE DARURAT ---
+        window.triggerRouteCalculation = () => {
+            const jemputVal = document.getElementById('svc-jemput').value.trim();
+            const tujuanVal = document.getElementById('svc-tujuan').value.trim();
+
+            if (!jemputVal || !tujuanVal) {
+                if(window.showToast) window.showToast("⚠️ Mohon isi lokasi jemput dan tujuan terlebih dahulu.");
+                return;
+            }
+
+            // Cek apakah ringkasan rute (harga) sudah muncul
+            const routeSummary = document.getElementById('route-summary');
+            if (routeSummary && routeSummary.style.display === 'block' && routePrice > 0) {
+                // Jika sudah ada harga, tombol ini berubah menjadi tombol Lanjut Pesan
+                submitServiceForm();
+                return;
+            }
+
+            // Jika belum ada harga, kita paksa jalankan kalkulasi
+            if (originPlace && originPlace.geometry && destPlace && destPlace.geometry) {
+                const loadingEl = document.getElementById('loading-route');
+                if (loadingEl) loadingEl.style.display = 'block';
+                
+                calculateRoute();
+                
+                // Beri waktu tunggu 3 detik untuk Google Maps API membalas
+                setTimeout(() => {
+                    if (routePrice === 0 || routeSummary.style.display === 'none') {
+                        // Jika setelah 3 detik masih gagal (rute tidak ketemu) -> BYPASS
+                        bypassToAdmin(jemputVal, tujuanVal);
+                    }
+                }, 3000);
+            } else {
+                // Jika user hanya mengetik tapi tidak memilih saran alamat (tidak ada koordinat geometry) -> BYPASS
+                bypassToAdmin(jemputVal, tujuanVal);
+            }
+        };
+
+        window.bypassToAdmin = (jemput, tujuan) => {
+            if(window.showToast) window.showToast("Titik tidak akurat. Mengalihkan ke Admin untuk hitung ongkir manual...");
+            
+            // Buat objek dummy jika origin/dest kosong agar form WA tetap membaca alamatnya
+            if (!originPlace) originPlace = { formatted_address: jemput, name: jemput };
+            if (!destPlace) destPlace = { formatted_address: tujuan, name: tujuan };
+            
+            routePrice = 0; // Pastikan harga 0 agar masuk ke kondisi manual
+            submitServiceForm();
+        };
+        // ----------------------------------------------------
 
         window.submitServiceForm = () => { 
             let message = `Halo Admin Projekgo, pesan jasa *${currentServiceType}*:%0A%0A`; 
@@ -8475,6 +8737,12 @@
                     
                     message += `📍 *Jemput (Maps):* ${originPlace && originPlace.formatted_address ? originPlace.formatted_address : jemput}${originLink}%0A`;
                     message += `🚩 *Tujuan (Maps):* ${destPlace && destPlace.formatted_address ? destPlace.formatted_address : tujuan}${destLink}%0A`;
+                    
+                    // --- TAMBAHAN: Catatan Bypass jika ongkir gagal dihitung ---
+                    if (routePrice === 0) {
+                        message += `_(Note: Rute peta tidak akurat. Ongkir dihitung manual oleh admin)_%0A`;
+                    }
+
                 } else {
                     // Mode Manual
                     jemput = document.getElementById('svc-jemput-manual').value.trim();
