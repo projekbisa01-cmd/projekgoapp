@@ -3300,37 +3300,68 @@
         // --------------------------------------------------------
 
         // --- HELPER UNTUK MEMBACA JAM BUKA OPERASIONAL WARUNG (LANGKAH 1) ---
-        window.isVendorOpenNow = (jamBukaStr) => {
-            // Jika string kosong atau bukan teks, kembalikan null (berarti fallback ke status database)
+        window.isVendorOpenNow = (vendor) => {
+            if (!vendor) return null;
+            
+            // Dapatkan jam pengguna saat ini dan sesuaikan ke WIB (UTC+7)
+            const now = new Date();
+            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+            const wibDate = new Date(utc + (3600000 * 7));
+            const currH = wibDate.getHours();
+            const currM = wibDate.getMinutes();
+            const currTime = currH * 60 + currM;
+
+            // 1. Cek menggunakan field 'jadwal_mingguan' jika tersedia
+            if (vendor.jadwal_mingguan && typeof vendor.jadwal_mingguan === 'object') {
+                const days = ['minggu', 'senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
+                const currentDayName = days[wibDate.getDay()];
+                const todaySchedule = vendor.jadwal_mingguan[currentDayName];
+                
+                if (todaySchedule) {
+                    // Jika ditandai libur pada hari ini
+                    if (todaySchedule.libur === true) return false; 
+                    
+                    // Jika ada jam buka dan tutup
+                    if (todaySchedule.buka && todaySchedule.tutup) {
+                        const openParts = todaySchedule.buka.split(':');
+                        const closeParts = todaySchedule.tutup.split(':');
+                        if (openParts.length === 2 && closeParts.length === 2) {
+                            const openTime = parseInt(openParts[0], 10) * 60 + parseInt(openParts[1], 10);
+                            const closeTime = parseInt(closeParts[0], 10) * 60 + parseInt(closeParts[1], 10);
+                            
+                            // Logika warung melewati tengah malam
+                            if (closeTime < openTime) {
+                                return currTime >= openTime || currTime <= closeTime;
+                            } else {
+                                // Hari yang sama
+                                return currTime >= openTime && currTime <= closeTime;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 2. Fallback jika jadwal_mingguan tidak ada (Pakai field string 'jam_buka' lama)
+            const jamBukaStr = vendor.jam_buka;
             if (!jamBukaStr || typeof jamBukaStr !== 'string') return null;
             
             // Mendeteksi pola waktu seperti: "08:00 - 21:00" atau "08.30-22.00" atau "s/d"
             const timeRegex = /(\d{1,2})[:.](\d{2})\s*(?:-|s\/d|sd|sampai|to)\s*(\d{1,2})[:.](\d{2})/i;
             const match = jamBukaStr.match(timeRegex);
             
-            if (!match) return null; // Jika format teks aneh dan tidak ada jamnya, kembalikan null
+            if (!match) return null; 
             
-            // Ekstrak jam dan menit buka/tutup
             const openH = parseInt(match[1], 10);
             const openM = parseInt(match[2], 10);
             const closeH = parseInt(match[3], 10);
             const closeM = parseInt(match[4], 10);
             
-            // Dapatkan jam pengguna saat ini
-            const now = new Date();
-            const currH = now.getHours();
-            const currM = now.getMinutes();
-            
-            // Ubah semuanya ke format menit total untuk mempermudah perbandingan
             const openTime = openH * 60 + openM;
             const closeTime = closeH * 60 + closeM;
-            const currTime = currH * 60 + currM;
             
-            // Logika untuk menangani jika warung buka sampai lewat tengah malam (misal: 18:00 - 02:00)
             if (closeTime < openTime) {
                 return currTime >= openTime || currTime <= closeTime;
             } else {
-                // Hari yang sama (misal: 08:00 - 21:00)
                 return currTime >= openTime && currTime <= closeTime;
             }
         };
@@ -4315,7 +4346,7 @@
             
             /* --- MODIFIKASI: CEK RESTO BUKA/TUTUP (DENGAN REALTIME JAM OPERASIONAL) --- */
             let currentStatus = (vendor.status || 'BUKA').toUpperCase();
-            let realTimeStatus = window.isVendorOpenNow(vendor.jam_buka);
+            let realTimeStatus = window.isVendorOpenNow(vendor);
             if (realTimeStatus === false) {
                 currentStatus = 'TUTUP';
             } else if (realTimeStatus === true) {
@@ -4693,9 +4724,22 @@
             const fullAddress = vendor.alamat_warung || vendor.lokasi || vendor.alamat || "Detail alamat belum tersedia";
             document.getElementById('vpm-address').innerText = fullAddress;
 
-            // Render Jam Buka (Bisa dimuat dari field jam_buka database, default manual jika kosong)
+            // Render Jam Buka (Memprioritaskan jadwal_mingguan, fallback ke jam_buka string, default manual)
             let hoursHtml = '';
-            if (vendor.jam_buka && typeof vendor.jam_buka === 'string') {
+            if (vendor.jadwal_mingguan && typeof vendor.jadwal_mingguan === 'object') {
+                const daysOrder = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu'];
+                daysOrder.forEach(day => {
+                    const dataHari = vendor.jadwal_mingguan[day];
+                    if (dataHari) {
+                        const hariLabel = day.charAt(0).toUpperCase() + day.slice(1);
+                        if (dataHari.libur === true) {
+                            hoursHtml += `<div class="vpm-hours-row"><span>${hariLabel}</span><span style="color:#D32F2F; font-weight:800;">Tutup / Libur</span></div>`;
+                        } else {
+                            hoursHtml += `<div class="vpm-hours-row"><span>${hariLabel}</span><span>${dataHari.buka || '-'} - ${dataHari.tutup || '-'} WIB</span></div>`;
+                        }
+                    }
+                });
+            } else if (vendor.jam_buka && typeof vendor.jam_buka === 'string') {
                 hoursHtml = `<div class="vpm-hours-row"><span>Jam Operasional</span><span>${vendor.jam_buka}</span></div>`;
             } else {
                 hoursHtml = `
@@ -9406,7 +9450,7 @@
 
         // --- TAMBAHAN LANGKAH 2: OVERRIDE STATUS BERDASARKAN JAM OPERASIONAL ---
         foodVendors.forEach(v => {
-            let realTimeStatus = window.isVendorOpenNow(v.jam_buka);
+            let realTimeStatus = window.isVendorOpenNow(v);
             if (realTimeStatus === false) {
                 v.status = 'TUTUP';
             } else if (realTimeStatus === true) {
