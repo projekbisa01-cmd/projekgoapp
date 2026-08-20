@@ -4271,13 +4271,26 @@
         window.showToast = (message) => { const toast = document.getElementById('toast-notification'); toast.querySelector('.toast-msg').innerText = message; toast.classList.add('show'); setTimeout(() => { toast.classList.remove('show'); }, 2000); }
 
         function renderOrderHistory() {
-            const container = document.getElementById('order-history-list'); const history = JSON.parse(localStorage.getItem('order_history')) || [];
-            if(history.length === 0) { container.innerHTML = '<div style="text-align:center; margin-top:50px; color:#999; font-size:12px;">Belum ada riwayat pesanan.</div>'; return; }
+            const container = document.getElementById('order-history-list'); 
+            const history = JSON.parse(localStorage.getItem('order_history')) || [];
+            
+            if(history.length === 0) { 
+                container.innerHTML = '<div style="text-align:center; margin-top:50px; color:#999; font-size:12px;">Belum ada riwayat pesanan.</div>'; 
+                return; 
+            }
+            
             container.innerHTML = '';
+            
             history.slice().reverse().forEach(order => {
                 const reorderData = encodeURIComponent(JSON.stringify(order.rawItems));
-                const orderTime = order.id; const currentTime = Date.now(); const diffMinutes = (currentTime - orderTime) / (1000 * 60);
-                let displayStatus = order.status; let statusColor = "#E8F5E9"; let statusTextColor = "#2E7D32";
+                const orderTime = order.id; 
+                const currentTime = Date.now(); 
+                const diffMinutes = (currentTime - orderTime) / (1000 * 60);
+                
+                let displayStatus = order.status; 
+                let statusColor = "#E8F5E9"; 
+                let statusTextColor = "#2E7D32";
+                
                 if (displayStatus === 'MENUNGGU KONFIRMASI' && diffMinutes > 5) displayStatus = 'TERIMAKASIH';
                 if (displayStatus === 'MENUNGGU KONFIRMASI') { statusColor = "#FFF3E0"; statusTextColor = "#E65100"; }
                 
@@ -4294,7 +4307,6 @@
                     const rating = order.reviewRating || 5;
                     for(let i=0; i<5; i++) { starsHtml += i < rating ? '<i class="ph-fill ph-star" style="color:#FFC107;"></i>' : '<i class="ph ph-star" style="color:#ddd;"></i>'; }
                     
-                    // TAHAP SANITASI (MENCEGAH HACK XSS)
                     const safeReviewText = order.reviewText ? order.reviewText.replace(/</g, "&lt;").replace(/>/g, "&gt;") : "";
                     const rText = safeReviewText ? `"${safeReviewText}"` : "Terima kasih atas ulasan Anda!";
                     
@@ -4307,8 +4319,86 @@
                         <div style="font-size:12px; color:#444; font-style:italic; line-height:1.4;">${rText}</div>
                     </div>`;
                 }
+
+                // --- LOGIKA DAFTAR ITEM PESANAN YANG RAPI ---
+                let itemsListHtml = '';
+                if (order.rawItems && order.rawItems.length > 0) {
+                    const consolidated = [];
+                    order.rawItems.forEach(item => {
+                        const key = item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase();
+                        const existing = consolidated.find(i => i._key === key);
+                        if (existing) {
+                            existing.qty++;
+                            existing.totalItemPrice += item.harga;
+                        } else {
+                            consolidated.push({ ...item, _key: key, qty: 1, totalItemPrice: item.harga });
+                        }
+                    });
+
+                    itemsListHtml = '<div style="font-size:12px; color:#444; margin-bottom:10px; line-height:1.5; border-top:1px dashed #eee; padding-top:10px;">';
+                    consolidated.forEach(item => {
+                        let varText = item.variant && item.variant !== '-' ? `<br><span style="color:#888; font-size:10px;">(${item.variant})</span>` : '';
+                        itemsListHtml += `
+                        <div style="display:flex; justify-content:space-between; margin-bottom:6px; align-items:flex-start;">
+                            <span style="flex:1;"><b>${item.qty}x</b> ${item.nama}${varText}</span>
+                            <span style="font-weight:600; white-space:nowrap; margin-left:10px;">Rp ${item.totalItemPrice.toLocaleString('id-ID')}</span>
+                        </div>`;
+                    });
+                    itemsListHtml += '</div>';
+                } else {
+                    // Fallback untuk pesanan lama
+                    itemsListHtml = `<div style="font-size:12px; color:#555; margin-bottom:10px; line-height:1.4; border-top:1px dashed #eee; padding-top:10px;">${order.items}</div>`;
+                }
+
+                // --- LOGIKA RINCIAN BIAYA ---
+                let breakdownHtml = '<div style="border-top:1px dashed #eee; padding-top:10px; margin-bottom:10px;">';
+                if (order.subtotalMakanan !== undefined) {
+                    breakdownHtml += `<div style="display:flex; justify-content:space-between; font-size:11px; color:#666; margin-bottom:4px;"><span>Subtotal Makanan</span><span>Rp ${order.subtotalMakanan.toLocaleString('id-ID')}</span></div>`;
+                }
+                if (order.ongkosKirim !== undefined && order.ongkosKirim > 0) {
+                    breakdownHtml += `<div style="display:flex; justify-content:space-between; font-size:11px; color:#666; margin-bottom:4px;"><span>Ongkos Kirim</span><span>Rp ${order.ongkosKirim.toLocaleString('id-ID')}</span></div>`;
+                }
+                if (order.serviceFee !== undefined && order.serviceFee > 0) {
+                    breakdownHtml += `<div style="display:flex; justify-content:space-between; font-size:11px; color:#666; margin-bottom:4px;"><span>Biaya Layanan</span><span>Rp ${order.serviceFee.toLocaleString('id-ID')}</span></div>`;
+                }
+                if (order.extraRestoFee !== undefined && order.extraRestoFee > 0) {
+                    breakdownHtml += `<div style="display:flex; justify-content:space-between; font-size:11px; color:#666; margin-bottom:4px;"><span>Tambahan Warung Berbeda</span><span>Rp ${order.extraRestoFee.toLocaleString('id-ID')}</span></div>`;
+                }
+                breakdownHtml += `<div style="display:flex; justify-content:space-between; font-size:14px; font-weight:800; color:var(--primary); margin-top:8px;"><span>Total Dibayar</span><span>Rp ${order.total.toLocaleString('id-ID')}</span></div>`;
+                breakdownHtml += '</div>';
+
+                // --- LOGIKA BADGE PENGHEMATAN ---
+                let savingsHtml = '';
+                if (order.totalPenghematan && order.totalPenghematan > 0) {
+                    savingsHtml = `
+                    <div style="background:#E8F5E9; border:1px solid #C8E6C9; border-radius:10px; padding:10px 12px; margin-bottom:12px; display:flex; align-items:center; gap:8px; box-shadow: 0 2px 5px rgba(46, 125, 50, 0.05);">
+                        <i class="ph-fill ph-check-circle" style="color:#4CAF50; font-size:24px;"></i>
+                        <div style="font-size:11px; color:#2E7D32; line-height:1.4;">
+                            <b>🎉 Yeay!</b> Kamu berhasil berhemat <b style="font-size:13px;">Rp ${order.totalPenghematan.toLocaleString('id-ID')}</b> di pesanan ini!
+                        </div>
+                    </div>`;
+                }
                 
-                const html = `<div class="order-card" style="background:white; padding:15px; border-radius:12px; box-shadow:var(--shadow-sm); margin-bottom:15px; border:1px solid rgba(0,0,0,0.03);"><div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:11px; color:#888;"><span>${order.date}</span><span style="background:${statusColor}; color:${statusTextColor}; padding:3px 8px; border-radius:4px; font-weight:700; font-size:10px;">${displayStatus}</span></div><div style="font-weight:700; font-size:14px; margin-bottom:4px;">${order.vendor}</div><div style="font-size:12px; color:#555; margin-bottom:8px; line-height:1.4;">${order.items}</div><div style="font-size:14px; font-weight:800; color:var(--primary); padding-bottom:10px; border-bottom:1px dashed #eee;">Total: Rp ${order.total.toLocaleString()}</div>${processHtml}${reviewDisplayHtml}<div style="margin-top:10px; text-align:right; display:flex; justify-content:flex-end; align-items:center; gap:8px;">${reviewButtonHtml}<button class="btn-reorder-action" onclick="reorder('${reorderData}')">Pesan Lagi ↻</button></div></div>`;
+                const html = `
+                <div class="order-card" style="background:white; padding:15px; border-radius:16px; box-shadow:var(--shadow-sm); margin-bottom:15px; border:1px solid rgba(0,0,0,0.04);">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:11px; color:#888;">
+                        <span>${order.date}</span>
+                        <span style="background:${statusColor}; color:${statusTextColor}; padding:4px 8px; border-radius:6px; font-weight:800; font-size:10px;">${displayStatus}</span>
+                    </div>
+                    <div style="font-weight:800; font-size:14px; margin-bottom:8px; color:var(--dark);">
+                        <i class="ph-fill ph-storefront" style="color:var(--primary);"></i> ${order.vendor}
+                    </div>
+                    ${itemsListHtml}
+                    ${breakdownHtml}
+                    ${savingsHtml}
+                    ${processHtml}
+                    ${reviewDisplayHtml}
+                    <div style="margin-top:12px; text-align:right; display:flex; justify-content:flex-end; align-items:center; gap:8px;">
+                        ${reviewButtonHtml}
+                        <button class="btn-reorder-action" onclick="reorder('${reorderData}')">Pesan Lagi ↻</button>
+                    </div>
+                </div>`;
+                
                 container.innerHTML += html;
             });
         }
@@ -6625,6 +6715,27 @@
             });
         };
 
+        // --- TAMBAHAN LANGKAH 1: INISIALISASI MESIN PENCARI MANUAL ---
+        window.initManualMapsServices = () => {
+            if (typeof google !== 'undefined' && google.maps && google.maps.places) {
+                // Siapkan layanan Autocomplete untuk memunculkan saran teks
+                if (!window.mapsAutocompleteService) {
+                    window.mapsAutocompleteService = new google.maps.places.AutocompleteService();
+                }
+                // Siapkan layanan Places untuk mengambil titik koordinat dari teks yang dipilih
+                if (!window.mapsPlacesService) {
+                    window.mapsPlacesService = new google.maps.places.PlacesService(document.createElement('div'));
+                }
+                // Siapkan Token Sesi untuk menghemat tagihan Google Maps API
+                if (!window.mapsSessionToken) {
+                    window.mapsSessionToken = new google.maps.places.AutocompleteSessionToken();
+                }
+            } else {
+                console.warn("Peringatan: Google Maps Places API belum dimuat atau koneksi internet terputus.");
+            }
+        };
+        // -------------------------------------------------------------
+
         window.openLocationSearchModal = () => {
             const modal = document.getElementById('location-search-modal');
             if(modal) {
@@ -7685,6 +7796,14 @@
             if (note) message += `*Catatan Tambahan:* ${note}%0A`;
             message += `Terima kasih!`;
 
+            // TAMBAHAN: Kalkulasi Penghematan untuk disimpan di riwayat
+            let foodSavings = Math.ceil(total * 1.2) - total;
+            let ongkirSavings = 0;
+            if (orderMode !== 'dine_in' && window.checkoutLocMode === 'maps' && window.checkoutOngkir > 0) {
+                ongkirSavings = 9000;
+            }
+            let totalSavings = foodSavings + ongkirSavings;
+
             // 2. Simpan ke Riwayat Pesanan
             const history = JSON.parse(localStorage.getItem('order_history')) || []; 
             const newOrder = {
@@ -7693,6 +7812,11 @@
                 vendor: Object.keys(grouped).join(', '),
                 items: itemsSummaryText.slice(0, -2),
                 total: finalTotal,
+                subtotalMakanan: total,
+                ongkosKirim: (orderMode !== 'dine_in' && window.checkoutLocMode === 'maps') ? window.checkoutOngkir : 0,
+                totalPenghematan: totalSavings,
+                serviceFee: serviceFee,
+                extraRestoFee: extraRestoFee,
                 status: 'MENUNGGU KONFIRMASI',
                 rawItems: [...cart],
                 isReviewed: false
@@ -8170,7 +8294,7 @@
 
                 clearTimeout(rideSearchTimeout); // Batalkan API Call jika ada ketikan baru
 
-                // Tunda 600ms
+                // Tunda 1000ms (1 detik) - PENUNDAAN (DEBOUNCE) DITERAPKAN DI SINI
                 rideSearchTimeout = setTimeout(() => {
                     if (window.mapsAutocompleteService) {
                         window.mapsAutocompleteService.getPlacePredictions({
@@ -8199,7 +8323,7 @@
                             listContainer.innerHTML = html;
                         });
                     }
-                }, 600); // Batas waktu debounce 600ms
+                }, 1000); // Batas waktu debounce diubah menjadi 1000ms (1 detik)
             };
 
             if (!inputJemput.dataset.manualListener) {
