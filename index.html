@@ -6998,15 +6998,17 @@
                     baseOngkir = 8000;
                 } else if (jarakTotalKm <= 3) {
                     baseOngkir = 9000;
+                } else if (jarakTotalKm <= 25) {
+                    baseOngkir = jarakTotalKm * 2800;
                 } else {
-                    baseOngkir = jarakTotalKm * 2600;
+                    baseOngkir = jarakTotalKm * 3250;
                 }
 
                 // --- LANGKAH 5: Pembulatan (Biaya Ekstra Resto Dipindah ke Rincian Pembayaran) ---
                 let totalOngkir = baseOngkir;
                 
-                // Membulatkan total akhir ke kelipatan 500 terdekat
-                totalOngkir = Math.round(totalOngkir / 500) * 500;
+                // Membulatkan total akhir ke atas ke kelipatan 500 terdekat
+                totalOngkir = Math.ceil(totalOngkir / 500) * 500;
 
                 // CEK ULANG: Jika totalOngkir tetap 0 setelah dibulatkan (Mencegah Ongkir 0)
                 if (totalOngkir <= 0) {
