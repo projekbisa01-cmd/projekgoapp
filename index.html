@@ -5679,9 +5679,17 @@
                 consolidatedItems.forEach(item => {
                     const isChecked = selectedCartKeys.includes(item._key);
                     
-                    // --- MENCARI GAMBAR PRODUK ---
+                    // --- MENCARI GAMBAR PRODUK & DESKRIPSI (LANGKAH 1) ---
                     const product = rawProducts.find(p => p.id === item.id);
                     const imgUrl = product && product.foto_url && product.foto_url.length > 5 ? product.foto_url : FALLBACK_MENU_IMG;
+                    
+                    let descText = "";
+                    if (product && product.deskripsi && product.deskripsi.trim() !== "") {
+                        descText = product.deskripsi;
+                    } else {
+                        descText = `menu spesial dari ${vendor}, yang enak`;
+                    }
+                    // --------------------------------------------------------
                     
                     // --- UI BARU: KARTU ITEM ---
                     html += `
@@ -5706,7 +5714,10 @@
                                     <i class="ph-regular ph-trash" onclick="removeMyCartItem('${item._key}')" style="color: #E53935; font-size: 18px; cursor: pointer; flex-shrink: 0;"></i>
                                 </div>
                                 
-                                <div style="font-weight: 800; font-size: 14px; color: #111; margin-top: 4px;">Rp ${(item.totalPrice).toLocaleString('id-ID')}</div>
+                                <!-- DESKRIPSI PRODUK (LANGKAH 1) -->
+                                <div style="font-size: 11px; color: #888; margin-top: 2px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-style: italic;">${descText}</div>
+                                
+                                <div style="font-weight: 800; font-size: 14px; color: #111; margin-top: 6px;">Rp ${(item.totalPrice).toLocaleString('id-ID')}</div>
                                 
                                 ${(item.variant && item.variant !== '-') ? `<div style="font-size:11px; color:#888; margin-top:2px;">${item.variant}</div>` : ''}
                                 ${(item.note) ? `<div style="font-size:11px; color:#888; margin-top:2px;">Catatan: ${item.note}</div>` : ''}
@@ -6008,43 +6019,123 @@
         }
 
         window.proceedToCheckout = () => {
-            // PERBAIKAN: Hapus pemanggilan closeCartPopup() karena keranjang sekarang berupa halaman penuh. 
-            // Kita bisa langsung pindah ke halaman Konfirmasi Pesanan.
-            
             // Hitung total penghematan
             let subTotal = 0;
             cart.forEach(item => subTotal += item.harga);
             const savings = Math.ceil(subTotal * 1.2) - subTotal;
 
-            // Buka halaman konfirmasi pesanan secara langsung (tanpa setTimeout/delay)
-            openPage('cart');
-            
-            // Tampilkan popup ringan di atas halaman konfirmasi
-            if (savings > 0) {
-                const popup = document.createElement('div');
-                popup.innerHTML = `
-                    <i class="ph-fill ph-check-circle" style="font-size:40px; margin-bottom:8px; text-shadow: 0 2px 10px rgba(0,0,0,0.1);"></i>
-                    <span style="font-size:14px; font-weight:600; margin-bottom:2px;">Yeay! Anda Lebih Hemat</span>
-                    <span style="font-size:22px; font-weight:800; letter-spacing:0.5px;">Rp ${savings.toLocaleString()}</span>
-                `;
-                popup.style.cssText = "position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:80%; max-width:300px; background:linear-gradient(135deg, #4CAF50, #2E7D32); color:white; padding:25px 20px; border-radius:20px; text-align:center; z-index:99999; box-shadow:0 15px 35px rgba(0,0,0,0.4); display:flex; flex-direction:column; align-items:center; justify-content:center; transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); animation: popInCenter 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);";
-                
-                if (!document.getElementById('dynamic-cart-popup-style')) {
-                    const style = document.createElement('style');
-                    style.id = 'dynamic-cart-popup-style';
-                    style.innerHTML = `@keyframes popInCenter { from { transform:translate(-50%, -50%) scale(0.5); opacity:0; } to { transform:translate(-50%, -50%) scale(1); opacity:1; } }`;
-                    document.head.appendChild(style);
-                }
+            // Ambil data alamat pengantaran dari memori lokal
+            const savedAddr = localStorage.getItem('user_address') || "Alamat belum ditentukan / Mengambil titik GPS...";
 
-                document.body.appendChild(popup);
-                
-                // Hilangkan popup perlahan setelah 3 detik
-                setTimeout(() => {
-                    popup.style.opacity = '0';
-                    popup.style.transform = 'translate(-50%, -50%) scale(0.8)';
-                    setTimeout(() => popup.remove(), 300);
-                }, 3000);
+            // Buat elemen layar transisi (flash screen)
+            const flashScreen = document.createElement('div');
+            flashScreen.style.cssText = "position:fixed; top:0; left:0; right:0; bottom:0; background:white; z-index:999999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; text-align:center; transition:opacity 0.3s ease-out;";
+            
+            // Tambahkan CSS animasi roket meluncur jika belum ada
+            if (!document.getElementById('rocket-anim-style')) {
+                const style = document.createElement('style');
+                style.id = 'rocket-anim-style';
+                style.innerHTML = `
+                    @keyframes rocketLaunchAnim {
+                        0% { transform: translateY(50px) scale(0.8); opacity: 0; }
+                        20% { transform: translateY(0) scale(1); opacity: 1; }
+                        80% { transform: translateY(0) scale(1); opacity: 1; }
+                        100% { transform: translateY(-100px) scale(0.8); opacity: 0; }
+                    }
+                    @keyframes pulseTextAnim {
+                        0%, 100% { opacity: 1; }
+                        50% { opacity: 0.5; }
+                    }
+                `;
+                document.head.appendChild(style);
             }
+
+            // HTML isi flash screen: roket oranye dan teks info alamat
+            flashScreen.innerHTML = `
+                <div style="width:100px; height:100px; background:#FFF0E5; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:20px; box-shadow:0 10px 25px rgba(255,102,0,0.2); animation: rocketLaunchAnim 2.5s ease-in-out forwards;">
+                    <i class="ph-fill ph-rocket-launch" style="font-size:55px; color:#FF6600;"></i>
+                </div>
+                <h3 style="font-size:20px; font-weight:800; color:#111; margin:0 0 10px 0;">Menyiapkan Pesananmu...</h3>
+                <p style="font-size:13px; color:#555; line-height:1.5; margin:0 0 20px 0;">Mohon periksa kembali detail pesanan<br>dan pastikan alamat tujuan kamu sudah benar!</p>
+                <div style="background:#f9f9f9; border:1px dashed #FFB74D; border-radius:12px; padding:12px 15px; width:100%; max-width:320px; text-align:left;">
+                    <div style="font-size:11px; color:#FF6600; font-weight:800; margin-bottom:6px; display:flex; align-items:center; gap:4px;">
+                        <i class="ph-fill ph-map-pin"></i> Alamat Pengantaran Terakhir:
+                    </div>
+                    <div style="font-size:13px; color:#333; font-weight:600; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
+                        ${savedAddr}
+                    </div>
+                </div>
+                <div style="margin-top:25px; font-size:12px; color:#999; font-weight:600; animation: pulseTextAnim 1.5s infinite;">
+                    Membuka halaman konfirmasi...
+                </div>
+            `;
+            
+            document.body.appendChild(flashScreen);
+
+            // Timer 2.5 detik untuk menghilangkan flash screen dan membuka checkout
+            setTimeout(() => {
+                flashScreen.style.opacity = '0';
+                setTimeout(() => {
+                    flashScreen.remove();
+                    
+                    // Buka halaman konfirmasi pesanan
+                    openPage('cart');
+
+                    // --- EKSEKUSI LANGKAH 2: Menyiapkan pemunculan Tooltip Alamat ---
+                    const triggerAddressTooltip = () => {
+                        const addressTooltip = document.getElementById('address-tooltip');
+                        if (addressTooltip) {
+                            addressTooltip.style.display = 'block';
+                            addressTooltip.style.opacity = '1';
+                            
+                            // Tooltip akan hilang otomatis setelah 6 detik
+                            setTimeout(() => {
+                                addressTooltip.style.transition = 'opacity 0.5s ease';
+                                addressTooltip.style.opacity = '0';
+                                setTimeout(() => {
+                                    addressTooltip.style.display = 'none';
+                                    addressTooltip.style.opacity = '1'; // Reset state jika dibuka kembali nantinya
+                                }, 500);
+                            }, 6000);
+                        }
+                    };
+                    // -----------------------------------------------------------------
+                    
+                    // Tampilkan popup ringan di atas halaman konfirmasi jika ada penghematan
+                    if (savings > 0) {
+                        const popup = document.createElement('div');
+                        popup.innerHTML = `
+                            <i class="ph-fill ph-check-circle" style="font-size:40px; margin-bottom:8px; text-shadow: 0 2px 10px rgba(0,0,0,0.1);"></i>
+                            <span style="font-size:14px; font-weight:600; margin-bottom:2px;">Yeay! Anda Lebih Hemat</span>
+                            <span style="font-size:22px; font-weight:800; letter-spacing:0.5px;">Rp ${savings.toLocaleString()}</span>
+                        `;
+                        popup.style.cssText = "position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:80%; max-width:300px; background:linear-gradient(135deg, #4CAF50, #2E7D32); color:white; padding:25px 20px; border-radius:20px; text-align:center; z-index:99999; box-shadow:0 15px 35px rgba(0,0,0,0.4); display:flex; flex-direction:column; align-items:center; justify-content:center; transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); animation: popInCenter 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);";
+                        
+                        if (!document.getElementById('dynamic-cart-popup-style')) {
+                            const style = document.createElement('style');
+                            style.id = 'dynamic-cart-popup-style';
+                            style.innerHTML = `@keyframes popInCenter { from { transform:translate(-50%, -50%) scale(0.5); opacity:0; } to { transform:translate(-50%, -50%) scale(1); opacity:1; } }`;
+                            document.head.appendChild(style);
+                        }
+
+                        document.body.appendChild(popup);
+                        
+                        // Hilangkan popup perlahan setelah 3 detik
+                        setTimeout(() => {
+                            popup.style.opacity = '0';
+                            popup.style.transform = 'translate(-50%, -50%) scale(0.8)';
+                            setTimeout(() => popup.remove(), 300);
+                        }, 3000);
+
+                        // --- EKSEKUSI LANGKAH 2: Panggil tooltip SETELAH animasi hijau selesai (3,5 detik) ---
+                        setTimeout(triggerAddressTooltip, 3500);
+
+                    } else {
+                        // --- EKSEKUSI LANGKAH 2: Jika popup hijau tidak ada, panggil lebih cepat ---
+                        setTimeout(triggerAddressTooltip, 800);
+                    }
+                }, 300); // Waktu transisi opacity
+            }, 2500); // Waktu tunggu animasi roket
         }
 
         function renderCartPage() {
@@ -6090,6 +6181,15 @@
                     const imgUrl = product && product.foto_url && product.foto_url.length > 5 ? product.foto_url : FALLBACK_MENU_IMG;
                     const itemPricePerUnit = item.totalItemPrice / item.qty;
                     
+                    // --- MENCARI DESKRIPSI PRODUK (LANGKAH 2) ---
+                    let descText = "";
+                    if (product && product.deskripsi && product.deskripsi.trim() !== "") {
+                        descText = product.deskripsi;
+                    } else {
+                        descText = `menu spesial dari ${vendor}, yang enak`;
+                    }
+                    // --------------------------------------------------------
+                    
                     return `
                     <div style="display: flex; gap: 15px; padding: 12px 0; border-bottom: 1px dashed #eee;">
                         <img src="${imgUrl}" style="width: 70px; height: 70px; border-radius: 8px; object-fit: cover; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;" onerror="this.src='${FALLBACK_MENU_IMG}'">
@@ -6098,6 +6198,10 @@
                                 <div style="font-weight: 700; font-size: 14px; color: #333; line-height: 1.2;">${item.nama}</div>
                                 <div style="font-size: 13px; color: #888; white-space: nowrap; margin-left: 10px;">${itemPricePerUnit.toLocaleString('id-ID')}</div>
                             </div>
+                            
+                            <!-- DESKRIPSI PRODUK (LANGKAH 2) -->
+                            <div style="font-size: 11px; color: #888; margin-top: -4px; margin-bottom: 8px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-style: italic;">${descText}</div>
+                            
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <div style="display: flex; align-items: center; gap: 12px;">
                                     <div onclick="updateCartItemQty('${item._key}', -1)" style="width: 24px; height: 24px; border: 1.5px solid #4CAF50; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #4CAF50; font-weight: bold; cursor: pointer; user-select: none;">-</div>
@@ -6162,18 +6266,31 @@
                 `;
                 deliveryCostHtml = ''; 
             } else {
+                // --- INI PERUBAHAN LANGKAH 3 (TOOLTIP ALAMAT) ---
                 addressSectionHtml = `
-                    <div class="cart-section" style="border-top:10px solid #f0f0f0; padding-bottom: 5px;">
+                    <div class="cart-section" style="border-top:10px solid #f0f0f0; padding-bottom: 5px; position: relative;">
                         <div class="cv-title">📍 Alamat Pengantaran</div>
                         
+                        <!-- TOOLTIP ALAMAT (LANGKAH 3) -->
+                        <style>
+                            @keyframes bounceTooltipAddr {
+                                0%, 100% { transform: translateY(0); }
+                                50% { transform: translateY(-6px); }
+                            }
+                        </style>
+                        <div id="address-tooltip" onclick="this.style.display='none'" style="display: none; position: absolute; right: 15px; top: 40px; background: #FF6600; color: white; padding: 8px 12px; border-radius: 12px 12px 0 12px; font-size: 11px; font-weight: 800; z-index: 10; animation: bounceTooltipAddr 1.2s infinite ease-in-out; box-shadow: 0 4px 10px rgba(255, 102, 0, 0.4); cursor: pointer; max-width: 180px; text-align: right; line-height: 1.3;">
+                            Cek kembali apakah alamat pengantaran kamu sudah sesuai! 👇
+                            <div style="position: absolute; bottom: -6px; right: 0; width: 0; height: 0; border-left: 10px solid transparent; border-top: 10px solid #FF6600;"></div>
+                        </div>
+
                         <!-- CAPSULE TOGGLE PENGANTARAN (Peta di Kiri) -->
-                        <div style="display:flex; background:#f0f0f0; border-radius:12px; padding:4px; margin-bottom:15px;">
+                        <div style="display:flex; background:#f0f0f0; border-radius:12px; padding:4px; margin-bottom:15px;" onclick="const tt = document.getElementById('address-tooltip'); if(tt) tt.style.display='none';">
                             <div id="tab-checkout-maps" onclick="toggleCheckoutLocMode('maps')" style="flex:1; text-align:center; font-size:12px; font-weight:800; padding:10px; border-radius:10px; background:white; color:var(--primary); box-shadow:0 2px 5px rgba(0,0,0,0.05); cursor:pointer; transition:0.2s;">🗺️ Pilih di Peta</div>
                             <div id="tab-checkout-manual" onclick="toggleCheckoutLocMode('manual')" style="flex:1; text-align:center; font-size:12px; font-weight:700; padding:10px; border-radius:10px; color:#666; background:transparent; cursor:pointer; transition:0.2s;">✍️ Tulis Manual</div>
                         </div>
 
                         <!-- MANUAL MODE CONTAINER (Sembunyikan Default) -->
-                        <div id="checkout-manual-container" style="display:none;">
+                        <div id="checkout-manual-container" style="display:none;" onclick="const tt = document.getElementById('address-tooltip'); if(tt) tt.style.display='none';">
                             <div style="font-size:11px; color:#E65100; background:#FFF3E0; padding:8px; border-radius:8px; font-weight:600; margin-bottom:10px; text-align:center; border: 1px dashed #FFB74D;">
                                 ℹ️ Ongkir akan dihitung manual oleh admin yah
                             </div>
@@ -6190,7 +6307,7 @@
                         </div>
 
                         <!-- MAPS MODE CONTAINER (Tampilkan Default) -->
-                        <div id="checkout-maps-container" style="display:block;">
+                        <div id="checkout-maps-container" style="display:block;" onclick="const tt = document.getElementById('address-tooltip'); if(tt) tt.style.display='none';">
                             <div style="font-size:11px; color:#2E7D32; background:#E8F5E9; padding:8px; border-radius:8px; border:1px solid #C8E6C9; margin-bottom:10px; line-height:1.4; font-weight:700; text-align:center;">
                                 ℹ️ Ongkir akan dikalkulasikan otomatis oleh sistem
                             </div>
@@ -6213,8 +6330,16 @@
 
             let deliveryOptionsHtml = '';
             if (orderMode !== 'dine_in') {
-                // 3. PERUBAHAN UI DROPDOWN ONGKIR (Meringkas opsi standar & hemat)
+                // 3. PERUBAHAN UI DROPDOWN ONGKIR (Meringkas opsi standar & hemat) + EFEK PETIR LANGKAH 2
                 deliveryOptionsHtml = `
+                <style>
+                    @keyframes shakeLightning {
+                        0%, 100% { transform: rotate(0deg) scale(1); color: #FFC107; filter: drop-shadow(0 0 2px rgba(255,193,7,0.4)); }
+                        25% { transform: rotate(-15deg) scale(1.15); color: #FF9800; filter: drop-shadow(0 0 6px rgba(255,152,0,0.8)); }
+                        50% { transform: rotate(15deg) scale(1.15); color: #FF5722; filter: drop-shadow(0 0 6px rgba(255,87,34,0.8)); }
+                        75% { transform: rotate(-15deg) scale(1.15); color: #FF9800; filter: drop-shadow(0 0 6px rgba(255,152,0,0.8)); }
+                    }
+                </style>
                 <div class="cart-section" style="padding: 0 20px 20px 20px; margin-bottom: 0;">
                     <!-- Option 1: Hemat Express (Active) -->
                     <div style="border-bottom: 1px solid #f0f0f0; padding: 15px 0 10px 0; position: relative; cursor: pointer;" onclick="const opts = document.getElementById('other-delivery-options'); const arrow = document.getElementById('deliv-arrow'); if(opts.style.display === 'none'){ opts.style.display = 'block'; arrow.style.transform = 'rotate(180deg)'; } else { opts.style.display = 'none'; arrow.style.transform = 'rotate(0deg)'; }">
@@ -6223,7 +6348,10 @@
                         
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <span style="font-weight: 800; font-size: 16px; color: var(--dark);">Express</span>
+                                <span style="font-weight: 800; font-size: 16px; color: var(--dark); display: flex; align-items: center;">
+                                    <i class="ph-fill ph-lightning" style="animation: shakeLightning 1.5s infinite ease-in-out; margin-right: 4px; font-size: 18px;"></i>
+                                    Express
+                                </span>
                                 <span style="background: #f5f5f5; color: #666; font-size: 11px; padding: 3px 8px; border-radius: 12px; font-weight: 600;">25 min</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 10px;">
@@ -6372,235 +6500,6 @@
             
             // Panggil updateCheckoutTotal untuk merender badge hemat pada saat pertama kali dimuat
             window.updateCheckoutTotal();
-        }
-
-        // =========================================================================================
-
-        // --- LOGIKA "PILIH PETA" DI HALAMAN KONFIRMASI PESANAN (CHECKOUT) ---
-        // =========================================================================================
-
-        window.toggleCheckoutLocMode = (mode) => {
-            window.checkoutLocMode = mode;
-            const tabMaps = document.getElementById('tab-checkout-maps');
-            const tabManual = document.getElementById('tab-checkout-manual');
-            const contMaps = document.getElementById('checkout-maps-container');
-            const contManual = document.getElementById('checkout-manual-container');
-            
-            if(mode === 'maps') {
-                tabMaps.style.background = 'white';
-                tabMaps.style.color = 'var(--primary)';
-                tabMaps.style.fontWeight = '800';
-                tabMaps.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
-                
-                tabManual.style.background = 'transparent';
-                tabManual.style.color = '#666';
-                tabManual.style.fontWeight = '700';
-                tabManual.style.boxShadow = 'none';
-                
-                contMaps.style.display = 'block';
-                contManual.style.display = 'none';
-                
-                if (window.checkoutDestPlace && window.checkoutDestPlace.geometry) {
-                    calculateCheckoutOngkir(window.checkoutDestPlace.geometry.location);
-                }
-            } else {
-                tabManual.style.background = 'white';
-                tabManual.style.color = 'var(--primary)';
-                tabManual.style.fontWeight = '800';
-                tabManual.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
-                
-                tabMaps.style.background = 'transparent';
-                tabMaps.style.color = '#666';
-                tabMaps.style.fontWeight = '700';
-                tabMaps.style.boxShadow = 'none';
-                
-                contMaps.style.display = 'none';
-                contManual.style.display = 'block';
-                
-                window.checkoutOngkir = 0;
-                const ongkirText = document.getElementById('checkout-ongkir-text');
-                if(ongkirText) ongkirText.innerText = "Dihitung manual oleh admin";
-                
-                // --- RESET UI MARKETING SAAT MODE MANUAL ---
-                const uiRealExpress = document.getElementById('ui-ongkir-real-express');
-                if (uiRealExpress) {
-                    uiRealExpress.innerText = "...";
-                    document.getElementById('ui-ongkir-coret-express').innerText = "...";
-                    document.getElementById('ui-ongkir-coret-reguler').innerText = "...";
-                    document.getElementById('ui-ongkir-coret-hemat').innerText = "...";
-                }
-                // -----------------------------------------
-
-                updateCheckoutTotal();
-            }
-        };
-
-        window.autoFetchCheckoutLocation = (fromModal = false) => {
-            const titleEl = document.getElementById('checkout-maps-search-title');
-            const descEl = document.getElementById('checkout-maps-search-desc');
-            
-            // EKSEKUSI LANGKAH 2: Panggil titik koordinat valid yang sudah diamankan di Langkah 1
-            const savedLat = localStorage.getItem('user_lat');
-            const savedLng = localStorage.getItem('user_lng');
-            const savedAddr = localStorage.getItem('user_address') || "Titik Lokasi GPS";
-
-            if (!fromModal && savedLat && savedLng) {
-                const lat = parseFloat(savedLat);
-                const lng = parseFloat(savedLng);
-                
-                if (titleEl) {
-                    titleEl.innerText = "Lokasi Saat Ini";
-                    descEl.innerText = savedAddr;
-                }
-                
-                // Suntikkan angka desimal mutlak (lat & lng) agar Maps tidak perlu menebak dari teks alamat
-                window.checkoutDestPlace = {
-                    geometry: { location: { lat: () => lat, lng: () => lng } },
-                    formatted_address: savedAddr,
-                    name: savedAddr
-                };
-                
-                const searchInput = document.getElementById('checkout-maps-search');
-                if (searchInput) searchInput.value = savedAddr;
-                
-                // Langsung hitung ongkir menggunakan koordinat mutlak
-                calculateCheckoutOngkir(window.checkoutDestPlace.geometry.location);
-                return;
-            }
-
-            if (navigator.geolocation) {
-                if (titleEl) {
-                    titleEl.innerText = "Melacak...";
-                    descEl.innerText = "Mengambil data GPS";
-                }
-                
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        const lat = position.coords.latitude;
-                        const lng = position.coords.longitude;
-                        const pos = { lat: lat, lng: lng };
-                        
-                        localStorage.setItem('user_lat', lat);
-                        localStorage.setItem('user_lng', lng);
-
-                        if (typeof google !== 'undefined' && google.maps) {
-                            const geocoder = new google.maps.Geocoder();
-                            geocoder.geocode({ location: pos }, (results, status) => {
-                                if (status === 'OK' && results[0]) {
-                                    const address = results[0].formatted_address;
-                                    localStorage.setItem('user_address', address);
-                                    
-                                    if(titleEl) {
-                                        titleEl.innerText = "Lokasi Saat Ini";
-                                        descEl.innerText = address;
-                                    }
-                                    
-                                    window.checkoutDestPlace = {
-                                        geometry: { location: pos },
-                                        formatted_address: address,
-                                        name: address
-                                    };
-                                    const searchInput = document.getElementById('checkout-maps-search');
-                                    if (searchInput) searchInput.value = address;
-                                    
-                                    calculateCheckoutOngkir(pos);
-                                } else {
-                                    // PENGAMAN: Jika teks alamat gagal dilacak, tetap pakai titik angkanya!
-                                    if(titleEl) {
-                                        titleEl.innerText = "Lokasi Saat Ini";
-                                        descEl.innerText = "Menggunakan Titik Koordinat";
-                                    }
-                                    window.checkoutDestPlace = {
-                                        geometry: { location: pos },
-                                        formatted_address: "Titik GPS Pengguna",
-                                        name: "Lokasi GPS"
-                                    };
-                                    calculateCheckoutOngkir(pos);
-                                }
-                            });
-                        } else {
-                            // PENGAMAN: Jika API Google Maps lambat, tetap amankan titik angkanya!
-                            if(titleEl) {
-                                titleEl.innerText = "Lokasi Saat Ini";
-                                descEl.innerText = "Menggunakan Titik Koordinat";
-                            }
-                            window.checkoutDestPlace = {
-                                geometry: { location: pos },
-                                formatted_address: "Titik GPS Pengguna",
-                                name: "Lokasi GPS"
-                            };
-                            calculateCheckoutOngkir(pos);
-                        }
-                        
-                        if (fromModal) {
-                            closeLocationSearchModal();
-                            if(window.showToast) window.showToast("Lokasi berhasil diperbarui! 📍");
-                        }
-                    },
-                    (error) => {
-                        console.error("GPS Error:", error);
-                        
-                        // --- EKSEKUSI LANGKAH 3.1: SISTEM CADANGAN JIKA GAGAL MELACAK ---
-                        const fallbackLat = localStorage.getItem('user_lat');
-                        const fallbackLng = localStorage.getItem('user_lng');
-                        const fallbackAddr = localStorage.getItem('user_address') || "Titik GPS Tersimpan";
-
-                        if (fallbackLat && fallbackLng) {
-                            // JIKA ADA DI MEMORI: Gunakan data lama (Bypass Error)
-                            const lat = parseFloat(fallbackLat);
-                            const lng = parseFloat(fallbackLng);
-                            
-                            if (titleEl) {
-                                titleEl.innerText = "Lokasi Tersimpan (GPS Off)";
-                                descEl.innerText = fallbackAddr;
-                            }
-                            
-                            window.checkoutDestPlace = {
-                                geometry: { location: { lat: () => lat, lng: () => lng } },
-                                formatted_address: fallbackAddr,
-                                name: fallbackAddr
-                            };
-                            
-                            const searchInput = document.getElementById('checkout-maps-search');
-                            if (searchInput) searchInput.value = fallbackAddr;
-                            
-                            calculateCheckoutOngkir(window.checkoutDestPlace.geometry.location);
-                            
-                            if (fromModal) {
-                                closeLocationSearchModal();
-                                if(window.showToast) window.showToast("Sinyal GPS lemah. Menggunakan lokasi tersimpan terakhir! 📍");
-                            }
-                        } else {
-                            // JIKA KOSONG SAMA SEKALI: Tampilkan error gagal melacak
-                            if(titleEl) {
-                                titleEl.innerText = "Pilih Lokasi Pengantaran";
-                                descEl.innerText = "Gagal melacak, ketuk untuk mencari";
-                            }
-                            if (fromModal && window.showToast) window.showToast("Gagal melacak! Aktifkan GPS/Lokasi perangkat dan beri izin browser.");
-                        }
-                        // --- AKHIR EKSEKUSI LANGKAH 3.1 ---
-                    },
-                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                );
-            }
-        };
-
-        // --- EKSEKUSI LANGKAH 1: SESI TOKEN & AUTOCOMPLETE MANUAL ---
-        window.mapsAutocompleteService = null;
-        window.mapsPlacesService = null;
-        window.mapsSessionToken = null;
-
-        function initManualMapsServices() {
-            if (typeof google !== 'undefined' && google.maps && google.maps.places) {
-                if (!window.mapsAutocompleteService) window.mapsAutocompleteService = new google.maps.places.AutocompleteService();
-                // Buat Token Sesi Baru
-                if (!window.mapsSessionToken) window.mapsSessionToken = new google.maps.places.AutocompleteSessionToken();
-                // PlacesService butuh elemen HTML untuk inisialisasi
-                if (!window.mapsPlacesService) {
-                    const dummyDiv = document.createElement('div');
-                    window.mapsPlacesService = new google.maps.places.PlacesService(dummyDiv);
-                }
-            }
         }
 
         // --- EKSEKUSI LANGKAH 3: FUNGSI CACHING & RIWAYAT ---
