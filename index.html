@@ -3299,6 +3299,42 @@
         }
         // --------------------------------------------------------
 
+        // --- HELPER UNTUK MEMBACA JAM BUKA OPERASIONAL WARUNG (LANGKAH 1) ---
+        window.isVendorOpenNow = (jamBukaStr) => {
+            // Jika string kosong atau bukan teks, kembalikan null (berarti fallback ke status database)
+            if (!jamBukaStr || typeof jamBukaStr !== 'string') return null;
+            
+            // Mendeteksi pola waktu seperti: "08:00 - 21:00" atau "08.30-22.00" atau "s/d"
+            const timeRegex = /(\d{1,2})[:.](\d{2})\s*(?:-|s\/d|sd|sampai|to)\s*(\d{1,2})[:.](\d{2})/i;
+            const match = jamBukaStr.match(timeRegex);
+            
+            if (!match) return null; // Jika format teks aneh dan tidak ada jamnya, kembalikan null
+            
+            // Ekstrak jam dan menit buka/tutup
+            const openH = parseInt(match[1], 10);
+            const openM = parseInt(match[2], 10);
+            const closeH = parseInt(match[3], 10);
+            const closeM = parseInt(match[4], 10);
+            
+            // Dapatkan jam pengguna saat ini
+            const now = new Date();
+            const currH = now.getHours();
+            const currM = now.getMinutes();
+            
+            // Ubah semuanya ke format menit total untuk mempermudah perbandingan
+            const openTime = openH * 60 + openM;
+            const closeTime = closeH * 60 + closeM;
+            const currTime = currH * 60 + currM;
+            
+            // Logika untuk menangani jika warung buka sampai lewat tengah malam (misal: 18:00 - 02:00)
+            if (closeTime < openTime) {
+                return currTime >= openTime || currTime <= closeTime;
+            } else {
+                // Hari yang sama (misal: 08:00 - 21:00)
+                return currTime >= openTime && currTime <= closeTime;
+            }
+        };
+
         // --- HELPER UNTUK BYPASS BLOKIR IMGBB & MENGABAIKAN FIREBASE ---
         window.fixImgUrl = (url) => {
             if (!url || typeof url !== 'string') return url;
@@ -3317,11 +3353,11 @@
 
         // ====================================================================
         // GAMBAR PENGGANTI (FALLBACK) JIKA PENJUAL BELUM UPLOAD FOTO ATAU FOTO ERROR
-        // Menggunakan SVG Inline Data URI agar render INSTAN (0 detik) tanpa loading
+        // Menggunakan URL gambar yang diberikan
         // ====================================================================
-        const FALLBACK_MENU_IMG = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22400%22 viewBox=%220 0 400 400%22%3E%3Crect width=%22400%22 height=%22400%22 fill=%22%23FFF9F5%22/%3E%3Ccircle cx=%22200%22 cy=%22170%22 r=%2290%22 fill=%22%23FFE0CC%22/%3E%3Cpath d=%22M120 200 C 120 120, 280 120, 280 200 Z%22 fill=%22%23FF8533%22/%3E%3Crect x=%22105%22 y=%22200%22 width=%22190%22 height=%2212%22 rx=%226%22 fill=%22%23FF6600%22/%3E%3Ccircle cx=%22200%22 cy=%22120%22 r=%2214%22 fill=%22%23FF6600%22/%3E%3Cpath d=%22M160 150 Q 200 120 240 150%22 fill=%22none%22 stroke=%22%23FFB380%22 stroke-width=%226%22 stroke-linecap=%22round%22/%3E%3Ctext x=%22200%22 y=%22275%22 font-family=%22system-ui, sans-serif%22 font-size=%2226%22 font-weight=%22800%22 fill=%22%23FF6600%22 text-anchor=%22middle%22%3EMenu Andalan%3C/text%3E%3Ctext x=%22200%22 y=%22305%22 font-family=%22system-ui, sans-serif%22 font-size=%2214%22 font-weight=%22600%22 fill=%22%23FF8533%22 text-anchor=%22middle%22%3EFoto Belum Tersedia%3C/text%3E%3C/svg%3E"; 
+        const FALLBACK_MENU_IMG = "https://i.ibb.co.com/Z1BCmTTp/Gambar-ilustrasi-dari-PROJEKGO.png"; 
         
-        const FALLBACK_VENDOR_IMG = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22 viewBox=%220 0 400 300%22%3E%3Crect width=%22400%22 height=%22300%22 fill=%22%23FFF9F5%22/%3E%3Cpath d=%22M140 180 L140 130 L260 130 L260 180 Z%22 fill=%22%23FFE0CC%22/%3E%3Cpath d=%22M130 130 L270 130 L280 100 L120 100 Z%22 fill=%22%23FF8533%22/%3E%3Crect x=%22185%22 y=%22145%22 width=%2230%22 height=%2235%22 fill=%22%23FFB380%22/%3E%3Ctext x=%22200%22 y=%22230%22 font-family=%22system-ui, sans-serif%22 font-size=%2224%22 font-weight=%22800%22 fill=%22%23FF6600%22 text-anchor=%22middle%22%3EToko / Warung%3C/text%3E%3Ctext x=%22200%22 y=%22255%22 font-family=%22system-ui, sans-serif%22 font-size=%2213%22 font-weight=%22600%22 fill=%22%23FF8533%22 text-anchor=%22middle%22%3EFoto Belum Tersedia%3C/text%3E%3C/svg%3E";
+        const FALLBACK_VENDOR_IMG = "https://i.ibb.co.com/Z1BCmTTp/Gambar-ilustrasi-dari-PROJEKGO.png";
 
         // Inisialisasi Teks Navigasi Atas Sesuai Pilihan Lokasi Terakhir (Dipersingkat)
         document.getElementById('loc-text').innerText = currentArea === 'Gombong' ? 'Gombong' : 'Kebumen';
@@ -4277,8 +4313,16 @@
             // TAMBAHAN: Menyimpan nama warung yang sedang dibuka untuk mendeteksi isi keranjang per-resto
             window.currentOpenedVendorName = vendor.nama_warung || "Warung Projekgo";
             
-            /* --- MODIFIKASI: CEK RESTO BUKA/TUTUP --- */
-            const isOpen = (vendor.status || 'BUKA').toUpperCase() === 'BUKA';
+            /* --- MODIFIKASI: CEK RESTO BUKA/TUTUP (DENGAN REALTIME JAM OPERASIONAL) --- */
+            let currentStatus = (vendor.status || 'BUKA').toUpperCase();
+            let realTimeStatus = window.isVendorOpenNow(vendor.jam_buka);
+            if (realTimeStatus === false) {
+                currentStatus = 'TUTUP';
+            } else if (realTimeStatus === true) {
+                currentStatus = 'BUKA';
+            }
+            const isOpen = currentStatus === 'BUKA';
+            
             const pageGrayscale = isOpen ? '' : 'filter: grayscale(100%);';
             const tutupOverlay = !isOpen ? `<div style="position:absolute; inset:0; background:rgba(0,0,0,0.5); z-index:4; display:flex; align-items:center; justify-content:center;"><span style="background:#D32F2F; color:white; font-weight:800; padding:8px 16px; border-radius:8px; font-size:18px; letter-spacing:1px; box-shadow:0 4px 10px rgba(0,0,0,0.3);">RESTO TUTUP</span></div>` : '';
             /* ---------------------------------------- */
@@ -4447,7 +4491,15 @@
             const sortedKeys = ["Semua", ...Object.keys(groups).filter(k => k !== "Semua").sort()];
 
             if(availableMenu.length === 0) { 
-                listContainer.innerHTML = '<div style="text-align:center; padding:30px; color:#999;">Belum ada menu tersedia.</div>'; 
+                // --- AWAL PERUBAHAN LANGKAH 3 (DESAIN ILUSTRASI KOSONG MENARIK) ---
+                listContainer.innerHTML = `
+                    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px; text-align:center; background: white; border-radius: 16px; margin: 0 15px; box-shadow: var(--shadow-sm); border: 1px solid rgba(0,0,0,0.03);">
+                        <img src="https://i.ibb.co.com/DfvGy0Lw/Desain-tanpa-judul-87.png" style="width:120px; height:120px; object-fit:contain; margin-bottom:15px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.05));" alt="Menu Kosong">
+                        <div style="font-size:16px; font-weight:800; color:var(--dark); margin-bottom:8px;">Wah, menunya belum siap nih! 👨‍🍳</div>
+                        <div style="font-size:12px; color:#666; line-height:1.5; max-width:250px;">Penjual sedang meracik menu-menu terbaiknya untuk ditampilkan di sini. Ditunggu ya, pasti enak-enak! ✨</div>
+                    </div>
+                `; 
+                // --- AKHIR PERUBAHAN LANGKAH 3 ---
             } else {
                 // 1. Buat UI Pill Categories (DIBUAT STICKY)
                 let pillsHtml = '<div style="position: sticky; top: 0; z-index: 99; background: var(--bg); padding: 15px 0 10px 0; margin: -10px -15px 10px -15px;"><div style="display:flex; overflow-x:auto; gap:10px; padding: 0 15px 5px 15px; scrollbar-width:none; -webkit-overflow-scrolling:touch;">';
@@ -4578,7 +4630,7 @@
                     
                     allReviews = allReviews.filter(r => r.vendor_name !== vendor.nama_warung).concat(vendorReviews);
 
-                    const avgRating = vendorReviews.length > 0 ? (vendorReviews.reduce((acc, curr) => acc + curr.rating, 0) / vendorReviews.length).toFixed(1) : "New";
+                        const avgRating = vendorReviews.length > 0 ? (vendorReviews.reduce((acc, curr) => acc + curr.rating, 0) / vendorReviews.length).toFixed(1) : "New";
                     document.getElementById('vendor-avg-rating').innerText = avgRating;
                     
                     reviewsContainer.innerHTML = '';
@@ -5003,6 +5055,19 @@
             // Vendor UI sesuai gambar
             const vendorEl = document.getElementById('pd-vendor');
             vendorEl.innerHTML = `<img src="${vendorImg}" onerror="this.src='${FALLBACK_VENDOR_IMG}'" style="width:24px; height:24px; border-radius:50%; object-fit:cover; border:1px solid #eee;"> <span style="font-size:13px; font-weight:800; color:var(--dark);">${vendorName}</span>`;
+
+            // --- LANGKAH 1: MENANAMKAN LOGIKA KLIK DINAMIS KE ELEMEN PROFIL PENJUAL ---
+            const vendorRowEl = document.getElementById('pd-vendor-row');
+            if (vendorRowEl) {
+                vendorRowEl.onclick = () => {
+                    closeProductDetailModal(); // Tutup popup terlebih dahulu
+                    // Tunggu 300ms agar animasi popup yang turun ke bawah selesai
+                    setTimeout(() => {
+                        openVendorPage(item.vendor_id); // Buka halaman vendor dengan ID yang akurat
+                    }, 300);
+                };
+            }
+            // -------------------------------------------------------------------------
 
             document.getElementById('pd-title').innerText = item.nama_menu; 
             document.getElementById('pd-price').innerText = "Rp " + realPrice.toLocaleString('id-ID'); 
@@ -9338,6 +9403,17 @@
     function renderWarungList(vends) {
         // --- AWAL TAHAP 4: LOGIKA PEMFILTERAN ---
         let foodVendors = [...vends]; // Copy array agar tidak merusak data original
+
+        // --- TAMBAHAN LANGKAH 2: OVERRIDE STATUS BERDASARKAN JAM OPERASIONAL ---
+        foodVendors.forEach(v => {
+            let realTimeStatus = window.isVendorOpenNow(v.jam_buka);
+            if (realTimeStatus === false) {
+                v.status = 'TUTUP';
+            } else if (realTimeStatus === true) {
+                v.status = 'BUKA';
+            }
+        });
+        // ------------------------------------------------------------------------
 
         // Fungsi sorting bawaan (Buka -> Andalan)
         const defaultWarungSort = (a, b) => {
