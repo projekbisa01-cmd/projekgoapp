@@ -4282,7 +4282,6 @@
             container.innerHTML = '';
             
             history.slice().reverse().forEach(order => {
-                const reorderData = encodeURIComponent(JSON.stringify(order.rawItems));
                 const orderTime = order.id; 
                 const currentTime = Date.now(); 
                 const diffMinutes = (currentTime - orderTime) / (1000 * 60);
@@ -4320,52 +4319,84 @@
                     </div>`;
                 }
 
-                // --- LOGIKA DAFTAR ITEM PESANAN YANG RAPI ---
                 let itemsListHtml = '';
-                if (order.rawItems && order.rawItems.length > 0) {
-                    const consolidated = [];
-                    order.rawItems.forEach(item => {
-                        const key = item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase();
-                        const existing = consolidated.find(i => i._key === key);
-                        if (existing) {
-                            existing.qty++;
-                            existing.totalItemPrice += item.harga;
-                        } else {
-                            consolidated.push({ ...item, _key: key, qty: 1, totalItemPrice: item.harga });
-                        }
-                    });
+                let breakdownHtml = '';
+                let reorderBtnHtml = '';
+                let vendorIconHtml = '<i class="ph-fill ph-storefront" style="color:var(--primary);"></i>';
 
-                    itemsListHtml = '<div style="font-size:12px; color:#444; margin-bottom:10px; line-height:1.5; border-top:1px dashed #eee; padding-top:10px;">';
-                    consolidated.forEach(item => {
-                        let varText = item.variant && item.variant !== '-' ? `<br><span style="color:#888; font-size:10px;">(${item.variant})</span>` : '';
-                        itemsListHtml += `
-                        <div style="display:flex; justify-content:space-between; margin-bottom:6px; align-items:flex-start;">
-                            <span style="flex:1;"><b>${item.qty}x</b> ${item.nama}${varText}</span>
-                            <span style="font-weight:600; white-space:nowrap; margin-left:10px;">Rp ${item.totalItemPrice.toLocaleString('id-ID')}</span>
-                        </div>`;
-                    });
-                    itemsListHtml += '</div>';
+                // --- PEMISAHAN LOGIKA: LAYANAN JASA vs MAKANAN ---
+                if (order.isService) {
+                    // LOGIKA LAYANAN JASA (Ojek, Mobil, Paket, dll)
+                    const vLower = (order.vendor || '').toLowerCase();
+                    if (vLower.includes('mobil')) {
+                        vendorIconHtml = '<i class="ph-fill ph-car" style="color:var(--primary);"></i>';
+                    } else if (vLower.includes('paket')) {
+                        vendorIconHtml = '<i class="ph-fill ph-package" style="color:var(--primary);"></i>';
+                    } else {
+                        vendorIconHtml = '<i class="ph-fill ph-moped" style="color:var(--primary);"></i>';
+                    }
+
+                    itemsListHtml = `<div style="font-size:13px; color:#333; margin-bottom:10px; line-height:1.6; border-top:1px dashed #eee; padding-top:10px; font-weight:500;">${order.items}</div>`;
+                    
+                    breakdownHtml = '<div style="border-top:1px dashed #eee; padding-top:10px; margin-bottom:10px;">';
+                    if (order.total > 0) {
+                        breakdownHtml += `<div style="display:flex; justify-content:space-between; font-size:14px; font-weight:800; color:var(--primary); margin-top:8px;"><span>Estimasi Harga</span><span>Rp ${order.total.toLocaleString('id-ID')}</span></div>`;
+                    } else {
+                        breakdownHtml += `<div style="display:flex; justify-content:space-between; font-size:13px; font-weight:800; color:#E65100; margin-top:8px;"><span>Estimasi Harga</span><span>Dihitung Admin</span></div>`;
+                    }
+                    breakdownHtml += '</div>';
+
+                    // Tombol Pesan Lagi disembunyikan untuk layanan jasa
+                    reorderBtnHtml = '';
+
                 } else {
-                    // Fallback untuk pesanan lama
-                    itemsListHtml = `<div style="font-size:12px; color:#555; margin-bottom:10px; line-height:1.4; border-top:1px dashed #eee; padding-top:10px;">${order.items}</div>`;
-                }
+                    // LOGIKA PESANAN MAKANAN (Default)
+                    const reorderData = encodeURIComponent(JSON.stringify(order.rawItems || []));
+                    reorderBtnHtml = `<button class="btn-reorder-action" onclick="reorder('${reorderData}')">Pesan Lagi ↻</button>`;
 
-                // --- LOGIKA RINCIAN BIAYA ---
-                let breakdownHtml = '<div style="border-top:1px dashed #eee; padding-top:10px; margin-bottom:10px;">';
-                if (order.subtotalMakanan !== undefined) {
-                    breakdownHtml += `<div style="display:flex; justify-content:space-between; font-size:11px; color:#666; margin-bottom:4px;"><span>Subtotal Makanan</span><span>Rp ${order.subtotalMakanan.toLocaleString('id-ID')}</span></div>`;
+                    if (order.rawItems && order.rawItems.length > 0) {
+                        const consolidated = [];
+                        order.rawItems.forEach(item => {
+                            const key = item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase();
+                            const existing = consolidated.find(i => i._key === key);
+                            if (existing) {
+                                existing.qty++;
+                                existing.totalItemPrice += item.harga;
+                            } else {
+                                consolidated.push({ ...item, _key: key, qty: 1, totalItemPrice: item.harga });
+                            }
+                        });
+
+                        itemsListHtml = '<div style="font-size:12px; color:#444; margin-bottom:10px; line-height:1.5; border-top:1px dashed #eee; padding-top:10px;">';
+                        consolidated.forEach(item => {
+                            let varText = item.variant && item.variant !== '-' ? `<br><span style="color:#888; font-size:10px;">(${item.variant})</span>` : '';
+                            itemsListHtml += `
+                            <div style="display:flex; justify-content:space-between; margin-bottom:6px; align-items:flex-start;">
+                                <span style="flex:1;"><b>${item.qty}x</b> ${item.nama}${varText}</span>
+                                <span style="font-weight:600; white-space:nowrap; margin-left:10px;">Rp ${item.totalItemPrice.toLocaleString('id-ID')}</span>
+                            </div>`;
+                        });
+                        itemsListHtml += '</div>';
+                    } else {
+                        itemsListHtml = `<div style="font-size:12px; color:#555; margin-bottom:10px; line-height:1.4; border-top:1px dashed #eee; padding-top:10px;">${order.items}</div>`;
+                    }
+
+                    breakdownHtml = '<div style="border-top:1px dashed #eee; padding-top:10px; margin-bottom:10px;">';
+                    if (order.subtotalMakanan !== undefined) {
+                        breakdownHtml += `<div style="display:flex; justify-content:space-between; font-size:11px; color:#666; margin-bottom:4px;"><span>Subtotal Makanan</span><span>Rp ${order.subtotalMakanan.toLocaleString('id-ID')}</span></div>`;
+                    }
+                    if (order.ongkosKirim !== undefined && order.ongkosKirim > 0) {
+                        breakdownHtml += `<div style="display:flex; justify-content:space-between; font-size:11px; color:#666; margin-bottom:4px;"><span>Ongkos Kirim</span><span>Rp ${order.ongkosKirim.toLocaleString('id-ID')}</span></div>`;
+                    }
+                    if (order.serviceFee !== undefined && order.serviceFee > 0) {
+                        breakdownHtml += `<div style="display:flex; justify-content:space-between; font-size:11px; color:#666; margin-bottom:4px;"><span>Biaya Layanan</span><span>Rp ${order.serviceFee.toLocaleString('id-ID')}</span></div>`;
+                    }
+                    if (order.extraRestoFee !== undefined && order.extraRestoFee > 0) {
+                        breakdownHtml += `<div style="display:flex; justify-content:space-between; font-size:11px; color:#666; margin-bottom:4px;"><span>Tambahan Warung Berbeda</span><span>Rp ${order.extraRestoFee.toLocaleString('id-ID')}</span></div>`;
+                    }
+                    breakdownHtml += `<div style="display:flex; justify-content:space-between; font-size:14px; font-weight:800; color:var(--primary); margin-top:8px;"><span>Total Dibayar</span><span>Rp ${order.total.toLocaleString('id-ID')}</span></div>`;
+                    breakdownHtml += '</div>';
                 }
-                if (order.ongkosKirim !== undefined && order.ongkosKirim > 0) {
-                    breakdownHtml += `<div style="display:flex; justify-content:space-between; font-size:11px; color:#666; margin-bottom:4px;"><span>Ongkos Kirim</span><span>Rp ${order.ongkosKirim.toLocaleString('id-ID')}</span></div>`;
-                }
-                if (order.serviceFee !== undefined && order.serviceFee > 0) {
-                    breakdownHtml += `<div style="display:flex; justify-content:space-between; font-size:11px; color:#666; margin-bottom:4px;"><span>Biaya Layanan</span><span>Rp ${order.serviceFee.toLocaleString('id-ID')}</span></div>`;
-                }
-                if (order.extraRestoFee !== undefined && order.extraRestoFee > 0) {
-                    breakdownHtml += `<div style="display:flex; justify-content:space-between; font-size:11px; color:#666; margin-bottom:4px;"><span>Tambahan Warung Berbeda</span><span>Rp ${order.extraRestoFee.toLocaleString('id-ID')}</span></div>`;
-                }
-                breakdownHtml += `<div style="display:flex; justify-content:space-between; font-size:14px; font-weight:800; color:var(--primary); margin-top:8px;"><span>Total Dibayar</span><span>Rp ${order.total.toLocaleString('id-ID')}</span></div>`;
-                breakdownHtml += '</div>';
 
                 // --- LOGIKA BADGE PENGHEMATAN ---
                 let savingsHtml = '';
@@ -4385,8 +4416,8 @@
                         <span>${order.date}</span>
                         <span style="background:${statusColor}; color:${statusTextColor}; padding:4px 8px; border-radius:6px; font-weight:800; font-size:10px;">${displayStatus}</span>
                     </div>
-                    <div style="font-weight:800; font-size:14px; margin-bottom:8px; color:var(--dark);">
-                        <i class="ph-fill ph-storefront" style="color:var(--primary);"></i> ${order.vendor}
+                    <div style="font-weight:800; font-size:14px; margin-bottom:8px; color:var(--dark); display:flex; align-items:center; gap:6px;">
+                        ${vendorIconHtml} ${order.vendor}
                     </div>
                     ${itemsListHtml}
                     ${breakdownHtml}
@@ -4395,7 +4426,7 @@
                     ${reviewDisplayHtml}
                     <div style="margin-top:12px; text-align:right; display:flex; justify-content:flex-end; align-items:center; gap:8px;">
                         ${reviewButtonHtml}
-                        <button class="btn-reorder-action" onclick="reorder('${reorderData}')">Pesan Lagi ↻</button>
+                        ${reorderBtnHtml}
                     </div>
                 </div>`;
                 
@@ -8127,30 +8158,6 @@
                                 </div>
                             </div>
                             
-                            <!-- ROUTE SUMMARY (LANGKAH 2: Melayang di Bawah Peta) -->
-                            <div id="route-summary" style="display:none; position: absolute; bottom: 15px; left: 15px; right: 15px; z-index: 2; background: white; border-radius: 20px; padding: 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.1); animation: slideUpSheet 0.3s ease-out;">
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                                    <div style="display:flex; align-items:center; gap:12px;">
-                                        <div style="width:48px; height:48px; background:#FFF0E5; border-radius:14px; display:flex; align-items:center; justify-content:center;">
-                                            <i class="${svc==='Mobil'?'ph-fill ph-car':(svc==='Kirim Paket'?'ph-fill ph-package':'ph-fill ph-moped')}" style="font-size:28px; color:var(--primary);"></i>
-                                        </div>
-                                        <div>
-                                            <div style="font-weight:800; font-size:16px; color:var(--dark); margin-bottom:2px;">${svc} Prioritas</div>
-                                            <div style="font-size:12px; color:#666;">Estimasi <span id="summary-time" style="font-weight:700; color:#333;">-</span> • <span id="summary-dist" style="font-weight:700; color:#333;">-</span></div>
-                                        </div>
-                                    </div>
-                                    <div id="summary-price" style="font-size:20px; font-weight:900; color:var(--dark);">Rp -</div>
-                                </div>
-                                <div style="border-top: 1px dashed #eee; margin-bottom: 15px;"></div>
-                                <button onclick="submitServiceForm()" style="width:100%; background:var(--primary); color:white; padding:14px; border:none; border-radius:14px; font-weight:800; font-size:16px; box-shadow:0 8px 20px rgba(255,102,0,0.3); display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition:transform 0.2s;" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform='scale(1)'">
-                                    Pesan ${svc} <i class="ph-bold ph-arrow-right"></i>
-                                </button>
-                            </div>
-
-                            <div id="loading-route" style="display:none; position: absolute; bottom: 15px; left: 15px; right: 15px; z-index: 2; text-align:center; padding:20px; color:#888; font-size:13px; background:white; border-radius:20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
-                                <i class="ph-bold ph-spinner ph-spin" style="font-size:28px; color:var(--primary); margin-bottom:10px;"></i><br>Mencari rute jalan terbaik...
-                            </div>
-                            
                             <!-- PETA SELEKSI PIN MAP PICKER (FULLSCREEN OVERLAY) -->
                             <div id="map-selection-container" style="position: absolute; inset: 0; background: white; z-index: 10; display: none; flex-direction: column;">
                                 <div style="flex-grow: 1; position: relative;">
@@ -8168,8 +8175,33 @@
                             </div>
                         </div>
 
+                        <!-- ROUTE SUMMARY (LANGKAH 1: Dikeluarkan dari Dalam Peta) -->
+                        <div id="route-summary" style="display:none; margin-top: 15px; background: white; border-radius: 20px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); animation: slideUpSheet 0.3s ease-out; border: 1px solid #eee;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                                <div style="display:flex; align-items:center; gap:12px;">
+                                    <div style="width:48px; height:48px; background:#FFF0E5; border-radius:14px; display:flex; align-items:center; justify-content:center;">
+                                        <i class="${svc==='Mobil'?'ph-fill ph-car':(svc==='Kirim Paket'?'ph-fill ph-package':'ph-fill ph-moped')}" style="font-size:28px; color:var(--primary);"></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight:800; font-size:16px; color:var(--dark); margin-bottom:2px;">${svc} Prioritas</div>
+                                        <div style="font-size:12px; color:#666;">Estimasi <span id="summary-time" style="font-weight:700; color:#333;">-</span> • <span id="summary-dist" style="font-weight:700; color:#333;">-</span></div>
+                                    </div>
+                                </div>
+                                <div id="summary-price" style="font-size:20px; font-weight:900; color:var(--dark);">Rp -</div>
+                            </div>
+                            <div style="border-top: 1px dashed #eee; margin-bottom: 15px;"></div>
+                            <button onclick="submitServiceForm()" style="width:100%; background:var(--primary); color:white; padding:14px; border:none; border-radius:14px; font-weight:800; font-size:16px; box-shadow:0 8px 20px rgba(255,102,0,0.3); display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition:transform 0.2s;" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform='scale(1)'">
+                                Pesan ${svc} <i class="ph-bold ph-arrow-right"></i>
+                            </button>
+                        </div>
+
+                        <!-- LOADING ROUTE (LANGKAH 1: Dikeluarkan dari Dalam Peta) -->
+                        <div id="loading-route" style="display:none; margin-top: 15px; text-align:center; padding:20px; color:#888; font-size:13px; background:white; border-radius:20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 1px solid #eee;">
+                            <i class="ph-bold ph-spinner ph-spin" style="font-size:28px; color:var(--primary); margin-bottom:10px;"></i><br>Mencari rute jalan terbaik...
+                        </div>
+
                         <!-- KONTENER MODE MANUAL (DIUBAH: Ditampilkan Default) -->
-                        <div id="mode-manual-container" style="display:block;">
+                        <div id="mode-manual-container" style="display:block; margin-top: 15px;">
                             <div style="background:#FFF3E0; border:1px dashed #FFB74D; color:#E65100; font-size:11px; padding:10px 12px; border-radius:12px; margin-bottom:15px; font-weight:600; line-height:1.4;">
                                 ℹ️ <b style="font-weight:800;">Solusi tanpa Maps:</b> Ketik alamat lengkap/patokan. Ongkos kirim akan dihitung dan diinfokan oleh Admin via WhatsApp.
                             </div>
@@ -9052,7 +9084,51 @@
                 }
             }
 
+            // --- EKSEKUSI LANGKAH 1: REKAM KE RIWAYAT PESANAN ---
+            let historyItemsSummary = "";
+            let historyTotal = 0;
+
+            if (currentServiceType === 'Ngojek' || currentServiceType === 'Mobil' || currentServiceType === 'Kirim Paket') {
+                let jmptStr = locationInputMode === 'maps' ? (originPlace && originPlace.formatted_address ? originPlace.formatted_address : document.getElementById('svc-jemput').value) : document.getElementById('svc-jemput-manual').value.trim();
+                let tjnStr = locationInputMode === 'maps' ? (destPlace && destPlace.formatted_address ? destPlace.formatted_address : document.getElementById('svc-tujuan').value) : document.getElementById('svc-tujuan-manual').value.trim();
+                
+                historyItemsSummary = `📍 ${jmptStr} ➔ 🚩 ${tjnStr}`;
+                
+                if (currentServiceType === 'Kirim Paket') {
+                    const pkt = document.getElementById('svc-paket').value;
+                    historyItemsSummary += `<br>📦 Paket: ${pkt}`;
+                }
+                
+                if (locationInputMode === 'maps' && routePrice > 0) {
+                    historyTotal = routePrice;
+                }
+            } else {
+                let detailEl = document.getElementById('svc-detail');
+                let detailPesanan = detailEl ? detailEl.value.trim() : '';
+                historyItemsSummary = detailPesanan ? (detailPesanan.length > 50 ? detailPesanan.substring(0, 50) + '...' : detailPesanan) : 'Pesanan Layanan Jasa';
+            }
+
+            const history = JSON.parse(localStorage.getItem('order_history')) || [];
+            const newServiceOrder = {
+                id: Date.now(),
+                date: new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit'}),
+                vendor: 'Layanan ' + currentServiceType, // Menyamarkan nama layanan di kolom vendor
+                items: historyItemsSummary,
+                total: historyTotal, // 0 Jika admin yang akan menghitung (Manual Mode)
+                status: 'MENUNGGU KONFIRMASI',
+                isService: true, // PENANDA SPESIAL UNTUK TAMPILAN DI RIWAYAT
+                isReviewed: false
+            };
+            history.push(newServiceOrder);
+            localStorage.setItem('order_history', JSON.stringify(history));
+            // --------------------------------------------------
+
             window.open(`https://wa.me/${ADMIN_WA}?text=${message}`, '_blank'); 
+            
+            // Arahkan ke halaman riwayat pesanan
+            setTimeout(() => {
+                openPage('orders');
+            }, 800);
         }
 
         // FUNGSI BARU: Ambil lokasi khusus form layanan lainnya
