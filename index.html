@@ -10382,6 +10382,43 @@
         showSkeletons();
         loadData();
 
+        // --- FUNGSI REKAM LOKASI OTOMATIS SAAT APLIKASI DIBUKA ---
+        window.recordCurrentLocationOnLoad = () => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        
+                        // Simpan ke memori lokal
+                        localStorage.setItem('user_lat', lat);
+                        localStorage.setItem('user_lng', lng);
+                        const mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
+                        localStorage.setItem('user_maps', mapsLink);
+
+                        // Ambil nama jalan (Geocoding) jika Maps API tersedia
+                        if (typeof google !== 'undefined' && google.maps && google.maps.Geocoder) {
+                            const geocoder = new google.maps.Geocoder();
+                            geocoder.geocode({ location: { lat: lat, lng: lng } }, (results, status) => {
+                                if (status === 'OK' && results[0]) {
+                                    localStorage.setItem('user_address', results[0].formatted_address);
+                                    if(window.saveRecentLocation) {
+                                        window.saveRecentLocation("Lokasi Saya Saat Ini", results[0].formatted_address, lat, lng);
+                                    }
+                                }
+                            });
+                        }
+                    },
+                    (error) => {
+                        console.warn("Gagal rekam GPS otomatis:", error.message);
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+                );
+            }
+        };
+        // Panggil fungsinya
+        window.recordCurrentLocationOnLoad();
+
         // --- FITUR AUTO HIDE NAVBAR SAAT SCROLL ---
         let lastScrollY = window.scrollY;
         let scrollTimer = null;
