@@ -8028,48 +8028,76 @@
                             <div id="tab-mode-maps" onclick="toggleLocMode('maps')" style="flex:1; text-align:center; font-size:12px; font-weight:700; padding:10px; border-radius:10px; color:#666; cursor:pointer; transition:0.2s;">📍 Pakai Maps</div>
                         </div>
 
-                        <!-- KONTENER MODE MAPS (DIUBAH: Disembunyikan Default) -->
-                        <div id="mode-maps-container" style="display:none;">
-                            <div class="ride-input-group">
-                                <div class="ride-dots">
-                                    <div class="dot-origin"></div>
-                                    <div class="dot-line"></div>
-                                    <div class="dot-dest"></div>
-                                </div>
-                                <div class="ride-inputs">
-                                    <!-- MODIFIKASI: Input & Tombol Peta Berdampingan Sesuai Permintaan -->
-                                    <div style="display: flex; gap: 8px;">
-                                        <input type="text" id="svc-jemput" class="ride-input" placeholder="Lokasi jemput saat ini..." style="flex-grow: 1;">
-                                        <button id="btn-map-jemput" onclick="activateMapPicker('jemput')" style="width: 48px; flex-shrink: 0; background: white; border: 1px solid #ddd; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;">
-                                            <i class="ph-fill ph-map-pin" style="color: #2196F3; font-size: 24px;"></i>
-                                        </button>
+                        <!-- KONTENER MODE MAPS (DIUBAH UNTUK LANGKAH 1 & 2) -->
+                        <div id="mode-maps-container" style="display:none; position: relative; border-radius: 16px; overflow: hidden; height: 60vh; min-height: 480px; border: 1px solid #eee; background: #e0e0e0;">
+                            
+                            <!-- KONTENER PETA BARU (Akan dirender via JS nanti) -->
+                            <div id="ride-route-map" style="position: absolute; inset: 0; z-index: 1;"></div>
+                            
+                            <!-- FLOATING INPUTS (Melayang di atas peta) -->
+                            <div style="position: absolute; top: 15px; left: 15px; right: 15px; z-index: 2; background: white; border-radius: 16px; padding: 15px; box-shadow: 0 6px 20px rgba(0,0,0,0.1);">
+                                <div class="ride-input-group">
+                                    <div class="ride-dots">
+                                        <div class="dot-origin" style="background:#2196F3; border-color:#E3F2FD;"></div>
+                                        <div class="dot-line"></div>
+                                        <div class="dot-dest" style="background:#F44336; border-color:#FFEBEE;"></div>
                                     </div>
-                                    <div style="display: flex; gap: 8px;">
-                                        <input type="text" id="svc-tujuan" class="ride-input" placeholder="Cari lokasi tujuan..." style="flex-grow: 1;">
-                                        <button id="btn-map-tujuan" onclick="activateMapPicker('tujuan')" style="width: 48px; flex-shrink: 0; background: white; border: 1px solid #ddd; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;">
-                                            <i class="ph-fill ph-map-pin" style="color: #F44336; font-size: 24px;"></i>
-                                        </button>
+                                    <div class="ride-inputs">
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="text" id="svc-jemput" class="ride-input" placeholder="Lokasi jemput saat ini..." style="flex-grow: 1; padding: 12px; font-size: 13px; background: #f9f9f9; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); border: none;">
+                                            <button id="btn-map-jemput" onclick="activateMapPicker('jemput')" style="width: 44px; flex-shrink: 0; background: white; border: 1px solid #eee; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                                                <i class="ph-fill ph-map-pin" style="color: #2196F3; font-size: 22px;"></i>
+                                            </button>
+                                        </div>
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="text" id="svc-tujuan" class="ride-input" placeholder="Cari lokasi tujuan..." style="flex-grow: 1; padding: 12px; font-size: 13px; background: #f9f9f9; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); border: none;">
+                                            <button id="btn-map-tujuan" onclick="activateMapPicker('tujuan')" style="width: 44px; flex-shrink: 0; background: white; border: 1px solid #eee; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                                                <i class="ph-fill ph-map-pin" style="color: #F44336; font-size: 22px;"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             
-                            <!-- PETA MUNCUL DI SINI SAAT TOMBOL PETA DI KLIK -->
-                            <div id="map-selection-container" style="margin-top: 15px; border-radius: 12px; overflow: hidden; display: none; flex-direction: column; border: 1px solid #ddd;">
-                                <div style="height: 250px; width: 100%; position: relative;">
-                                    <div id="service-map" style="width: 100%; height: 100%;"></div>
-                                    <div style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 800; color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.15); pointer-events: none; z-index: 5;">
-                                        Geser Peta untuk Menentukan Titik
+                            <!-- ROUTE SUMMARY (LANGKAH 2: Melayang di Bawah Peta) -->
+                            <div id="route-summary" style="display:none; position: absolute; bottom: 15px; left: 15px; right: 15px; z-index: 2; background: white; border-radius: 20px; padding: 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.1); animation: slideUpSheet 0.3s ease-out;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                                    <div style="display:flex; align-items:center; gap:12px;">
+                                        <div style="width:48px; height:48px; background:#FFF0E5; border-radius:14px; display:flex; align-items:center; justify-content:center;">
+                                            <i class="${svc==='Mobil'?'ph-fill ph-car':(svc==='Kirim Paket'?'ph-fill ph-package':'ph-fill ph-moped')}" style="font-size:28px; color:var(--primary);"></i>
+                                        </div>
+                                        <div>
+                                            <div style="font-weight:800; font-size:16px; color:var(--dark); margin-bottom:2px;">${svc} Prioritas</div>
+                                            <div style="font-size:12px; color:#666;">Estimasi <span id="summary-time" style="font-weight:700; color:#333;">-</span> • <span id="summary-dist" style="font-weight:700; color:#333;">-</span></div>
+                                        </div>
                                     </div>
+                                    <div id="summary-price" style="font-size:20px; font-weight:900; color:var(--dark);">Rp -</div>
                                 </div>
-                                <div style="background: white; padding: 12px; border-top: 1px solid #eee;">
-                                    <button onclick="confirmServiceMapLocation()" style="width: 100%; background: var(--primary); color: white; padding: 12px; border: none; border-radius: 10px; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 4px 10px rgba(255,102,0,0.3);">Gunakan Lokasi Ini</button>
-                                </div>
+                                <div style="border-top: 1px dashed #eee; margin-bottom: 15px;"></div>
+                                <button onclick="submitServiceForm()" style="width:100%; background:var(--primary); color:white; padding:14px; border:none; border-radius:14px; font-weight:800; font-size:16px; box-shadow:0 8px 20px rgba(255,102,0,0.3); display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition:transform 0.2s;" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform='scale(1)'">
+                                    Pesan ${svc} <i class="ph-bold ph-arrow-right"></i>
+                                </button>
                             </div>
 
-                            <!-- TAMBAHAN LANGKAH 1: TOMBOL PEMICU MANUAL MAPS -->
-                            <button id="btn-trigger-maps" onclick="triggerRouteCalculation()" style="width: 100%; background: linear-gradient(45deg, #FFB74D, #FF9800); color: white; border: none; border-radius: 12px; padding: 14px; font-weight: 800; font-size: 14px; margin-top: 15px; cursor: pointer; box-shadow: 0 4px 10px rgba(255, 152, 0, 0.3); display: flex; align-items: center; justify-content: center; gap: 8px;">
-                                Cek Ongkir / Lanjut <i class="ph-bold ph-arrow-right"></i>
-                            </button>
+                            <div id="loading-route" style="display:none; position: absolute; bottom: 15px; left: 15px; right: 15px; z-index: 2; text-align:center; padding:20px; color:#888; font-size:13px; background:white; border-radius:20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                                <i class="ph-bold ph-spinner ph-spin" style="font-size:28px; color:var(--primary); margin-bottom:10px;"></i><br>Mencari rute jalan terbaik...
+                            </div>
+                            
+                            <!-- PETA SELEKSI PIN MAP PICKER (FULLSCREEN OVERLAY) -->
+                            <div id="map-selection-container" style="position: absolute; inset: 0; background: white; z-index: 10; display: none; flex-direction: column;">
+                                <div style="flex-grow: 1; position: relative;">
+                                    <div id="service-map" style="width: 100%; height: 100%;"></div>
+                                    <div style="position: absolute; top: 15px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); padding: 8px 18px; border-radius: 20px; font-size: 12px; font-weight: 800; color: var(--primary); box-shadow: 0 4px 15px rgba(0,0,0,0.15); pointer-events: none; z-index: 5;">
+                                        Geser Peta untuk Menentukan Titik
+                                    </div>
+                                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -100%); z-index: 10; pointer-events: none;">
+                                        <i class="ph-fill ph-map-pin" style="font-size: 42px; color: #E53935; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3));"></i>
+                                    </div>
+                                </div>
+                                <div style="background: white; padding: 15px; border-top: 1px solid #eee; box-shadow: 0 -4px 15px rgba(0,0,0,0.05); z-index: 6;">
+                                    <button onclick="confirmServiceMapLocation()" style="width: 100%; background: var(--primary); color: white; padding: 14px; border: none; border-radius: 12px; font-weight: 800; font-size: 15px; cursor: pointer; box-shadow: 0 4px 15px rgba(255,102,0,0.3);">Gunakan Lokasi Ini</button>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- KONTENER MODE MANUAL (DIUBAH: Ditampilkan Default) -->
@@ -8089,28 +8117,6 @@
                         <button id="btn-submit-manual" onclick="submitServiceForm()" style="display:flex; width:100%; background:linear-gradient(45deg, var(--primary), #FF9900); color:white; padding:14px; border:none; border-radius:12px; margin-top:15px; font-weight:800; font-size:14px; box-shadow:0 4px 15px rgba(255,102,0,0.3); align-items:center; justify-content:center; gap:8px; cursor:pointer;">
                             Pesan ${svc} via WA <i class="ph-bold ph-whatsapp-logo" style="font-size:18px;"></i>
                         </button>
-                    </div>
-
-                    <div id="route-summary" style="display:none; background:white; border-radius:20px; padding:20px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border:1px solid rgba(0,0,0,0.03); margin-bottom:20px; animation: slideIn 0.3s;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px dashed #eee; padding-bottom:15px; margin-bottom:15px;">
-                            <div style="display:flex; align-items:center; gap:12px;">
-                                <div style="width:48px; height:48px; background:var(--primary-light); border-radius:14px; display:flex; align-items:center; justify-content:center;">
-                                    <i class="${svc==='Mobil'?'ph-fill ph-car':(svc==='Kirim Paket'?'ph-fill ph-package':'ph-fill ph-moped')}" style="font-size:28px; color:var(--primary);"></i>
-                                </div>
-                                <div>
-                                    <div style="font-weight:800; font-size:16px; color:var(--dark); margin-bottom:2px;">${svc} Prioritas</div>
-                                    <div style="font-size:12px; color:#666;">Estimasi <span id="summary-time" style="font-weight:700; color:#333;">-</span> • <span id="summary-dist" style="font-weight:700; color:#333;">-</span></div>
-                                </div>
-                            </div>
-                            <div id="summary-price" style="font-size:20px; font-weight:900; color:var(--dark);">Rp -</div>
-                        </div>
-                        <button onclick="submitServiceForm()" style="width:100%; background:linear-gradient(45deg, var(--primary), #FF9900); color:white; padding:16px; border:none; border-radius:14px; font-weight:800; font-size:16px; box-shadow:0 8px 20px rgba(255,102,0,0.3); display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition:0.2s;">
-                            Pesan ${svc} <i class="ph-bold ph-arrow-right"></i>
-                        </button>
-                    </div>
-                    
-                    <div id="loading-route" style="display:none; text-align:center; padding:30px 20px; color:#888; font-size:13px; background:white; border-radius:20px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); margin-bottom:20px;">
-                        <i class="ph-bold ph-spinner ph-spin" style="font-size:28px; color:var(--primary); margin-bottom:10px;"></i><br>Mencari rute jalan terbaik...
                     </div>
 
                     <!-- DIUBAH: List suggest lokasi di-hide secara default mengikuti mode manual -->
@@ -8224,42 +8230,65 @@
 
             if(mode === 'maps') {
                 // Style tab
-                tabMaps.style.background = 'white';
-                tabMaps.style.color = 'var(--primary)';
-                tabMaps.style.fontWeight = '800';
-                tabMaps.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
-                tabManual.style.background = 'transparent';
-                tabManual.style.color = '#666';
-                tabManual.style.fontWeight = '700';
-                tabManual.style.boxShadow = 'none';
+                if (tabMaps) {
+                    tabMaps.style.background = 'white';
+                    tabMaps.style.color = 'var(--primary)';
+                    tabMaps.style.fontWeight = '800';
+                    tabMaps.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
+                }
+                if (tabManual) {
+                    tabManual.style.background = 'transparent';
+                    tabManual.style.color = '#666';
+                    tabManual.style.fontWeight = '700';
+                    tabManual.style.boxShadow = 'none';
+                }
 
                 // Tampil / Sembunyikan bagian
-                contMaps.style.display = 'block';
-                contManual.style.display = 'none';
-                btnManual.style.display = 'none';
-                if(suggestedLoc) suggestedLoc.style.display = 'block';
+                if (contMaps) contMaps.style.display = 'block';
+                if (contManual) contManual.style.display = 'none';
+                if (btnManual) btnManual.style.display = 'none';
+                if (suggestedLoc) suggestedLoc.style.display = 'block';
+                
+                // --- INTEGRASI LANGKAH 5: Inisialisasi atau Refresh Ukuran Peta ---
+                // Mencegah peta abu-abu / glitch karena perpindahan display none -> block
+                if (!window.rideRouteMap) {
+                    if (typeof window.initRideRouteMap === 'function') {
+                        window.initRideRouteMap();
+                    }
+                } else {
+                    // Beri jeda sedikit agar container selesai di-render sebelum trigger resize
+                    setTimeout(() => {
+                        google.maps.event.trigger(window.rideRouteMap, 'resize');
+                    }, 100);
+                }
                 
                 // Kembalikan route summary jika ongkir maps sudah dihitung
-                if(routePrice > 0 && originPlace && destPlace) routeSummary.style.display = 'block';
+                if(routePrice > 0 && originPlace && destPlace && routeSummary) {
+                    routeSummary.style.display = 'block';
+                }
             } else {
                 // Style tab
-                tabManual.style.background = 'white';
-                tabManual.style.color = 'var(--primary)';
-                tabManual.style.fontWeight = '800';
-                tabManual.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
-                tabMaps.style.background = 'transparent';
-                tabMaps.style.color = '#666';
-                tabMaps.style.fontWeight = '700';
-                tabMaps.style.boxShadow = 'none';
+                if (tabManual) {
+                    tabManual.style.background = 'white';
+                    tabManual.style.color = 'var(--primary)';
+                    tabManual.style.fontWeight = '800';
+                    tabManual.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
+                }
+                if (tabMaps) {
+                    tabMaps.style.background = 'transparent';
+                    tabMaps.style.color = '#666';
+                    tabMaps.style.fontWeight = '700';
+                    tabMaps.style.boxShadow = 'none';
+                }
 
                 // Tampil / Sembunyikan bagian
-                contMaps.style.display = 'none';
-                contManual.style.display = 'block';
-                btnManual.style.display = 'flex'; // Pakai flex agar icon align
-                if(suggestedLoc) suggestedLoc.style.display = 'none';
+                if (contMaps) contMaps.style.display = 'none';
+                if (contManual) contManual.style.display = 'block';
+                if (btnManual) btnManual.style.display = 'flex'; // Pakai flex agar icon align
+                if (suggestedLoc) suggestedLoc.style.display = 'none';
 
                 // Sembunyikan route summary otomatis karena mode manual
-                if(routeSummary) routeSummary.style.display = 'none';
+                if (routeSummary) routeSummary.style.display = 'none';
             }
         }
 
@@ -8422,6 +8451,11 @@
             }
             
             if(window.showToast) window.showToast("Lokasi berhasil dipilih! 📍");
+
+            // --- EKSEKUSI LANGKAH 4: OTOMATIS HITUNG RUTE JIKA KEDUA TITIK TERISI ---
+            if (originPlace && destPlace) {
+                calculateRoute();
+            }
         }
 
         window.initServiceMap = () => {
@@ -8704,10 +8738,16 @@
             }
         };
 
+        // --- MENGUBAH FUNGSI CALCULATE ROUTE (LANGKAH 3: MENGGAMBAR GARIS RUTE DI PETA) ---
         window.calculateRoute = () => {
             if (!originPlace || !originPlace.geometry || !destPlace || !destPlace.geometry) {
                 // Pastikan summary harga benar-benar disembunyikan jika salah satu koordinat tidak valid
                 document.getElementById('route-summary').style.display = 'none';
+                
+                // Hilangkan garis rute di peta jika ada koordinat yang terhapus
+                if (window.directionsRenderer) {
+                    window.directionsRenderer.setDirections({routes: []});
+                }
                 return;
             }
 
@@ -8718,19 +8758,32 @@
             const origin = originPlace.geometry.location;
             const destination = destPlace.geometry.location;
 
-            const service = new google.maps.DistanceMatrixService();
-            service.getDistanceMatrix({
-                origins: [origin],
-                destinations: [destination],
-                travelMode: google.maps.TravelMode.DRIVING,
-                unitSystem: google.maps.UnitSystem.METRIC,
+            // Gunakan DirectionsService (bukan DistanceMatrixService) agar kita bisa menggambar garis rutenya di peta
+            const directionsService = new google.maps.DirectionsService();
+            
+            directionsService.route({
+                origin: origin,
+                destination: destination,
+                travelMode: google.maps.TravelMode.DRIVING
             }, (response, status) => {
                 document.getElementById('loading-route').style.display = 'none';
-                if (status === 'OK' && response.rows[0].elements[0].status === 'OK') {
-                    const element = response.rows[0].elements[0];
-                    const distText = element.distance.text; 
-                    const distValue = element.distance.value; 
-                    const durText = element.duration.text; 
+                
+                if (status === google.maps.DirectionsStatus.OK) {
+                    
+                    // --- EKSEKUSI LANGKAH 3: GAMBAR RUTE DI PETA ---
+                    // Tampilkan peta jika belum di-inisialisasi
+                    if (!window.rideRouteMap) window.initRideRouteMap();
+                    
+                    if (window.directionsRenderer) {
+                        window.directionsRenderer.setDirections(response);
+                    }
+                    // -----------------------------------------------
+
+                    // Ambil jarak dan waktu dari rute pertama (leg 0)
+                    const leg = response.routes[0].legs[0];
+                    const distText = leg.distance.text; 
+                    const distValue = leg.distance.value; 
+                    const durText = leg.duration.text; 
 
                     routeDistance = distValue / 1000; 
                     routeDuration = durText;
@@ -8742,8 +8795,13 @@
                     document.getElementById('summary-price').innerText = "Rp " + routePrice.toLocaleString('id-ID');
                     document.getElementById('route-summary').style.display = 'block';
                 } else {
-                    showToast("Gagal menghitung jarak. Pastikan rute bisa dilalui kendaran.");
+                    showToast("Gagal menemukan rute. Pastikan rute bisa dilalui kendaran.");
                     document.getElementById('suggested-locations').style.display = 'block';
+                    
+                    // Bersihkan peta dari rute nyasar jika gagal
+                    if (window.directionsRenderer) {
+                        window.directionsRenderer.setDirections({routes: []});
+                    }
                 }
             });
         }
