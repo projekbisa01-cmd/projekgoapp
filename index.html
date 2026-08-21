@@ -6651,6 +6651,13 @@
                 calculateRoute();
                 const suggestLoc = document.getElementById('suggested-locations');
                 if (suggestLoc) suggestLoc.style.display = 'none';
+
+                // --- EKSEKUSI LANGKAH 2: FOKUS KAMERA PETA KE LOKASI DIPILIH ---
+                if (window.rideRouteMap) {
+                    window.rideRouteMap.panTo({ lat: parseFloat(lat), lng: parseFloat(lng) });
+                    window.rideRouteMap.setZoom(16);
+                }
+                // -----------------------------------------------------------------
             }
         };
 
@@ -6707,6 +6714,13 @@
                         calculateRoute();
                         const suggestLoc = document.getElementById('suggested-locations');
                         if (suggestLoc) suggestLoc.style.display = 'none';
+
+                        // --- EKSEKUSI LANGKAH 2: FOKUS KAMERA PETA KE LOKASI DIPILIH ---
+                        if (window.rideRouteMap) {
+                            window.rideRouteMap.panTo(place.geometry.location);
+                            window.rideRouteMap.setZoom(16);
+                        }
+                        // -----------------------------------------------------------------
                     }
                 } else {
                     if(window.showToast) window.showToast("Gagal mengambil detail lokasi dari Google.");
@@ -7977,6 +7991,60 @@
         let geocoder = null;
         let locationInputMode = 'maps'; // Default mode adalah maps
 
+        // --- VARIABEL & FUNGSI UNTUK PETA RUTE LAYANAN (LANGKAH 1) ---
+        window.rideRouteMap = null;
+        window.directionsRenderer = null;
+
+        window.initRideRouteMap = () => {
+            // Pastikan Google Maps API sudah termuat dengan baik
+            if (typeof google === 'undefined' || !google.maps) {
+                console.warn("Google Maps API belum siap/termuat.");
+                return;
+            }
+
+            const mapElement = document.getElementById("ride-route-map");
+            if (!mapElement) return;
+
+            // Tentukan lokasi default agar peta tidak memuat di laut/luar negeri
+            let defaultLoc = { lat: -7.6046, lng: 109.4503 }; // Gombong
+            if (currentArea === 'Kebumen Kota') {
+                defaultLoc = { lat: -7.6688, lng: 109.6508 }; // Kebumen
+            }
+
+            // Jika GPS user sudah terekam, jadikan itu sebagai titik pusat peta
+            const savedLat = parseFloat(localStorage.getItem('user_lat'));
+            const savedLng = parseFloat(localStorage.getItem('user_lng'));
+            if (!isNaN(savedLat) && !isNaN(savedLng)) {
+                defaultLoc = { lat: savedLat, lng: savedLng };
+            }
+
+            // Mencegah pembuatan peta berulang-ulang yang bisa bikin lag
+            if (!window.rideRouteMap) {
+                window.rideRouteMap = new google.maps.Map(mapElement, {
+                    center: defaultLoc,
+                    zoom: 15,
+                    disableDefaultUI: true, // Sembunyikan tombol UI bawaan Google (Zoom, dll)
+                    zoomControl: false,
+                    gestureHandling: 'greedy' // Bisa digeser cukup dengan 1 jari di HP
+                });
+
+                // Siapkan alat untuk menggambar garis rute
+                window.directionsRenderer = new google.maps.DirectionsRenderer({
+                    map: window.rideRouteMap,
+                    suppressMarkers: false, // Biarkan Google Maps menaruh marker A dan B otomatis
+                    polylineOptions: {
+                        strokeColor: '#2196F3', // Warna biru untuk garis rute
+                        strokeWeight: 5,
+                        strokeOpacity: 0.8
+                    }
+                });
+            } else {
+                // Jika peta sudah ada, cukup segarkan ukurannya
+                google.maps.event.trigger(window.rideRouteMap, 'resize');
+                window.rideRouteMap.setCenter(defaultLoc);
+            }
+        };
+
         // FUNGSI UNTUK HALAMAN COMING SOON
         window.openComingSoon = (svcName) => {
             document.getElementById('coming-soon-title').innerText = svcName;
@@ -8179,40 +8247,37 @@
                 setTimeout(() => {
                     initGooglePlaces();
                     
-                    // --- AUTO-FILL LOKASI SAAT INI (JEMPUT) TETAP JALAN UNTUK MAPS NANTI ---
+                    // --- TAHAP 3: AUTO-FILL LOKASI SAAT INI (BYPASS GPS, TARIK DARI MEMORI) ---
                     const inputJemput = document.getElementById('svc-jemput');
-                    if (inputJemput && navigator.geolocation) {
-                        inputJemput.value = "Mencari lokasi saat ini...";
-                        navigator.geolocation.getCurrentPosition(
-                            (position) => {
-                                const lat = position.coords.latitude;
-                                const lng = position.coords.longitude;
-                                
-                                if (typeof google !== 'undefined' && google.maps) {
-                                    const pos = new google.maps.LatLng(lat, lng);
-                                    const geocoder = new google.maps.Geocoder();
-                                    
-                                    geocoder.geocode({ location: pos }, (results, status) => {
-                                        if (status === 'OK' && results[0]) {
-                                            inputJemput.value = results[0].formatted_address;
-                                            originPlace = { geometry: { location: pos }, formatted_address: results[0].formatted_address, name: results[0].formatted_address };
-                                            // Jika kolom tujuan sudah diisi (misal history), langsung hitung
-                                            if (destPlace && locationInputMode === 'maps') calculateRoute();
-                                        } else {
-                                            inputJemput.value = `Titik GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-                                            originPlace = { geometry: { location: pos }, formatted_address: inputJemput.value, name: inputJemput.value };
-                                        }
-                                    });
-                                }
-                            },
-                            (error) => {
-                                inputJemput.value = "";
-                                inputJemput.placeholder = "Gagal melacak, ketik patokan jemput...";
-                                console.log("Gagal melacak otomatis:", error);
-                            },
-                            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                        );
+                    if (inputJemput) {
+                        const savedLat = localStorage.getItem('user_lat');
+                        const savedLng = localStorage.getItem('user_lng');
+                        const savedAddr = localStorage.getItem('user_address');
+
+                        if (savedLat && savedLng && savedAddr) {
+                            inputJemput.value = savedAddr;
+                            const latVal = parseFloat(savedLat);
+                            const lngVal = parseFloat(savedLng);
+                            
+                            let posObj = { lat: latVal, lng: lngVal };
+                            if (typeof google !== 'undefined' && google.maps) {
+                                posObj = new google.maps.LatLng(latVal, lngVal);
+                            }
+
+                            originPlace = { 
+                                geometry: { location: posObj }, 
+                                formatted_address: savedAddr, 
+                                name: savedAddr 
+                            };
+                            
+                            // Jika kolom tujuan sudah diisi (misal dari history), langsung hitung
+                            if (destPlace && locationInputMode === 'maps') calculateRoute();
+                        } else {
+                            // Fallback jika memori belum ada
+                            inputJemput.placeholder = "Ketik lokasi jemput / ketuk pin maps...";
+                        }
                     }
+                    // -------------------------------------------------------------------------
                 }, 300);
             }
         }
