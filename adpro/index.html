@@ -1234,15 +1234,28 @@
             }
         }
 
+        // FUNGSI UNTUK TOGGLE MINIMIZE/MAXIMIZE KARTU MITRA
+        window.toggleVendorDetail = (vendorId) => {
+            const detailDiv = document.getElementById(`detail-vendor-${vendorId}`);
+            const caretIcon = document.getElementById(`icon-caret-${vendorId}`);
+            
+            if (detailDiv.style.display === 'none') {
+                detailDiv.style.display = 'block';
+                caretIcon.style.transform = 'rotate(180deg)'; // Putar panah ke atas
+            } else {
+                detailDiv.style.display = 'none';
+                caretIcon.style.transform = 'rotate(0deg)'; // Putar panah ke bawah
+            }
+        };
+
         window.renderVendorsList = () => {
             const vendorBody = document.getElementById('vendor-list-body');
             if(!vendorBody) return;
             
-            // --- UI Tweaks: Ubah tampilan tabel menjadi Card List (agar tidak berantakan di HP) ---
             const pageVendorsTable = vendorBody.closest('table');
             if (pageVendorsTable) {
                 const thead = pageVendorsTable.querySelector('thead');
-                if (thead) thead.style.display = 'none'; // Sembunyikan header tabel bawaan
+                if (thead) thead.style.display = 'none'; 
             }
             const dataCard = vendorBody.closest('.data-card');
             if (dataCard) {
@@ -1250,7 +1263,6 @@
                 dataCard.style.border = 'none';
                 dataCard.style.boxShadow = 'none';
             }
-            // --------------------------------------------------------------------------------------
 
             let hMain = '';
             const searchKeyword = (document.getElementById('search-vendors')?.value || '').toLowerCase();
@@ -1293,29 +1305,15 @@
                     accessInfo = `<div style="display:flex; align-items:center; gap:6px; color:#ef4444; font-weight:600;"><i class="ph-fill ph-warning-circle" style="font-size:16px;"></i> Auth Lama | PIN: ${v.pin || '-'}</div>`;
                 }
 
-                // Logika pesan WA
-                const loginId = v.email ? v.email : v.id; 
-                const pinAkses = v.pin || '-';
-                const rawPesan = `Halo ${v.nama_warung}, ini adalah email login Anda ${loginId} dan pin masuk anda *${pinAkses}* untuk masuk dan menambahkan serta mengatur katalog penjualan kamu, simpan dan rahasiakan pin, jangan diberitahu siapa pun yah, jika kemudian hari lupa pin bisa chat admin`;
-                const pesanWA = encodeURIComponent(rawPesan);
-                
-                const nomorWA = v.no_wa ? v.no_wa.replace(/[^0-9]/g, '') : '';
-                let waLink = `https://wa.me/?text=${pesanWA}`;
-                if (nomorWA) {
-                    if(nomorWA.startsWith('0')) {
-                        waLink = `https://wa.me/62${nomorWA.substring(1)}?text=${pesanWA}`;
-                    } else {
-                        waLink = `https://wa.me/${nomorWA}?text=${pesanWA}`;
-                    }
-                }
-                
                 hMain += `
-                    <tr style="display: block; background: white; margin-bottom: 15px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border: 1px solid #f0f0f0;">
+                    <tr style="display: block; background: white; margin-bottom: 15px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border: 1px solid #f0f0f0; overflow: hidden;">
                         <td colspan="5" style="display: block; padding: 0; border: none; text-align: left;">
-                            <!-- HEADER CARD -->
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #f8fafc; background: #fff;">
+                            
+                            <!-- AREA HEADER (Bisa diklik untuk buka/tutup kartu) -->
+                            <div onclick="window.toggleVendorDetail('${v.id}')" style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #f8fafc; background: #fff; cursor: pointer;">
                                 <div style="display: flex; align-items: center; gap: 12px;">
-                                    <button class="action-btn btn-feature ${isFeatured ? 'active' : ''}" title="Jadikan Andalan" onclick="window.toggleFeatured('${v.id}', ${isFeatured})" style="width: 36px; height: 36px; flex-shrink: 0; border-radius: 10px;">
+                                    <!-- event.stopPropagation() agar saat klik bintang, kartu tidak ikut tertutup/terbuka -->
+                                    <button class="action-btn btn-feature ${isFeatured ? 'active' : ''}" title="Jadikan Andalan" onclick="event.stopPropagation(); window.toggleFeatured('${v.id}', ${isFeatured})" style="width: 36px; height: 36px; flex-shrink: 0; border-radius: 10px;">
                                         <i class="${isFeatured ? 'ph-fill' : 'ph-bold'} ph-star" style="font-size:18px;"></i>
                                     </button>
                                     <div>
@@ -1323,13 +1321,17 @@
                                         <div style="font-size: 11px; font-weight: 600; color: #64748b; background: #f1f5f9; padding: 3px 8px; border-radius: 6px; display: inline-block;">ID: ${v.id}</div>
                                     </div>
                                 </div>
-                                <button class="btn-status ${isOpen ? 'open' : 'closed'}" onclick="window.toggleStatus('${v.id}', '${v.status}')" style="flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); padding: 6px 14px; border-radius: 10px;">
-                                    ${v.status}
-                                </button>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <button class="btn-status ${isOpen ? 'open' : 'closed'}" onclick="event.stopPropagation(); window.toggleStatus('${v.id}', '${v.status}')" style="flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); padding: 6px 14px; border-radius: 10px;">
+                                        ${v.status}
+                                    </button>
+                                    <!-- Ikon Panah penanda Minimize -->
+                                    <i id="icon-caret-${v.id}" class="ph-bold ph-caret-down" style="color: var(--gray); font-size: 18px; transition: transform 0.3s ease;"></i>
+                                </div>
                             </div>
 
-                            <!-- BODY CARD -->
-                            <div style="padding: 15px;">
+                            <!-- AREA DETAIL (Secara default disembunyikan 'display: none') -->
+                            <div id="detail-vendor-${v.id}" style="display: none; padding: 15px;">
                                 <div style="display: grid; gap: 10px; margin-bottom: 15px;">
                                     <div style="display: flex; gap: 10px; align-items: start;">
                                         <i class="ph-fill ph-tag" style="color: var(--info); font-size: 16px; margin-top: 1px;"></i>
@@ -1349,903 +1351,447 @@
                                     ${accessInfo}
                                 </div>
 
-                                <!-- ACTIONS FOOTER -->
-                                <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; align-items: center; padding-top: 12px; border-top: 1px dashed #e2e8f0;">
-                                    <span style="font-size: 12px; color: var(--gray); font-weight: 600; margin-right: auto;">Kelola:</span>
-                                    
-                                    <a href="${waLink}" target="_blank" class="action-btn btn-success" title="Kirim Akses via WA" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">
-                                        <i class="ph-bold ph-whatsapp-logo"></i>
-                                    </a>
-                                    <button class="action-btn btn-edit-info" title="Edit Info Warung" onclick="window.openEditVendorInfo('${v.id}')">
+                                <div style="display: flex; gap: 8px; justify-content: flex-end; padding-top: 12px; border-top: 1px dashed #e2e8f0;">
+                                    <button class="action-btn btn-edit-info" onclick="window.openEditVendorInfo('${v.id}')" title="Edit Info">
                                         <i class="ph-bold ph-pencil-simple"></i>
                                     </button>
-                                    ${(!isMigrated && !isAdminManaged) ? `
-                                    <button class="action-btn btn-migrate" title="Migrasi ke Email" onclick="window.openMigrateModal('${v.id}', '${safeName}')">
-                                        <i class="ph-bold ph-envelope"></i>
+                                    <button class="action-btn btn-edit-pin" onclick="window.openEditPin('${v.id}', '${safeName}')" title="Ganti PIN">
+                                        <i class="ph-bold ph-lock-key"></i>
                                     </button>
-                                    ` : ''}
-                                    ${!isAdminManaged ? `
-                                    <button class="action-btn btn-edit-pin" title="Ganti PIN" onclick="window.openChangePinModal('${v.id}', '${safeName}')">
-                                        <i class="ph-bold ph-key"></i>
-                                    </button>
-                                    ` : ''}
-                                    <button class="action-btn btn-delete" onclick="window.askDelete('vendors', '${v.id}')">
+                                    <button class="action-btn btn-delete" onclick="window.askDelete('vendors', '${v.id}')" title="Hapus Mitra">
                                         <i class="ph-bold ph-trash"></i>
                                     </button>
                                 </div>
                             </div>
                         </td>
-                    </tr>`;
+                    </tr>
+                `;
             });
             vendorBody.innerHTML = hMain;
         }
 
-        window.openMigrateModal = (id, name) => {
-            document.getElementById('mig-id').value = id;
-            document.getElementById('mig-name').innerText = name;
-            document.getElementById('mig-email').value = "";
-            document.getElementById('mig-pass').value = "123456"; 
-            document.getElementById('migrate-vendor-modal').style.display = 'flex';
-        }
-
-        window.confirmMigration = async () => {
-            const id = document.getElementById('mig-id').value;
-            const email = document.getElementById('mig-email').value.trim();
-            const pass = document.getElementById('mig-pass').value.trim();
-            const btn = document.getElementById('btn-submit-migrate');
-
-            if(!email || pass.length < 6) return alert("Email harus diisi dan Password minimal 6 karakter!");
-
-            btn.innerText = "Memproses...";
-            btn.disabled = true;
-
-            try {
-                // Buat akun di Auth Secondary agar Admin tidak terlogout
-                await createUserWithEmailAndPassword(secondaryAuth, email, pass);
-                await updateDoc(doc(db, "vendors", id), {
-                    email: email,
-                    is_approved: true
-                });
-
-                window.closeModal('migrate-vendor-modal');
-                alert(`Migrasi Berhasil!\n\nEmail: ${email}\nPassword: ${pass}\nSilakan berikan ini ke mitra.`);
-                await window.fetchVendors(); 
-            } catch (error) {
-                if (error.code === 'auth/email-already-in-use') {
-                    alert("Gagal: Email ini sudah terdaftar. Gunakan email lain.");
-                } else {
-                    alert("Kesalahan: " + error.message);
-                }
-            } finally {
-                btn.innerText = "Migrasi Sekarang";
-                btn.disabled = false;
-            }
-        }
-
-        // --- LOGIKA TAGIHAN ---
-        window.renderTagihanList = () => {
-            const tbody = document.getElementById('tagihan-list-body');
-            if(!tbody) return;
-            const searchKeyword = (document.getElementById('search-tagihan')?.value || '').toLowerCase();
-            
-            const sortedVendors = [...adminAllVendors].sort((a, b) => {
-                const tagihanA = a.total_tagihan_sistem || 0;
-                const tagihanB = b.total_tagihan_sistem || 0;
-                return tagihanB - tagihanA; 
-            });
-
-            const filteredVendors = sortedVendors.filter(v => {
-                const name = (v.nama_warung || '').toLowerCase();
-                return name.includes(searchKeyword);
-            });
-
-            if (filteredVendors.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px; color:#999;">Tidak ada data mitra ditemukan.</td></tr>';
-                return;
-            }
-
-            let html = '';
-            filteredVendors.forEach(v => {
-                const tagihan = v.total_tagihan_sistem || 0;
-                const safeName = (v.nama_warung || '').replace(/'/g, "\\'");
-                
-                let statusBadge = '';
-                if (tagihan > 0) {
-                    statusBadge = `<span class="btn-status closed" style="font-size:10px;">Belum Lunas</span>`;
-                } else {
-                    statusBadge = `<span class="btn-status open" style="font-size:10px;">Lunas</span>`;
-                }
-
-                html += `
-                    <tr>
-                        <td data-label="Mitra & Akses">
-                            <div style="font-weight:700; font-size:14px; color:var(--dark);">${v.nama_warung}</div>
-                            <div style="font-size:11px; color:#888;">ID: ${v.id}</div>
-                        </td>
-                        <td data-label="Total Tagihan">
-                            <div style="font-weight:800; font-size:15px; color:${tagihan > 0 ? 'var(--danger)' : 'var(--success)'};">
-                                Rp ${tagihan.toLocaleString()}
-                            </div>
-                        </td>
-                        <td data-label="Status">${statusBadge}</td>
-                        <td data-label="Aksi">
-                            <div style="display:flex; gap:5px; justify-content: flex-end;">
-                                <button class="action-btn btn-view" title="Edit Manual" onclick="window.openEditTagihan('${v.id}', '${safeName}', ${tagihan})">
-                                    <i class="ph-bold ph-pencil-simple"></i>
-                                </button>
-                                <button class="action-btn btn-success" title="Tandai Lunas" onclick="window.markTagihanLunas('${v.id}', '${safeName}')" ${tagihan === 0 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
-                                    <i class="ph-bold ph-check"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
-            tbody.innerHTML = html;
-        };
-
-        window.openEditTagihan = (id, name, currentTotal) => {
-            document.getElementById('et-id').value = id;
-            document.getElementById('et-name').innerText = name;
-            document.getElementById('et-amount').value = currentTotal;
-            document.getElementById('edit-tagihan-modal').style.display = 'flex';
-        };
-
-        window.saveTagihanUpdate = async () => {
-            const id = document.getElementById('et-id').value;
-            const amountInput = document.getElementById('et-amount').value;
-            const newAmount = parseInt(amountInput) || 0;
-
-            try {
-                await updateDoc(doc(db, "vendors", id), { total_tagihan_sistem: newAmount });
-                
-                const idx = adminAllVendors.findIndex(v => v.id === id);
-                if(idx !== -1) adminAllVendors[idx].total_tagihan_sistem = newAmount;
-                
-                window.closeModal('edit-tagihan-modal');
-                alert("Tagihan berhasil diperbarui!");
-                window.renderTagihanList(); 
-            } catch(e) {
-                alert("Gagal update tagihan: " + e.message);
-            }
-        };
-
-        window.markTagihanLunas = async (id, name) => {
-            if(!confirm(`Tandai seluruh tagihan untuk mitra "${name}" LUNAS (Rp 0)?`)) return;
-
-            try {
-                await updateDoc(doc(db, "vendors", id), { total_tagihan_sistem: 0 });
-                
-                const idx = adminAllVendors.findIndex(v => v.id === id);
-                if(idx !== -1) adminAllVendors[idx].total_tagihan_sistem = 0;
-                
-                alert("Berhasil! Tagihan telah direset menjadi 0.");
-                window.renderTagihanList();
-            } catch(e) {
-                alert("Gagal memproses pelunasan: " + e.message);
-            }
-        };
-
-        // --- BROADCAST LOGIC ---
-        window.kirimBroadcast = async () => {
-            const btn = document.getElementById('btn-broadcast-submit');
-            const title = document.getElementById('broadcast-title').value.trim();
-            const body = document.getElementById('broadcast-body').value.trim();
-
-            if(!title || !body) return alert("Mohon isi judul dan pesan!");
-
-            if(confirm("Kirim siaran ini ke semua pengguna?")) {
-                btn.innerText = "Mengirim...";
-                btn.disabled = true;
-                
-                try {
-                    await addDoc(collection(db, "broadcasts"), {
-                        title: title,
-                        message: body,
-                        created_at: Date.now(),
-                        is_active: true
-                    });
-                    
-                    alert("Siaran berhasil dikirim!");
-                    document.getElementById('broadcast-title').value = "";
-                    document.getElementById('broadcast-body').value = "";
-                    await window.fetchBroadcasts();
-                } catch(e) {
-                    alert("Gagal mengirim: " + e.message);
-                } finally {
-                    btn.innerText = "Siarkan Sekarang";
-                    btn.disabled = false;
-                }
-            }
-        }
-
-        // --- CRUD OPS ---
-        window.openAddModal = () => { 
-            document.getElementById('new-vendor-id').value = "";
-            document.getElementById('new-vendor-pin').value = "";
-            document.getElementById('new-vendor-name').value = "";
-            document.getElementById('new-vendor-location').value = "";
-            document.getElementById('add-modal').style.display = 'flex'; 
-        }
-        
-        window.closeModal = (id) => { document.getElementById(id).style.display = 'none'; }
-        
-        window.generateRandomPin = () => {
-            const pin = Math.floor(100000 + Math.random() * 900000); // 6 digit
-            document.getElementById('new-vendor-pin').value = pin;
-        }
-
-        window.saveWarung = async () => {
-            let rawId = document.getElementById('new-vendor-id').value.trim();
-            const id = rawId.toLowerCase().replace(/\s+/g, '_');
-            const pin = document.getElementById('new-vendor-pin').value.trim();
-            const nama = document.getElementById('new-vendor-name').value.trim();
-            const alamat = document.getElementById('new-vendor-location').value.trim(); 
-            
-            if(!id || !pin || !nama) return alert("Mohon lengkapi semua form!");
-            if(pin.length < 4) return alert("PIN minimal 4 karakter untuk keamanan!");
-
-            try {
-                const docRef = doc(db, "vendors", id);
-                const docSnap = await getDoc(docRef);
-
-                if (docSnap.exists()) {
-                    alert(`ID "${id}" sudah digunakan oleh mitra lain.`);
-                    return;
-                }
-
-                await setDoc(docRef, { 
-                    id, 
-                    nama_warung: nama, 
-                    kategori_utama: [], 
-                    alamat_warung: alamat || '-', 
-                    pin: pin,
-                    status: 'BUKA', 
-                    is_andalan: false, 
-                    role: 'vendor', 
-                    created_at: new Date().toISOString() 
-                });
-                
-                window.closeModal('add-modal');
-                alert(`Mitra Berhasil Didaftarkan!\n\nID Login: ${id}\nPIN Akses: ${pin}`);
-                await window.fetchVendors();
-            } catch(e) { 
-                alert("Gagal menyimpan: " + e.message); 
-            }
-        }
-
-        window.openEditVendorInfo = (id) => {
-            const vendor = adminAllVendors.find(v => v.id === id);
-            if(!vendor) return;
-
-            document.getElementById('evi-id').value = id;
-            document.getElementById('evi-id-display').value = id;
-            document.getElementById('evi-name').value = vendor.nama_warung;
-            document.getElementById('evi-location').value = vendor.alamat_warung || vendor.lokasi || ''; 
-            
-            let currentKategori = vendor.kategori_utama || [];
-            if(!Array.isArray(currentKategori)) {
-                currentKategori = currentKategori.split(',').map(s=>s.trim()).filter(s=>s);
-            }
-
-            const checkboxes = document.querySelectorAll('input[name="kategori_cb"]');
-            const cbLainnya = document.getElementById('cb-lainnya');
-            const customInput = document.getElementById('evi-kategori-custom');
-            
-            let customCats = [];
-
-            checkboxes.forEach(cb => cb.checked = false);
-            if(cbLainnya) cbLainnya.checked = false;
-            customInput.style.display = 'none';
-            customInput.value = '';
-
-            currentKategori.forEach(cat => {
-                const cb = Array.from(checkboxes).find(c => c.value.toLowerCase() === cat.toLowerCase());
-                if(cb) {
-                    cb.checked = true;
-                } else if (cat) {
-                    customCats.push(cat);
-                }
-            });
-
-            if(customCats.length > 0) {
-                if(cbLainnya) cbLainnya.checked = true;
-                customInput.style.display = 'block';
-                customInput.value = customCats.join(', ');
-            }
-            
-            document.getElementById('edit-vendor-info-modal').style.display = 'flex';
-        }
-
-        window.saveVendorInfoUpdate = async () => {
-            const id = document.getElementById('evi-id').value;
-            const newName = document.getElementById('evi-name').value.trim();
-            const newAddress = document.getElementById('evi-location').value.trim();
-            
-            if(!newName) return alert("Nama warung tidak boleh kosong");
-
-            let finalKategori = [];
-            
-            const checkboxes = document.querySelectorAll('input[name="kategori_cb"]:checked');
-            checkboxes.forEach(cb => finalKategori.push(cb.value));
-
-            const cbLainnya = document.getElementById('cb-lainnya');
-            if(cbLainnya && cbLainnya.checked) {
-                const customVal = document.getElementById('evi-kategori-custom').value.trim();
-                if(customVal) {
-                    const customArr = customVal.split(',').map(s=>s.trim()).filter(s=>s);
-                    customArr.forEach(async (newCat) => {
-                        finalKategori.push(newCat);
-                        
-                        const exists = adminAllKategori.find(k => {
-                            const kName = k.nama || k.name || k.kategori_utama || "";
-                            return kName.toLowerCase() === newCat.toLowerCase();
-                        });
-
-                        if(!exists) {
-                            try {
-                                await addDoc(collection(db, "kategori_utama"), { nama: newCat });
-                            } catch(e) { console.error("Error menambah master kategori:", e); }
-                        }
-                    });
-                }
-            }
-
-            try {
-                await updateDoc(doc(db, "vendors", id), { 
-                    nama_warung: newName,
-                    alamat_warung: newAddress,
-                    kategori_utama: finalKategori
-                });
-                
-                window.closeModal('edit-vendor-info-modal');
-                alert("Info Mitra Berhasil Diupdate!");
-                await window.fetchVendors();
-            } catch(e) {
-                alert("Gagal update: " + e.message);
-            }
-        }
-
-        window.openEditProduct = (id, name, price, category) => {
-            document.getElementById('eprod-id').value = id;
-            document.getElementById('eprod-name').value = name;
-            document.getElementById('eprod-price').value = price;
-            document.getElementById('eprod-category').value = category === 'Uncategorized' ? '' : category;
-            document.getElementById('edit-product-modal').style.display = 'flex';
-        }
-
-        window.saveProductUpdate = async () => {
-            const id = document.getElementById('eprod-id').value;
-            const name = document.getElementById('eprod-name').value.trim();
-            const price = parseInt(document.getElementById('eprod-price').value);
-            const category = document.getElementById('eprod-category').value.trim();
-
-            if(!name || !price) return alert("Nama dan Harga wajib diisi!");
-
-            try {
-                await updateDoc(doc(db, "products", id), {
-                    nama_menu: name,
-                    harga: price,
-                    category: category
-                });
-                window.closeModal('edit-product-modal');
-                alert("Menu berhasil direvisi!");
-                await window.fetchProducts();
-            } catch(e) {
-                alert("Gagal update menu: " + e.message);
-            }
-        }
-
-        window.openChangePinModal = (id, name) => {
-            document.getElementById('ep-id').value = id;
-            document.getElementById('ep-name').innerText = name;
-            document.getElementById('ep-new-pin').value = "";
-            document.getElementById('edit-pin-modal').style.display = 'flex';
-        }
-
-        window.generateRandomPinEdit = () => {
-            const pin = Math.floor(100000 + Math.random() * 900000); 
-            document.getElementById('ep-new-pin').value = pin;
-        }
-
-        window.confirmChangePin = async () => {
-            const id = document.getElementById('ep-id').value;
-            const newPin = document.getElementById('ep-new-pin').value.trim();
-            if(newPin.length < 4) return alert("PIN minimal 4 karakter");
-            
-            try {
-                await updateDoc(doc(db, "vendors", id), { pin: newPin });
-                window.closeModal('edit-pin-modal');
-                alert("PIN berhasil diubah!");
-                await window.fetchVendors();
-            } catch(e) {
-                alert("Gagal update PIN: " + e.message);
-            }
-        }
-
-        window.toggleStatus = async (id, currentStatus) => {
-            const newStatus = (currentStatus === 'BUKA') ? 'TUTUP' : 'BUKA';
-            await updateDoc(doc(db, "vendors", id), { status: newStatus });
-            
-            const idx = adminAllVendors.findIndex(v => v.id === id);
-            if(idx !== -1) adminAllVendors[idx].status = newStatus;
-            window.renderVendorsList();
-            window.renderWarungAdminList();
-            window.updateRecentVendorsTable();
-        }
-        
-        window.toggleFeatured = async (id, currentVal) => {
-            try {
-                const newVal = !currentVal;
-                
-                const idx = adminAllVendors.findIndex(v => v.id === id);
-                if(idx !== -1) adminAllVendors[idx].is_andalan = newVal;
-                adminAllVendors.sort((a, b) => (b.is_andalan === true) - (a.is_andalan === true));
-                window.renderVendorsList();
-
-                await updateDoc(doc(db, "vendors", id), { is_andalan: newVal });
-            } catch(e) { 
-                console.error("Gagal toggle andalan:", e);
-                alert("Gagal memperbarui status andalan: " + e.message);
-                
-                const idx = adminAllVendors.findIndex(v => v.id === id);
-                if(idx !== -1) adminAllVendors[idx].is_andalan = currentVal;
-                adminAllVendors.sort((a, b) => (b.is_andalan === true) - (a.is_andalan === true));
-                window.renderVendorsList();
-            }
-        }
-
-        window.toggleProductStock = async (id, currentStatus) => {
-            await updateDoc(doc(db, "products", id), { is_available: !currentStatus });
-            const idx = adminAllProducts.findIndex(p => p.id === id);
-            if(idx !== -1) adminAllProducts[idx].is_available = !currentStatus;
-            if(currentVendorView) window.renderDetailProducts(currentVendorView);
-        }
-
-        window.toggleExclusive = async (id, currentVal) => {
-            try {
-                await updateDoc(doc(db, "products", id), { is_exclusive: !currentVal });
-                const idx = adminAllProducts.findIndex(p => p.id === id);
-                if(idx !== -1) adminAllProducts[idx].is_exclusive = !currentVal;
-                if(currentVendorView) window.renderDetailProducts(currentVendorView);
-            } catch(e) { console.error("Error toggling exclusive:", e); }
-        }
-
-        window.askDelete = (coll, id) => {
-            deleteTarget = { coll, id };
-            document.getElementById('delete-modal').style.display = 'flex';
-        }
-
-        window.openAddWarungAdminModal = () => {
-            document.getElementById('wa-id').value = "";
-            document.getElementById('wa-name').value = "";
-            document.getElementById('wa-location').value = "";
-            document.getElementById('wa-category').value = "";
-            document.getElementById('add-warung-admin-modal').style.display = 'flex';
-        }
-
-        window.generateRandomWaId = () => {
-            const rand = Math.floor(1000 + Math.random() * 9000);
-            document.getElementById('wa-id').value = `wa_gombong_${rand}`;
-        }
-
-        window.saveWarungAdmin = async () => {
-            let rawId = document.getElementById('wa-id').value.trim();
-            const id = rawId.toLowerCase().replace(/\s+/g, '_');
-            const nama = document.getElementById('wa-name').value.trim();
-            const alamat = document.getElementById('wa-location').value.trim();
-            const kategoriRaw = document.getElementById('wa-category').value.trim();
-
-            if(!id || !nama) return alert("Mohon lengkapi ID dan Nama Warung!");
-
-            let kategoriArr = [];
-            if(kategoriRaw) {
-                kategoriArr = kategoriRaw.split(',').map(s => s.trim()).filter(s => s);
-            }
-
-            try {
-                const docRef = doc(db, "vendors", id);
-                const docSnap = await getDoc(docRef);
-
-                if (docSnap.exists()) {
-                    alert(`ID "${id}" sudah digunakan.`);
-                    return;
-                }
-
-                await setDoc(docRef, {
-                    id: id,
-                    nama_warung: nama,
-                    kategori_utama: kategoriArr,
-                    alamat_warung: alamat || '-',
-                    pin: 'ADMIN_MANAGED',
-                    status: 'BUKA',
-                    is_andalan: false,
-                    role: 'vendor',
-                    is_admin_managed: true,
-                    created_at: new Date().toISOString()
-                });
-
-                for (const cat of kategoriArr) {
-                    const exists = adminAllKategori.find(k => {
-                        const kName = k.nama || k.name || k.kategori_utama || "";
-                        return kName.toLowerCase() === cat.toLowerCase();
-                    });
-                    if(!exists) {
-                        try {
-                            await addDoc(collection(db, "kategori_utama"), { nama: cat });
-                        } catch(e) { console.error("Error menambah master kategori:", e); }
-                    }
-                }
-
-                window.closeModal('add-warung-admin-modal');
-                alert(`Warung Admin "${nama}" berhasil didaftarkan!`);
-                await window.fetchVendors();
-                await window.fetchKategori();
-            } catch(e) {
-                alert("Gagal menyimpan Warung Admin: " + e.message);
-            }
-        }
-
-        window.renderWarungAdminList = () => {
-            const tbody = document.getElementById('warung-admin-list-body');
-            if(!tbody) return;
-            const searchKeyword = (document.getElementById('search-warung-admin')?.value || '').toLowerCase();
-            tbody.innerHTML = '';
-            
-            const warungAdminList = adminAllVendors.filter(v => 
-                v.is_admin_managed === true &&
-                ((v.nama_warung || '').toLowerCase().includes(searchKeyword) || (v.id || '').toLowerCase().includes(searchKeyword))
-            );
-
-            if (warungAdminList.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="4" style="text-align:center; padding:30px; color:#999;">
-                            Tidak ada Warung Admin ditemukan. Klik tombol tambah di bawah untuk membuat baru.
-                        </td>
-                    </tr>`;
-                return;
-            }
-
-            let html = '';
-            warungAdminList.forEach(v => {
-                const isOpen = v.status === 'BUKA';
-                const safeName = (v.nama_warung || '').replace(/'/g, "\\'");
-                
-                let kategoriDataRaw = v.kategori_utama || [];
-                let kategoriStr = Array.isArray(kategoriDataRaw) ? kategoriDataRaw.join(', ') : kategoriDataRaw;
-
-                html += `
-                    <tr>
-                        <td data-label="Nama Warung & ID">
-                            <div style="font-weight:700; font-size:16px; color:#7c3aed;">${v.nama_warung}</div>
-                            <div class="unique-badge" style="background:#f3e8ff; color:#7c3aed;">ID: ${v.id}</div>
-                        </td>
-                        <td data-label="Kategori & Lokasi">
-                            <div style="font-size:12px; font-weight:700; color:var(--info); margin-bottom: 4px;">
-                                <i class="ph-fill ph-tag"></i> ${kategoriStr || 'Belum ada kategori'}
-                            </div>
-                            <div style="font-size:13px; color:var(--dark); max-width: 150px; line-height:1.4;">
-                                ${v.alamat_warung || v.lokasi || '-'}
-                            </div>
-                        </td>
-                        <td data-label="Status">
-                            <button class="btn-status ${isOpen ? 'open' : 'closed'}" onclick="window.toggleStatus('${v.id}', '${v.status}')">
-                                ${v.status}
-                            </button>
-                        </td>
-                        <td data-label="Aksi">
-                            <div style="display:flex; gap:5px; justify-content: flex-end;">
-                                <button class="action-btn btn-edit-info" title="Edit Info Warung" onclick="window.openEditVendorInfo('${v.id}')">
-                                    <i class="ph-bold ph-pencil-simple"></i>
-                                </button>
-                                <button class="action-btn btn-view" title="Kelola Menu" onclick="window.showPage('products', document.querySelector('.nav-item:nth-child(4)')); window.openVendorMenu('${safeName}');">
-                                    <i class="ph-bold ph-bowl-food"></i>
-                                </button>
-                                <button class="action-btn btn-delete" onclick="window.askDelete('vendors', '${v.id}')">
-                                    <i class="ph-bold ph-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>`;
-            });
-            tbody.innerHTML = html;
-        }
-
-        document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
-            if(!deleteTarget) return;
-            const btn = document.getElementById('confirm-delete-btn');
-            const originalText = btn.innerText;
-            btn.innerText = "Menghapus...";
-
-            try {
-                const docRef = doc(db, deleteTarget.coll, deleteTarget.id);
-                const docSnap = await getDoc(docRef);
-                
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    const urlsToDelete = [];
-                    
-                    if (deleteTarget.coll === 'products' && data.foto_url) {
-                        urlsToDelete.push(data.foto_url);
-                    } else if (deleteTarget.coll === 'vendors') {
-                        if (data.shop_photo) urlsToDelete.push(data.shop_photo);
-                        if (data.cover_photo) urlsToDelete.push(data.cover_photo);
-                    }
-                    
-                    for (const url of urlsToDelete) {
-                        if (url && url.includes('firebasestorage.googleapis.com')) {
-                            try {
-                                const fileRef = ref(storage, url);
-                                await deleteObject(fileRef);
-                            } catch (err) {
-                                console.warn("Gambar tidak ditemukan atau sudah terhapus di storage", err);
-                            }
-                        }
-                    }
-                }
-                
-                await deleteDoc(docRef);
-                window.closeModal('delete-modal');
-                
-                if (deleteTarget.coll === 'vendors') await window.fetchVendors();
-                if (deleteTarget.coll === 'products') await window.fetchProducts();
-                if (deleteTarget.coll === 'broadcasts') await window.fetchBroadcasts();
-            } catch(e) {
-                alert("Gagal menghapus: " + e.message);
-            } finally {
-                btn.innerText = originalText;
-            }
-        });
-
-        window.updateRecentVendorsTable = () => {
-            const recentBody = document.getElementById('recent-vendors-table');
-            if(!recentBody) return;
-            let hRecent = '';
-            adminAllVendors.forEach(v => {
-                const isOpen = v.status === 'BUKA';
-                hRecent += `<tr><td data-label="Warung" style="text-align:left;">${v.nama_warung}</td><td data-label="Status" style="text-align:right;"><span class="btn-status ${isOpen ? 'open' : 'closed'}">${v.status}</span></td></tr>`;
-            });
-            recentBody.innerHTML = hRecent;
-        }
-
-        // --- DATA SYNC HEMAT KUOTA ---
-        
         window.fetchPengajuanMitra = async () => {
             try {
                 const snap = await getDocs(collection(db, "pengajuan_mitra"));
                 adminAllPengajuan = [];
                 snap.forEach(d => adminAllPengajuan.push({id: d.id, ...d.data()}));
-                // Sort descending berdasarkan tanggal
-                adminAllPengajuan.sort((a, b) => new Date(b.tanggal_pengajuan) - new Date(a.tanggal_pengajuan));
-                if(document.getElementById('page-pendaftaran').classList.contains('active')) {
-                    window.renderPengajuanMitra();
-                }
+                window.renderPengajuanMitra();
             } catch (error) {
-                console.error("Gagal menarik data pengajuan:", error);
+                console.error("Gagal memuat pengajuan: ", error);
             }
         }
 
         window.renderPengajuanMitra = () => {
             const tbody = document.getElementById('pengajuan-list-body');
-            if(!tbody) return;
-            
-            // --- UI Tweaks: Ubah tampilan tabel menjadi Card List (agar tidak berantakan di HP) ---
-            const pageTable = tbody.closest('table');
-            if (pageTable) {
-                const thead = pageTable.querySelector('thead');
-                if (thead) thead.style.display = 'none'; // Sembunyikan header tabel bawaan
-            }
-            const dataCard = tbody.closest('.data-card');
-            if (dataCard) {
-                dataCard.style.background = 'transparent';
-                dataCard.style.border = 'none';
-                dataCard.style.boxShadow = 'none';
-            }
-            // --------------------------------------------------------------------------------------
-
+            if (!tbody) return;
             const searchKeyword = (document.getElementById('search-pengajuan')?.value || '').toLowerCase();
-            tbody.innerHTML = '';
             
-            const filteredData = adminAllPengajuan.filter(p => 
-                (p.nama_pemilik || '').toLowerCase().includes(searchKeyword) || 
-                (p.nama_warung || '').toLowerCase().includes(searchKeyword)
-            );
-
-            // Sort: Menunggu Tinjauan di atas, kemudian urutkan berdasarkan tanggal terbaru
-            filteredData.sort((a, b) => {
-                const statusA = a.status || "Menunggu Tinjauan";
-                const statusB = b.status || "Menunggu Tinjauan";
-                const isAccA = statusA === "Disetujui" || statusA === "terdaftar";
-                const isAccB = statusB === "Disetujui" || statusB === "terdaftar";
-                
-                if (isAccA === isAccB) {
-                    return new Date(b.tanggal_pengajuan) - new Date(a.tanggal_pengajuan);
-                }
-                return isAccA ? 1 : -1; // Yang belum di-ACC (-1) akan naik ke atas
+            const filtered = adminAllPengajuan.filter(p => {
+                const text = `${p.nama_pemilik || ''} ${p.nama_warung || ''}`.toLowerCase();
+                return text.includes(searchKeyword);
             });
 
-            if (filteredData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:40px 20px; color:#999; background:white; border-radius:16px; border:none; display:block;">Tidak ada data pengajuan.</td></tr>';
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px; color:#999;">Belum ada pengajuan.</td></tr>';
                 return;
             }
 
-            let hMain = '';
-            filteredData.forEach(p => {
-                const statusStr = p.status || "Menunggu Tinjauan";
-                const isAcc = statusStr === "Disetujui" || statusStr === "terdaftar";
-                const badgeClass = isAcc ? "open" : "warning";
+            let html = '';
+            filtered.forEach(p => {
+                const isAcc = p.status === 'terdaftar';
+                const tipePengajuan = (p.tipe_pengajuan || 'Baru').toLowerCase();
+                const isCabang = tipePengajuan === 'cabang' || tipePengajuan === 'cabang baru';
                 
-                let dateStr = '-';
-                if(p.tanggal_pengajuan) {
-                    const d = new Date(p.tanggal_pengajuan);
-                    dateStr = d.toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'});
-                }
+                let badgeCabang = isCabang ? `<span class="unique-badge" style="background:#e0e7ff; color:#4f46e5; margin-left:8px;"><i class="ph-bold ph-git-branch"></i> Cabang Baru</span>` : '';
+                let emailInfo = isCabang && p.email_terdaftar ? `<div style="font-size:11px; color:var(--gray); margin-top:4px;"><i class="ph-bold ph-envelope"></i> ${p.email_terdaftar}</div>` : '';
 
-                // --- EKSTRAK SEMUA DATA LAINNYA SECARA DINAMIS ---
-                // Data-data pokok di-skip karena sudah ditampilkan di layout utama card
-                const excludeKeys = ['id', 'nama_warung', 'nama_pemilik', 'status', 'tanggal_pengajuan', 'no_wa', 'alamat', 'vendor_id'];
-                let extraDataHtml = '';
-                
-                for (const [key, value] of Object.entries(p)) {
-                    if (!excludeKeys.includes(key) && value !== null && value !== '') {
-                        // Merapikan nama field (contoh: "email_pemilik" otomatis jadi "Email Pemilik")
-                        const formattedKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                        
-                        let formattedValue = value;
-                        // Cek jika datanya berupa URL/Link Gambar
-                        if (typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
-                            formattedValue = `<a href="${value}" target="_blank" style="color: var(--info); text-decoration: underline; font-weight: 700;">Lihat Lampiran / File</a>`;
-                        } else if (typeof value === 'object') {
-                            formattedValue = JSON.stringify(value); // Fallback array/objek
-                        }
-
-                        extraDataHtml += `
-                            <div style="display: flex; gap: 10px; align-items: start; margin-top: 8px;">
-                                <i class="ph-fill ph-info" style="color: var(--primary); font-size: 16px; margin-top: 1px;"></i>
-                                <div style="font-size: 13px; color: var(--dark); line-height: 1.4; word-break: break-word;">
-                                    <span style="color: var(--gray); font-weight: 600;">${formattedKey}:</span> <br/>${formattedValue}
+                html += `
+                    <tr style="background: white; border-bottom: 1px solid #f0f0f0;">
+                        <td data-label="Info Pendaftar">
+                            <div style="font-weight:700; color:var(--dark);">${p.nama_warung || 'Tanpa Nama'} ${badgeCabang}</div>
+                            <div style="font-size:12px; color:var(--gray); margin-top:4px;"><i class="ph-bold ph-user"></i> ${p.nama_pemilik || '-'}</div>
+                            ${emailInfo}
+                        </td>
+                        <td data-label="Alamat & Kontak">
+                            <div style="font-size:13px;">${p.alamat || '-'}</div>
+                            <div style="font-size:12px; font-weight:600; color:var(--primary); margin-top:4px;"><i class="ph-bold ph-phone"></i> ${p.no_wa || '-'}</div>
+                        </td>
+                        <td data-label="Tanggal">
+                            <div style="font-size:12px; color:var(--gray);">${p.created_at ? new Date(p.created_at).toLocaleDateString('id-ID') : '-'}</div>
+                        </td>
+                        <td data-label="Status & Aksi">
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; align-items: center;">
+                                ${!isAcc ? `
+                                <button class="btn-modal" style="background:#10b981; color:white; padding: 8px 16px; font-size: 12px; width:auto; border-radius:10px; font-weight: 700; display: flex; align-items: center; gap: 6px;" onclick="window.accPengajuan('${p.id}')">
+                                    <i class="ph-bold ph-check"></i> ACC Pendaftaran
+                                </button>
+                                ` : `
+                                <div style="font-size:12px; color:var(--success); font-weight:700; display: flex; align-items: center; gap: 6px; padding: 8px 0;">
+                                    <i class="ph-fill ph-check-circle" style="font-size:16px;"></i> Sudah di-ACC
                                 </div>
-                            </div>
-                        `;
-                    }
-                }
-                // --------------------------------------------------
-
-                hMain += `
-                    <tr style="display: block; background: white; margin-bottom: 15px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border: 1px solid #f0f0f0;">
-                        <td colspan="4" style="display: block; padding: 0; border: none; text-align: left;">
-                            <!-- HEADER CARD -->
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #f8fafc; background: #fff; border-radius: 16px 16px 0 0;">
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <div style="width: 36px; height: 36px; flex-shrink: 0; border-radius: 10px; background: #f3e8ff; color: #9333ea; display: flex; align-items: center; justify-content: center;">
-                                        <i class="ph-bold ph-storefront" style="font-size:18px;"></i>
-                                    </div>
-                                    <div>
-                                        <div style="font-weight: 800; font-size: 16px; color: var(--dark); line-height: 1.2; margin-bottom: 4px;">${p.nama_warung || '-'}</div>
-                                        <div style="font-size: 11px; font-weight: 600; color: #64748b; background: #f1f5f9; padding: 3px 8px; border-radius: 6px; display: inline-block;">
-                                            <i class="ph-fill ph-user"></i> ${p.nama_pemilik || '-'}
-                                        </div>
-                                    </div>
-                                </div>
-                                <span class="btn-status ${badgeClass}" style="flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); padding: 6px 14px; border-radius: 10px;">
-                                    ${statusStr}
-                                </span>
-                            </div>
-
-                            <!-- BODY CARD -->
-                            <div style="padding: 15px;">
-                                <div style="display: grid; gap: 10px; margin-bottom: 15px;">
-                                    <div style="display: flex; gap: 10px; align-items: start;">
-                                        <i class="ph-fill ph-whatsapp-logo" style="color: var(--success); font-size: 16px; margin-top: 1px;"></i>
-                                        <div style="font-size: 13px; font-weight: 700; color: var(--dark);">
-                                            ${p.no_wa || '-'}
-                                        </div>
-                                    </div>
-                                    <div style="display: flex; gap: 10px; align-items: start;">
-                                        <i class="ph-fill ph-map-pin" style="color: var(--danger); font-size: 16px; margin-top: 1px;"></i>
-                                        <div style="font-size: 13px; color: var(--gray); line-height: 1.4;">
-                                            ${p.alamat || '-'}
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- CONTAINER DATA DINAMIS -->
-                                    <div style="border-top: 1px dashed #e2e8f0; margin-top: 8px; padding-top: 5px;">
-                                        ${extraDataHtml}
-                                    </div>
-                                </div>
-
-                                <div style="background: #f8fafc; padding: 12px; border-radius: 12px; margin-bottom: 15px; font-size: 12px; border: 1px solid #f1f5f9; color: var(--gray);">
-                                    <i class="ph-fill ph-calendar-blank"></i> Diajukan pada: <b>${dateStr}</b>
-                                </div>
-
-                                <!-- ACTIONS FOOTER -->
-                                <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; align-items: center; padding-top: 12px; border-top: 1px dashed #e2e8f0;">
-                                    <span style="font-size: 12px; color: var(--gray); font-weight: 600; margin-right: auto;">Aksi:</span>
-                                    
-                                    ${!isAcc ? `
-                                    <button class="btn-modal" style="background:#10b981; color:white; padding: 8px 16px; font-size: 12px; width:auto; border-radius:10px; font-weight: 700; display: flex; align-items: center; gap: 6px;" onclick="window.accPengajuan('${p.id}')">
-                                        <i class="ph-bold ph-check"></i> ACC Pendaftaran
-                                    </button>
-                                    ` : `
-                                    <div style="font-size:12px; color:var(--success); font-weight:700; display: flex; align-items: center; gap: 6px; padding: 8px 0;">
-                                        <i class="ph-fill ph-check-circle" style="font-size:16px;"></i> Sudah di-ACC
-                                    </div>
-                                    `}
-                                    <button class="action-btn btn-delete" onclick="window.askDelete('pengajuan_mitra', '${p.id}')" title="Hapus Pengajuan">
-                                        <i class="ph-bold ph-trash"></i>
-                                    </button>
-                                </div>
+                                `}
+                                <button class="action-btn btn-delete" onclick="window.askDelete('pengajuan_mitra', '${p.id}')" title="Hapus Pengajuan">
+                                    <i class="ph-bold ph-trash"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
                 `;
             });
-            tbody.innerHTML = hMain;
-        }
+            tbody.innerHTML = html;
+        };
 
-        window.accPengajuan = async (id) => {
-            if(!confirm("Anda yakin ingin menandai pengajuan ini sebagai 'terdaftar' dan mendaftarkannya otomatis ke sistem Mitra?")) return;
+        window.renderTagihanList = () => {
+            const tbody = document.getElementById('tagihan-list-body');
+            if (!tbody) return;
+            const searchKeyword = (document.getElementById('search-tagihan')?.value || '').toLowerCase();
+            
+            const filteredVendors = adminAllVendors.filter(v => 
+                (v.nama_warung || '').toLowerCase().includes(searchKeyword)
+            );
+
+            if (filteredVendors.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px; color:#999;">Tidak ada data ditemukan.</td></tr>';
+                return;
+            }
+
+            let html = '';
+            filteredVendors.forEach(v => {
+                const tagihan = v.tagihan || 0;
+                const status = tagihan > 0 ? '<span class="unique-badge" style="background:#fef2f2; color:var(--danger);">Belum Lunas</span>' : '<span class="unique-badge" style="background:#ecfdf5; color:var(--success);">Lunas</span>';
+                const safeName = (v.nama_warung || '').replace(/'/g, "\\'");
+                
+                html += `
+                    <tr>
+                        <td data-label="Mitra & Akses">
+                            <div style="font-weight:700;">${v.nama_warung}</div>
+                            <div style="font-size:11px; color:var(--gray);">ID: ${v.id}</div>
+                        </td>
+                        <td data-label="Total Tagihan" style="font-weight:700; color:var(--danger);">
+                            Rp ${parseInt(tagihan).toLocaleString('id-ID')}
+                        </td>
+                        <td data-label="Status">${status}</td>
+                        <td data-label="Aksi">
+                            <button class="action-btn btn-edit-pin" onclick="window.openEditTagihan('${v.id}', '${safeName}', '${tagihan}')" title="Edit Tagihan">
+                                <i class="ph-bold ph-pencil-simple"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        };
+
+        window.openEditTagihan = (id, name, amount) => {
+            document.getElementById('et-id').value = id;
+            document.getElementById('et-name').innerText = name;
+            document.getElementById('et-amount').value = amount || 0;
+            document.getElementById('edit-tagihan-modal').style.display = 'flex';
+        };
+
+        window.saveTagihanUpdate = async () => {
+            const id = document.getElementById('et-id').value;
+            const amount = document.getElementById('et-amount').value;
             try {
-                // 1. Ambil data pengajuan dari array lokal
-                const p = adminAllPengajuan.find(x => x.id === id);
-                if(!p) throw new Error("Data pengajuan tidak ditemukan.");
+                await updateDoc(doc(db, "vendors", id), { tagihan: parseInt(amount) || 0 });
+                document.getElementById('edit-tagihan-modal').style.display = 'none';
+                await window.fetchVendors(); 
+                
+                const overlay = document.createElement('div');
+                overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;';
+                overlay.innerHTML = `<div style="background:white;padding:24px;border-radius:16px;max-width:90%;width:350px;text-align:center;"><div style="margin: 0 auto 15px; width:50px; height:50px; background:#ecfdf5; color:#10b981; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px;"><i class="ph-bold ph-check"></i></div><p style="margin:0 0 20px;font-weight:700;">Tagihan berhasil diupdate!</p><button onclick="this.parentElement.parentElement.remove()" style="background:var(--primary);color:white;border:none;padding:12px;border-radius:10px;width:100%;font-weight:bold;">OK</button></div>`;
+                document.body.appendChild(overlay);
+            } catch(e) {
+                console.error(e);
+            }
+        };
 
-                // 2. Buat Email ID dan PIN acak untuk mitra baru
-                // Ambil kata pertama dari nama pemilik (atau nama warung jika kosong)
-                let rawName = (p.nama_pemilik || p.nama_warung || 'mitra').trim().split(' ')[0];
-                let baseName = rawName.toLowerCase().replace(/[^a-z0-9]/g, '');
-                if (!baseName) baseName = 'mitra';
-                
-                let randomNum = Math.floor(1000 + Math.random() * 9000);
-                let newEmail = `${baseName}${randomNum}@projekgo.id`;
-                let newVendorId = newEmail; // ID menggunakan format email
-                let newPin = Math.floor(100000 + Math.random() * 900000).toString(); // PIN 6 digit digunakan sebagai password
-                
-                // Otomatis buatkan akun Auth agar mitra bisa langsung login
-                try {
-                    await createUserWithEmailAndPassword(secondaryAuth, newEmail, newPin);
-                } catch (authErr) {
-                    console.warn("Peringatan Auth: ", authErr);
+        window.updateRecentVendorsTable = () => {
+            const table = document.getElementById('recent-vendors-table');
+            if(!table) return;
+            table.innerHTML = '';
+            if(adminAllVendors.length === 0) {
+                table.innerHTML = '<tr><td style="padding:20px; text-align:center; color:#999;">Belum ada mitra</td></tr>';
+                return;
+            }
+            adminAllVendors.slice(0, 5).forEach(v => {
+                const statusColor = v.status === 'BUKA' ? 'var(--success)' : 'var(--danger)';
+                table.innerHTML += `
+                    <tr style="border-bottom:1px solid #f0f0f0;">
+                        <td style="padding:15px 20px;">
+                            <div style="font-weight:700;">${v.nama_warung}</div>
+                            <div style="font-size:11px; color:var(--gray);">ID: ${v.id}</div>
+                        </td>
+                        <td style="padding:15px 20px; text-align:right;">
+                            <span style="background:#f8fafc; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:700; color:${statusColor};">${v.status}</span>
+                        </td>
+                    </tr>
+                `;
+            });
+        };
+
+        window.renderWarungAdminList = () => {
+            // Placeholder function to prevent errors if called
+        };
+
+        // FUNGSI BARU (PERSIAPAN UNTUK LANGKAH 3)
+        // Fungsi ini akan menangkap data jika tipe pengajuan adalah Cabang Baru
+        window.accCabangBaru = async (pengajuanData) => {
+            // Helper untuk modal notifikasi custom yang aman
+            const customAlert = (msg) => {
+                const overlay = document.createElement('div');
+                overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;';
+                const box = document.createElement('div');
+                box.style.cssText = 'background:white;padding:24px;border-radius:16px;max-width:90%;width:350px;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,0.2);';
+                box.innerHTML = `<p style="margin:0 0 20px;color:#1A1A1A;font-size:14px;line-height:1.5;white-space:pre-wrap;">${msg}</p><button onclick="this.parentElement.parentElement.remove()" style="background:#FF6600;color:white;border:none;padding:12px 24px;border-radius:10px;font-weight:700;cursor:pointer;width:100%;">OK Mengerti</button>`;
+                overlay.appendChild(box);
+                document.body.appendChild(overlay);
+            };
+
+            try {
+                // 1. Validasi: Pastikan email_terdaftar ada
+                if (!pengajuanData.email_terdaftar) {
+                    throw new Error("Email terdaftar tidak ditemukan pada data pengajuan cabang ini.");
                 }
 
-                // 3. Tambahkan ke koleksi "vendors" (Otomatis masuk halaman Mitra)
+                // 2. Buat newVendorId (ID unik untuk cabang)
+                let rawName = (pengajuanData.nama_warung || 'cabang').trim().split(' ')[0];
+                let baseName = rawName.toLowerCase().replace(/[^a-z0-9]/g, '');
+                if (!baseName) baseName = 'cabang';
+                let randomNum = Math.floor(1000 + Math.random() * 9000);
+                let newVendorId = `cabang_${baseName}_${randomNum}`;
+
+                // 3. Tulis ke Firestore koleksi 'vendors' tanpa membuat Auth baru
                 const vendorRef = doc(db, "vendors", newVendorId);
                 await setDoc(vendorRef, {
                     id: newVendorId,
-                    email: newEmail,
-                    nama_warung: p.nama_warung || 'Tanpa Nama',
+                    email: pengajuanData.email_terdaftar, // KUNCI UTAMA: Email wajib disamakan dengan akun induk
+                    nama_warung: pengajuanData.nama_warung || 'Cabang Tanpa Nama',
                     kategori_utama: [],
-                    alamat_warung: p.alamat || '-',
-                    pin: newPin,
+                    alamat_warung: pengajuanData.alamat || '-',
+                    pin: pengajuanData.pin || '-', 
                     status: 'BUKA',
                     is_andalan: false,
                     role: 'vendor',
-                    nama_pemilik: p.nama_pemilik || '',
-                    no_wa: p.no_wa || '',
-                    is_approved: true, // Otomatis dianggap tervalidasi email
-                    created_at: new Date().toISOString()
+                    nama_pemilik: pengajuanData.nama_pemilik || '',
+                    no_wa: pengajuanData.no_wa || '',
+                    is_approved: true, // Otomatis dianggap tervalidasi
+                    created_at: new Date().toISOString(),
+                    is_cabang: true, // Penanda database ini adalah cabang
+                    vendor_id_utama: pengajuanData.vendor_id_utama || null
                 });
 
-                // 4. Update status pengajuan di Firestore
-                await updateDoc(doc(db, "pengajuan_mitra", id), {
+                // 4. Update status pengajuan di koleksi 'pengajuan_mitra' menjadi terdaftar
+                await updateDoc(doc(db, "pengajuan_mitra", pengajuanData.id), {
                     status: "terdaftar",
-                    vendor_id: newVendorId // Menyimpan referensi ID warung ke data pengajuan
+                    vendor_id: newVendorId
                 });
-                
-                // 5. Update data lokal pengajuan
-                const idx = adminAllPengajuan.findIndex(x => x.id === id);
-                if(idx !== -1) {
+
+                // 5. Perbarui data lokal secara instan
+                const idx = adminAllPengajuan.findIndex(x => x.id === pengajuanData.id);
+                if (idx !== -1) {
                     adminAllPengajuan[idx].status = "terdaftar";
                 }
-                
-                // 6. Tarik ulang data mitra agar tabel di halaman Mitra langsung ter-update
-                await window.fetchVendors();
 
-                alert(`Pendaftaran di-ACC & Mitra berhasil dibuat!\n\nEmail Login: ${newEmail}\nPassword/PIN: ${newPin}\n\nSilakan informasikan Email dan PIN ini ke pihak Mitra.`);
-                window.renderPengajuanMitra(); // Refresh UI Pendaftaran
+                // 6. Refresh UI & Tarik Data Terbaru agar cabang tampil di tabel
+                await window.fetchVendors();
+                window.renderPengajuanMitra();
+
+                // 7. Notifikasi Berhasil
+                customAlert(`Cabang Berhasil Ditambahkan!\n\nNama: ${pengajuanData.nama_warung}\nID Sistem: ${newVendorId}\nEmail Terkait: ${pengajuanData.email_terdaftar}\n\nCabang ini sudah otomatis terhubung ke aplikasi Mitra (tanpa perlu buat password baru).`);
+
             } catch (error) {
-                alert("Gagal melakukan ACC & Daftar Mitra: " + error.message);
+                console.error("Gagal menambah cabang:", error);
+                customAlert("Gagal melakukan ACC Cabang Baru:\n" + error.message);
+            }
+        }
+
+        // FUNGSI UTAMA ACC PENGAJUAN (SUDAH DIMODIFIKASI & DIPERBAIKI BUG TOMBOLNYA)
+        window.accPengajuan = (id) => {
+            // Buat modal konfirmasi kustom karena fungsi native confirm() diblokir di banyak sistem
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;';
+            overlay.innerHTML = `
+                <div style="background:white;padding:24px;border-radius:16px;max-width:90%;width:350px;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+                    <div style="margin: 0 auto 15px; width:50px; height:50px; background:#fffbeb; color:#d97706; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px;">
+                        <i class="ph-bold ph-question"></i>
+                    </div>
+                    <p style="margin:0 0 20px;color:#1A1A1A;font-size:14px;font-weight:700;">Anda yakin ingin menandai pengajuan ini sebagai 'terdaftar' dan mendaftarkannya otomatis ke sistem Mitra?</p>
+                    <div style="display:flex; gap:10px;">
+                        <button id="btn-batal-acc" style="flex:1; background:#f1f5f9; color:var(--dark); border:none; padding:12px; border-radius:10px; font-weight:700; cursor:pointer;">Batal</button>
+                        <button id="btn-lanjut-acc" style="flex:1; background:var(--primary); color:white; border:none; padding:12px; border-radius:10px; font-weight:700; cursor:pointer;">Ya, Lanjutkan</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            document.getElementById('btn-batal-acc').onclick = () => {
+                document.body.removeChild(overlay);
+            };
+
+            document.getElementById('btn-lanjut-acc').onclick = async () => {
+                // Tutup konfirmasi
+                document.body.removeChild(overlay);
+                
+                // Helper Notifikasi Kustom untuk mengganti alert()
+                const customAlert = (msg, isError = false) => {
+                    const alertOverlay = document.createElement('div');
+                    alertOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;';
+                    const iconBg = isError ? '#fef2f2' : '#ecfdf5';
+                    const iconColor = isError ? '#ef4444' : '#10b981';
+                    const iconClass = isError ? 'ph-x' : 'ph-check';
+                    const btnColor = isError ? '#ef4444' : '#FF6600';
+                    alertOverlay.innerHTML = `
+                        <div style="background:white;padding:24px;border-radius:16px;max-width:90%;width:350px;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+                            <div style="margin: 0 auto 15px; width:50px; height:50px; background:${iconBg}; color:${iconColor}; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px;">
+                                <i class="ph-bold ${iconClass}"></i>
+                            </div>
+                            <p style="margin:0 0 20px;color:#1A1A1A;font-size:14px;line-height:1.5;white-space:pre-wrap;">${msg}</p>
+                            <button onclick="this.parentElement.parentElement.remove()" style="background:${btnColor};color:white;border:none;padding:12px 24px;border-radius:10px;font-weight:700;cursor:pointer;width:100%;">OK</button>
+                        </div>
+                    `;
+                    document.body.appendChild(alertOverlay);
+                };
+
+                try {
+                    // 1. Ambil data pengajuan dari array lokal
+                    const p = adminAllPengajuan.find(x => x.id === id);
+                    if(!p) throw new Error("Data pengajuan tidak ditemukan.");
+
+                    // 2. CEK TIPE PENGAJUAN (Pemisahan Logika)
+                    const tipePengajuan = (p.tipe_pengajuan || 'Baru').toLowerCase();
+                    
+                    // Jika ini adalah pengajuan cabang baru
+                    if (tipePengajuan === 'cabang' || tipePengajuan === 'cabang baru') {
+                        // Arahkan ke fungsi khusus penanganan cabang
+                        await window.accCabangBaru(p);
+                        return; // Hentikan fungsi di sini
+                    }
+
+                    // 3. LOGIKA LAMA (Untuk Mitra Baru)
+                    let rawName = (p.nama_pemilik || p.nama_warung || 'mitra').trim().split(' ')[0];
+                    let baseName = rawName.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    if (!baseName) baseName = 'mitra';
+                    
+                    let randomNum = Math.floor(1000 + Math.random() * 9000);
+                    let newEmail = `${baseName}${randomNum}@projekgo.id`;
+                    let newVendorId = newEmail; 
+                    let newPin = Math.floor(100000 + Math.random() * 900000).toString(); 
+                    
+                    // Otomatis buatkan akun Auth agar mitra bisa langsung login
+                    try {
+                        await createUserWithEmailAndPassword(secondaryAuth, newEmail, newPin);
+                    } catch (authErr) {
+                        console.warn("Peringatan Auth: ", authErr);
+                    }
+
+                    // Tambahkan ke koleksi "vendors" (Otomatis masuk halaman Mitra)
+                    const vendorRef = doc(db, "vendors", newVendorId);
+                    await setDoc(vendorRef, {
+                        id: newVendorId,
+                        email: newEmail,
+                        nama_warung: p.nama_warung || 'Tanpa Nama',
+                        kategori_utama: [],
+                        alamat_warung: p.alamat || '-',
+                        pin: newPin,
+                        status: 'BUKA',
+                        is_andalan: false,
+                        role: 'vendor',
+                        nama_pemilik: p.nama_pemilik || '',
+                        no_wa: p.no_wa || '',
+                        is_approved: true, 
+                        created_at: new Date().toISOString()
+                    });
+
+                    // Update status pengajuan di Firestore
+                    await updateDoc(doc(db, "pengajuan_mitra", id), {
+                        status: "terdaftar",
+                        vendor_id: newVendorId 
+                    });
+                    
+                    // Update data lokal pengajuan
+                    const idx = adminAllPengajuan.findIndex(x => x.id === id);
+                    if(idx !== -1) {
+                        adminAllPengajuan[idx].status = "terdaftar";
+                    }
+                    
+                    // Tarik ulang data mitra
+                    await window.fetchVendors();
+
+                    customAlert(`Pendaftaran di-ACC & Mitra berhasil dibuat!\n\nEmail Login: ${newEmail}\nPassword/PIN: ${newPin}\n\nSilakan informasikan Email dan PIN ini ke pihak Mitra.`);
+                    window.renderPengajuanMitra(); 
+                } catch (error) {
+                    customAlert("Gagal melakukan ACC & Daftar Mitra:\n" + error.message, true);
+                }
+            };
+        }
+
+        window.askDelete = (collectionName, docId) => {
+            deleteTarget = { collection: collectionName, id: docId };
+            document.getElementById('delete-modal').style.display = 'flex';
+            
+            // Hapus event listener lama dengan clone node agar tidak terjadi dobel klik/eksekusi
+            const confirmBtn = document.getElementById('confirm-delete-btn');
+            const newBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+            
+            newBtn.onclick = async () => {
+                try {
+                    const originalText = newBtn.innerHTML;
+                    newBtn.innerHTML = "Menghapus...";
+                    
+                    // Eksekusi hapus dokumen di Firestore
+                    // Karena cabang memiliki ID unik (cabang_xxx), menghapus cabang TIDAK akan menghapus warung utama
+                    await deleteDoc(doc(db, deleteTarget.collection, deleteTarget.id));
+                    
+                    document.getElementById('delete-modal').style.display = 'none';
+                    newBtn.innerHTML = originalText;
+                    
+                    // Refresh data array lokal dan UI secara otomatis
+                    if (deleteTarget.collection === 'pengajuan_mitra') {
+                        adminAllPengajuan = adminAllPengajuan.filter(p => p.id !== deleteTarget.id);
+                        window.renderPengajuanMitra();
+                    } else if (deleteTarget.collection === 'vendors') {
+                        // Tarik ulang data vendor agar tabel sinkron
+                        await window.fetchVendors();
+                    } else if (deleteTarget.collection === 'products') {
+                        await window.fetchProducts();
+                    } else if (deleteTarget.collection === 'broadcasts') {
+                        await window.fetchBroadcasts();
+                    }
+                    
+                    deleteTarget = null;
+                    
+                    // Custom Alert Notifikasi Aman
+                    const overlay = document.createElement('div');
+                    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;';
+                    overlay.innerHTML = `
+                        <div style="background:white;padding:24px;border-radius:16px;max-width:90%;width:350px;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+                            <div style="margin: 0 auto 15px; width:50px; height:50px; background:#ecfdf5; color:#10b981; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px;">
+                                <i class="ph-bold ph-check"></i>
+                            </div>
+                            <p style="margin:0 0 20px;color:#1A1A1A;font-size:14px;font-weight:700;">Data berhasil dihapus permanen!</p>
+                            <button onclick="this.parentElement.parentElement.remove()" style="background:var(--dark);color:white;border:none;padding:12px 24px;border-radius:10px;font-weight:700;cursor:pointer;width:100%;">Tutup</button>
+                        </div>
+                    `;
+                    document.body.appendChild(overlay);
+
+                } catch (error) {
+                    console.error("Error menghapus data:", error);
+                    alert("Gagal menghapus data: " + error.message);
+                    newBtn.innerHTML = "Hapus";
+                }
+            };
+        }
+
+        window.closeModal = (modalId) => {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'none';
+            }
+            // Reset state deleteTarget jika batal hapus
+            if (modalId === 'delete-modal') {
+                deleteTarget = null;
             }
         }
 
