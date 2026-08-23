@@ -14,6 +14,7 @@
     <title>Admin Pusat - Projekgo</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <style>
         :root {
             --primary: #FF6600;
@@ -1294,24 +1295,50 @@
                 const isAdminManaged = v.is_admin_managed === true;
                 let accessInfo = '';
                 
+                const emailTampil = v.email || 'belum_ada_email';
+                const pinTampil = v.pin || 'belum_ada_pin';
+
                 if (isAdminManaged) {
                     accessInfo = `<div style="display:flex; align-items:center; gap:6px; color:#7c3aed; font-weight:700;"><i class="ph-fill ph-shield-star" style="font-size:16px;"></i> Dikelola Admin</div>`;
                 } else if (isMigrated) {
                     accessInfo = `
-                        <div style="display:flex; align-items:center; gap:6px; color:#10b981; margin-bottom: 6px; font-weight:600;"><i class="ph-fill ph-envelope-simple" style="font-size:16px;"></i> ${v.email}</div>
-                        <div style="display:flex; align-items:center; gap:6px; color:#ef4444; font-weight:600;"><i class="ph-fill ph-key" style="font-size:16px;"></i> PIN: ${v.pin || '-'}</div>
+                        <div style="display:flex; align-items:center; gap:6px; color:#10b981; margin-bottom: 6px; font-weight:600;"><i class="ph-fill ph-envelope-simple" style="font-size:16px;"></i> ${emailTampil}</div>
+                        <div style="display:flex; align-items:center; gap:6px; color:#ef4444; font-weight:600;"><i class="ph-fill ph-key" style="font-size:16px;"></i> PIN: ${pinTampil}</div>
                     `;
                 } else {
-                    accessInfo = `<div style="display:flex; align-items:center; gap:6px; color:#ef4444; font-weight:600;"><i class="ph-fill ph-warning-circle" style="font-size:16px;"></i> Auth Lama | PIN: ${v.pin || '-'}</div>`;
+                    accessInfo = `<div style="display:flex; align-items:center; gap:6px; color:#ef4444; font-weight:600;"><i class="ph-fill ph-warning-circle" style="font-size:16px;"></i> Auth Lama | PIN: ${pinTampil}</div>`;
+                }
+
+                /* LOGIKA TOMBOL WA DINAMIS */
+                let waButtonHtml = '';
+                if (v.no_wa) {
+                    let phone = v.no_wa.replace(/\D/g, ''); // bersihkan karakter non-angka
+                    if (phone.startsWith('0')) {
+                        phone = '62' + phone.substring(1); // Ubah 0 jadi 62
+                    }
+                    
+                    const waMessage = `Halo ${v.nama_warung}, saya dari Projekgo.\n\nUntuk aplikasi penjual ini adalah email login Anda: *${emailTampil}* dan pin masuk anda: *${pinTampil}* untuk masuk dan menambahkan serta mengatur katalog penjualan kamu, simpan dan rahasiakan pin, jangan diberitahu siapa pun yah, jika kemudian hari lupa pin bisa chat admin.`;
+                    const waLink = `https://wa.me/${phone}?text=${encodeURIComponent(waMessage)}`;
+                    
+                    waButtonHtml = `
+                        <a href="${waLink}" target="_blank" style="display:inline-flex; align-items:center; gap:6px; background:#10b981; color:white; padding:8px 14px; border-radius:10px; text-decoration:none; font-weight:700; font-size:12px; margin-top:10px; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">
+                            <i class="ph-fill ph-whatsapp-logo" style="font-size:16px;"></i> Kirim Akses via WA
+                        </a>
+                    `;
                 }
 
                 hMain += `
-                    <tr style="display: block; background: white; margin-bottom: 15px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border: 1px solid #f0f0f0; overflow: hidden;">
+                    <tr data-id="${v.id}" style="display: block; background: white; margin-bottom: 15px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border: 1px solid #f0f0f0; overflow: hidden;">
                         <td colspan="5" style="display: block; padding: 0; border: none; text-align: left;">
                             
                             <!-- AREA HEADER (Bisa diklik untuk buka/tutup kartu) -->
                             <div onclick="window.toggleVendorDetail('${v.id}')" style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #f8fafc; background: #fff; cursor: pointer;">
                                 <div style="display: flex; align-items: center; gap: 12px;">
+                                    <!-- IKON GRIP (HANDLE) UNTUK DRAG AND DROP -->
+                                    <div class="drag-handle" style="cursor: grab; color: #cbd5e1; display: flex; align-items: center; padding: 5px; touch-action: none;" onclick="event.stopPropagation();" title="Tahan dan geser untuk ubah urutan">
+                                        <i class="ph-bold ph-dots-six-vertical" style="font-size: 24px;"></i>
+                                    </div>
+
                                     <!-- event.stopPropagation() agar saat klik bintang, kartu tidak ikut tertutup/terbuka -->
                                     <button class="action-btn btn-feature ${isFeatured ? 'active' : ''}" title="Jadikan Andalan" onclick="event.stopPropagation(); window.toggleFeatured('${v.id}', ${isFeatured})" style="width: 36px; height: 36px; flex-shrink: 0; border-radius: 10px;">
                                         <i class="${isFeatured ? 'ph-fill' : 'ph-bold'} ph-star" style="font-size:18px;"></i>
@@ -1347,8 +1374,9 @@
                                     </div>
                                 </div>
 
-                                <div style="background: #f8fafc; padding: 12px; border-radius: 12px; margin-bottom: 15px; font-size: 12px; border: 1px solid #f1f5f9;">
-                                    ${accessInfo}
+                                <div style="background: #f8fafc; padding: 12px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #f1f5f9; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 10px;">
+                                    <div style="font-size: 12px;">${accessInfo}</div>
+                                    <div>${waButtonHtml}</div>
                                 </div>
 
                                 <div style="display: flex; gap: 8px; justify-content: flex-end; padding-top: 12px; border-top: 1px dashed #e2e8f0;">
@@ -1368,6 +1396,101 @@
                 `;
             });
             vendorBody.innerHTML = hMain;
+            
+            // Panggil inisialisasi drag & drop setelah render selesai
+            if (typeof window.initSortable === 'function') {
+                window.initSortable();
+            }
+        }
+
+        // FUNGSI INISIALISASI SORTABLE JS
+        window.initSortable = () => {
+            const el = document.getElementById('vendor-list-body');
+            if (!el) return;
+            
+            // Hindari inisialisasi ganda jika Sortable sudah ada di elemen tersebut
+            if (el.sortableInstance) {
+                el.sortableInstance.destroy();
+            }
+
+            // Menerapkan library SortableJS
+            el.sortableInstance = new Sortable(el, {
+                handle: '.drag-handle', // Hanya bisa digeser lewat ikon titik enam
+                animation: 150,         // Efek animasi transisi (ms) agar mulus
+                ghostClass: 'sortable-ghost', // Menandai saat item sedang diseret
+                onEnd: function () {
+                    // Ketika seret dilepas (drag and drop selesai), jalankan fungsi simpan urutan
+                    window.saveVendorOrder();
+                }
+            });
+        }
+
+        // FUNGSI SIMPAN URUTAN BARU KE FIRESTORE
+        window.saveVendorOrder = async () => {
+            const rows = document.querySelectorAll('#vendor-list-body tr');
+            
+            // Tampilkan Overlay Loading saat memproses
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;';
+            overlay.innerHTML = `
+                <div style="background:white;padding:24px;border-radius:16px;max-width:90%;width:350px;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+                    <div style="margin: 0 auto 15px; width:50px; height:50px; background:#eff6ff; color:#3b82f6; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px;">
+                        <i class="ph-bold ph-spinner-gap ph-spin"></i>
+                    </div>
+                    <p style="margin:0;font-weight:700;">Menyimpan Urutan...</p>
+                </div>`;
+            document.body.appendChild(overlay);
+
+            try {
+                const updatePromises = [];
+                
+                // Looping dari atas ke bawah (sesuai elemen di tampilan)
+                rows.forEach((row, index) => {
+                    const id = row.getAttribute('data-id');
+                    if (id) {
+                        // 1. Update urutan di dalam array lokal (supaya tidak perlu nge-load ulang)
+                        const vendorIdx = adminAllVendors.findIndex(v => v.id === id);
+                        if(vendorIdx !== -1) {
+                            adminAllVendors[vendorIdx].order_index = index;
+                        }
+                        
+                        // 2. Kumpulkan perintah update ke Firestore per dokumen
+                        const vendorRef = doc(db, "vendors", id);
+                        updatePromises.push(updateDoc(vendorRef, { order_index: index }));
+                    }
+                });
+
+                // Eksekusi semua perintah simpan sekaligus agar cepat
+                await Promise.all(updatePromises);
+                
+                // Ubah Tampilan Overlay Jadi Notifikasi Sukses
+                overlay.innerHTML = `
+                    <div style="background:white;padding:24px;border-radius:16px;max-width:90%;width:350px;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+                        <div style="margin: 0 auto 15px; width:50px; height:50px; background:#ecfdf5; color:#10b981; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px;">
+                            <i class="ph-bold ph-check"></i>
+                        </div>
+                        <p style="margin:0 0 20px;font-weight:700;">Urutan Berhasil Disimpan!</p>
+                        <button onclick="this.parentElement.parentElement.remove()" style="background:var(--primary);color:white;border:none;padding:12px;border-radius:10px;width:100%;font-weight:bold;cursor:pointer;">OK</button>
+                    </div>`;
+
+                // Hilangkan alert secara otomatis setelah 2 detik demi pengalaman pengguna yang baik
+                setTimeout(() => {
+                    if (document.body.contains(overlay)) {
+                        document.body.removeChild(overlay);
+                    }
+                }, 2000);
+
+            } catch (error) {
+                console.error("Gagal menyimpan urutan:", error);
+                overlay.innerHTML = `
+                    <div style="background:white;padding:24px;border-radius:16px;max-width:90%;width:350px;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+                        <div style="margin: 0 auto 15px; width:50px; height:50px; background:#fef2f2; color:#ef4444; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px;">
+                            <i class="ph-bold ph-x"></i>
+                        </div>
+                        <p style="margin:0 0 20px;font-weight:700;">Gagal Menyimpan: ${error.message}</p>
+                        <button onclick="this.parentElement.parentElement.remove()" style="background:var(--dark);color:white;border:none;padding:12px;border-radius:10px;width:100%;font-weight:bold;cursor:pointer;">Tutup</button>
+                    </div>`;
+            }
         }
 
         window.fetchPengajuanMitra = async () => {
@@ -1795,6 +1918,64 @@
             }
         }
 
+        window.openAddModal = () => {
+            document.getElementById('new-vendor-id').value = '';
+            document.getElementById('new-vendor-pin').value = '';
+            document.getElementById('new-vendor-name').value = '';
+            document.getElementById('new-vendor-location').value = '';
+            document.getElementById('add-modal').style.display = 'flex';
+        };
+
+        window.generateRandomPin = () => {
+            document.getElementById('new-vendor-pin').value = Math.floor(100000 + Math.random() * 900000).toString();
+        };
+
+        window.saveWarung = async () => {
+            const vId = document.getElementById('new-vendor-id').value.trim();
+            const vPin = document.getElementById('new-vendor-pin').value.trim();
+            const vName = document.getElementById('new-vendor-name').value.trim();
+            const vLoc = document.getElementById('new-vendor-location').value.trim();
+
+            if(!vId || !vPin || !vName) {
+                alert("Mohon lengkapi ID, PIN, dan Nama Warung!");
+                return;
+            }
+
+            try {
+                // Gunakan doc untuk memastikan ID menjadi Document ID di Firestore
+                const vendorRef = doc(db, "vendors", vId);
+                const checkDoc = await getDoc(vendorRef);
+                if (checkDoc.exists()) {
+                    alert("ID Mitra sudah dipakai, harap gunakan ID yang berbeda!");
+                    return;
+                }
+
+                await setDoc(vendorRef, {
+                    id: vId,
+                    pin: vPin,
+                    nama_warung: vName,
+                    alamat_warung: vLoc,
+                    status: 'BUKA',
+                    is_andalan: false,
+                    kategori_utama: [],
+                    role: 'vendor',
+                    created_at: new Date().toISOString()
+                });
+                
+                document.getElementById('add-modal').style.display = 'none';
+                
+                // Notifikasi sukses yang cantik
+                const overlay = document.createElement('div');
+                overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;';
+                overlay.innerHTML = `<div style="background:white;padding:24px;border-radius:16px;max-width:90%;width:350px;text-align:center;"><div style="margin: 0 auto 15px; width:50px; height:50px; background:#ecfdf5; color:#10b981; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px;"><i class="ph-bold ph-check"></i></div><p style="margin:0 0 20px;font-weight:700;">Mitra Berhasil Ditambahkan!</p><button onclick="this.parentElement.parentElement.remove()" style="background:var(--primary);color:white;border:none;padding:12px;border-radius:10px;width:100%;font-weight:bold;cursor:pointer;">OK</button></div>`;
+                document.body.appendChild(overlay);
+
+                await window.fetchVendors(); // Segarkan tampilan tabel mitra
+            } catch (e) {
+                alert("Gagal menyimpan data: " + e.message);
+            }
+        };
+
         window.fetchKategori = async () => {
             const snap = await getDocs(collection(db, "kategori_utama"));
             adminAllKategori = [];
@@ -1808,7 +1989,19 @@
             document.getElementById('count-vendors').innerText = snap.size;
             snap.forEach(d => adminAllVendors.push({id: d.id, ...d.data()}));
             
-            adminAllVendors.sort((a, b) => (b.is_andalan === true) - (a.is_andalan === true));
+            // LOGIKA BARU: Mengurutkan berdasarkan order_index (angka terkecil di atas).
+            // Jika data lama belum ada order_index, otomatis ditaruh di bawah (999999).
+            // Jika order_index sama, maka yang 'andalan' diprioritaskan.
+            adminAllVendors.sort((a, b) => {
+                const orderA = typeof a.order_index === 'number' ? a.order_index : 999999;
+                const orderB = typeof b.order_index === 'number' ? b.order_index : 999999;
+                
+                if (orderA !== orderB) {
+                    return orderA - orderB;
+                }
+                return (b.is_andalan === true) - (a.is_andalan === true);
+            });
+            
             window.renderVendorsList();
             window.renderWarungAdminList();
             window.updateRecentVendorsTable();
