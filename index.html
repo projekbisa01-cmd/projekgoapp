@@ -9197,6 +9197,11 @@
                         d.is_halal = d.is_halal === true;
                         d.has_sertifikat_halal = d.has_sertifikat_halal === true;
                         // -------------------------------------------------------------
+
+                        // --- EKSEKUSI LANGKAH 1: Menangkap order_index ---
+                        // Pastikan order_index berupa angka. Jika kosong/bukan angka, set default 999.
+                        d.order_index = (typeof d.order_index === 'number') ? d.order_index : 999;
+                        // -------------------------------------------------
                         
                         allVendors.push({id: doc.id, ...d});
                     });
@@ -9259,10 +9264,10 @@
         // --- FUNGSI DATA DUMMY (FALLBACK JIKA FIREBASE OFFLINE/ERROR) ---
         function loadMockData() {
             allVendors = [
-                { id: "v1", nama_warung: "Warung Nasi Goreng Gombong", area: "Gombong", kategori_utama: ["Pernasian", "Aneka Mie"], is_andalan: true, status: "BUKA", rating: 4.8, is_halal: true, has_sertifikat_halal: true },
-                { id: "v2", nama_warung: "Ayam Geprek Kebumen", area: "Kebumen Kota", kategori_utama: ["Ayam", "Cepat Saji"], is_andalan: false, status: "BUKA", rating: 4.5, is_halal: true, has_sertifikat_halal: false },
-                { id: "v3", nama_warung: "Es Teh Solo & Snack", area: "Gombong", kategori_utama: ["Minuman", "Snack"], is_andalan: true, status: "BUKA", rating: 4.9, is_halal: false, has_sertifikat_halal: false },
-                { id: "v4", nama_warung: "Bakso Urat Masjo", area: "Gombong", kategori_utama: ["Berkuah"], is_andalan: true, status: "BUKA", rating: 4.7, is_halal: true, has_sertifikat_halal: false }
+                { id: "v1", nama_warung: "Warung Nasi Goreng Gombong", area: "Gombong", kategori_utama: ["Pernasian", "Aneka Mie"], is_andalan: true, status: "BUKA", rating: 4.8, is_halal: true, has_sertifikat_halal: true, order_index: 2 },
+                { id: "v2", nama_warung: "Ayam Geprek Kebumen", area: "Kebumen Kota", kategori_utama: ["Ayam", "Cepat Saji"], is_andalan: false, status: "BUKA", rating: 4.5, is_halal: true, has_sertifikat_halal: false, order_index: 1 },
+                { id: "v3", nama_warung: "Es Teh Solo & Snack", area: "Gombong", kategori_utama: ["Minuman", "Snack"], is_andalan: true, status: "BUKA", rating: 4.9, is_halal: false, has_sertifikat_halal: false, order_index: 3 },
+                { id: "v4", nama_warung: "Bakso Urat Masjo", area: "Gombong", kategori_utama: ["Berkuah"], is_andalan: true, status: "BUKA", rating: 4.7, is_halal: true, has_sertifikat_halal: false, order_index: 999 } // Contoh default
             ];
 
             rawProducts = [
@@ -9580,33 +9585,33 @@
             const artikelData = [
                 {
                     img_url: "https://i.ibb.co.com/0VBbLDd1/Salinan-dari-Tanpa-judul-800-x-500-piksel.png"  ,
-                    title: "Daftar Mitra Projekgo Anti Ribet!",
-                    desc: "Langsung daftar dengan menghubungi admin resmi kami sekarang juga!",
+                    title: "Daftar Mitra Projekgo Anti Ribet! 🛵📦",
+                    desc: "Langsung daftar dengan menghubungi admin resmi kami sekarang juga! 🥳",
                     action: "window.open('https://bit.ly/4t9uFNi', '_blank')"
                 },
                 {
                     img_url: "https://i.ibb.co.com/xS42n57c/Tanpa-judul-800-x-500-piksel-1.png"  ,
-                    title: "PRAKTIS pakai Projekgo Prioritas",
-                    desc: "jadi mudah, bisa belanja atau titip apa saja secara otomatis. Coba!",
+                    title: "PRAKTIS pakai Projekgo Prioritas 🤑",
+                    desc: "jadi mudah, bisa belanja atau titip apa saja secara otomatis. Coba! 👉",
                     action: "window.open('https://wa.me/6281292802623?text=Halo%20Admin%2C%20saya%20mau%20tanya%20soal%20Projekgo%20Prioritas', '_blank')"
                 },
                 {
                     img_url: "https://i.ibb.co.com/Xkp6gBGT/Salinan-dari-Tanpa-judul-800-x-500-piksel-2.png",
-                    title: "Cari Warung Terdekat",
-                    desc: "Temukan berbagai makanan lezat di sekitar lokasimu sekarang!",
+                    title: "Cari Warung Terdekat 📍",
+                    desc: "Temukan berbagai makanan lezat di sekitar lokasimu sekarang! 🤤",
                     action: "bukaWarungTerdekat()"
                 }
             ];
 
-            let html = '<div style="display: flex; flex-direction: column; gap: 15px; padding: 0;">';
+            let html = '<div style="display: flex; flex-direction: column; gap: 15px; padding: 0 15px;">';
 
             artikelData.forEach(item => {
                 html += `
-                    <div style="background: white; border-radius: 0; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-top: 0px solid rgba(0,0,0,0.04); border-bottom: 2px solid rgba(0,0,0,0.04); cursor: pointer;" onclick="${item.action}">
-                        <img src="${item.img_url}" style="width: 100%; height: 240px; object-fit: contain; background: #fdfdfd; display: block;" onerror="this.src='https://placehold.co/600x300/FF6600/FFFFFF?text=Image+Error'">
+                    <div style="background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.05); cursor: pointer; display: flex; flex-direction: column;" onclick="${item.action}">
+                        <img src="${item.img_url}" style="width: 100%; height: auto; max-height: 200px; object-fit: cover; border-top-left-radius: 16px; border-top-right-radius: 16px; display: block;" onerror="this.src='https://placehold.co/600x300/FF6600/FFFFFF?text=Image+Error'">
                         <div style="padding: 16px 20px;">
-                            <div style="font-size: 16px; font-weight: 800; color: #111; margin-bottom: 6px; line-height: 1.3;">${item.title}</div>
-                            <div style="font-size: 13px; color: #666; line-height: 1.5;">${item.desc}</div>
+                            <div style="font-size: 18px; font-weight: 800; color: #111; margin-bottom: 8px; line-height: 1.3;">${item.title}</div>
+                            <div style="font-size: 14px; color: #555; line-height: 1.5;">${item.desc}</div>
                         </div>
                     </div>
                 `;
@@ -9949,7 +9954,7 @@
         });
         // ------------------------------------------------------------------------
 
-        // Fungsi sorting bawaan (Buka -> Andalan)
+        // Fungsi sorting bawaan (Buka -> Andalan -> Order Index)
         const defaultWarungSort = (a, b) => {
             const isOpenA = (a.status || 'BUKA').toUpperCase() === 'BUKA';
             const isOpenB = (b.status || 'BUKA').toUpperCase() === 'BUKA';
@@ -9963,7 +9968,12 @@
             if (isAndalanA && !isAndalanB) return -1;
             if (!isAndalanA && isAndalanB) return 1;
 
-            return 0;
+            // --- EKSEKUSI LANGKAH 2: Urutkan berdasarkan order_index (Terkecil ke Terbesar) ---
+            const orderA = (typeof a.order_index === 'number') ? a.order_index : 999;
+            const orderB = (typeof b.order_index === 'number') ? b.order_index : 999;
+            
+            return orderA - orderB;
+            // --------------------------------------------------------------------------------
         };
 
         if (window.currentFoodFilter === 'Terdekat') {
