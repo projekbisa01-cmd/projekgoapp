@@ -1434,6 +1434,22 @@
         /* 10. Makanan khas */
         .ic-makanan { width: 32px; height: 32px; background: radial-gradient(circle at 30% 30%, #81c784, #2e7d32); border-radius: 0 60% 0 60%; transform: rotate(45deg); box-shadow: 3px 3px 8px rgba(46, 125, 50, 0.4), inset -2px -4px 6px rgba(0,0,0,0.1); position: relative; }
         .ic-makanan::after { content: ''; position: absolute; top: -6px; left: 14px; width: 4px; height: 44px; background: #795548; transform: rotate(-45deg); box-shadow: 1px 0 2px rgba(0,0,0,0.2); }
+
+        /* --- KELAS WATERMARK PROJEKGO --- */
+        .watermark-projekgo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg);
+            color: rgba(255, 255, 255, 0.45); /* Putih transparan */
+            font-size: 18px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            pointer-events: none; /* Aman diklik tembus ke bawah */
+            z-index: 2; /* Berada di atas gambar */
+            white-space: nowrap;
+            text-shadow: 1px 1px 4px rgba(0,0,0,0.2); /* Shadow tipis agar tetap terbaca jika gambar aslinya kebetulan sangat putih */
+        }
     </style>
 </head>
 <body>
@@ -2324,6 +2340,10 @@
                     <!-- Tinggi gambar disesuaikan agar konten lebih banyak terlihat (fit to screen) -->
                     <div style="position: relative; width: 100%; height: 240px; flex-shrink: 0;">
                         <img id="pd-img" style="width: 100%; height: 100%; object-fit: cover; border-top-left-radius: 25px; border-top-right-radius: 25px;" src="">
+                        
+                        <!-- TAMBAHAN: Watermark Projekgo dengan ukuran font lebih besar khusus untuk pop-up detail -->
+                        <div class="watermark-projekgo" style="font-size: 28px; letter-spacing: 4px;">PROJEKGO</div>
+                        
                         <div onclick="closeProductDetailModal()" style="position: absolute; top: 15px; right: 15px; background: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; z-index: 10;">
                             <i class="ph-bold ph-x" style="font-size: 16px; color: #333;"></i>
                         </div>
@@ -2972,6 +2992,9 @@
     <div id="image-viewer-modal" onclick="closeImageViewer()">
         <div class="close-viewer-btn"><i class="ph-bold ph-x"></i></div>
         <img id="viewer-img-content" class="viewer-img" src="" alt="Full Screen" onclick="event.stopPropagation()">
+        
+        <!-- TAMBAHAN: Watermark untuk gambar layar penuh (Full Screen) -->
+        <div class="watermark-projekgo" style="font-size: 42px; letter-spacing: 6px; z-index: 5;">PROJEKGO</div>
     </div>
 
     <!-- MODAL PESANAN AKTIF (MUNCUL SETELAH CHECKOUT) -->
@@ -4598,7 +4621,7 @@
 
                 const div = document.createElement('div'); 
                 div.className = 'menu-grid-item'; 
-                div.innerHTML = `<div style="position:relative;">${habisBadge}<div class="badge-priority" style="top:5px; left:5px;">⭐ Unggulan</div><img src="${imgItem}" class="mgi-img" style="${grayscaleClass}" onerror="this.src='${FALLBACK_MENU_IMG}'" onclick="openProductDetail('${item.id}')"><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')" style="top:5px; right:5px;"><i class="ph-fill ph-heart"></i></div></div><div class="mgi-info" style="${opacityClass}"><div style="font-weight:700; font-size:13px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" onclick="openProductDetail('${item.id}')">${item.nama_menu}</div><div style="display:flex; align-items:center; justify-content:space-between;"><div style="display:flex; flex-direction:column;"><span class="p-coret" style="font-size:11px; color:#999;">Rp ${fakePrice.toLocaleString()}</span><span style="font-weight:800; color:var(--dark); font-size:13px;">Rp ${realPrice.toLocaleString()}</span></div><div class="btn-add-mini" style="${addBtnStyle}" onclick="${addBtnAction}">+</div></div></div>`; 
+                div.innerHTML = `<div style="position:relative;">${habisBadge}<div class="badge-priority" style="top:5px; left:5px;">⭐ Unggulan</div><img src="${imgItem}" class="mgi-img" style="${grayscaleClass}" onerror="this.src='${FALLBACK_MENU_IMG}'" onclick="openProductDetail('${item.id}')"><div class="watermark-projekgo">PROJEKGO</div><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')" style="top:5px; right:5px;"><i class="ph-fill ph-heart"></i></div></div><div class="mgi-info" style="${opacityClass}"><div style="font-weight:700; font-size:13px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" onclick="openProductDetail('${item.id}')">${item.nama_menu}</div><div style="display:flex; align-items:center; justify-content:space-between;"><div style="display:flex; flex-direction:column;"><span class="p-coret" style="font-size:11px; color:#999;">Rp ${fakePrice.toLocaleString()}</span><span style="font-weight:800; color:var(--dark); font-size:13px;">Rp ${realPrice.toLocaleString()}</span></div><div class="btn-add-mini" style="${addBtnStyle}" onclick="${addBtnAction}">+</div></div></div>`; 
                 gridContainer.appendChild(div);
             });
 
@@ -4640,7 +4663,7 @@
 
                     const div = document.createElement('div'); 
                     div.className = 'menu-grid-item'; 
-                    div.innerHTML = `<div style="position:relative;">${habisBadge}<div class="badge-priority" style="top:5px; left:5px;">${badgeLabel}</div><img src="${imgItem}" class="mgi-img" style="${grayscaleClass}" onerror="this.src='${FALLBACK_MENU_IMG}'" onclick="openProductDetail('${item.id}')"><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')" style="top:5px; right:5px;"><i class="ph-fill ph-heart"></i></div></div><div class="mgi-info" style="${opacityClass}"><div style="font-weight:normal; font-size:13px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" onclick="openProductDetail('${item.id}')">${item.nama_menu}</div><div style="display:flex; align-items:center; justify-content:space-between;"><div style="display:flex; flex-direction:column;"><span class="p-coret" style="font-size:11px; color:#999;">Rp ${fakePrice.toLocaleString()}</span><span style="font-weight:800; color:var(--dark); font-size:13px;">Rp ${realPrice.toLocaleString()}</span></div><div class="btn-add-mini" style="${addBtnStyle}" onclick="${addBtnAction}">+</div></div></div>`; 
+                    div.innerHTML = `<div style="position:relative;">${habisBadge}<div class="badge-priority" style="top:5px; left:5px;">${badgeLabel}</div><img src="${imgItem}" class="mgi-img" style="${grayscaleClass}" onerror="this.src='${FALLBACK_MENU_IMG}'" onclick="openProductDetail('${item.id}')"><div class="watermark-projekgo">PROJEKGO</div><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')" style="top:5px; right:5px;"><i class="ph-fill ph-heart"></i></div></div><div class="mgi-info" style="${opacityClass}"><div style="font-weight:normal; font-size:13px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" onclick="openProductDetail('${item.id}')">${item.nama_menu}</div><div style="display:flex; align-items:center; justify-content:space-between;"><div style="display:flex; flex-direction:column;"><span class="p-coret" style="font-size:11px; color:#999;">Rp ${fakePrice.toLocaleString()}</span><span style="font-weight:800; color:var(--dark); font-size:13px;">Rp ${realPrice.toLocaleString()}</span></div><div class="btn-add-mini" style="${addBtnStyle}" onclick="${addBtnAction}">+</div></div></div>`; 
                     gridBottomContainer.appendChild(div);
                 });
             }
@@ -4746,7 +4769,8 @@
                                 </div>
                                 ${habisBadge}
                                 <img src="${imgItem}" style="width:100%; height:100%; object-fit:cover; ${grayscaleClass}" loading="lazy" onerror="this.src='${FALLBACK_MENU_IMG}'" onclick="openProductDetail('${item.id}')">
-                            </div>
+                                <div class="watermark-projekgo">PROJEKGO</div>
+            </div>
                             
                             <!-- Area Konten Kanan -->
                             <div style="flex-grow:1; display:flex; flex-direction:column; justify-content:space-between; padding:2px 0;">
@@ -5201,7 +5225,7 @@
             const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG; const realPrice = parseInt(item.harga); const fakePrice = Math.ceil(realPrice * 1.2); const vendorName = item.vendor_name || "Warung Projekgo"; const isFav = favorites.includes(item.id) ? 'active' : ''; const exclusiveBadge = item.is_exclusive ? '<div class="badge-exclusive">Exclusive</div>' : ''; const priorityBadge = '<div class="badge-priority"><i class="ph-fill ph-lightning"></i> Prioritas</div>'; const rating = (4.0 + Math.random()).toFixed(1); const sold = Math.floor(Math.random() * 500) + 50;
             const isAvailable = item.is_available !== false && item.is_sold_out !== true; const habisBadge = isAvailable ? '' : '<div class="badge-habis-overlay" style="border-radius:12px;"><span class="badge-habis-text">HABIS</span></div>'; const imgStyle = isAvailable ? '' : 'filter:grayscale(100%); opacity:0.7;'; const addAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, stok habis 🙏')`; const addStyle = isAvailable ? '' : 'background:#ccc; cursor:not-allowed;';
             const div = document.createElement('div'); div.className = 'h-card';
-            div.innerHTML = `<div style="position:relative;">${habisBadge}${priorityBadge}${exclusiveBadge}<div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')"><i class="ph-fill ph-heart"></i></div><img src="${img}" loading="lazy" class="h-img" style="${imgStyle}" onerror="this.src='${FALLBACK_MENU_IMG}'" onclick="openProductDetail('${item.id}')"></div><div class="h-info" onclick="openProductDetail('${item.id}')"><div class="h-vendor"><i class="ph-fill ph-storefront"></i> ${vendorName}</div><div class="h-name">${item.nama_menu}</div><div class="h-stats"><i class="ph-fill ph-star"></i> ${rating} • Terjual ${sold}+</div><div class="price-row"><div class="price-box"><div style="display:flex; align-items:center; gap:3px;"><span class="p-label-normal">Normal</span><span class="p-coret">Rp ${fakePrice.toLocaleString()}</span></div><span class="p-real">Rp ${realPrice.toLocaleString()}</span></div><div class="btn-add-mini" style="${addStyle}" onclick="${addAction}"><i class="ph-bold ph-plus" style="color:white;"></i></div></div></div>`;
+            div.innerHTML = `<div style="position:relative;">${habisBadge}${priorityBadge}${exclusiveBadge}<div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}')"><i class="ph-fill ph-heart"></i></div><img src="${img}" loading="lazy" class="h-img" style="${imgStyle}" onerror="this.src='${FALLBACK_MENU_IMG}'" onclick="openProductDetail('${item.id}')"><div class="watermark-projekgo">PROJEKGO</div></div><div class="h-info" onclick="openProductDetail('${item.id}')"><div class="h-vendor"><i class="ph-fill ph-storefront"></i> ${vendorName}</div><div class="h-name">${item.nama_menu}</div><div class="h-stats"><i class="ph-fill ph-star"></i> ${rating} • Terjual ${sold}+</div><div class="price-row"><div class="price-box"><div style="display:flex; align-items:center; gap:3px;"><span class="p-label-normal">Normal</span><span class="p-coret">Rp ${fakePrice.toLocaleString()}</span></div><span class="p-real">Rp ${realPrice.toLocaleString()}</span></div><div class="btn-add-mini" style="${addStyle}" onclick="${addAction}"><i class="ph-bold ph-plus" style="color:white;"></i></div></div></div>`;
             container.appendChild(div);
         }
 
@@ -5660,7 +5684,7 @@
         function renderPcard(container, item) {
             const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG; const realPrice = parseInt(item.harga); const fakePrice = Math.ceil(realPrice * 1.2); const vendorName = item.vendor_name || "Warung Projekgo"; const isFav = favorites.includes(item.id) ? 'active' : ''; const exclusiveBadge = item.is_exclusive ? '<div class="badge-exclusive" style="font-size:8px;">Exclusive</div>' : ''; const priorityBadge = '<div class="badge-priority"><i class="ph-fill ph-lightning"></i> Prioritas</div>'; const rating = (4.0 + Math.random()).toFixed(1); const sold = Math.floor(Math.random() * 500) + 50;
             const isAvailable = item.is_available !== false && item.is_sold_out !== true; const habisBadge = isAvailable ? '' : '<div class="badge-habis-overlay" style="border-radius:12px;"><span class="badge-habis-text">HABIS</span></div>'; const imgStyle = isAvailable ? '' : 'filter:grayscale(100%); opacity:0.7;'; const addAction = isAvailable ? `quickAdd(event, '${item.id}')` : `showToast('Maaf, stok habis 🙏')`; const addStyle = isAvailable ? '' : 'background:#ccc; cursor:not-allowed;';
-            const div = document.createElement('div'); div.className = 'p-card'; div.innerHTML = `<div style="position:relative;">${habisBadge}${priorityBadge}${exclusiveBadge}<img src="${img}" loading="lazy" style="width:100%; height:120px; object-fit:cover; ${imgStyle}" onerror="this.src='${FALLBACK_MENU_IMG}'" onclick="openProductDetail('${item.id}')"><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}'); if(document.getElementById('page-favorites').style.display==='block') renderFavoritesPage();" style="top:5px; right:5px;"><i class="ph-fill ph-heart"></i></div></div><div class="p-info"><div onclick="openProductDetail('${item.id}')"><div style="font-size:10px; color:#888;">${item.vendor_name || 'Warung'}</div><div style="font-weight:700; font-size:13px; margin-bottom:2px;">${item.nama_menu}</div><div class="h-stats" style="margin-bottom:8px;"><i class="ph-fill ph-star"></i> ${rating} • Terjual ${sold}+</div><div style="display:flex; flex-direction:column;"><span class="p-coret" style="font-size:11px; text-decoration:line-through; color:#999;">Rp ${fakePrice.toLocaleString()}</span><span style="font-weight:800; color:var(--dark);">Rp ${realPrice.toLocaleString()}</span></div></div><button onclick="${addAction}" style="align-self:flex-end; background:var(--primary-light); color:var(--primary); border:none; width:24px; height:24px; border-radius:8px; font-weight:700; ${addStyle}">+</button></div>`; container.appendChild(div);
+            const div = document.createElement('div'); div.className = 'p-card'; div.innerHTML = `<div style="position:relative;">${habisBadge}${priorityBadge}${exclusiveBadge}<img src="${img}" loading="lazy" style="width:100%; height:120px; object-fit:cover; ${imgStyle}" onerror="this.src='${FALLBACK_MENU_IMG}'" onclick="openProductDetail('${item.id}')"><div class="watermark-projekgo">PROJEKGO</div><div class="btn-love ${isFav}" onclick="toggleFavorite(event, '${item.id}'); if(document.getElementById('page-favorites').style.display==='block') renderFavoritesPage();" style="top:5px; right:5px;"><i class="ph-fill ph-heart"></i></div></div><div class="p-info"><div onclick="openProductDetail('${item.id}')"><div style="font-size:10px; color:#888;">${item.vendor_name || 'Warung'}</div><div style="font-weight:700; font-size:13px; margin-bottom:2px;">${item.nama_menu}</div><div class="h-stats" style="margin-bottom:8px;"><i class="ph-fill ph-star"></i> ${rating} • Terjual ${sold}+</div><div style="display:flex; flex-direction:column;"><span class="p-coret" style="font-size:11px; text-decoration:line-through; color:#999;">Rp ${fakePrice.toLocaleString()}</span><span style="font-weight:800; color:var(--dark);">Rp ${realPrice.toLocaleString()}</span></div></div><button onclick="${addAction}" style="align-self:flex-end; background:var(--primary-light); color:var(--primary); border:none; width:24px; height:24px; border-radius:8px; font-weight:700; ${addStyle}">+</button></div>`; container.appendChild(div);
         }
 
        window.toggleCartPopup = () => {
@@ -9363,7 +9387,7 @@
                 <div style="display:flex; justify-content:space-between; align-items:center; padding: 15px 20px 15px 20px;">
                     <div style="display:flex; align-items:center; gap:6px;">
                         <i class="ph-fill ph-lightning" style="background:white; color:#FF4B6A; font-size:14px; padding:4px; border-radius:4px;"></i>
-                        <span style="font-size: 18px; font-weight: 800; color: white; font-style:italic; display:flex; align-items:center; letter-spacing: -0.5px;">FLASH SALE</span>
+                        <span style="font-size: 18px; font-weight: 800; color: white; font-style:italic; display:flex; align-items:center; letter-spacing: -0.5px;">F<i class="ph-fill ph-lightning" style="margin:0 -1px; color:#FFD54F;"></i>ASH SALE</span>
                         <div style="display:flex; gap:3px; margin-left:6px;">
                             <span class="fs-h-val" style="background:rgba(255,255,255,0.2); color:white; font-size:11px; font-weight:800; padding:3px 5px; border-radius:4px; line-height:1;">00</span>
                             <span style="font-weight:800; font-size:12px; color:white;">:</span>
@@ -9389,6 +9413,7 @@
                         <!-- Area Gambar -->
                         <div style="position: relative; width: 100%; height: 130px; background: #f9f9f9;">
                             <img src="${img}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='${FALLBACK_MENU_IMG}'">
+                            <div class="watermark-projekgo">PROJEKGO</div>
                             <!-- Badge Label Kiri Atas -->
                             <div style="position: absolute; top: 6px; left: 6px; background: rgba(255,255,255,0.9); color: #333; font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 12px; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                                 <i class="ph-fill ph-storefront" style="color: #FF4B6A;"></i> <span style="white-space: nowrap; max-width: 80px; overflow: hidden; text-overflow: ellipsis;">${item.vendor_name || 'Warung'}</span>
@@ -9487,6 +9512,7 @@
                         
                         <div style="position: relative; width: 110px; height: 110px; border-radius: 14px; overflow: hidden; flex-shrink: 0; background: #f5f5f5;">
                             <img src="${img}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='${FALLBACK_MENU_IMG}'">
+                            <div class="watermark-projekgo">PROJEKGO</div>
                             <div style="position: absolute; top: 0; left: 0; background: #E53935; color: white; font-size: 13px; font-weight: 800; padding: 5px 10px; border-radius: 0 0 12px 0;">
                                 -${discPercent}%
                             </div>
@@ -10166,6 +10192,7 @@
                         <div style="width: 220px; flex-shrink: 0; cursor: pointer; background: white; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.03); display: flex; flex-direction: column; overflow: hidden;" onclick="openProductDetail('${item.id}')">
                             <div style="position:relative; width:100%; height:160px; overflow:hidden;">
                                 <img src="${img}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='${FALLBACK_MENU_IMG}'">
+                                <div class="watermark-projekgo">PROJEKGO</div>
                                 <div style="position:absolute; top:0; left:0; background: #FF0055; color: white; font-size:10px; padding:4px 8px; border-bottom-right-radius:8px; font-weight:800; z-index:2;">
                                     Tren
                                 </div>
@@ -10252,6 +10279,7 @@
                     <div style="width: 150px; cursor: pointer; background: white; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 12px rgba(255,152,0,0.15); position: relative; border: 1px solid #FFF3E0;" onclick="openProductDetail('${item.id}')">
                         <div style="position: relative; width: 100%; height: 110px; background: #f9f9f9;">
                             <img src="${img}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='${FALLBACK_MENU_IMG}'">
+                            <div class="watermark-projekgo">PROJEKGO</div>
                             <div style="position: absolute; top: 6px; left: 6px; background: rgba(255,255,255,0.95); color: #E65100; font-size: 9px; font-weight: 800; padding: 4px 8px; border-radius: 12px; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                                 <i class="ph-fill ph-storefront"></i> <span style="white-space: nowrap; max-width: 70px; overflow: hidden; text-overflow: ellipsis;">${item.vendor_name || 'Warung'}</span>
                             </div>
@@ -10327,6 +10355,7 @@
                     <div style="width: 150px; cursor: pointer; background: white; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 12px rgba(211, 47, 47, 0.15); position: relative; border: 1px solid #FFEBEE;" onclick="openProductDetail('${item.id}')">
                         <div style="position: relative; width: 100%; height: 110px; background: #f9f9f9;">
                             <img src="${img}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='${FALLBACK_MENU_IMG}'">
+                            <div class="watermark-projekgo">PROJEKGO</div>
                             <div style="position: absolute; top: 6px; right: 6px; background: #FFD54F; color: #D32F2F; font-size: 10px; font-weight: 800; padding: 3px 6px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                                 -${discountPercent}%
                             </div>
