@@ -498,6 +498,40 @@
             </div>
         </div>
 
+        <!-- UMKM PAGE (Langkah 1: Kerangka Halaman) -->
+        <div id="page-umkm" class="page-content">
+            <div class="page-header">
+                <h1 class="page-title">UMKM Lokal</h1>
+                <p class="page-subtitle">Kelola data UMKM (Dikelola penuh oleh Admin)</p>
+            </div>
+            
+            <div style="position: relative; margin-bottom: 20px;">
+                <i class="ph ph-magnifying-glass" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray); font-size: 20px;"></i>
+                <input type="text" id="search-umkm" class="form-input" style="padding-left: 45px;" placeholder="Cari nama UMKM atau lokasi..." oninput="window.renderWarungAdminList()">
+            </div>
+
+            <div class="data-card">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Info UMKM</th>
+                                <th>Jam Operasional</th>
+                                <th>Lokasi & Kategori</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="umkm-list-body">
+                            <tr>
+                                <td colspan="4" style="text-align:center; padding:30px; color:#999;">Belum ada data UMKM.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <button class="btn-add-float" onclick="window.openAddWarungAdminModal()"><i class="ph-bold ph-plus"></i></button>
+        </div>
+
     </div>
 
     <!-- BOTTOM NAV -->
@@ -525,6 +559,10 @@
         <div class="nav-item" onclick="showPage('pendaftaran', this)">
             <i class="ph ph-user-plus"></i>
             <span>Daftar</span>
+        </div>
+        <div class="nav-item" onclick="showPage('umkm', this)">
+            <i class="ph ph-tent"></i>
+            <span>UMKM</span>
         </div>
     </div>
 
@@ -702,34 +740,107 @@
     <!-- MODAL TAMBAH WARUNG ADMIN -->
     <div id="add-warung-admin-modal" class="modal-overlay">
         <div class="modal-box">
-            <div class="modal-title">Buat Warung Admin Baru</div>
+            <div class="modal-title" id="wa-modal-title">Buat Warung Admin Baru</div>
+            <input type="hidden" id="wa-is-edit" value="false">
             <div class="form-group" style="background: #fff7ed; padding: 12px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #ffedd5;">
                 <p style="font-size: 12px; color: #c2410c; margin: 0; line-height: 1.4;">
-                    <i class="ph-fill ph-info"></i> <b>Catatan:</b> Warung ini dikelola penuh oleh Admin untuk memfasilitasi penjual yang gaptek/tua. Data disimpan di koleksi yang sama agar otomatis muncul di aplikasi pelanggan.
+                    <i class="ph-fill ph-info"></i> <b>Catatan:</b> Warung ini dikelola penuh oleh Admin. Tanpa Email & Password.
                 </p>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Foto Profil Warung</label>
+                <input type="file" id="wa-photo" class="form-input" accept="image/*">
+                <div style="font-size: 11px; color: var(--gray); margin-top: 4px;">*Pilih foto untuk profil warung UMKM (Opsional).</div>
             </div>
             <div class="form-group">
                 <label class="form-label">ID Unik Warung (Sistem)</label>
                 <div style="display: flex; gap: 8px;">
                     <input type="text" id="wa-id" class="form-input" placeholder="contoh: warung_mie_sari" oninput="this.value = this.value.toLowerCase().replace(/\s+/g, '_')">
-                    <button type="button" onclick="window.generateRandomWaId()" class="btn-modal" style="background: var(--warning); color: white; width: auto; white-space: nowrap; padding: 0 15px; font-size: 12px;">Acak ID</button>
+                    <button type="button" id="btn-acak-id" onclick="window.generateRandomWaId()" class="btn-modal" style="background: var(--warning); color: white; width: auto; white-space: nowrap; padding: 0 15px; font-size: 12px;">Acak ID</button>
                 </div>
             </div>
             <div class="form-group">
-                <label class="form-label">Nama Warung</label>
+                <label class="form-label">Nama UMKM</label>
                 <input type="text" id="wa-name" class="form-input" placeholder="Contoh: Warung Mie Mbok Sari">
             </div>
             <div class="form-group">
-                <label class="form-label">Lokasi / Alamat Lengkap</label>
+                <label class="form-label">Lokasi Lengkap</label>
                 <input type="text" id="wa-location" class="form-input" placeholder="Contoh: Depan Stasiun Gombong">
             </div>
             <div class="form-group">
                 <label class="form-label">Kategori Utama</label>
-                <input type="text" id="wa-category" class="form-input" placeholder="Contoh: Sarapan, Pernasian (pisahkan dengan koma)">
+                <input type="text" id="wa-category" class="form-input" placeholder="Pilih 1 kategori (cth: Minuman)">
             </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-group">
+                    <label class="form-label">Latitude</label>
+                    <input type="number" step="any" id="wa-lat" class="form-input" placeholder="-7.xxx">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Longitude</label>
+                    <input type="number" step="any" id="wa-lng" class="form-input" placeholder="109.xxx">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Jam Operasional (Senin - Minggu)</label>
+                <div id="wa-jadwal-container" style="display: flex; flex-direction: column; gap: 8px; background: #f8fafc; padding: 10px; border-radius: 12px; border: 1px solid #eee;">
+                    <!-- Jadwal digenerate oleh JS -->
+                </div>
+            </div>
+            
             <div class="modal-actions">
                 <button class="btn-modal" style="background:#f1f5f9;" onclick="window.closeModal('add-warung-admin-modal')">Batal</button>
                 <button class="btn-modal" style="background:var(--primary); color:white;" onclick="window.saveWarungAdmin()">Simpan Warung</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL TAMBAH MENU UMKM -->
+    <div id="add-umkm-product-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title">Tambah Menu UMKM</div>
+            <p style="color:var(--gray); font-size:13px; margin-bottom:15px;">Toko: <b id="aumkm-vendor-name">...</b></p>
+            <input type="hidden" id="aumkm-vendor-id">
+            
+            <div class="form-group">
+                <label class="form-label">Nama Menu</label>
+                <input type="text" id="aumkm-name" class="form-input" placeholder="Contoh: Nasi Goreng Spesial">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Kelompok Menu (Bisa pilih lebih dari satu)</label>
+                <div id="aumkm-category-container" class="checkbox-grid">
+                    <!-- Checkbox dinamis akan dirender di sini oleh JS -->
+                </div>
+                <input type="text" id="aumkm-category-custom" class="form-input" placeholder="Ketik kelompok menu baru (pisahkan dgn koma jika banyak)..." style="display:none; margin-top: 15px; border-color: var(--primary);">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Harga (Rp)</label>
+                <input type="number" id="aumkm-price" class="form-input" placeholder="Contoh: 15000">
+            </div>
+            
+            <!-- Input Foto Menu Produk -->
+            <div class="form-group">
+                <label class="form-label">Foto Menu Makanan/Minuman</label>
+                <input type="file" id="aumkm-photo" class="form-input" accept="image/*">
+                <div style="font-size: 11px; color: var(--gray); margin-top: 4px;">*Pilih foto menu untuk ditampilkan di aplikasi pelanggan (Opsional).</div>
+            </div>
+
+            <!-- Checkbox Label Spesial -->
+            <div class="form-group" style="background:#f8fafc; padding:12px; border-radius:12px; border:1px solid #eee;">
+                <label class="form-label" style="margin-bottom:10px;">Label Spesial (Opsional)</label>
+                <div style="display: flex; gap: 15px;">
+                    <label class="checkbox-label" style="background:#fffbeb; color:#d97706; padding:8px 12px; border-radius:8px; flex:1; cursor:pointer; justify-content:center; border: 1px solid #fde68a;">
+                        <input type="checkbox" id="aumkm-promo" style="width:16px; height:16px; accent-color:#d97706;"> Promo
+                    </label>
+                    <label class="checkbox-label" style="background:#fef2f2; color:#ef4444; padding:8px 12px; border-radius:8px; flex:1; cursor:pointer; justify-content:center; border: 1px solid #fecaca;">
+                        <input type="checkbox" id="aumkm-flash" style="width:16px; height:16px; accent-color:#ef4444;"> Flash Sale
+                    </label>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-modal" style="background:#f1f5f9;" onclick="window.closeModal('add-umkm-product-modal')">Batal</button>
+                <button class="btn-modal" style="background:var(--primary); color:white;" onclick="window.saveProductUmkm()">Simpan Menu</button>
             </div>
         </div>
     </div>
@@ -783,7 +894,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, getDocs, query, limit, orderBy, deleteDoc, doc, setDoc, updateDoc, addDoc, getDoc, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getStorage, ref, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+        import { getStorage, ref, deleteObject, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
         import { getAuth, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -924,7 +1035,7 @@
                 if(mitraTab) window.switchReviewTab('mitra', mitraTab);
             }
             if (pageId === 'tagihan') window.renderTagihanList();
-            if (pageId === 'warung-admin') window.renderWarungAdminList();
+            if (pageId === 'umkm') window.renderWarungAdminList();
             if (pageId === 'pendaftaran') window.renderPengajuanMitra();
         }
 
@@ -972,6 +1083,68 @@
                 customInput.style.display = 'none';
             }
         }
+
+        // --- RENDER KATEGORI OPTIONS UNTUK MENU UMKM ---
+        window.renderUmkmCategoryOptions = () => {
+            const container = document.getElementById('aumkm-category-container');
+            if (!container) return;
+
+            // 1. Daftar kategori bawaan (default)
+            const defaultCategories = [
+                "Sarapan", "Pernasian", "Minuman", "Ayam", "Berkuah", 
+                "Aneka Mie", "Snack", "Cepat Saji", "Makanan Khas", "Legendaris"
+            ];
+            
+            // 2. Ambil kategori tambahan dari database (jika ada yang custom sebelumnya)
+            let dynamicCategories = new Set();
+            adminAllProducts.forEach(p => {
+                if (p.category) {
+                    // Memisahkan dengan koma jika ada yang tersimpan seperti "Makanan, Minuman"
+                    const cats = p.category.split(',').map(c => c.trim()).filter(c => c !== '');
+                    cats.forEach(c => {
+                        // Hanya tambahkan jika belum ada di daftar default (menghindari nama ganda)
+                        if (!defaultCategories.some(d => d.toLowerCase() === c.toLowerCase())) {
+                            dynamicCategories.add(c);
+                        }
+                    });
+                }
+            });
+
+            // 3. Gabungkan default dengan kategori dinamis
+            const allCategories = [...defaultCategories, ...Array.from(dynamicCategories)];
+
+            // 4. Rangkai menjadi HTML Checkbox
+            let html = '';
+            allCategories.forEach(catName => {
+                html += `
+                <label class="checkbox-label">
+                    <input type="checkbox" name="aumkm_kategori_cb" value="${catName}">
+                    ${catName}
+                </label>`;
+            });
+            
+            // 5. Tambahkan opsi "+ Lainnya..."
+            html += `
+            <label class="checkbox-label" style="font-weight:bold; color:var(--primary);">
+                <input type="checkbox" id="cb-lainnya-umkm" onchange="window.checkCustomUmkmCategory()">
+                + Lainnya...
+            </label>`;
+            
+            container.innerHTML = html;
+        };
+
+        window.checkCustomUmkmCategory = () => {
+            const cbLainnya = document.getElementById('cb-lainnya-umkm');
+            const customInput = document.getElementById('aumkm-category-custom');
+            
+            if (cbLainnya && cbLainnya.checked) {
+                customInput.style.display = 'block';
+                customInput.focus();
+            } else {
+                customInput.style.display = 'none';
+                customInput.value = ''; // Kosongkan nilai jika batal menceklis
+            }
+        };
 
         // --- REVIEW PAGE LOGIC ---
         window.switchReviewTab = (tabName, element) => {
@@ -1234,6 +1407,58 @@
                 }
             }
         }
+
+        window.openEditProduct = (id, name, price, category) => {
+            document.getElementById('eprod-id').value = id;
+            document.getElementById('eprod-name').value = name !== 'undefined' ? name : '';
+            document.getElementById('eprod-price').value = price !== 'undefined' ? price : '';
+            document.getElementById('eprod-category').value = category !== 'undefined' ? category : '';
+            document.getElementById('edit-product-modal').style.display = 'flex';
+        };
+
+        window.saveProductUpdate = async () => {
+            const id = document.getElementById('eprod-id').value;
+            const name = document.getElementById('eprod-name').value;
+            const price = document.getElementById('eprod-price').value;
+            const category = document.getElementById('eprod-category').value;
+            
+            const btn = document.querySelector('#edit-product-modal .btn-modal[style*="background:var(--primary)"]');
+            const originalText = btn ? btn.innerText : "Simpan";
+            if (btn) btn.innerText = "Menyimpan...";
+
+            try {
+                await updateDoc(doc(db, "products", id), {
+                    nama_menu: name,
+                    harga: parseInt(price) || 0,
+                    category: category
+                });
+                window.closeModal('edit-product-modal');
+                await window.fetchProducts();
+            } catch (e) {
+                console.error(e);
+                alert("Gagal update menu: " + e.message);
+            } finally {
+                if (btn) btn.innerText = originalText;
+            }
+        };
+
+        window.toggleExclusive = async (id, currentStatus) => {
+             try {
+                await updateDoc(doc(db, "products", id), { is_exclusive: !currentStatus });
+                await window.fetchProducts();
+            } catch (e) {
+                console.error("Gagal ubah status eksklusif", e);
+            }
+        };
+
+        window.toggleProductStock = async (id, currentStatus) => {
+             try {
+                await updateDoc(doc(db, "products", id), { is_available: !currentStatus });
+                await window.fetchProducts();
+            } catch (e) {
+                console.error("Gagal ubah ketersediaan stok", e);
+            }
+        };
 
         // FUNGSI UNTUK TOGGLE MINIMIZE/MAXIMIZE KARTU MITRA
         window.toggleVendorDetail = (vendorId) => {
@@ -1654,7 +1879,112 @@
         };
 
         window.renderWarungAdminList = () => {
-            // Placeholder function to prevent errors if called
+            const tbody = document.getElementById('umkm-list-body');
+            if (!tbody) return;
+            
+            const searchKeyword = (document.getElementById('search-umkm')?.value || '').toLowerCase();
+            
+            // Filter hanya warung yang di-manage oleh admin
+            const umkmList = adminAllVendors.filter(v => {
+                if (v.is_admin_managed !== true) return false;
+                const name = (v.nama_warung || '').toLowerCase();
+                const location = (v.alamat_warung || '').toLowerCase();
+                return name.includes(searchKeyword) || location.includes(searchKeyword);
+            });
+
+            if (umkmList.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px; color:#999;">Belum ada data UMKM atau tidak ditemukan.</td></tr>';
+                return;
+            }
+
+            let html = '';
+            umkmList.forEach(v => {
+                const name = v.nama_warung || 'Tanpa Nama';
+                const id = v.id;
+                const status = v.status || 'TUTUP';
+                const statusColor = status === 'BUKA' ? 'var(--success)' : 'var(--danger)';
+                const statusBg = status === 'BUKA' ? '#ecfdf5' : '#fef2f2';
+                const safeName = name.replace(/'/g, "\\'");
+
+                // Ambil jadwal hari ini
+                let jadwalHtml = '<div style="font-size:11px; color:var(--gray);">Belum ada jadwal</div>';
+                if (v.jadwal_mingguan) {
+                    const daysMap = ['minggu', 'senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
+                    const todayStr = daysMap[new Date().getDay()];
+                    const todayJadwal = v.jadwal_mingguan[todayStr];
+                    
+                    if (todayJadwal) {
+                        if (todayJadwal.libur) {
+                            jadwalHtml = `<div style="font-size:12px; color:var(--danger); font-weight:600;">Hari ini: Libur</div>`;
+                        } else {
+                            jadwalHtml = `<div style="font-size:12px; color:var(--dark);"><span style="color:var(--gray);">Hari ini:</span> <b>${todayJadwal.buka} - ${todayJadwal.tutup}</b></div>`;
+                        }
+                    }
+                }
+
+                const catArr = Array.isArray(v.kategori_utama) ? v.kategori_utama : [v.kategori_utama];
+                const catStr = catArr.filter(Boolean).join(', ') || 'Tanpa Kategori';
+
+                html += `
+                    <tr style="background: white; border-bottom: 1px solid #f0f0f0;">
+                        <td data-label="Info UMKM">
+                            <div style="font-weight:700; color:var(--dark);">${name}</div>
+                            <div style="font-size:11px; color:var(--gray); margin-top:4px;">ID: ${id}</div>
+                            <span style="display:inline-block; margin-top:6px; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:700; background:${statusBg}; color:${statusColor};">${status}</span>
+                        </td>
+                        <td data-label="Jam Operasional">
+                            ${jadwalHtml}
+                            <button onclick="window.showJadwalLengkap('${id}')" style="background:none; border:none; color:var(--info); font-size:11px; font-weight:700; cursor:pointer; padding:0; margin-top:4px; text-decoration:underline;">Lihat Full Jadwal</button>
+                        </td>
+                        <td data-label="Lokasi & Kategori">
+                            <div style="font-size:13px; margin-bottom:4px;"><i class="ph-fill ph-map-pin" style="color:var(--danger);"></i> ${v.alamat_warung || '-'}</div>
+                            <div style="font-size:11px; font-weight:600; color:var(--primary);"><i class="ph-fill ph-tag"></i> ${catStr}</div>
+                        </td>
+                        <td data-label="Aksi">
+                            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                <button class="action-btn btn-view" title="Tambah Menu UMKM" onclick="window.openAddProductUmkm('${id}', '${safeName}')">
+                                    <i class="ph-bold ph-bowl-food"></i>
+                                </button>
+                                <button class="action-btn btn-edit-info" title="Edit Info UMKM" onclick="window.openEditWarungAdminModal('${id}')">
+                                    <i class="ph-bold ph-pencil-simple"></i>
+                                </button>
+                                <button class="action-btn btn-delete" onclick="window.askDelete('vendors', '${id}')" title="Hapus UMKM">
+                                    <i class="ph-bold ph-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        };
+
+        window.showJadwalLengkap = (id) => {
+            const v = adminAllVendors.find(x => x.id === id);
+            if (!v || !v.jadwal_mingguan) return alert("Jadwal tidak tersedia");
+            
+            let tbl = '<table style="width:100%; text-align:left; font-size:13px;">';
+            const days = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu'];
+            days.forEach(d => {
+                const j = v.jadwal_mingguan[d];
+                const label = d.charAt(0).toUpperCase() + d.slice(1);
+                const isLibur = j && j.libur;
+                const val = isLibur ? '<span style="color:var(--danger); font-weight:bold;">Libur</span>' : `${j.buka} - ${j.tutup}`;
+                tbl += `<tr><td style="padding:6px 0; border-bottom:1px solid #f1f5f9;">${label}</td><td style="padding:6px 0; font-weight:600; text-align:right; border-bottom:1px solid #f1f5f9;">${val}</td></tr>`;
+            });
+            tbl += '</table>';
+            
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;';
+            overlay.innerHTML = `<div style="background:white;padding:24px;border-radius:16px;max-width:90%;width:350px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+                    <h3 style="margin:0;">Jadwal Mingguan</h3>
+                </div>
+                <p style="margin:0 0 15px; font-size:13px; color:var(--gray);">${v.nama_warung}</p>
+                ${tbl}
+                <button onclick="this.parentElement.parentElement.remove()" style="margin-top:20px; background:var(--primary);color:white;border:none;padding:12px;border-radius:10px;width:100%;font-weight:bold;cursor:pointer;">Tutup</button>
+            </div>`;
+            document.body.appendChild(overlay);
         };
 
         // FUNGSI BARU (PERSIAPAN UNTUK LANGKAH 3)
@@ -1973,6 +2303,332 @@
                 await window.fetchVendors(); // Segarkan tampilan tabel mitra
             } catch (e) {
                 alert("Gagal menyimpan data: " + e.message);
+            }
+        };
+
+        window.openAddWarungAdminModal = () => {
+            document.getElementById('wa-modal-title').innerText = 'Buat Warung Admin Baru';
+            document.getElementById('wa-is-edit').value = 'false';
+            document.getElementById('wa-id').disabled = false;
+            document.getElementById('btn-acak-id').style.display = 'block';
+
+            window.generateRandomWaId(); 
+            document.getElementById('wa-name').value = '';
+            document.getElementById('wa-location').value = '';
+            document.getElementById('wa-lat').value = '';
+            document.getElementById('wa-lng').value = '';
+            document.getElementById('wa-category').value = '';
+            document.getElementById('wa-photo').value = ''; // Reset Foto
+            
+            // Render Jadwal Mingguan Inputs
+            const container = document.getElementById('wa-jadwal-container');
+            const days = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu'];
+            let htmlJadwal = '';
+            days.forEach(day => {
+                const label = day.charAt(0).toUpperCase() + day.slice(1);
+                htmlJadwal += `
+                    <div style="display: flex; gap: 6px; align-items: center; justify-content: space-between;">
+                        <span style="width: 50px; font-size: 13px; font-weight: 600;">${label}</span>
+                        <input type="time" id="wa-buka-${day}" class="form-input" style="padding: 6px; font-size:12px; width:80px;" value="08:00">
+                        <span style="font-size: 12px;">-</span>
+                        <input type="time" id="wa-tutup-${day}" class="form-input" style="padding: 6px; font-size:12px; width:80px;" value="21:00">
+                        <label style="font-size: 12px; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                            <input type="checkbox" id="wa-libur-${day}"> Libur
+                        </label>
+                    </div>
+                `;
+            });
+            container.innerHTML = htmlJadwal;
+            
+            document.getElementById('add-warung-admin-modal').style.display = 'flex';
+        };
+
+        window.openEditWarungAdminModal = (id) => {
+            const v = adminAllVendors.find(x => x.id === id);
+            if (!v) return alert("Data tidak ditemukan!");
+
+            document.getElementById('wa-modal-title').innerText = 'Edit Warung Admin';
+            document.getElementById('wa-is-edit').value = 'true';
+            document.getElementById('wa-id').value = v.id;
+            document.getElementById('wa-id').disabled = true; // Kunci ID agar tidak diubah saat edit
+            document.getElementById('btn-acak-id').style.display = 'none'; // Sembunyikan tombol acak ID
+            
+            document.getElementById('wa-name').value = v.nama_warung || '';
+            document.getElementById('wa-location').value = v.alamat_warung || '';
+            document.getElementById('wa-lat').value = v.latitude || '';
+            document.getElementById('wa-lng').value = v.longitude || '';
+            document.getElementById('wa-category').value = (v.kategori_utama && v.kategori_utama.length > 0) ? v.kategori_utama[0] : '';
+            document.getElementById('wa-photo').value = ''; // Reset file input karena file tidak bisa di-set otomatis via JS
+            
+            // Render Jadwal Mingguan Inputs sesuai data tersimpan
+            const container = document.getElementById('wa-jadwal-container');
+            const days = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu'];
+            let htmlJadwal = '';
+            days.forEach(day => {
+                const label = day.charAt(0).toUpperCase() + day.slice(1);
+                let buka = "08:00";
+                let tutup = "21:00";
+                let isLibur = false;
+                
+                if (v.jadwal_mingguan && v.jadwal_mingguan[day]) {
+                    buka = v.jadwal_mingguan[day].buka || "08:00";
+                    tutup = v.jadwal_mingguan[day].tutup || "21:00";
+                    isLibur = v.jadwal_mingguan[day].libur || false;
+                }
+                
+                htmlJadwal += `
+                    <div style="display: flex; gap: 6px; align-items: center; justify-content: space-between;">
+                        <span style="width: 50px; font-size: 13px; font-weight: 600;">${label}</span>
+                        <input type="time" id="wa-buka-${day}" class="form-input" style="padding: 6px; font-size:12px; width:80px;" value="${buka}">
+                        <span style="font-size: 12px;">-</span>
+                        <input type="time" id="wa-tutup-${day}" class="form-input" style="padding: 6px; font-size:12px; width:80px;" value="${tutup}">
+                        <label style="font-size: 12px; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                            <input type="checkbox" id="wa-libur-${day}" ${isLibur ? 'checked' : ''}> Libur
+                        </label>
+                    </div>
+                `;
+            });
+            container.innerHTML = htmlJadwal;
+            
+            document.getElementById('add-warung-admin-modal').style.display = 'flex';
+        };
+
+        window.generateRandomWaId = () => {
+            const random = Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('wa-id').value = `umkm_${random}`;
+        };
+
+        window.saveWarungAdmin = async () => {
+            // Memindahkan SEMUA logika ke dalam blok try-catch agar tidak ada error yang "diam-diam"
+            try {
+                const vId = document.getElementById('wa-id').value.trim();
+                const vName = document.getElementById('wa-name').value.trim();
+                const vLoc = document.getElementById('wa-location').value.trim();
+                const vLat = parseFloat(document.getElementById('wa-lat').value) || 0;
+                const vLng = parseFloat(document.getElementById('wa-lng').value) || 0;
+                const vCat = document.getElementById('wa-category').value.trim();
+                const isEdit = document.getElementById('wa-is-edit') && document.getElementById('wa-is-edit').value === 'true';
+                
+                // Menangkap file foto profil dengan cara yang lebih aman
+                const photoInput = document.getElementById('wa-photo');
+                const photoFile = (photoInput && photoInput.files.length > 0) ? photoInput.files[0] : null;
+
+                if(!vId || !vName) {
+                    alert("Mohon lengkapi ID dan Nama UMKM!");
+                    return;
+                }
+
+                // Kumpulkan jam operasional (jadwal_mingguan)
+                const days = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu'];
+                const jadwal_mingguan = {};
+                days.forEach(day => {
+                    jadwal_mingguan[day] = {
+                        buka: document.getElementById(`wa-buka-${day}`).value || "00:00",
+                        tutup: document.getElementById(`wa-tutup-${day}`).value || "00:00",
+                        libur: document.getElementById(`wa-libur-${day}`).checked
+                    };
+                });
+
+                // Seleksi tombol dengan cara yang anti-gagal
+                const btn = document.querySelector('#add-warung-admin-modal .modal-actions button:last-child');
+                let originalText = "Simpan Warung";
+                if (btn) {
+                    originalText = btn.innerText;
+                    btn.innerText = "Menyimpan...";
+                }
+
+                const vendorRef = doc(db, "vendors", vId);
+                
+                // Cek ketersediaan ID HANYA jika mode Buat Baru
+                if (!isEdit) {
+                    const checkDoc = await getDoc(vendorRef);
+                    if (checkDoc.exists()) {
+                        alert("ID UMKM sudah dipakai, harap gunakan ID atau acak yang berbeda!");
+                        if (btn) btn.innerText = originalText;
+                        return;
+                    }
+                }
+
+                // Proses Upload Foto (Jika ada gambar yang dipilih)
+                let shopPhotoUrl = null;
+                if (photoFile) {
+                    if (btn) btn.innerText = "Mengunggah Foto...";
+                    const timestamp = Date.now();
+                    const storagePath = `vendors/${vId}/profile/${timestamp}.jpg`;
+                    const storageRef = ref(storage, storagePath);
+                    
+                    await uploadBytes(storageRef, photoFile);
+                    shopPhotoUrl = await getDownloadURL(storageRef);
+                    if (btn) btn.innerText = "Menyimpan Data...";
+                }
+
+                // Siapkan data untuk Firestore
+                const vendorData = {
+                    id: vId,
+                    nama_warung: vName,
+                    alamat_warung: vLoc,
+                    latitude: vLat,
+                    longitude: vLng,
+                    kategori_utama: vCat ? [vCat] : [], 
+                    jadwal_mingguan: jadwal_mingguan,   
+                    is_admin_managed: true,             
+                    status: 'BUKA',
+                    role: 'vendor',
+                    ...(isEdit ? {} : { is_andalan: false, created_at: new Date().toISOString() })
+                };
+
+                // Jika berhasil upload foto, masukkan ke field shop_photo
+                if (shopPhotoUrl) {
+                    vendorData.shop_photo = shopPhotoUrl;
+                }
+
+                // Simpan ke Firestore (Menggunakan merge: true agar field lain tidak terhapus)
+                await setDoc(vendorRef, vendorData, { merge: true });
+                
+                document.getElementById('add-warung-admin-modal').style.display = 'none';
+                
+                // Notifikasi sukses
+                const overlay = document.createElement('div');
+                overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;';
+                overlay.innerHTML = `<div style="background:white;padding:24px;border-radius:16px;max-width:90%;width:350px;text-align:center;"><div style="margin: 0 auto 15px; width:50px; height:50px; background:#ecfdf5; color:#10b981; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px;"><i class="ph-bold ph-check"></i></div><p style="margin:0 0 20px;font-weight:700;">Data UMKM Berhasil ${isEdit ? 'Diperbarui' : 'Disimpan'}!</p><button onclick="this.parentElement.parentElement.remove()" style="background:var(--primary);color:white;border:none;padding:12px;border-radius:10px;width:100%;font-weight:bold;cursor:pointer;">OK</button></div>`;
+                document.body.appendChild(overlay);
+
+                if (btn) btn.innerText = originalText;
+                await window.fetchVendors(); 
+
+            } catch (e) {
+                console.error("Error Simpan UMKM:", e);
+                alert("Gagal memproses: " + e.message); 
+                
+                // Kembalikan teks tombol jika terjadi error
+                const btn = document.querySelector('#add-warung-admin-modal .modal-actions button:last-child');
+                if (btn) btn.innerText = "Simpan Warung";
+            }
+        };
+
+        window.openAddProductUmkm = (vendorId, vendorName) => {
+            const vIdEl = document.getElementById('aumkm-vendor-id');
+            const vNameEl = document.getElementById('aumkm-vendor-name');
+            const nameEl = document.getElementById('aumkm-name');
+            const priceEl = document.getElementById('aumkm-price');
+            const photoEl = document.getElementById('aumkm-photo');
+            const promoEl = document.getElementById('aumkm-promo');
+            const flashEl = document.getElementById('aumkm-flash');
+            const modalEl = document.getElementById('add-umkm-product-modal');
+            const catCustomEl = document.getElementById('aumkm-category-custom');
+
+            if(vIdEl) vIdEl.value = vendorId;
+            if(vNameEl) vNameEl.innerText = vendorName;
+            if(nameEl) nameEl.value = '';
+            if(priceEl) priceEl.value = '';
+            if(photoEl) photoEl.value = '';
+            if(promoEl) promoEl.checked = false;
+            if(flashEl) flashEl.checked = false;
+            
+            // Sembunyikan dan kosongkan input kategori kustom setiap modal dibuka
+            if(catCustomEl) {
+                catCustomEl.value = '';
+                catCustomEl.style.display = 'none';
+            }
+
+            // Panggil fungsi pembuat daftar kategori ceklis agar up-to-date
+            if (typeof window.renderUmkmCategoryOptions === 'function') {
+                window.renderUmkmCategoryOptions();
+            }
+
+            if(modalEl) modalEl.style.display = 'flex';
+        };
+
+        window.saveProductUmkm = async () => {
+            const vId = document.getElementById('aumkm-vendor-id')?.value || '';
+            const vName = document.getElementById('aumkm-vendor-name')?.innerText || '';
+            const pName = document.getElementById('aumkm-name')?.value.trim() || '';
+            
+            // --- LOGIKA BARU MENGAMBIL KATEGORI DARI CHECKBOX ---
+            let selectedCategories = [];
+            
+            // 1. Ambil semua checkbox kategori standar yang dicentang
+            const checkboxes = document.querySelectorAll('input[name="aumkm_kategori_cb"]:checked');
+            checkboxes.forEach(cb => selectedCategories.push(cb.value));
+
+            // 2. Cek apakah opsi "Lainnya" dicentang
+            const cbLainnya = document.getElementById('cb-lainnya-umkm');
+            if (cbLainnya && cbLainnya.checked) {
+                const customCats = document.getElementById('aumkm-category-custom')?.value;
+                if (customCats) {
+                    // Pecah berdasarkan koma jika admin mengetik banyak, dan bersihkan spasi
+                    const customArr = customCats.split(',').map(s => s.trim()).filter(s => s !== '');
+                    selectedCategories.push(...customArr);
+                }
+            }
+            
+            // 3. Gabungkan semua kategori yang dipilih menjadi satu teks dengan koma
+            const pCat = selectedCategories.join(', ');
+            // ---------------------------------------------------
+
+            const pPrice = document.getElementById('aumkm-price')?.value || '';
+            const isPromo = document.getElementById('aumkm-promo')?.checked || false;
+            const isFlashSale = document.getElementById('aumkm-flash')?.checked || false;
+            const photoInput = document.getElementById('aumkm-photo');
+            const photoFile = (photoInput && photoInput.files.length > 0) ? photoInput.files[0] : null;
+
+            if (!pName || !pPrice) {
+                alert("Nama Menu dan Harga wajib diisi!");
+                return;
+            }
+
+            const btn = document.querySelector('button[onclick="window.saveProductUmkm()"]');
+            const originalText = btn ? btn.innerText : "Simpan Menu";
+            if(btn) btn.innerText = "Menyimpan...";
+
+            try {
+                let photoUrl = null;
+
+                if (photoFile) {
+                    if(btn) btn.innerText = "Mengunggah Foto...";
+                    const timestamp = Date.now();
+                    const storagePath = `vendors/${vId}/menu/${timestamp}.jpg`;
+                    const storageRef = ref(storage, storagePath);
+                    
+                    await uploadBytes(storageRef, photoFile);
+                    photoUrl = await getDownloadURL(storageRef);
+                    if(btn) btn.innerText = "Menyimpan Menu...";
+                }
+
+                const newDocRef = doc(collection(db, "products"));
+                
+                const productData = {
+                    id: newDocRef.id,
+                    vendor_id: vId,
+                    vendor_name: vName,
+                    nama_menu: pName,
+                    category: pCat || 'Lainnya', // Jika tidak ada yg diceklis sama sekali, otomatis 'Lainnya'
+                    harga: parseInt(pPrice) || 0,
+                    is_promo: isPromo,
+                    is_flash_sale: isFlashSale,
+                    is_available: true,
+                    created_at: new Date().toISOString()
+                };
+
+                if (photoUrl) {
+                    productData.foto_url = photoUrl;
+                }
+
+                await setDoc(newDocRef, productData);
+
+                const modalEl = document.getElementById('add-umkm-product-modal');
+                if(modalEl) modalEl.style.display = 'none';
+                
+                const overlay = document.createElement('div');
+                overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;';
+                overlay.innerHTML = `<div style="background:white;padding:24px;border-radius:16px;max-width:90%;width:350px;text-align:center;"><div style="margin: 0 auto 15px; width:50px; height:50px; background:#ecfdf5; color:#10b981; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px;"><i class="ph-bold ph-check"></i></div><p style="margin:0 0 20px;font-weight:700;">Menu Berhasil Ditambahkan!</p><button onclick="this.parentElement.parentElement.remove()" style="background:var(--primary);color:white;border:none;padding:12px;border-radius:10px;width:100%;font-weight:bold;cursor:pointer;">OK</button></div>`;
+                document.body.appendChild(overlay);
+
+                if(btn) btn.innerText = originalText;
+                await window.fetchProducts(); 
+            } catch (e) {
+                alert("Gagal menyimpan menu: " + e.message);
+                if(btn) btn.innerText = originalText;
             }
         };
 
