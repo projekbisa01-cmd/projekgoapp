@@ -2652,9 +2652,9 @@
     <div id="closed-modal" onclick="if(event.target===this) closeClosedModal()">
         <div class="closed-content">
             <i class="ph-fill ph-moon-stars closed-icon"></i>
-            <div class="closed-title">Mohon Maaf, Kami Sedang Tutup</div>
-            <div class="closed-text" style="font-size: 14px;">Operasional Projekgo saat ini:<br><b style="font-size: 16px;">06:30 - 21:00 WIB</b><br><br>Kamu masih bebas lihat-lihat menu dan ngecek ongkir, tetapi pesanan baru akan diproses nanti saat toko sudah buka yah! 😊</div>
-            <button onclick="closeClosedModal()" style="width: 100%; background: var(--primary); color: white; padding: 12px; border: none; border-radius: 12px; font-weight: 700; font-size: 15px; margin-top: 10px; cursor: pointer; box-shadow: 0 4px 10px rgba(255, 102, 0, 0.3);">Mengerti, Lihat-lihat Dulu</button>
+            <div class="closed-title">Maaf, Kami Sudah Tutup</div>
+            <div class="closed-text">Operasional Projekgo saat ini:<br><b>06:30 - 21:00 WIB</b><br><br>Kami akan berusaha memperpanjang jam operasional kedepannya. Terima kasih pengertiannya!</div>
+            <a href="https://wa.me/6281292802623" target="_blank" class="btn-wa-admin"><i class="ph-fill ph-whatsapp-logo"></i> Hubungi Admin 1</a>
         </div>
     </div>
     
@@ -3633,8 +3633,16 @@
             const minutes = wibDate.getMinutes();
             const totalMinutes = (hours * 60) + minutes;
             
-            // Jam Buka: 06:30 (390 menit) sampai 21:00 (1260 menit)
-            return totalMinutes >= 390 && totalMinutes <= 1260;
+            // Jam Buka: 06:30 (390) sampai 21:00 (1260)
+            const isOpen = totalMinutes >= 390 && totalMinutes <= 1260;
+            
+            if (!isOpen && isAction) {
+                // Hapus logika pemblokiran, biarkan return true agar action berlanjut
+                // showClosedModal(); 
+                // return false; 
+                return true; 
+            }
+            return isOpen;
         }
 
         // FUNGSI BARU UNTUK MENAMPILKAN POPUP INFO TUTUP (TIDAK MEMBLOKIR)
@@ -3644,9 +3652,9 @@
             
             content.innerHTML = `
                 <i class="ph-fill ph-moon-stars closed-icon"></i>
-                <div class="closed-title">Mohon Maaf, Kami Sedang Tutup</div>
-                <div class="closed-text" style="font-size: 14px;">Operasional Projekgo saat ini:<br><b style="font-size: 16px;">06:30 - 21:00 WIB</b><br><br>Kamu masih bebas lihat-lihat menu dan ngecek ongkir, tetapi pesanan baru akan diproses nanti saat toko sudah buka yah! 😊</div>
-                <button onclick="closeClosedModal()" style="width: 100%; background: var(--primary); color: white; padding: 12px; border: none; border-radius: 12px; font-weight: 700; font-size: 15px; margin-top: 10px; cursor: pointer; box-shadow: 0 4px 10px rgba(255, 102, 0, 0.3);">Mengerti, Lihat-lihat Dulu</button>
+                <div class="closed-title">Kami Sudah Tutup</div>
+                <div class="closed-text" style="font-size: 14px;">Operasional Projekgo saat ini:<br><b style="font-size: 16px;">06:30 - 21:00 WIB</b><br><br>Silakan lihat-lihat menu terlebih dahulu.<br>Kami siap melayani Anda besok pagi! 😊</div>
+                <button onclick="closeClosedModal()" style="width: 100%; background: var(--primary); color: white; padding: 12px; border: none; border-radius: 12px; font-weight: 700; font-size: 15px; margin-top: 10px;">Lihat Menu Saja</button>
             `;
             modal.style.display = 'flex'; 
         }
@@ -6575,21 +6583,6 @@
             
             let extraVendorRow = (orderMode !== 'dine_in' && extraRestoFee > 0) ? `<div class="cost-row"><span>Tambahan pembelian di ${numVendors} warung berbeda</span><span>Rp ${extraRestoFee.toLocaleString('id-ID')}</span></div>` : '';
 
-            // --- TAMBAHAN LANGKAH 3: CEK STATUS BUKA/TUTUP UNTUK TOMBOL CHECKOUT FOOD ---
-            const isOpen = window.checkOperationalStatus();
-            const closedMsg = "Mohon maaf Projekgo saat ini tutup (06.30-21.00 WIB). Kamu bisa cek ongkir dulu, pesanan diproses saat buka nanti ya.";
-            
-            const btnCheckoutStyle = isOpen 
-                ? "width:100%; background:#25D366; color:white; padding:15px; border:none; border-radius:14px; font-weight:800; font-size:16px; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: transform 0.2s;"
-                : "width:100%; background:#ccc; color:white; padding:15px; border:none; border-radius:14px; font-weight:800; font-size:16px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: not-allowed;";
-            const btnCheckoutAction = isOpen ? "processCheckout()" : `showToast('${closedMsg}')`;
-            const btnCheckoutTransformDown = isOpen ? "this.style.transform='scale(0.97)'" : "";
-            const btnCheckoutTransformUp = isOpen ? "this.style.transform='scale(1)'" : "";
-            const btnCheckoutText = isOpen 
-                ? 'Pesan Dan Kami Antar Sekarang <i class="ph-bold ph-whatsapp-logo" style="font-size: 20px;"></i>' 
-                : 'Toko Sedang Tutup 🔒';
-            // -------------------------------------------------------------------------
-
             // TAMBAHAN: padding-bottom ditambah di div cart-section terakhir agar isi tidak tertutup tombol sticky
             html += `${addressSectionHtml}
             ${deliveryOptionsHtml}
@@ -6641,8 +6634,8 @@
 
             <!-- STICKY BUTTON CONTAINER -->
             <div style="position: fixed; bottom: 0; left: 0; right: 0; max-width: var(--max-width); margin: 0 auto; background: white; padding: 15px 20px; box-shadow: 0 -4px 15px rgba(0,0,0,0.05); z-index: 2000; border-top-left-radius: 20px; border-top-right-radius: 20px; padding-bottom: max(15px, env(safe-area-bottom));">
-                <button onclick="${btnCheckoutAction}" style="${btnCheckoutStyle}" onmousedown="${btnCheckoutTransformDown}" onmouseup="${btnCheckoutTransformUp}">
-                    ${btnCheckoutText}
+                <button onclick="processCheckout()" style="width:100%; background:#25D366; color:white; padding:15px; border:none; border-radius:14px; font-weight:800; font-size:16px; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: transform 0.2s;" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform='scale(1)'">
+                    Pesan Dan Kami Antar Sekarang <i class="ph-bold ph-whatsapp-logo" style="font-size: 20px;"></i>
                 </button>
             </div>`;
             
@@ -8146,11 +8139,6 @@
             }
             // ----------------------------------------------
 
-            // --- TAMBAHAN LANGKAH 2: CEK STATUS BUKA/TUTUP ---
-            const isOpen = window.checkOperationalStatus();
-            const closedMsg = "Mohon maaf Projekgo saat ini tutup (06.30-21.00 WIB). Kamu bisa cek ongkir dulu, pesanan diproses saat buka nanti ya.";
-            // -------------------------------------------------
-
             currentServiceType = svc; 
             document.getElementById('form-service-title').innerText = svc; 
             const container = document.getElementById('dynamic-form-fields'); 
@@ -8171,22 +8159,6 @@
             let html = '';
             const genericBtn = document.getElementById('generic-submit-btn');
             
-            // --- TAMBAHAN LANGKAH 2: UPDATE TOMBOL GENERIC (Untuk layanan Beli Obat, Belanja, Bantuin Aja) ---
-            if (genericBtn) {
-                if (isOpen) {
-                    genericBtn.style.background = '#25D366';
-                    genericBtn.style.cursor = 'pointer';
-                    genericBtn.style.boxShadow = '0 4px 15px rgba(37, 211, 102, 0.4)';
-                    genericBtn.onclick = window.submitServiceForm;
-                } else {
-                    genericBtn.style.background = '#ccc';
-                    genericBtn.style.cursor = 'not-allowed';
-                    genericBtn.style.boxShadow = 'none';
-                    genericBtn.onclick = () => window.showToast(closedMsg);
-                }
-            }
-            // ------------------------------------------------------------------------------------------------
-            
             if (svc === 'Ngojek' || svc === 'Mobil' || svc === 'Kirim Paket') {
                 if(genericBtn) genericBtn.style.display = 'none';
 
@@ -8199,20 +8171,6 @@
                         </div>
                     `;
                 }
-
-                // --- TAMBAHAN LANGKAH 2: STYLING & ACTION TOMBOL UNTUK MODE MAPS DAN MANUAL ---
-                const btnSummaryStyle = isOpen 
-                    ? "width:100%; background:var(--primary); color:white; padding:14px; border:none; border-radius:14px; font-weight:800; font-size:16px; box-shadow:0 8px 20px rgba(255,102,0,0.3); display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition:transform 0.2s;"
-                    : "width:100%; background:#ccc; color:white; padding:14px; border:none; border-radius:14px; font-weight:800; font-size:16px; display:flex; align-items:center; justify-content:center; gap:8px; cursor:not-allowed;";
-                const btnSummaryAction = isOpen ? "submitServiceForm()" : `showToast('${closedMsg}')`;
-                const btnSummaryTransform = isOpen ? "this.style.transform='scale(0.97)'" : "";
-                const btnSummaryTransformUp = isOpen ? "this.style.transform='scale(1)'" : "";
-
-                const btnManualStyle = isOpen
-                    ? "display:flex; width:100%; background:linear-gradient(45deg, var(--primary), #FF9900); color:white; padding:14px; border:none; border-radius:12px; margin-top:15px; font-weight:800; font-size:14px; box-shadow:0 4px 15px rgba(255,102,0,0.3); align-items:center; justify-content:center; gap:8px; cursor:pointer;"
-                    : "display:flex; width:100%; background:#ccc; color:white; padding:14px; border:none; border-radius:12px; margin-top:15px; font-weight:800; font-size:14px; align-items:center; justify-content:center; gap:8px; cursor:not-allowed;";
-                const btnManualAction = isOpen ? "submitServiceForm()" : `showToast('${closedMsg}')`;
-                // ------------------------------------------------------------------------------
 
                 html = `
                     <div style="background:white; border-radius:20px; padding:20px 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); margin-bottom:20px; border:1px solid rgba(0,0,0,0.03);">
@@ -8272,7 +8230,7 @@
                             </div>
                         </div>
 
-                        <!-- ROUTE SUMMARY -->
+                        <!-- ROUTE SUMMARY (LANGKAH 1: Dikeluarkan dari Dalam Peta) -->
                         <div id="route-summary" style="display:none; margin-top: 15px; background: white; border-radius: 20px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); animation: slideUpSheet 0.3s ease-out; border: 1px solid #eee;">
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                                 <div style="display:flex; align-items:center; gap:12px;">
@@ -8287,9 +8245,7 @@
                                 <div id="summary-price" style="font-size:20px; font-weight:900; color:var(--dark);">Rp -</div>
                             </div>
                             <div style="border-top: 1px dashed #eee; margin-bottom: 15px;"></div>
-                            
-                            <!-- DIUBAH PADA LANGKAH 2 -->
-                            <button onclick="${btnSummaryAction}" style="${btnSummaryStyle}" onmousedown="${btnSummaryTransform}" onmouseup="${btnSummaryTransformUp}">
+                            <button onclick="submitServiceForm()" style="width:100%; background:var(--primary); color:white; padding:14px; border:none; border-radius:14px; font-weight:800; font-size:16px; box-shadow:0 8px 20px rgba(255,102,0,0.3); display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition:transform 0.2s;" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform='scale(1)'">
                                 Pesan ${svc} <i class="ph-bold ph-arrow-right"></i>
                             </button>
                         </div>
@@ -8312,8 +8268,8 @@
 
                         ${extraFields}
                         
-                        <!-- TOMBOL SUBMIT KHUSUS MODE MANUAL (DIUBAH PADA LANGKAH 2) -->
-                        <button id="btn-submit-manual" onclick="${btnManualAction}" style="${btnManualStyle}">
+                        <!-- TOMBOL SUBMIT KHUSUS MODE MANUAL (DIUBAH: Ditampilkan Default) -->
+                        <button id="btn-submit-manual" onclick="submitServiceForm()" style="display:flex; width:100%; background:linear-gradient(45deg, var(--primary), #FF9900); color:white; padding:14px; border:none; border-radius:12px; margin-top:15px; font-weight:800; font-size:14px; box-shadow:0 4px 15px rgba(255,102,0,0.3); align-items:center; justify-content:center; gap:8px; cursor:pointer;">
                             Pesan ${svc} via WA <i class="ph-bold ph-whatsapp-logo" style="font-size:18px;"></i>
                         </button>
                     </div>
