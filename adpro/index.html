@@ -268,6 +268,27 @@
                 <h1 class="page-title">Ringkasan</h1>
                 <p class="page-subtitle">Performa ekosistem hari ini</p>
             </div>
+
+            <!-- EKSPOR DARURAT -->
+            <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:14px; padding:16px; margin-bottom:20px;">
+                <div style="display:flex; align-items:center; gap:8px; font-weight:800; color:#1e40af; font-size:14px; margin-bottom:6px;">
+                    <i class="ph-fill ph-floppy-disk"></i> Cadangan Data
+                </div>
+                <p style="font-size:12px; color:#1e40af; margin:0 0 12px; line-height:1.6;">
+                    Firestore tidak menyimpan versi lama dokumen. Unduh seminggu sekali dan simpan
+                    di tempat yang tidak ikut hilang kalau laptop rusak.
+                </p>
+                <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                    <button type="button" onclick="window.eksporData(false)" style="background:#2563eb; color:white; border:none; padding:10px 16px; border-radius:10px; font-weight:700; font-size:12px; cursor:pointer;">
+                        Unduh Cadangan
+                    </button>
+                    <button type="button" onclick="window.eksporData(true)" style="background:white; color:#b91c1c; border:1px solid #fecaca; padding:10px 16px; border-radius:10px; font-weight:700; font-size:12px; cursor:pointer;">
+                        Unduh + PIN (darurat)
+                    </button>
+                </div>
+                <div id="ekspor-status" style="display:none; font-size:12px; color:#1e40af; margin-top:10px; font-weight:600;"></div>
+            </div>
+
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon" style="background:#fff7ed; color:#ea580c;"><i class="ph-fill ph-storefront"></i></div>
@@ -1196,6 +1217,75 @@
             if (btn) { btn.innerText = 'Terkirim'; btn.style.background = '#94a3b8'; }
         };
 
+
+
+        // ============================================================
+        // CADANGAN DATA
+        // Dua bentuk: biasa (tanpa PIN, aman disimpan di mana saja) dan
+        // darurat (dengan PIN semua mitra, harus disimpan terkunci).
+        // ============================================================
+        window.eksporData = async (sertakanPin) => {
+            const status = document.getElementById('ekspor-status');
+            status.style.display = 'block';
+
+            if (sertakanPin) {
+                const setuju = confirm(
+                    'Berkas ini akan berisi PIN login SEMUA mitra dan nomor WhatsApp mereka.\n\n'
+                    + 'Siapa pun yang memegang berkas ini bisa masuk ke akun mitra mana pun.\n\n'
+                    + 'Jangan simpan di folder yang tersinkron ke cloud bersama, jangan kirim lewat chat, '
+                    + 'dan hapus setelah tidak diperlukan.\n\nLanjutkan?');
+                if (!setuju) { status.style.display = 'none'; return; }
+            }
+
+            try {
+                status.innerText = 'Mengambil data warung...';
+                const vendorsSnap = await getDocs(collection(db, "vendors"));
+                const vendors = vendorsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                status.innerText = 'Mengambil data menu...';
+                const productsSnap = await getDocs(collection(db, "products"));
+                const products = productsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                status.innerText = 'Mengambil ulasan...';
+                const reviewsSnap = await getDocs(collection(db, "reviews"));
+                const reviews = reviewsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                if (sertakanPin) {
+                    for (let i = 0; i < vendors.length; i++) {
+                        status.innerText = `Mengambil PIN ${i + 1} dari ${vendors.length}...`;
+                        vendors[i].pin_darurat = await window.ambilPin(vendors[i].id);
+                    }
+                }
+
+                const isi = {
+                    dibuat_pada: new Date().toISOString(),
+                    project: 'projekgo-app',
+                    berisi_pin: !!sertakanPin,
+                    jumlah: { vendors: vendors.length, products: products.length, reviews: reviews.length },
+                    vendors: vendors,
+                    products: products,
+                    reviews: reviews
+                };
+
+                const tanggal = new Date().toISOString().slice(0, 10);
+                const nama = sertakanPin
+                    ? `RAHASIA-cadangan-projekgo-${tanggal}.json`
+                    : `cadangan-projekgo-${tanggal}.json`;
+
+                const blob = new Blob([JSON.stringify(isi, null, 2)], { type: 'application/json' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = nama;
+                a.click();
+                setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+
+                status.innerText = `Selesai: ${vendors.length} warung, ${products.length} menu, ${reviews.length} ulasan.`
+                    + (sertakanPin ? ' Berkas berisi PIN — simpan terkunci.' : '');
+            } catch (e) {
+                console.error('Ekspor gagal:', e);
+                status.innerText = 'Gagal: ' + e.message;
+            }
+        };
 
         // --- MIGRASI MITRA LAMA KE AKUN EMAIL ---
         // Modal migrate-vendor-modal sudah ada di HTML sejak awal, tapi tidak
