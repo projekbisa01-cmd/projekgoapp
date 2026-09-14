@@ -961,6 +961,34 @@
         };
         // === AKHIR BLOK SEMENTARA ===
 
+
+        // === BLOK SEMENTARA — HAPUS SETELAH SELESAI DIPAKAI ===
+        window.cekMigrasi = async () => {
+            const snap = await getDocs(collection(db, "vendors"));
+            let masihPublik = [], sudahAman = 0, tanpaPin = [];
+
+            for (const d of snap.docs) {
+                if (d.data().pin) masihPublik.push(d.id);
+                try {
+                    const s = await getDoc(doc(db, "vendors", d.id, "private", "akses"));
+                    if (s.exists() && s.data().pin) sudahAman++;
+                    else tanpaPin.push(d.id);
+                } catch (e) {
+                    tanpaPin.push(d.id + " (error: " + (e.code || e.message) + ")");
+                }
+            }
+
+            console.log("--- HASIL MIGRASI ---");
+            console.log("Total warung            :", snap.size);
+            console.log("PIN tersimpan aman      :", sudahAman);
+            console.log("MASIH TERBUKA DI PUBLIK :", masihPublik.length);
+            if (masihPublik.length) console.log("   daftarnya:", masihPublik);
+            console.log("Belum punya PIN sama sekali:", tanpaPin.length);
+            if (tanpaPin.length) console.log("   daftarnya:", tanpaPin);
+            console.log("--- SELESAI ---");
+        };
+        // === AKHIR BLOK SEMENTARA ===
+
         // === BLOK SEMENTARA — HAPUS SETELAH SELESAI DIPAKAI ===
         window.migrasiPin = async () => {
             const snap = await getDocs(collection(db, "vendors"));
