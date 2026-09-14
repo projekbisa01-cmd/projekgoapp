@@ -6462,10 +6462,9 @@
                             <div style="position: absolute; bottom: -6px; right: 0; width: 0; height: 0; border-left: 10px solid transparent; border-top: 10px solid #FF6600;"></div>
                         </div>
 
-                        <!-- CAPSULE TOGGLE PENGANTARAN (Peta di Kiri) -->
-                        <div style="display:flex; background:#f0f0f0; border-radius:12px; padding:4px; margin-bottom:15px;" onclick="const tt = document.getElementById('address-tooltip'); if(tt) tt.style.display='none';">
-                            <div id="tab-checkout-maps" onclick="toggleCheckoutLocMode('maps')" style="flex:1; text-align:center; font-size:12px; font-weight:800; padding:10px; border-radius:10px; background:white; color:var(--primary); box-shadow:0 2px 5px rgba(0,0,0,0.05); cursor:pointer; transition:0.2s;">🗺️ Pilih di Peta</div>
-                            <div id="tab-checkout-manual" onclick="toggleCheckoutLocMode('manual')" style="flex:1; text-align:center; font-size:12px; font-weight:700; padding:10px; border-radius:10px; color:#666; background:transparent; cursor:pointer; transition:0.2s;">✍️ Tulis Manual</div>
+                        <!-- Tab lama diganti layar Tentukan Lokasi. Tautan ini untuk ganti pilihan. -->
+                        <div onclick="const tt = document.getElementById('address-tooltip'); if(tt) tt.style.display='none'; window.pilihLokasiCheckout();" style="display:flex; align-items:center; justify-content:center; gap:6px; font-size:12px; font-weight:700; color:var(--primary); background:#FFF3E9; padding:10px; border-radius:12px; margin-bottom:15px; cursor:pointer;">
+                            <i class="ph-bold ph-arrows-left-right" style="font-size:15px;"></i> Ganti cara isi alamat
                         </div>
 
                         <!-- MANUAL MODE CONTAINER (Sembunyikan Default) -->
@@ -6492,7 +6491,7 @@
                             </div>
                             
                             <!-- Input Palsu Pemanggil Modal Peta Baru -->
-                            <div onclick="openLocationSearchModal()" style="background: white; border: 1px solid #ddd; padding: 12px 15px; border-radius: 12px; display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); transition: 0.2s;">
+                            <div onclick="window.pilihLokasiCheckout()" style="background: white; border: 1px solid #ddd; padding: 12px 15px; border-radius: 12px; display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); transition: 0.2s;">
                                 <i class="ph-fill ph-map-pin" style="color: #E53935; font-size: 22px;"></i>
                                 <div style="display: flex; flex-direction: column; flex-grow: 1; overflow: hidden;">
                                     <span id="checkout-maps-search-title" style="color: var(--dark); font-size: 14px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Mencari lokasi saat ini...</span>
@@ -8128,7 +8127,7 @@
             openPage('coming-soon');
         };
 
-        window.openServiceForm = (svc) => {
+        window.openServiceForm = (svc, modeLokasi) => {
             // --- TAMBAHAN LOGIKA KHUSUS LAYANAN MOBIL ---
             if (svc === 'Mobil') {
                 Swal.fire({
@@ -8155,6 +8154,16 @@
             }
             // ----------------------------------------------
 
+            // Ngojek dan Kirim Paket: tanyakan dulu cara mengisi lokasi.
+            // Setelah dipilih, fungsi ini dipanggil ulang dengan modenya.
+            if (!modeLokasi && (svc === 'Ngojek' || svc === 'Kirim Paket')) {
+                window.openLocChooser(
+                    'Bagaimana Anda ingin mencari lokasi penjemputan? atau pengiriman?',
+                    (m) => window.openServiceForm(svc, m)
+                );
+                return;
+            }
+
             currentServiceType = svc; 
             document.getElementById('form-service-title').innerText = svc; 
             const container = document.getElementById('dynamic-form-fields'); 
@@ -8165,7 +8174,7 @@
             routeDistance = 0;
             routeDuration = '';
             routePrice = 0;
-            locationInputMode = 'manual'; // DIUBAH: Default jadi 'manual'
+            locationInputMode = modeLokasi || 'manual';
             
             // Reset state peta pin
             serviceMap = null;
@@ -8191,11 +8200,9 @@
                 html = `
                     <div style="background:white; border-radius:20px; padding:20px 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); margin-bottom:20px; border:1px solid rgba(0,0,0,0.03);">
                         
-                        <!-- TAMBAHAN: TOGGLE MODE LOKASI (MAPS / MANUAL) -->
-                        <div style="display:flex; background:#f0f0f0; border-radius:12px; padding:4px; margin-bottom:15px;">
-                            <!-- DIUBAH: Tab Ketik Manual di Kiri dan Aktif Default -->
-                            <div id="tab-mode-manual" onclick="toggleLocMode('manual')" style="flex:1; text-align:center; font-size:12px; font-weight:800; padding:10px; border-radius:10px; background:white; color:var(--primary); box-shadow:0 2px 5px rgba(0,0,0,0.05); cursor:pointer; transition:0.2s;">✍️ Ketik Manual</div>
-                            <div id="tab-mode-maps" onclick="toggleLocMode('maps')" style="flex:1; text-align:center; font-size:12px; font-weight:700; padding:10px; border-radius:10px; color:#666; cursor:pointer; transition:0.2s;">📍 Pakai Maps</div>
+                        <!-- Tab lama diganti layar Tentukan Lokasi. Tautan ini untuk ganti pilihan. -->
+                        <div onclick="window.gantiCaraLokasiLayanan()" style="display:flex; align-items:center; justify-content:center; gap:6px; font-size:12px; font-weight:700; color:var(--primary); background:#FFF3E9; padding:10px; border-radius:12px; margin-bottom:15px; cursor:pointer;">
+                            <i class="ph-bold ph-arrows-left-right" style="font-size:15px;"></i> Ganti cara isi lokasi
                         </div>
 
                         <!-- KONTENER MODE MAPS (DIUBAH UNTUK LANGKAH 1 & 2) -->
@@ -8346,6 +8353,11 @@
             localStorage.removeItem('svc_maps_temp'); 
             openPage('service-form');
 
+            // Terapkan mode yang dipilih di layar Tentukan Lokasi
+            if (svc === 'Ngojek' || svc === 'Mobil' || svc === 'Kirim Paket') {
+                window.toggleLocMode(locationInputMode);
+            }
+
             if (svc === 'Ngojek' || svc === 'Mobil' || svc === 'Kirim Paket') {
                 setTimeout(() => {
                     initGooglePlaces();
@@ -8384,6 +8396,58 @@
                 }, 300);
             }
         }
+
+
+        // ============================================================
+        // LAYAR TENTUKAN LOKASI
+        // Dipakai bersama oleh form layanan (Ngojek, Kirim Paket) dan
+        // alamat pengantaran di halaman konfirmasi pesanan.
+        // ============================================================
+        let locChooserPilih = null;
+
+        window.openLocChooser = (subjudul, onPilih) => {
+            locChooserPilih = onPilih;
+            const sub = document.getElementById('loc-chooser-sub');
+            if (sub && subjudul) sub.innerText = subjudul;
+            document.getElementById('loc-chooser').style.display = 'block';
+            window.scrollTo(0, 0);
+        };
+
+        window.closeLocChooser = () => {
+            document.getElementById('loc-chooser').style.display = 'none';
+            locChooserPilih = null;
+        };
+
+        window.pilihModeLokasi = (mode) => {
+            const jalankan = locChooserPilih;
+            document.getElementById('loc-chooser').style.display = 'none';
+            locChooserPilih = null;
+            if (typeof jalankan === 'function') jalankan(mode);
+        };
+
+        // Dipanggil dari tautan 'Ganti cara isi lokasi' di dalam form layanan.
+        window.gantiCaraLokasiLayanan = () => {
+            window.openLocChooser(
+                'Bagaimana Anda ingin mencari lokasi penjemputan? atau pengiriman?',
+                (m) => window.toggleLocMode(m)
+            );
+        };
+
+        // Dipanggil dari halaman konfirmasi pesanan.
+        window.pilihLokasiCheckout = () => {
+            window.openLocChooser(
+                'Bagaimana Anda ingin menentukan alamat pengantaran?',
+                (m) => {
+                    window.toggleCheckoutLocMode(m);
+                    if (m === 'maps') {
+                        if (typeof window.openLocationSearchModal === 'function') window.openLocationSearchModal();
+                    } else {
+                        const kolom = document.getElementById('checkout-addr');
+                        if (kolom) { kolom.focus(); }
+                    }
+                }
+            );
+        };
 
         // FUNGSI BARU UNTUK BERGANTI MODE MAPS ATAU MANUAL
         window.toggleLocMode = (mode) => {
@@ -10769,5 +10833,48 @@
         // ------------------------------------------
 
     </script>
+
+    <!-- LAYAR TENTUKAN LOKASI -->
+    <div id="loc-chooser" style="display:none; position:fixed; inset:0; background:#fff; z-index:12000; overflow-y:auto;">
+        <div style="padding:18px 20px 0;">
+            <div onclick="window.closeLocChooser()" style="width:44px; height:44px; display:flex; align-items:center; justify-content:center; margin-left:-10px; cursor:pointer;">
+                <i class="ph-bold ph-arrow-left" style="font-size:26px; color:#111;"></i>
+            </div>
+        </div>
+
+        <div style="padding:14px 24px 0;">
+            <div style="font-size:26px; font-weight:800; color:#1f2933; letter-spacing:-0.4px;">Tentukan Lokasi</div>
+            <p id="loc-chooser-sub" style="font-size:15px; color:#8a94a0; line-height:1.5; margin:10px 0 0;">
+                Bagaimana Anda ingin mencari lokasi penjemputan? atau pengiriman?
+            </p>
+        </div>
+
+        <div style="padding:26px 20px 40px; display:flex; flex-direction:column; gap:18px;">
+
+            <div onclick="window.pilihModeLokasi('maps')" style="background:#fff; border-radius:18px; padding:20px 18px; display:flex; align-items:center; gap:16px; cursor:pointer; box-shadow:0 4px 18px rgba(17,24,39,0.07); transition:transform 0.12s;" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'" onmouseleave="this.style.transform='scale(1)'">
+                <div style="width:56px; height:56px; flex-shrink:0; background:#E8F0FE; border-radius:14px; display:flex; align-items:center; justify-content:center;">
+                    <i class="ph-fill ph-map-trifold" style="font-size:28px; color:#2563eb;"></i>
+                </div>
+                <div style="flex-grow:1;">
+                    <div style="font-size:17px; font-weight:800; color:#1f2933; margin-bottom:5px;">Pilih Lewat Peta</div>
+                    <div style="font-size:13px; color:#8a94a0; line-height:1.5;">Cari otomatis menggunakan GPS untuk letak yang lebih akurat.</div>
+                </div>
+                <i class="ph-bold ph-caret-right" style="font-size:20px; color:#c5ccd6; flex-shrink:0;"></i>
+            </div>
+
+            <div onclick="window.pilihModeLokasi('manual')" style="background:#fff; border-radius:18px; padding:20px 18px; display:flex; align-items:center; gap:16px; cursor:pointer; box-shadow:0 4px 18px rgba(17,24,39,0.07); transition:transform 0.12s;" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'" onmouseleave="this.style.transform='scale(1)'">
+                <div style="width:56px; height:56px; flex-shrink:0; background:#FFF1E6; border-radius:14px; display:flex; align-items:center; justify-content:center;">
+                    <i class="ph-fill ph-note-pencil" style="font-size:28px; color:#f97316;"></i>
+                </div>
+                <div style="flex-grow:1;">
+                    <div style="font-size:17px; font-weight:800; color:#1f2933; margin-bottom:5px;">Ketik Alamat Manual</div>
+                    <div style="font-size:13px; color:#8a94a0; line-height:1.5;">Jika Anda tidak terbiasa menggunakan Maps. Tulis secara manual, ongkir akan dikalkulasikan oleh admin.</div>
+                </div>
+                <i class="ph-bold ph-caret-right" style="font-size:20px; color:#c5ccd6; flex-shrink:0;"></i>
+            </div>
+
+        </div>
+    </div>
+
 </body>
 </html>
