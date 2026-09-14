@@ -923,6 +923,19 @@
         let deleteTarget = null; 
         let adminAllPengajuan = [];
 
+        // === BLOK SEMENTARA — HAPUS SETELAH SELESAI DIPAKAI ===
+        window.backupVendors = async () => {
+            const snap = await getDocs(collection(db, "vendors"));
+            const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'backup-vendors-' + Date.now() + '.json';
+            a.click();
+            console.log("Backup " + data.length + " warung selesai diunduh.");
+        };
+        // === AKHIR BLOK SEMENTARA ===
+
         // --- PWA VIRTUAL LOGIC (AGRESIF) ---
         let deferredPrompt;
         
