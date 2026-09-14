@@ -772,7 +772,8 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Password Sementara</label>
-                <input type="text" id="mig-pass" class="form-input" value="123456">
+                <input type="text" id="mig-pass" class="form-input" placeholder="Klik Acak">
+                <button type="button" onclick="document.getElementById('mig-pass').value = window.buatPinAcak()" class="btn-modal" style="background: var(--warning); color: white; width: auto; padding: 6px 14px; font-size: 12px; margin-top: 6px;">Acak</button>
                 <div style="font-size: 11px; color: var(--gray); margin-top: 4px;">Berikan password ini ke mitra untuk login pertama kali.</div>
             </div>
             
@@ -1185,6 +1186,58 @@
             if (btn) { btn.innerText = 'Terkirim'; btn.style.background = '#94a3b8'; }
         };
 
+
+        // --- MIGRASI MITRA LAMA KE AKUN EMAIL ---
+        // Modal migrate-vendor-modal sudah ada di HTML sejak awal, tapi tidak
+        // ada yang membukanya dan confirmMigration() tidak pernah didefinisikan,
+        // jadi fiturnya tidak pernah bisa dipakai.
+        window.openMigrateModal = (vendorId, vendorName) => {
+            document.getElementById('mig-id').value = vendorId;
+            document.getElementById('mig-name').innerText = vendorName;
+            document.getElementById('mig-email').value = '';
+            document.getElementById('mig-pass').value = window.buatPinAcak();
+            document.getElementById('migrate-vendor-modal').style.display = 'flex';
+        };
+
+        window.confirmMigration = async () => {
+            const vendorId = document.getElementById('mig-id').value;
+            const email = document.getElementById('mig-email').value.trim().toLowerCase();
+            const pin = document.getElementById('mig-pass').value.trim();
+            const btn = document.getElementById('btn-submit-migrate');
+
+            if (!email || !email.includes('@')) return alert('Email belum diisi dengan benar.');
+            if (!/^\d{8,}$/.test(pin)) return alert('PIN sementara minimal 8 angka.');
+
+            btn.innerText = 'Memproses...'; btn.disabled = true;
+
+            try {
+                try {
+                    await createUserWithEmailAndPassword(secondaryAuth, email, pin);
+                    await signOut(secondaryAuth);
+                } catch (authErr) {
+                    if (authErr.code === 'auth/email-already-in-use') {
+                        throw new Error('Email ini sudah dipakai akun lain. Gunakan email berbeda.');
+                    }
+                    throw authErr;
+                }
+
+                await updateDoc(doc(db, "vendors", vendorId), {
+                    email: email,
+                    pin_wajib_ganti: true
+                });
+                await window.simpanPin(vendorId, pin);
+
+                closeModal('migrate-vendor-modal');
+                await window.fetchVendors();
+                alert('Akun berhasil dibuat.\n\nEmail: ' + email + '\nPIN sementara: ' + pin
+                    + '\n\nKirim ke mitra lewat tombol "Kirim Akses via WA".');
+            } catch (e) {
+                alert('Migrasi gagal: ' + e.message);
+            } finally {
+                btn.innerText = 'Migrasi Sekarang'; btn.disabled = false;
+            }
+        };
+
         // --- GANTI PIN (sebelumnya dipanggil tapi tidak pernah didefinisikan) ---
         window.generateRandomPinEdit = () => {
             document.getElementById('ep-new-pin').value = window.buatPinAcak();
@@ -1218,8 +1271,18 @@
                 await updatePassword(cred.user, pinBaru);
                 await signOut(secondaryAuth);
                 await window.simpanPin(vendorId, pinBaru);
+
+                // PIN terbitan admin selalu sementara: mitra wajib membuat PIN sendiri
+                // saat login berikutnya. Penanda dipasang di semua cabang milik email ini.
+                for (const w of adminAllVendors) {
+                    if ((w.email || '').toLowerCase() === email.toLowerCase()) {
+                        await updateDoc(doc(db, "vendors", w.id), { pin_wajib_ganti: true });
+                    }
+                }
+
                 closeModal('edit-pin-modal');
-                alert('PIN berhasil diganti.\n\nPIN baru: ' + pinBaru + '\n\nKirim ke mitra lewat tombol "Kirim Akses via WA".');
+                alert('PIN sementara berhasil dibuat.\n\nPIN: ' + pinBaru + '\n\nKirim ke mitra lewat tombol "Kirim Akses via WA". '
+                    + 'Mitra akan diminta membuat PIN sendiri saat login.');
             } catch (e) {
                 alert('Gagal mengganti PIN: ' + e.message
                     + '\n\nKalau pesannya soal kredensial, berarti mitra sudah pernah mengganti PIN sendiri '
@@ -1838,7 +1901,7 @@
                         <div style="display:flex; align-items:center; gap:6px; color:#ef4444; font-weight:600;"><i class="ph-fill ph-key" style="font-size:16px;"></i> PIN: <span id="pin-${v.id}">${pinTampil}</span> <button type="button" onclick="window.lihatPin('${v.id}')" style="background:#fee2e2; color:#b91c1c; border:none; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Lihat</button></div>
                     `;
                 } else {
-                    accessInfo = `<div style="display:flex; align-items:center; gap:6px; color:#ef4444; font-weight:600;"><i class="ph-fill ph-warning-circle" style="font-size:16px;"></i> Auth Lama | PIN: <span id="pin-${v.id}">${pinTampil}</span> <button type="button" onclick="window.lihatPin('${v.id}')" style="background:#fee2e2; color:#b91c1c; border:none; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Lihat</button></div>`;
+                    accessInfo = `<div style="display:flex; align-items:center; gap:6px; color:#ef4444; font-weight:600;"><i class="ph-fill ph-warning-circle" style="font-size:16px;"></i> Belum punya akun email <button type="button" onclick="window.openMigrateModal('${v.id}', '${safeName}')" style="background:#f3e8ff; color:#7e22ce; border:none; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Buatkan Akun</button> | PIN: <span id="pin-${v.id}">${pinTampil}</span> <button type="button" onclick="window.lihatPin('${v.id}')" style="background:#fee2e2; color:#b91c1c; border:none; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Lihat</button></div>`;
                 }
 
                 /* LOGIKA TOMBOL WA DINAMIS */
@@ -2455,6 +2518,7 @@
                         nama_pemilik: p.nama_pemilik || '',
                         no_wa: p.no_wa || '',
                         is_approved: true, 
+                        pin_wajib_ganti: true,   // PIN dari admin hanya untuk masuk pertama kali
                         created_at: new Date().toISOString()
                     });
 
