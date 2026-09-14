@@ -970,6 +970,16 @@
         let deleteTarget = null; 
         let adminAllPengajuan = [];
 
+
+        // --- PENYARING HTML ---
+        // Data dari database ditempelkan lewat innerHTML. Tanpa disaring,
+        // ulasan pelanggan atau formulir pendaftaran yang berisi tag HTML
+        // akan dijalankan sebagai kode di dalam panel admin ini.
+        const esc = (v) => String(v == null ? '' : v).replace(/[&<>"'`=\/]/g, c => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;',
+            "'": '&#39;', '`': '&#96;', '=': '&#61;', '/': '&#47;'
+        }[c]));
+
         // --- AKSES MITRA: PIN disimpan di subkoleksi private, tidak ikut terbaca publik ---
         const pinRef = (vendorId) => doc(db, "vendors", vendorId, "private", "akses");
 
@@ -1579,8 +1589,8 @@
                     }
                     else if (r.date) formattedDate = r.date;
                     
-                    const userName = r.user || r.user_name || 'Anonim';
-                    const comment = r.text || r.comment || 'Tidak ada komentar.';
+                    const userName = esc(r.user || r.user_name || 'Anonim');
+                    const comment = esc(r.text || r.comment || 'Tidak ada komentar.');
                     const safeVendorName = (vendorName || '').replace(/'/g, "\\'"); // Mengamankan tanda petik
 
                     // Tampilan status badge
@@ -1736,7 +1746,7 @@
                     detailBody.innerHTML += `
                         <tr>
                             <td data-label="Menu & Kategori">
-                                <div style="font-weight:600;">${p.nama_menu}</div>
+                                <div style="font-weight:600;">${esc(p.nama_menu)}</div>
                                 <div style="font-size:11px; color:var(--gray); background:#f1f5f9; display:inline-block; padding:2px 6px; border-radius:4px; margin-top:2px;">
                                     ${p.category || 'Uncategorized'}
                                 </div>
@@ -1936,7 +1946,7 @@
                                         <i class="${isFeatured ? 'ph-fill' : 'ph-bold'} ph-star" style="font-size:18px;"></i>
                                     </button>
                                     <div>
-                                        <div style="font-weight: 800; font-size: 16px; color: var(--dark); line-height: 1.2; margin-bottom: 4px;">${v.nama_warung}</div>
+                                        <div style="font-weight: 800; font-size: 16px; color: var(--dark); line-height: 1.2; margin-bottom: 4px;">${esc(v.nama_warung)}</div>
                                         <div style="font-size: 11px; font-weight: 600; color: #64748b; background: #f1f5f9; padding: 3px 8px; border-radius: 6px; display: inline-block;">ID: ${v.id}</div>
                                     </div>
                                 </div>
@@ -2118,18 +2128,18 @@
                 const isCabang = tipePengajuan === 'cabang' || tipePengajuan === 'cabang baru';
                 
                 let badgeCabang = isCabang ? `<span class="unique-badge" style="background:#e0e7ff; color:#4f46e5; margin-left:8px;"><i class="ph-bold ph-git-branch"></i> Cabang Baru</span>` : '';
-                let emailInfo = isCabang && p.email_terdaftar ? `<div style="font-size:11px; color:var(--gray); margin-top:4px;"><i class="ph-bold ph-envelope"></i> ${p.email_terdaftar}</div>` : '';
+                let emailInfo = isCabang && p.email_terdaftar ? `<div style="font-size:11px; color:var(--gray); margin-top:4px;"><i class="ph-bold ph-envelope"></i> ${esc(p.email_terdaftar)}</div>` : '';
 
                 html += `
                     <tr style="background: white; border-bottom: 1px solid #f0f0f0;">
                         <td data-label="Info Pendaftar">
-                            <div style="font-weight:700; color:var(--dark);">${p.nama_warung || 'Tanpa Nama'} ${badgeCabang}</div>
-                            <div style="font-size:12px; color:var(--gray); margin-top:4px;"><i class="ph-bold ph-user"></i> ${p.nama_pemilik || '-'}</div>
+                            <div style="font-weight:700; color:var(--dark);">${esc(p.nama_warung || 'Tanpa Nama')} ${badgeCabang}</div>
+                            <div style="font-size:12px; color:var(--gray); margin-top:4px;"><i class="ph-bold ph-user"></i> ${esc(p.nama_pemilik || '-')}</div>
                             ${emailInfo}
                         </td>
                         <td data-label="Alamat & Kontak">
-                            <div style="font-size:13px;">${p.alamat || '-'}</div>
-                            <div style="font-size:12px; font-weight:600; color:var(--primary); margin-top:4px;"><i class="ph-bold ph-phone"></i> ${p.no_wa || '-'}</div>
+                            <div style="font-size:13px;">${esc(p.alamat || '-')}</div>
+                            <div style="font-size:12px; font-weight:600; color:var(--primary); margin-top:4px;"><i class="ph-bold ph-phone"></i> ${esc(p.no_wa || '-')}</div>
                         </td>
                         <td data-label="Tanggal">
                             <div style="font-size:12px; color:var(--gray);">${p.created_at ? new Date(p.created_at).toLocaleDateString('id-ID') : '-'}</div>
@@ -2179,7 +2189,7 @@
                 html += `
                     <tr>
                         <td data-label="Mitra & Akses">
-                            <div style="font-weight:700;">${v.nama_warung}</div>
+                            <div style="font-weight:700;">${esc(v.nama_warung)}</div>
                             <div style="font-size:11px; color:var(--gray);">ID: ${v.id}</div>
                         </td>
                         <td data-label="Total Tagihan" style="font-weight:700; color:var(--danger);">
@@ -2234,7 +2244,7 @@
                 table.innerHTML += `
                     <tr style="border-bottom:1px solid #f0f0f0;">
                         <td style="padding:15px 20px;">
-                            <div style="font-weight:700;">${v.nama_warung}</div>
+                            <div style="font-weight:700;">${esc(v.nama_warung)}</div>
                             <div style="font-size:11px; color:var(--gray);">ID: ${v.id}</div>
                         </td>
                         <td style="padding:15px 20px; text-align:right;">
@@ -2347,7 +2357,7 @@
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
                     <h3 style="margin:0;">Jadwal Mingguan</h3>
                 </div>
-                <p style="margin:0 0 15px; font-size:13px; color:var(--gray);">${v.nama_warung}</p>
+                <p style="margin:0 0 15px; font-size:13px; color:var(--gray);">${esc(v.nama_warung)}</p>
                 ${tbl}
                 <button onclick="this.parentElement.parentElement.remove()" style="margin-top:20px; background:var(--primary);color:white;border:none;padding:12px;border-radius:10px;width:100%;font-weight:bold;cursor:pointer;">Tutup</button>
             </div>`;
@@ -3090,8 +3100,8 @@
                     }
                     else if (r.date) formattedDate = r.date;
                     
-                    const userName = r.user || r.user_name || 'Pengguna Projekgo';
-                    const comment = r.text || 'Tidak ada komentar.';
+                    const userName = esc(r.user || r.user_name || 'Pengguna Projekgo');
+                    const comment = esc(r.text || 'Tidak ada komentar.');
 
                     container.innerHTML += `
                         <div class="review-item">
