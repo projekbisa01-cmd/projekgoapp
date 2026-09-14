@@ -6324,8 +6324,11 @@
             cart.forEach(item => { if(!grouped[item.vendor]) grouped[item.vendor] = []; grouped[item.vendor].push(item); subTotal += item.harga; });
             const fakeOriginalTotal = Math.ceil(subTotal * 1.2); const savings = fakeOriginalTotal - subTotal;
             let html = '';
+            const totalWarung = Object.keys(grouped).length;
+            let urutanWarung = 0;
 
             for(const [vendor, items] of Object.entries(grouped)) {
+                urutanWarung++;
                 const consolidatedItems = [];
                 items.forEach(item => { const key = item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase(); const existing = consolidatedItems.find(i => i._key === key); if (existing) { existing.qty++; existing.totalItemPrice += item.harga; } else { consolidatedItems.push({ ...item, _key: key, qty: 1, totalItemPrice: item.harga }); } });
                 
@@ -6342,12 +6345,29 @@
                 }
                 // -----------------------------------------------------------------------------------
                 
-                // 1. PERUBAHAN UI HEADER VENDOR (Garis bawah orange & Ikon Orange)
-                html += `<div class="cart-section" style="padding-bottom: 15px; margin-bottom: 0;">
+                // Garis oranye dipakai sebagai PEMISAH antar warung, bukan garis bawah nama.
+                // Hanya muncul mulai warung kedua, jadi tidak ada garis menggantung di atas.
+                if (urutanWarung > 1) {
+                    html += `<div style="height:5px; background:linear-gradient(90deg,#FF6600,#FF9A3C);"></div>`;
+                }
+
+                const labelUrutan = totalWarung > 1
+                    ? `<span style="font-size:10px; font-weight:800; color:#FF6600; background:#FFF3E9; padding:3px 8px; border-radius:20px; white-space:nowrap;">Warung ${urutanWarung} dari ${totalWarung}</span>`
+                    : '';
+
+                const jumlahPorsi = items.length;
+
+                html += `<div class="cart-section" style="padding: 14px 20px 12px; margin-bottom: 0;">
                 <div class="cart-vendor-group" style="border:none; margin-bottom:0; padding-bottom:0;">
-                    <div class="cv-title" style="display: inline-flex; align-items: center; gap: 8px; border-bottom: 2px solid #FF6600; padding-bottom: 4px; margin-bottom: 15px;">
-                        <i class="ph-fill ph-storefront" style="color: #FF6600; font-size: 22px;"></i> 
-                        <span style="font-weight: 900; font-size: 16px; text-transform: uppercase;">${vendor}</span>
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px;">
+                        <div style="display:flex; align-items:center; gap:8px; min-width:0;">
+                            <i class="ph-fill ph-storefront" style="color:#FF6600; font-size:20px; flex-shrink:0;"></i>
+                            <div style="min-width:0;">
+                                <div style="font-weight:900; font-size:15px; text-transform:uppercase; color:var(--dark); line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(vendor)}</div>
+                                <div style="font-size:11px; color:#999; margin-top:1px;">${jumlahPorsi} porsi</div>
+                            </div>
+                        </div>
+                        ${labelUrutan}
                     </div>`;
 
                 // 2. PERUBAHAN UI LIST MENU (Minimalis, Padat, Hemat Ruang)
@@ -6360,50 +6380,47 @@
                     const imgUrl = product && product.foto_url && product.foto_url.length > 5 ? product.foto_url : FALLBACK_MENU_IMG;
                     const itemPricePerUnit = item.totalItemPrice / item.qty;
                     
-                    // --- MENCARI DESKRIPSI PRODUK (LANGKAH 2) ---
-                    let descText = "";
-                    if (product && product.deskripsi && product.deskripsi.trim() !== "") {
-                        descText = product.deskripsi;
-                    } else {
-                        descText = `menu spesial dari ${vendor}, yang enak`;
-                    }
-                    // --------------------------------------------------------
+                    // Deskripsi hanya ditampilkan kalau mitra memang menulisnya.
+                    // Kalimat isian otomatis dibuang: itu yang membuat daftar terasa
+                    // panjang tapi kosong isi.
+                    const descText = (product && product.deskripsi && product.deskripsi.trim() !== "")
+                        ? product.deskripsi.trim() : "";
+                    const totalBaris = item.totalItemPrice;
                     
                     return `
-                    <div style="display: flex; gap: 15px; padding: 12px 0; border-bottom: 1px dashed #eee;">
-                        <img src="${imgUrl}" style="width: 70px; height: 70px; border-radius: 8px; object-fit: cover; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;" onerror="this.src='${FALLBACK_MENU_IMG}'">
-                        <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between; padding: 2px 0;">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                                <div style="font-weight: 700; font-size: 14px; color: #333; line-height: 1.2;">${item.nama}</div>
-                                <div style="font-size: 13px; color: #888; white-space: nowrap; margin-left: 10px;">${itemPricePerUnit.toLocaleString('id-ID')}</div>
+                    <div style="display:flex; gap:12px; padding:10px 0; border-bottom:1px solid #f4f4f4;">
+                        <img src="${imgUrl}" style="width:58px; height:58px; border-radius:10px; object-fit:cover; flex-shrink:0;" onerror="this.src='${FALLBACK_MENU_IMG}'">
+                        <div style="flex:1; min-width:0;">
+
+                            <div style="display:flex; justify-content:space-between; align-items:baseline; gap:10px;">
+                                <div style="font-weight:700; font-size:14px; color:#222; line-height:1.25; min-width:0;">${esc(item.nama)}</div>
+                                <div style="font-weight:800; font-size:14px; color:var(--dark); white-space:nowrap;">Rp ${totalBaris.toLocaleString('id-ID')}</div>
                             </div>
-                            
-                            <!-- DESKRIPSI PRODUK (LANGKAH 2) -->
-                            <div style="font-size: 11px; color: #888; margin-top: -4px; margin-bottom: 8px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-style: italic;">${descText}</div>
-                            
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <div onclick="updateCartItemQty('${item._key}', -1)" style="width: 24px; height: 24px; border: 1.5px solid #4CAF50; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #4CAF50; font-weight: bold; cursor: pointer; user-select: none;">-</div>
-                                    <span style="font-size: 14px; font-weight: 700; color: #333; min-width: 14px; text-align: center;">${item.qty}</span>
-                                    <div onclick="updateCartItemQty('${item._key}', 1)" style="width: 24px; height: 24px; border: 1.5px solid #4CAF50; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #4CAF50; font-weight: bold; cursor: pointer; user-select: none;">+</div>
-                                </div>
-                                <button onclick="promptNote('${item._key}')" style="background: white; border: 1px solid #ddd; padding: 4px 12px; border-radius: 15px; font-size: 11px; font-weight: 600; color: #555; display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                                    <i class="ph-bold ph-pencil-simple"></i> Catatan
+
+                            <div style="font-size:11px; color:#999; margin-top:2px; line-height:1.3;">
+                                ${item.qty} x Rp ${itemPricePerUnit.toLocaleString('id-ID')}${descText ? ` &middot; <span style="color:#aaa;">${esc(descText)}</span>` : ''}
+                            </div>
+
+                            ${metaText ? `<div style="font-size:11px; color:#E65100; background:#FFF6EE; padding:4px 8px; border-radius:8px; margin-top:6px; line-height:1.3;">${esc(metaText)}</div>` : ''}
+
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+                                <button onclick="promptNote('${item._key}')" style="background:none; border:none; padding:0; font-size:11px; font-weight:700; color:#888; display:flex; align-items:center; gap:5px; cursor:pointer;">
+                                    <i class="ph-bold ph-pencil-simple" style="font-size:14px;"></i> ${metaText ? 'Ubah catatan' : 'Catatan'}
                                 </button>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <div onclick="updateCartItemQty('${item._key}', -1)" style="width:26px; height:26px; border:1.5px solid #e0e0e0; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#666; font-weight:bold; cursor:pointer; user-select:none;">-</div>
+                                    <span style="font-size:14px; font-weight:800; color:#222; min-width:14px; text-align:center;">${item.qty}</span>
+                                    <div onclick="updateCartItemQty('${item._key}', 1)" style="width:26px; height:26px; background:#FF6600; border:1.5px solid #FF6600; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; cursor:pointer; user-select:none;">+</div>
+                                </div>
                             </div>
-                            ${metaText ? `<div style="font-size:10px; color:#888; margin-top:6px; font-style:italic;">${metaText}</div>` : ''}
                         </div>
                     </div>`; 
                 }).join('');
                 
                 // Bagian "Ada lagi yang mau dibeli?"
                 html += `
-                <div style="display:flex; justify-content:space-between; align-items:center; padding-top:15px; margin-top:5px;">
-                    <div>
-                        <div style="font-weight:700; font-size:13px; color:var(--dark); margin-bottom: 2px;">Ada lagi yang mau dibeli?</div>
-                        <div style="font-size:11px; color:#888;">Masih bisa nambah menu lain, ya.</div>
-                    </div>
-                    <button onclick="openVendorPage('${targetVendorId}')" style="background:white; color:#FF6600; border:1px solid #FF6600; padding:6px 18px; border-radius:15px; font-weight:700; font-size:12px; cursor:pointer;">Tambah</button>
+                <div onclick="openVendorPage('${targetVendorId}')" style="display:flex; align-items:center; justify-content:center; gap:7px; margin-top:10px; padding:9px; border:1px dashed #FFC59B; border-radius:10px; color:#FF6600; font-size:12px; font-weight:700; cursor:pointer;">
+                    <i class="ph-bold ph-plus-circle" style="font-size:15px;"></i> Tambah menu lain dari ${esc(vendor)}
                 </div>
                 
                 </div></div>`;
@@ -7360,20 +7377,47 @@
             
             if (savingsContainer) {
                 if (totalSavings > 0) {
-                    let html = `<div style="background:#E8F5E9; border: 1px dashed #4CAF50; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">`;
-                    
-                    if (foodSavings > 0) {
-                        html += `<div style="display:flex; align-items:center; gap:6px; font-size:12px; color:#2E7D32;"><i class="ph-fill ph-check-circle"></i> Hemat harga makanan Rp ${foodSavings.toLocaleString('id-ID')}</div>`;
-                    }
+                    const rp = (n) => 'Rp ' + n.toLocaleString('id-ID');
+                    let html = '';
+
                     if (ongkirSavings > 0) {
-                        html += `<div style="display:flex; align-items:center; gap:6px; font-size:12px; color:#2E7D32;"><i class="ph-fill ph-check-circle"></i> Hemat ongkos kirim Rp ${ongkirSavings.toLocaleString('id-ID')}</div>`;
+                        // Ongkir sudah terhitung: tampilkan total sebagai angka utama,
+                        // rinciannya di bawah sebagai penjelas.
+                        html = `
+                        <div style="background:#E8F5E9; border:1px solid #C8E6C9; border-radius:14px; padding:14px 16px;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                                <div style="display:flex; align-items:center; gap:8px; color:#1B5E20;">
+                                    <i class="ph-fill ph-piggy-bank" style="font-size:22px; color:#2E7D32;"></i>
+                                    <span style="font-size:13px; font-weight:800;">Total penghematan kamu</span>
+                                </div>
+                                <span style="font-size:18px; font-weight:900; color:#1B5E20; white-space:nowrap;">${rp(totalSavings)}</span>
+                            </div>
+                            <div style="border-top:1px dashed #A5D6A7; margin-top:11px; padding-top:9px; display:flex; flex-direction:column; gap:5px;">
+                                ${foodSavings > 0 ? `<div style="display:flex; justify-content:space-between; font-size:12px; color:#2E7D32;"><span>Harga makanan</span><span style="font-weight:700;">${rp(foodSavings)}</span></div>` : ''}
+                                <div style="display:flex; justify-content:space-between; font-size:12px; color:#2E7D32;"><span>Ongkos kirim</span><span style="font-weight:700;">${rp(ongkirSavings)}</span></div>
+                            </div>
+                        </div>`;
+                    } else {
+                        // Ongkir belum terhitung (alamat masih manual atau belum dipilih).
+                        // Tampilkan penghematan makanan dulu, dan sebutkan ongkir menyusul
+                        // supaya angkanya tidak terasa menggantung.
+                        html = `
+                        <div style="background:#E8F5E9; border:1px solid #C8E6C9; border-radius:14px; padding:14px 16px;">
+                            <div style="display:flex; align-items:flex-start; gap:10px;">
+                                <i class="ph-fill ph-piggy-bank" style="font-size:22px; color:#2E7D32; flex-shrink:0;"></i>
+                                <div>
+                                    <div style="font-size:13px; color:#1B5E20; line-height:1.5;">
+                                        Penghematan pesanan makanan kamu
+                                        <span style="font-weight:900; font-size:15px;">${rp(foodSavings)}</span>
+                                    </div>
+                                    <div style="font-size:12px; color:#2E7D32; line-height:1.5; margin-top:5px;">
+                                        Ongkos kirimnya nanti juga lebih hemat, dan pesanan kamu diantar prioritas.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
                     }
-                    
-                    html += `<div style="border-top:1px dashed #A5D6A7; padding-top:8px; margin-top:4px; display:flex; align-items:center; justify-content:space-between; font-size:13px; font-weight:800; color:#1B5E20;">
-                        <span style="display:flex; align-items:center; gap:6px;"><i class="ph-fill ph-star" style="color:#FFC107;"></i> Total Penghematan</span>
-                        <span>Rp ${totalSavings.toLocaleString('id-ID')}</span>
-                    </div></div>`;
-                    
+
                     savingsContainer.innerHTML = html;
                     savingsContainer.style.display = 'block';
                 } else {
@@ -8715,22 +8759,38 @@
                 gestureHandling: 'greedy' // INI TAMBAHANNYA: Agar bisa geser 1 jari
             });
 
+            // Penanda ini sekarang tidak terlihat. Pin yang dilihat pengguna adalah
+            // pin oranye yang dipaku di tengah layar, dan titik yang dipakai selalu
+            // titik tengah peta. Penanda ini hanya menyimpan titik terakhir agar
+            // kode lain yang membacanya tetap berjalan.
             serviceMarker = new google.maps.Marker({
                 position: defaultLoc,
                 map: serviceMap,
-                draggable: true,
-                animation: google.maps.Animation.DROP
+                visible: false,
+                draggable: false
             });
 
-            // Klik map untuk pindah pin
+            // Klik peta: geser peta ke titik itu. Pembacaan alamat ditangani 'idle'.
             serviceMap.addListener('click', (e) => {
-                serviceMarker.setPosition(e.latLng);
-                geocodePosition(e.latLng);
+                serviceMap.panTo(e.latLng);
             });
 
-            // Geser pin
-            serviceMarker.addListener('dragend', (e) => {
-                geocodePosition(e.latLng);
+            // Setiap kali peta berhenti bergerak, titik tengahnya dibaca sebagai
+            // lokasi terpilih. Diberi jeda supaya Geocoding API tidak dipanggil
+            // berkali-kali selama jari masih menggeser.
+            serviceMap.addListener('idle', () => {
+                const kotakPeta = document.getElementById('map-selection-container');
+                if (!kotakPeta || kotakPeta.style.display === 'none') return;
+                if (!activeMapInput) return;
+
+                const tengah = serviceMap.getCenter();
+                if (!tengah) return;
+                serviceMarker.setPosition(tengah);
+
+                clearTimeout(window.jedaBacaAlamat);
+                window.jedaBacaAlamat = setTimeout(() => {
+                    geocodePosition(serviceMap.getCenter());
+                }, 600);
             });
 
             // Coba arahkan ke lokasi user saat ini secara otomatis
@@ -8739,7 +8799,7 @@
                     const myLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                     serviceMap.setCenter(myLoc);
                     serviceMarker.setPosition(myLoc);
-                    geocodePosition(myLoc); // Otomatis baca alamat awal
+                    // Alamat dibaca oleh listener 'idle' setelah peta selesai bergeser
                 }, () => {
                     console.log("GPS diblokir/tidak ada.");
                 });
