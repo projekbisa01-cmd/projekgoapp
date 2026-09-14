@@ -923,93 +923,103 @@
         let deleteTarget = null; 
         let adminAllPengajuan = [];
 
-        // === BLOK SEMENTARA — HAPUS SETELAH SELESAI DIPAKAI ===
-        window.backupVendors = async () => {
-            const snap = await getDocs(collection(db, "vendors"));
-            const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'backup-vendors-' + Date.now() + '.json';
-            a.click();
-            console.log("Backup " + data.length + " warung selesai diunduh.");
+        // --- AKSES MITRA: PIN disimpan di subkoleksi private, tidak ikut terbaca publik ---
+        const pinRef = (vendorId) => doc(db, "vendors", vendorId, "private", "akses");
+
+        window.simpanPin = async (vendorId, pin) => {
+            await setDoc(pinRef(vendorId), {
+                pin: pin,
+                updated_at: new Date().toISOString()
+            }, { merge: true });
         };
-        // === AKHIR BLOK SEMENTARA ===
 
-
-        // === BLOK SEMENTARA — HAPUS SETELAH SELESAI DIPAKAI ===
-        window.cekKoneksi = async () => {
-            console.log("--- PEMERIKSAAN KONEKSI ---");
-            console.log("Project Firebase :", app.options.projectId);
-            console.log("Login sebagai    :", auth.currentUser ? auth.currentUser.email : "BELUM LOGIN");
-            console.log("UID              :", auth.currentUser ? auth.currentUser.uid : "-");
-            console.log("Alamat halaman   :", window.location.href);
-
-            for (const nama of ["vendors", "products", "admins", "pengajuan_mitra", "reviews"]) {
-                try {
-                    const snap = await getDocs(collection(db, nama));
-                    console.log(`  ${nama} : ${snap.size} dokumen`);
-                    if (snap.size > 0) {
-                        console.log(`     contoh id  : ${snap.docs[0].id}`);
-                        console.log(`     nama field : ${Object.keys(snap.docs[0].data()).join(", ")}`);
-                    }
-                } catch (e) {
-                    console.error(`  ${nama} : GAGAL -> ${e.code || ''} ${e.message}`);
-                }
+        window.ambilPin = async (vendorId) => {
+            try {
+                const s = await getDoc(pinRef(vendorId));
+                return s.exists() ? (s.data().pin || null) : null;
+            } catch (e) {
+                console.error("Gagal membaca PIN:", e.message);
+                return null;
             }
-            console.log("--- SELESAI ---");
         };
-        // === AKHIR BLOK SEMENTARA ===
 
+        // PIN acak 10 karakter memakai crypto.getRandomValues, bukan Math.random.
+        // Huruf I, O dan angka 0, 1 dibuang supaya tidak salah baca saat dikirim lewat WA.
+        window.buatPinAcak = () => {
+            const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+            const arr = new Uint32Array(10);
+            crypto.getRandomValues(arr);
+            return Array.from(arr, n => chars[n % chars.length]).join('');
+        };
 
-        // === BLOK SEMENTARA — HAPUS SETELAH SELESAI DIPAKAI ===
-        window.cekMigrasi = async () => {
-            const snap = await getDocs(collection(db, "vendors"));
-            let masihPublik = [], sudahAman = 0, tanpaPin = [];
+        window.lihatPin = async (vendorId) => {
+            const el = document.getElementById('pin-' + vendorId);
+            if (!el) return;
+            el.innerText = 'memuat...';
+            const pin = await window.ambilPin(vendorId);
+            el.innerText = pin || 'belum ada PIN';
+            setTimeout(() => { if (el) el.innerText = '••••••'; }, 15000);
+        };
 
-            for (const d of snap.docs) {
-                if (d.data().pin) masihPublik.push(d.id);
-                try {
-                    const s = await getDoc(doc(db, "vendors", d.id, "private", "akses"));
-                    if (s.exists() && s.data().pin) sudahAman++;
-                    else tanpaPin.push(d.id);
-                } catch (e) {
-                    tanpaPin.push(d.id + " (error: " + (e.code || e.message) + ")");
-                }
+        window.kirimAksesWA = async (vendorId, phone) => {
+            const v = adminAllVendors.find(x => x.id === vendorId) || {};
+            const pin = await window.ambilPin(vendorId);
+            if (!pin) {
+                alert('PIN mitra ini belum tersimpan. Pakai tombol Ganti PIN dulu untuk membuatkan yang baru.');
+                return;
+            }
+            const pesan = `Halo ${v.nama_warung || ''}, saya dari Projekgo.\n\n`
+                + `Email login Anda: *${v.email || vendorId}*\n`
+                + `PIN masuk Anda: *${pin}*\n\n`
+                + `Dipakai untuk masuk ke aplikasi penjual dan mengatur katalog jualan kamu. `
+                + `Simpan dan rahasiakan PIN ini, jangan diberitahukan ke siapa pun. `
+                + `Kalau kemudian hari lupa, silakan chat admin.`;
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(pesan)}`, '_blank');
+        };
+
+        // --- GANTI PIN (sebelumnya dipanggil tapi tidak pernah didefinisikan) ---
+        window.generateRandomPinEdit = () => {
+            document.getElementById('ep-new-pin').value = window.buatPinAcak();
+        };
+
+        window.openEditPin = (vendorId, vendorName) => {
+            document.getElementById('ep-id').value = vendorId;
+            document.getElementById('ep-name').innerText = vendorName;
+            document.getElementById('ep-new-pin').value = '';
+            document.getElementById('edit-pin-modal').style.display = 'flex';
+        };
+
+        window.confirmChangePin = async () => {
+            const vendorId = document.getElementById('ep-id').value;
+            const pinBaru = document.getElementById('ep-new-pin').value.trim();
+
+            if (pinBaru.length < 8) return alert('PIN baru minimal 8 karakter.');
+
+            const v = adminAllVendors.find(x => x.id === vendorId) || {};
+            const email = v.email || vendorId;
+            const pinLama = await window.ambilPin(vendorId);
+
+            if (!pinLama) {
+                return alert('PIN lama tidak tercatat, jadi password login tidak bisa diubah dari panel ini. '
+                    + 'Mitra ini perlu dibuatkan akun lewat tombol Migrasi.');
             }
 
-            console.log("--- HASIL MIGRASI ---");
-            console.log("Total warung            :", snap.size);
-            console.log("PIN tersimpan aman      :", sudahAman);
-            console.log("MASIH TERBUKA DI PUBLIK :", masihPublik.length);
-            if (masihPublik.length) console.log("   daftarnya:", masihPublik);
-            console.log("Belum punya PIN sama sekali:", tanpaPin.length);
-            if (tanpaPin.length) console.log("   daftarnya:", tanpaPin);
-            console.log("--- SELESAI ---");
-        };
-        // === AKHIR BLOK SEMENTARA ===
-
-        // === BLOK SEMENTARA — HAPUS SETELAH SELESAI DIPAKAI ===
-        window.migrasiPin = async () => {
-            const snap = await getDocs(collection(db, "vendors"));
-            let pindah = 0, lewat = 0, gagal = 0;
-            for (const d of snap.docs) {
-                const pin = d.data().pin;
-                if (!pin) { lewat++; continue; }
-                try {
-                    await setDoc(doc(db, "vendors", d.id, "private", "akses"),
-                        { pin: pin, dipindah_pada: new Date().toISOString() }, { merge: true });
-                    await updateDoc(doc(db, "vendors", d.id), { pin: deleteField() });
-                    pindah++;
-                    console.log("OK:", d.id);
-                } catch (e) {
-                    gagal++;
-                    console.error("GAGAL:", d.id, e.message);
-                }
+            try {
+                const cred = await signInWithEmailAndPassword(secondaryAuth, email, pinLama);
+                await updatePassword(cred.user, pinBaru);
+                await signOut(secondaryAuth);
+                await window.simpanPin(vendorId, pinBaru);
+                closeModal('edit-pin-modal');
+                alert('PIN berhasil diganti.\n\nPIN baru: ' + pinBaru + '\n\nKirim ke mitra lewat tombol "Kirim Akses via WA".');
+            } catch (e) {
+                alert('Gagal mengganti PIN: ' + e.message
+                    + '\n\nKalau pesannya soal kredensial, berarti mitra sudah pernah mengganti PIN sendiri '
+                    + 'sehingga catatan di database tidak cocok lagi.');
             }
-            console.log(`Selesai. Dipindah: ${pindah} | Tanpa PIN: ${lewat} | Gagal: ${gagal}`);
         };
-        // === AKHIR BLOK SEMENTARA ===
+
+
+
 
         // --- PWA VIRTUAL LOGIC (AGRESIF) ---
         let deferredPrompt;
@@ -1609,17 +1619,17 @@
                 let accessInfo = '';
                 
                 const emailTampil = v.email || 'belum_ada_email';
-                const pinTampil = v.pin || 'belum_ada_pin';
+                const pinTampil = '••••••';
 
                 if (isAdminManaged) {
                     accessInfo = `<div style="display:flex; align-items:center; gap:6px; color:#7c3aed; font-weight:700;"><i class="ph-fill ph-shield-star" style="font-size:16px;"></i> Dikelola Admin</div>`;
                 } else if (isMigrated) {
                     accessInfo = `
                         <div style="display:flex; align-items:center; gap:6px; color:#10b981; margin-bottom: 6px; font-weight:600;"><i class="ph-fill ph-envelope-simple" style="font-size:16px;"></i> ${emailTampil}</div>
-                        <div style="display:flex; align-items:center; gap:6px; color:#ef4444; font-weight:600;"><i class="ph-fill ph-key" style="font-size:16px;"></i> PIN: ${pinTampil}</div>
+                        <div style="display:flex; align-items:center; gap:6px; color:#ef4444; font-weight:600;"><i class="ph-fill ph-key" style="font-size:16px;"></i> PIN: <span id="pin-${v.id}">${pinTampil}</span> <button type="button" onclick="window.lihatPin('${v.id}')" style="background:#fee2e2; color:#b91c1c; border:none; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Lihat</button></div>
                     `;
                 } else {
-                    accessInfo = `<div style="display:flex; align-items:center; gap:6px; color:#ef4444; font-weight:600;"><i class="ph-fill ph-warning-circle" style="font-size:16px;"></i> Auth Lama | PIN: ${pinTampil}</div>`;
+                    accessInfo = `<div style="display:flex; align-items:center; gap:6px; color:#ef4444; font-weight:600;"><i class="ph-fill ph-warning-circle" style="font-size:16px;"></i> Auth Lama | PIN: <span id="pin-${v.id}">${pinTampil}</span> <button type="button" onclick="window.lihatPin('${v.id}')" style="background:#fee2e2; color:#b91c1c; border:none; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Lihat</button></div>`;
                 }
 
                 /* LOGIKA TOMBOL WA DINAMIS */
@@ -1630,13 +1640,10 @@
                         phone = '62' + phone.substring(1); // Ubah 0 jadi 62
                     }
                     
-                    const waMessage = `Halo ${v.nama_warung}, saya dari Projekgo.\n\nUntuk aplikasi penjual ini adalah email login Anda: *${emailTampil}* dan pin masuk anda: *${pinTampil}* untuk masuk dan menambahkan serta mengatur katalog penjualan kamu, simpan dan rahasiakan pin, jangan diberitahu siapa pun yah, jika kemudian hari lupa pin bisa chat admin.`;
-                    const waLink = `https://wa.me/${phone}?text=${encodeURIComponent(waMessage)}`;
-                    
                     waButtonHtml = `
-                        <a href="${waLink}" target="_blank" style="display:inline-flex; align-items:center; gap:6px; background:#10b981; color:white; padding:8px 14px; border-radius:10px; text-decoration:none; font-weight:700; font-size:12px; margin-top:10px; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">
+                        <button type="button" onclick="window.kirimAksesWA('${v.id}', '${phone}')" style="display:inline-flex; align-items:center; gap:6px; background:#10b981; color:white; padding:8px 14px; border:none; border-radius:10px; font-weight:700; font-size:12px; margin-top:10px; cursor:pointer; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">
                             <i class="ph-fill ph-whatsapp-logo" style="font-size:16px;"></i> Kirim Akses via WA
-                        </a>
+                        </button>
                     `;
                 }
 
@@ -2217,7 +2224,7 @@
                     let randomNum = Math.floor(1000 + Math.random() * 9000);
                     let newEmail = `${baseName}${randomNum}@projekgo.id`;
                     let newVendorId = newEmail; 
-                    let newPin = Math.floor(100000 + Math.random() * 900000).toString(); 
+                    let newPin = window.buatPinAcak(); 
                     
                     // Otomatis buatkan akun Auth agar mitra bisa langsung login
                     try {
@@ -2234,7 +2241,6 @@
                         nama_warung: p.nama_warung || 'Tanpa Nama',
                         kategori_utama: [],
                         alamat_warung: p.alamat || '-',
-                        pin: newPin,
                         status: 'BUKA',
                         is_andalan: false,
                         role: 'vendor',
@@ -2243,6 +2249,8 @@
                         is_approved: true, 
                         created_at: new Date().toISOString()
                     });
+
+                    await window.simpanPin(newVendorId, newPin);
 
                     // Update status pengajuan di Firestore
                     await updateDoc(doc(db, "pengajuan_mitra", id), {
@@ -2345,7 +2353,7 @@
         };
 
         window.generateRandomPin = () => {
-            document.getElementById('new-vendor-pin').value = Math.floor(100000 + Math.random() * 900000).toString();
+            document.getElementById('new-vendor-pin').value = window.buatPinAcak();
         };
 
         window.saveWarung = async () => {
@@ -2370,7 +2378,6 @@
 
                 await setDoc(vendorRef, {
                     id: vId,
-                    pin: vPin,
                     nama_warung: vName,
                     alamat_warung: vLoc,
                     status: 'BUKA',
@@ -2379,6 +2386,8 @@
                     role: 'vendor',
                     created_at: new Date().toISOString()
                 });
+
+                await window.simpanPin(vId, vPin);
                 
                 document.getElementById('add-modal').style.display = 'none';
                 
