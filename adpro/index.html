@@ -82,6 +82,19 @@
             z-index: 1000;
             box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
         }
+        /* --- PANEL KATEGORI (DRAG & DROP) --- */
+        .kat-row { background:#fff; border:1px solid #eee; border-radius:14px; margin-bottom:10px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+        .kat-row.kat-dragging { box-shadow:0 10px 24px rgba(0,0,0,0.18); border-color:var(--primary); position:relative; z-index:50; }
+        .kat-row-head { display:flex; align-items:center; gap:10px; padding:12px; }
+        .kat-handle { touch-action:none; -webkit-user-select:none; user-select:none; cursor:grab; color:#9aa0a6; font-size:24px; padding:2px 4px; flex-shrink:0; }
+        .kat-num { width:26px; height:26px; border-radius:8px; background:#f1f5f9; color:#475569; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .kat-icon { width:40px; height:40px; border-radius:10px; object-fit:contain; background:#f8fafc; flex-shrink:0; padding:3px; }
+        .kat-name { flex:1; font-size:14px; font-weight:700; color:var(--dark); word-break:break-word; line-height:1.3; }
+        .kat-meta { font-size:11px; font-weight:600; color:#94a3b8; margin-top:3px; }
+        .kat-act { background:none; border:none; padding:5px; cursor:pointer; font-size:20px; flex-shrink:0; }
+        .kat-chip { display:inline-flex; align-items:center; gap:5px; background:#f1f5f9; border-radius:8px; padding:6px 10px; font-size:12px; margin:3px; }
+        body.kat-dragging-active { -webkit-user-select:none; user-select:none; }
+
         .nav-item {
             display: flex;
             flex-direction: column;
@@ -575,6 +588,36 @@
             <button class="btn-add-float" onclick="window.openAddWarungAdminModal()"><i class="ph-bold ph-plus"></i></button>
         </div>
 
+        <!-- HALAMAN KELOLA KATEGORI UTAMA -->
+        <div id="page-kategori" class="page-content">
+            <div class="page-header">
+                <h1 class="page-title">Kategori Utama</h1>
+                <p class="page-subtitle">Kategori yang tampil di beranda aplikasi pelanggan</p>
+            </div>
+
+            <div id="kat-seed-box" style="display:none; background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; border-radius:14px; padding:15px; margin-bottom:18px; font-size:12.5px; line-height:1.6;">
+                <b>Daftar kategori masih kosong.</b><br>
+                Tekan tombol di bawah untuk mengisi kategori bawaan (Sarapan, Pernasian, Minuman, Ayam, Berkuah, Aneka Mie, Halal, Snack, Cepat Saji, Makanan Khas, Legendaris). Setelah itu kategori bisa ditambah, diubah, dihapus, dan diurutkan dari sini.
+                <button onclick="window.seedKategoriBawaan()" style="margin-top:12px; width:100%; background:#ea580c; color:#fff; border:none; border-radius:10px; padding:12px; font-weight:800; font-size:13px; cursor:pointer;">Isi Kategori Bawaan</button>
+            </div>
+
+            <div style="display:flex; gap:8px; margin-bottom:18px;">
+                <button onclick="window.openKategoriModal()" style="flex:1; background:var(--primary); color:#fff; border:none; border-radius:12px; padding:13px; font-weight:800; font-size:13px; cursor:pointer;">
+                    <i class="ph-bold ph-plus"></i> Tambah Kategori
+                </button>
+                <button id="btn-simpan-urutan-kat" onclick="window.simpanUrutanKategori()" style="display:none; flex:1; background:#0284c7; color:#fff; border:none; border-radius:12px; padding:13px; font-weight:800; font-size:13px; cursor:pointer;">
+                    Simpan Urutan
+                </button>
+            </div>
+
+            <div style="background:#eff6ff; border:1px solid #bfdbfe; color:#1e40af; border-radius:12px; padding:12px; font-size:11.5px; line-height:1.6; margin-bottom:16px;">
+                Tahan ikon <i class="ph-bold ph-dots-six-vertical"></i> lalu geser untuk mengatur urutan. Tujuh kategori teratas yang tampil di beranda pelanggan, sisanya masuk tombol "Lainnya".
+            </div>
+
+            <div id="kat-list"></div>
+            <div style="height:90px;"></div>
+        </div>
+
     </div>
 
     <!-- BOTTOM NAV -->
@@ -606,6 +649,10 @@
         <div class="nav-item" onclick="showPage('umkm', this)">
             <i class="ph ph-tent"></i>
             <span>UMKM</span>
+        </div>
+        <div class="nav-item" onclick="showPage('kategori', this)">
+            <i class="ph ph-squares-four"></i>
+            <span>Kategori</span>
         </div>
     </div>
 
@@ -837,7 +884,7 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Kategori Utama</label>
-                <input type="text" id="wa-category" class="form-input" placeholder="Pilih 1 kategori (cth: Minuman)">
+                <select id="wa-category" class="form-input"></select>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <div class="form-group">
@@ -913,6 +960,63 @@
         </div>
     </div>
 
+    <!-- MODAL TAMBAH / EDIT KATEGORI -->
+    <div id="kategori-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title" id="kategori-modal-title">Tambah Kategori</div>
+            <div class="form-group">
+                <label class="form-label">Nama Kategori</label>
+                <input type="text" id="kat-nama" class="form-input" placeholder="Contoh: Bakso" maxlength="40">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Link Ikon (Opsional)</label>
+                <input type="text" id="kat-icon" class="form-input" placeholder="https://... (kosongkan untuk ikon bawaan)">
+                <div style="font-size: 11px; color: var(--gray); margin-top: 4px;">*Gambar persegi, latar transparan. Harus diawali https://</div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal" style="background:#f1f5f9;" onclick="window.closeModal('kategori-modal')">Batal</button>
+                <button class="btn-modal" style="background:var(--primary); color:white;" onclick="window.simpanKategori()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL HAPUS KATEGORI -->
+    <div id="hapus-kategori-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title">Hapus Kategori</div>
+            <div id="hapus-kat-info" style="font-size:13px; line-height:1.6; color:var(--dark); margin-bottom:18px;"></div>
+            <div class="form-group" id="hapus-kat-pindah-wrap" style="display:none;">
+                <label class="form-label">Pindahkan warung tersebut ke kategori</label>
+                <select id="hapus-kat-tujuan" class="form-input"></select>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal" style="background:#f1f5f9;" onclick="window.closeModal('hapus-kategori-modal')">Batal</button>
+                <button class="btn-modal" id="btn-konfirmasi-hapus-kat" style="background:#dc2626; color:white;" onclick="window.konfirmasiHapusKategori()">Hapus</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PINDAH WARUNG ANTAR KATEGORI -->
+    <div id="pindah-warung-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title" id="pindah-warung-title">Pindahkan Warung</div>
+            <div style="font-size:12px; color:var(--gray); margin-bottom:12px;">Centang warung yang mau dipindahkan, lalu pilih kategori tujuannya.</div>
+            <div style="display:flex; gap:8px; margin-bottom:10px;">
+                <button class="btn-modal" style="flex:1; background:#f1f5f9; font-size:12px; padding:8px;" onclick="window.pilihSemuaWarung(true)">Centang Semua</button>
+                <button class="btn-modal" style="flex:1; background:#f1f5f9; font-size:12px; padding:8px;" onclick="window.pilihSemuaWarung(false)">Kosongkan</button>
+            </div>
+            <div id="pindah-warung-list" style="max-height:38vh; overflow-y:auto; border:1px solid #eee; border-radius:12px; padding:10px; margin-bottom:15px;"></div>
+            <div class="form-group">
+                <label class="form-label">Kategori Tujuan</label>
+                <select id="pindah-warung-tujuan" class="form-input"></select>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal" style="background:#f1f5f9;" onclick="window.closeModal('pindah-warung-modal')">Batal</button>
+                <button class="btn-modal" style="background:var(--primary); color:white;" onclick="window.jalankanPindahWarung()">Pindahkan</button>
+            </div>
+        </div>
+    </div>
+
     <!-- PWA VIRTUAL & SERVICE WORKER INLINE -->
     <script>
         // 1. Generate Virtual Manifest (Tanpa file manifest.json)
@@ -961,7 +1065,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, query, limit, orderBy, deleteDoc, doc, setDoc, updateDoc, addDoc, getDoc, where, deleteField } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, query, limit, orderBy, deleteDoc, doc, setDoc, updateDoc, addDoc, getDoc, where, deleteField, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getStorage, ref, deleteObject, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
         import { getAuth, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, updatePassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -1507,28 +1611,24 @@
             if (pageId === 'tagihan') window.renderTagihanList();
             if (pageId === 'umkm') window.renderWarungAdminList();
             if (pageId === 'pendaftaran') window.renderPengajuanMitra();
+            if (pageId === 'kategori') window.renderKategoriPage();
         }
 
         // --- RENDER KATEGORI OPTIONS ---
         window.renderKategoriOptions = () => {
             const container = document.getElementById('evi-kategori-container');
-            const defaultCategories = ["Sarapan", "Pernasian", "Minuman", "Ayam", "Berkuah", "aneka mie", "Snack"];
-            
-            const dbCategories = adminAllKategori
-                .map(k => k.nama || k.name || k.kategori_utama || k.id)
-                .filter(catName => {
-                    return !defaultCategories.some(d => d.toLowerCase() === (catName || '').toLowerCase());
-                });
 
-            const allCategories = [...defaultCategories, ...dbCategories];
+            // Sumbernya sekarang koleksi kategori_utama (dikelola di halaman Kategori),
+            // bukan lagi daftar tetap di dalam kode.
+            const allCategories = daftarKategoriTerurut().map(k => namaKategori(k));
             
             let html = '';
             allCategories.forEach(catName => {
                 if(catName) {
                     html += `
                     <label class="checkbox-label">
-                        <input type="checkbox" name="kategori_cb" value="${catName}">
-                        ${catName}
+                        <input type="checkbox" name="kategori_cb" value="${esc(catName)}">
+                        ${esc(catName)}
                     </label>`;
                 }
             });
@@ -2786,7 +2886,7 @@
             document.getElementById('wa-location').value = '';
             document.getElementById('wa-lat').value = '';
             document.getElementById('wa-lng').value = '';
-            document.getElementById('wa-category').value = '';
+            window.isiSelectKategori(document.getElementById('wa-category'), null, '');
             document.getElementById('wa-photo').value = ''; // Reset Foto
             
             // Render Jadwal Mingguan Inputs
@@ -2826,7 +2926,7 @@
             document.getElementById('wa-location').value = v.alamat_warung || '';
             document.getElementById('wa-lat').value = v.latitude || '';
             document.getElementById('wa-lng').value = v.longitude || '';
-            document.getElementById('wa-category').value = (v.kategori_utama && v.kategori_utama.length > 0) ? v.kategori_utama[0] : '';
+            window.isiSelectKategori(document.getElementById('wa-category'), null, (v.kategori_utama && v.kategori_utama.length > 0) ? v.kategori_utama[0] : '');
             document.getElementById('wa-photo').value = ''; // Reset file input karena file tidak bisa di-set otomatis via JS
             
             // Render Jadwal Mingguan Inputs sesuai data tersimpan
@@ -3107,6 +3207,530 @@
             snap.forEach(d => adminAllKategori.push({id: d.id, ...d.data()}));
             window.renderKategoriOptions(); 
         }
+
+
+        /* ==========================================================
+           KELOLA KATEGORI UTAMA (tambah / ubah / hapus / urutkan / pindah warung)
+           Sumber data tunggal: koleksi "kategori_utama"
+           Field: nama (string), icon_url (string), urutan (number)
+           ========================================================== */
+
+        const KAT_BAWAAN = [
+            { nama: "Sarapan",      icon_url: "https://i.ibb.co.com/kVR7fprr/Desain-tanpa-judul-61.png" },
+            { nama: "Pernasian",    icon_url: "https://i.ibb.co.com/DDSkjJ5m/Desain-tanpa-judul-56.png" },
+            { nama: "Minuman",      icon_url: "https://i.ibb.co.com/0RZpFk8h/Desain-tanpa-judul-59.png" },
+            { nama: "Ayam",         icon_url: "https://i.ibb.co.com/2TMRrvp/Desain-tanpa-judul-63.png" },
+            { nama: "Berkuah",      icon_url: "https://i.ibb.co.com/Jw8yTfFf/Desain-tanpa-judul-58.png" },
+            { nama: "Aneka Mie",    icon_url: "https://i.ibb.co.com/7Jk8SR9b/Desain-tanpa-judul-62.png" },
+            { nama: "Halal",        icon_url: "https://i.ibb.co.com/GQ7T7bqV/Desain-tanpa-judul-74.png" },
+            { nama: "Snack",        icon_url: "https://i.ibb.co.com/spbzfHGF/Desain-tanpa-judul-57.png" },
+            { nama: "Cepat Saji",   icon_url: "https://i.ibb.co.com/C40BFB7/Desain-tanpa-judul-60.png" },
+            { nama: "Makanan Khas", icon_url: "https://i.ibb.co.com/vxPXXHSJ/Desain-tanpa-judul-64.png" },
+            { nama: "Legendaris",   icon_url: "" }
+        ];
+
+        // Nama kategori dipakai sebagai kunci objek di aplikasi pelanggan, jadi nama
+        // seperti "__proto__" harus ditolak supaya tidak merusak halaman.
+        const KAT_NAMA_TERLARANG = ['__proto__', 'constructor', 'prototype'];
+
+        let katDraftOrder = [];   // urutan id kategori sebelum disimpan
+        let katEditId = null;
+        let katHapusId = null;
+        let katPindahDari = null;
+
+        const namaKategori = (k) => String((k && (k.nama || k.name || k.kategori_utama)) || '').trim();
+        const samaNama = (a, b) => String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
+
+        function daftarKategoriTerurut() {
+            return [...adminAllKategori]
+                .filter(k => namaKategori(k))
+                .sort((a, b) => {
+                    const ua = typeof a.urutan === 'number' ? a.urutan : 999999;
+                    const ub = typeof b.urutan === 'number' ? b.urutan : 999999;
+                    if (ua !== ub) return ua - ub;
+                    return namaKategori(a).localeCompare(namaKategori(b), 'id');
+                });
+        }
+
+        function kategoriWarung(v) {
+            const k = v && v.kategori_utama;
+            if (Array.isArray(k)) return String(k[0] || '').trim();
+            return String(k || '').trim();
+        }
+
+        function warungDiKategori(nama) {
+            return adminAllVendors.filter(v => samaNama(kategoriWarung(v), nama));
+        }
+
+        // Isi <select> dengan daftar kategori. "kecuali" dipakai saat memilih kategori tujuan.
+        function isiSelectKategori(selectEl, kecuali, terpilih) {
+            if (!selectEl) return;
+            selectEl.innerHTML = '';
+            const kosong = document.createElement('option');
+            kosong.value = '';
+            kosong.textContent = '— pilih kategori —';
+            selectEl.appendChild(kosong);
+            daftarKategoriTerurut().forEach(k => {
+                const nm = namaKategori(k);
+                if (kecuali && samaNama(nm, kecuali)) return;
+                const opt = document.createElement('option');
+                opt.value = nm;
+                opt.textContent = nm;
+                if (terpilih && samaNama(nm, terpilih)) opt.selected = true;
+                selectEl.appendChild(opt);
+            });
+            // Kategori lama yang belum terdaftar tetap ditampilkan supaya data warung tidak hilang
+            if (terpilih && !daftarKategoriTerurut().some(k => samaNama(namaKategori(k), terpilih))) {
+                const opt = document.createElement('option');
+                opt.value = terpilih;
+                opt.textContent = terpilih + ' (belum terdaftar)';
+                opt.selected = true;
+                selectEl.appendChild(opt);
+            }
+        }
+        window.isiSelectKategori = isiSelectKategori;
+
+        // --- MESIN DRAG & DROP ---
+        function pasangDragKat(listEl, saatSelesai) {
+            const barisAktif = () => Array.from(listEl.children).filter(el => el.classList && el.classList.contains('kat-row'));
+            let drag = null, rafId = null;
+
+            const geserVisual = () => {
+                if (drag) drag.row.style.transform = `translateY(${drag.clientY - drag.startY}px)`;
+            };
+
+            const perbaruiNomor = () => {
+                barisAktif().forEach((r, i) => {
+                    const n = r.querySelector(':scope > .kat-row-head > .kat-num');
+                    if (n) n.textContent = String(i + 1);
+                });
+            };
+
+            const cekTukar = () => {
+                if (!drag) return;
+                const daftar = barisAktif();
+                const idx = daftar.indexOf(drag.row);
+                if (idx === -1) return;
+                const kotak = drag.row.getBoundingClientRect();
+                const tengah = kotak.top + kotak.height / 2;
+
+                let target = null, sebelum = null;
+                const atas = daftar[idx - 1], bawah = daftar[idx + 1];
+                if (atas) {
+                    const ra = atas.getBoundingClientRect();
+                    if (tengah < ra.top + ra.height / 2) { target = atas; sebelum = true; }
+                }
+                if (!target && bawah) {
+                    const rb = bawah.getBoundingClientRect();
+                    if (tengah > rb.top + rb.height / 2) { target = bawah; sebelum = false; }
+                }
+                if (!target) return;
+
+                const atasSebelum = drag.row.getBoundingClientRect().top;
+                if (sebelum) listEl.insertBefore(drag.row, target);
+                else listEl.insertBefore(drag.row, target.nextSibling);
+                const atasSesudah = drag.row.getBoundingClientRect().top;
+                drag.startY += (atasSesudah - atasSebelum);
+                geserVisual();
+                perbaruiNomor();
+            };
+
+            const autoScroll = () => {
+                if (!drag) return;
+                const batas = 90, langkah = 9;
+                let delta = 0;
+                if (drag.clientY < batas) delta = -langkah;
+                else if (drag.clientY > window.innerHeight - batas) delta = langkah;
+                if (delta) {
+                    const sebelum = window.scrollY;
+                    window.scrollBy(0, delta);
+                    const geser = window.scrollY - sebelum;
+                    if (geser) { drag.startY -= geser; geserVisual(); cekTukar(); }
+                }
+                rafId = requestAnimationFrame(autoScroll);
+            };
+
+            const gerak = (ev) => {
+                if (!drag) return;
+                ev.preventDefault();
+                drag.clientY = ev.clientY;
+                geserVisual();
+                cekTukar();
+            };
+
+            const selesai = () => {
+                if (!drag) return;
+                if (rafId) cancelAnimationFrame(rafId);
+                rafId = null;
+                drag.row.classList.remove('kat-dragging');
+                drag.row.style.transform = '';
+                drag.row.style.transition = '';
+                document.body.classList.remove('kat-dragging-active');
+                drag = null;
+                window.removeEventListener('pointermove', gerak);
+                window.removeEventListener('pointerup', selesai);
+                window.removeEventListener('pointercancel', selesai);
+                perbaruiNomor();
+                if (typeof saatSelesai === 'function') saatSelesai(barisAktif().map(r => r.dataset.kunci || ''));
+            };
+
+            listEl.addEventListener('pointerdown', (ev) => {
+                const pegangan = ev.target.closest('.kat-handle');
+                if (!pegangan) return;
+                const row = pegangan.closest('.kat-row');
+                if (!row || row.parentElement !== listEl) return;
+                ev.preventDefault();
+                drag = { row, startY: ev.clientY, clientY: ev.clientY };
+                row.classList.add('kat-dragging');
+                row.style.transition = 'none';
+                document.body.classList.add('kat-dragging-active');
+                if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
+                window.addEventListener('pointermove', gerak, { passive: false });
+                window.addEventListener('pointerup', selesai);
+                window.addEventListener('pointercancel', selesai);
+                rafId = requestAnimationFrame(autoScroll);
+            });
+        }
+
+        // --- RENDER HALAMAN KATEGORI ---
+        // Semua teks dari database dipasang lewat textContent, tidak lewat innerHTML.
+        window.renderKategoriPage = () => {
+            const list = document.getElementById('kat-list');
+            const seedBox = document.getElementById('kat-seed-box');
+            if (!list) return;
+            list.innerHTML = '';
+
+            const daftar = daftarKategoriTerurut();
+            if (seedBox) seedBox.style.display = daftar.length === 0 ? 'block' : 'none';
+            const btnUrutan = document.getElementById('btn-simpan-urutan-kat');
+            if (btnUrutan) btnUrutan.style.display = 'none';
+
+            if (daftar.length === 0) {
+                const kosong = document.createElement('div');
+                kosong.style.cssText = "text-align:center; padding:40px; color:#999; font-size:13px;";
+                kosong.textContent = 'Belum ada kategori.';
+                list.appendChild(kosong);
+                return;
+            }
+
+            katDraftOrder = daftar.map(k => k.id);
+
+            daftar.forEach((k, idx) => {
+                const nm = namaKategori(k);
+                const jml = warungDiKategori(nm).length;
+
+                const row = document.createElement('div');
+                row.className = 'kat-row';
+                row.dataset.kunci = k.id;
+
+                const head = document.createElement('div');
+                head.className = 'kat-row-head';
+
+                const handle = document.createElement('i');
+                handle.className = 'ph-bold ph-dots-six-vertical kat-handle';
+                head.appendChild(handle);
+
+                const num = document.createElement('span');
+                num.className = 'kat-num';
+                num.textContent = String(idx + 1);
+                head.appendChild(num);
+
+                const img = document.createElement('img');
+                img.className = 'kat-icon';
+                img.loading = 'lazy';
+                // Hanya https yang dimuat, supaya link aneh tidak ikut dijalankan
+                img.src = (typeof k.icon_url === 'string' && k.icon_url.startsWith('https://'))
+                    ? k.icon_url
+                    : "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='22' fill='%23E2E8F0'/%3E%3C/svg%3E";
+                img.onerror = function () { this.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='22' fill='%23E2E8F0'/%3E%3C/svg%3E"; };
+                head.appendChild(img);
+
+                const nama = document.createElement('div');
+                nama.className = 'kat-name';
+                nama.textContent = nm;
+                const meta = document.createElement('div');
+                meta.className = 'kat-meta';
+                meta.textContent = jml + ' warung' + (idx < 7 ? ' • tampil di beranda' : ' • di tombol Lainnya');
+                nama.appendChild(meta);
+                head.appendChild(nama);
+
+                const bPindah = document.createElement('button');
+                bPindah.className = 'kat-act';
+                bPindah.title = 'Pindahkan warung';
+                bPindah.style.color = '#0284c7';
+                bPindah.innerHTML = '<i class="ph-bold ph-arrows-left-right"></i>';
+                bPindah.addEventListener('click', () => window.openPindahWarung(nm));
+                head.appendChild(bPindah);
+
+                const bEdit = document.createElement('button');
+                bEdit.className = 'kat-act';
+                bEdit.title = 'Ubah';
+                bEdit.style.color = '#2196F3';
+                bEdit.innerHTML = '<i class="ph-bold ph-pencil-simple"></i>';
+                bEdit.addEventListener('click', () => window.openKategoriModal(k.id));
+                head.appendChild(bEdit);
+
+                const bHapus = document.createElement('button');
+                bHapus.className = 'kat-act';
+                bHapus.title = 'Hapus';
+                bHapus.style.color = '#dc2626';
+                bHapus.innerHTML = '<i class="ph-bold ph-trash"></i>';
+                bHapus.addEventListener('click', () => window.openHapusKategori(k.id));
+                head.appendChild(bHapus);
+
+                row.appendChild(head);
+                list.appendChild(row);
+            });
+
+            pasangDragKat(list, (urutanBaru) => {
+                katDraftOrder = urutanBaru.filter(Boolean);
+                const btn = document.getElementById('btn-simpan-urutan-kat');
+                if (btn) btn.style.display = 'block';
+            });
+        };
+
+        window.simpanUrutanKategori = async () => {
+            const btn = document.getElementById('btn-simpan-urutan-kat');
+            if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan...'; }
+            try {
+                const batch = writeBatch(db);
+                katDraftOrder.forEach((id, i) => {
+                    if (adminAllKategori.some(k => k.id === id)) {
+                        batch.update(doc(db, "kategori_utama", id), { urutan: i });
+                    }
+                });
+                await batch.commit();
+                await window.fetchKategori();
+                window.renderKategoriPage();
+                alert("Urutan kategori disimpan.");
+            } catch (e) {
+                alert("Gagal menyimpan urutan: " + e.message);
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = 'Simpan Urutan'; }
+            }
+        };
+
+        // --- TAMBAH / UBAH KATEGORI ---
+        window.openKategoriModal = (id) => {
+            katEditId = id || null;
+            const k = id ? adminAllKategori.find(x => x.id === id) : null;
+            document.getElementById('kategori-modal-title').textContent = k ? 'Ubah Kategori' : 'Tambah Kategori';
+            document.getElementById('kat-nama').value = k ? namaKategori(k) : '';
+            document.getElementById('kat-icon').value = (k && typeof k.icon_url === 'string') ? k.icon_url : '';
+            document.getElementById('kategori-modal').style.display = 'flex';
+        };
+
+        window.simpanKategori = async () => {
+            const nama = document.getElementById('kat-nama').value.trim();
+            const icon = document.getElementById('kat-icon').value.trim();
+
+            if (!nama) return alert("Nama kategori belum diisi.");
+            if (nama.length > 40) return alert("Nama kategori terlalu panjang (maksimal 40 huruf).");
+            if (KAT_NAMA_TERLARANG.includes(nama)) return alert("Nama itu tidak boleh dipakai.");
+            // Hanya https yang diterima: link javascript: atau data: bisa dipakai menyelipkan kode
+            if (icon && !icon.startsWith('https://')) return alert("Link ikon harus diawali https://");
+            if (icon.length > 500) return alert("Link ikon terlalu panjang.");
+
+            const kembar = adminAllKategori.find(k => samaNama(namaKategori(k), nama) && k.id !== katEditId);
+            if (kembar) return alert("Kategori dengan nama itu sudah ada.");
+
+            try {
+                if (katEditId) {
+                    const lama = adminAllKategori.find(k => k.id === katEditId);
+                    const namaLama = lama ? namaKategori(lama) : '';
+                    await updateDoc(doc(db, "kategori_utama", katEditId), { nama: nama, icon_url: icon });
+
+                    // Kalau namanya berubah, warung yang memakai nama lama ikut disesuaikan
+                    // supaya tidak ada warung yang jatuh ke kategori yang tidak terdaftar.
+                    if (namaLama && !samaNama(namaLama, nama)) {
+                        const terdampak = warungDiKategori(namaLama);
+                        for (let i = 0; i < terdampak.length; i += 400) {
+                            const batch = writeBatch(db);
+                            terdampak.slice(i, i + 400).forEach(v => {
+                                batch.update(doc(db, "vendors", v.id), { kategori_utama: [nama] });
+                            });
+                            await batch.commit();
+                        }
+                    }
+                } else {
+                    const urutanBaru = daftarKategoriTerurut().length;
+                    await addDoc(collection(db, "kategori_utama"), { nama: nama, icon_url: icon, urutan: urutanBaru });
+                }
+
+                window.closeModal('kategori-modal');
+                await window.fetchKategori();
+                await window.fetchVendors();
+                window.renderKategoriPage();
+            } catch (e) {
+                alert("Gagal menyimpan kategori: " + e.message);
+            }
+        };
+
+        // --- HAPUS KATEGORI ---
+        window.openHapusKategori = (id) => {
+            katHapusId = id;
+            const k = adminAllKategori.find(x => x.id === id);
+            if (!k) return;
+            const nm = namaKategori(k);
+            const terdampak = warungDiKategori(nm);
+
+            const info = document.getElementById('hapus-kat-info');
+            info.textContent = '';
+            const judul = document.createElement('div');
+            judul.innerHTML = 'Hapus kategori <b></b>?';
+            judul.querySelector('b').textContent = nm;
+            info.appendChild(judul);
+
+            const wrap = document.getElementById('hapus-kat-pindah-wrap');
+            if (terdampak.length > 0) {
+                const ket = document.createElement('div');
+                ket.style.cssText = "margin-top:10px; color:#9a3412; background:#fff7ed; border:1px solid #fed7aa; border-radius:10px; padding:10px; font-size:12px;";
+                ket.textContent = 'Ada ' + terdampak.length + ' warung yang masih memakai kategori ini. Pilih kategori tujuannya dulu — warung tersebut akan dipindahkan sebelum kategori dihapus.';
+                info.appendChild(ket);
+
+                const daftarNama = document.createElement('div');
+                daftarNama.style.cssText = "margin-top:10px;";
+                terdampak.slice(0, 12).forEach(v => {
+                    const chip = document.createElement('span');
+                    chip.className = 'kat-chip';
+                    chip.textContent = v.nama_warung || v.id;
+                    daftarNama.appendChild(chip);
+                });
+                if (terdampak.length > 12) {
+                    const sisa = document.createElement('span');
+                    sisa.className = 'kat-chip';
+                    sisa.textContent = '+' + (terdampak.length - 12) + ' lainnya';
+                    daftarNama.appendChild(sisa);
+                }
+                info.appendChild(daftarNama);
+
+                wrap.style.display = 'block';
+                isiSelectKategori(document.getElementById('hapus-kat-tujuan'), nm, '');
+            } else {
+                wrap.style.display = 'none';
+            }
+
+            document.getElementById('hapus-kategori-modal').style.display = 'flex';
+        };
+
+        window.konfirmasiHapusKategori = async () => {
+            if (!katHapusId) return;
+            const k = adminAllKategori.find(x => x.id === katHapusId);
+            if (!k) return;
+            const nm = namaKategori(k);
+            const terdampak = warungDiKategori(nm);
+            const tujuan = document.getElementById('hapus-kat-tujuan').value;
+
+            if (terdampak.length > 0 && !tujuan) return alert("Pilih dulu kategori tujuan untuk warung yang terdampak.");
+            if (terdampak.length > 0 && samaNama(tujuan, nm)) return alert("Kategori tujuan tidak boleh sama dengan yang dihapus.");
+
+            const btn = document.getElementById('btn-konfirmasi-hapus-kat');
+            if (btn) { btn.disabled = true; btn.textContent = 'Memproses...'; }
+            try {
+                // Pindahkan warung dulu, baru hapus kategorinya. Kalau pemindahan gagal,
+                // kategori tetap ada sehingga tidak ada warung yang menggantung.
+                for (let i = 0; i < terdampak.length; i += 400) {
+                    const batch = writeBatch(db);
+                    terdampak.slice(i, i + 400).forEach(v => {
+                        batch.update(doc(db, "vendors", v.id), { kategori_utama: [tujuan] });
+                    });
+                    await batch.commit();
+                }
+                await deleteDoc(doc(db, "kategori_utama", katHapusId));
+
+                window.closeModal('hapus-kategori-modal');
+                katHapusId = null;
+                await window.fetchKategori();
+                await window.fetchVendors();
+                window.renderKategoriPage();
+                alert(terdampak.length > 0
+                    ? 'Kategori dihapus. ' + terdampak.length + ' warung dipindahkan ke "' + tujuan + '".'
+                    : 'Kategori dihapus.');
+            } catch (e) {
+                alert("Gagal menghapus kategori: " + e.message);
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = 'Hapus'; }
+            }
+        };
+
+        // --- PINDAH WARUNG ANTAR KATEGORI ---
+        window.openPindahWarung = (nama) => {
+            katPindahDari = nama;
+            const daftar = warungDiKategori(nama);
+            const judul = document.getElementById('pindah-warung-title');
+            judul.textContent = 'Pindahkan Warung dari "' + nama + '"';
+
+            const list = document.getElementById('pindah-warung-list');
+            list.innerHTML = '';
+            if (daftar.length === 0) {
+                const kosong = document.createElement('div');
+                kosong.style.cssText = "text-align:center; padding:20px; color:#999; font-size:12px;";
+                kosong.textContent = 'Belum ada warung di kategori ini.';
+                list.appendChild(kosong);
+            } else {
+                daftar.forEach(v => {
+                    const label = document.createElement('label');
+                    label.style.cssText = "display:flex; align-items:center; gap:10px; padding:8px 4px; border-bottom:1px solid #f5f5f5; cursor:pointer; font-size:13px;";
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.className = 'cb-pindah-warung';
+                    cb.value = v.id;
+                    label.appendChild(cb);
+                    const teks = document.createElement('span');
+                    teks.textContent = v.nama_warung || v.id;
+                    label.appendChild(teks);
+                    list.appendChild(label);
+                });
+            }
+
+            isiSelectKategori(document.getElementById('pindah-warung-tujuan'), nama, '');
+            document.getElementById('pindah-warung-modal').style.display = 'flex';
+        };
+
+        window.pilihSemuaWarung = (nyala) => {
+            document.querySelectorAll('.cb-pindah-warung').forEach(cb => { cb.checked = !!nyala; });
+        };
+
+        window.jalankanPindahWarung = async () => {
+            const tujuan = document.getElementById('pindah-warung-tujuan').value;
+            if (!tujuan) return alert("Pilih kategori tujuan dulu.");
+            const ids = Array.from(document.querySelectorAll('.cb-pindah-warung:checked')).map(cb => cb.value);
+            if (ids.length === 0) return alert("Belum ada warung yang dicentang.");
+
+            try {
+                for (let i = 0; i < ids.length; i += 400) {
+                    const batch = writeBatch(db);
+                    ids.slice(i, i + 400).forEach(id => {
+                        batch.update(doc(db, "vendors", id), { kategori_utama: [tujuan] });
+                    });
+                    await batch.commit();
+                }
+                window.closeModal('pindah-warung-modal');
+                await window.fetchVendors();
+                window.renderKategoriPage();
+                alert(ids.length + ' warung dipindahkan ke "' + tujuan + '".');
+            } catch (e) {
+                alert("Gagal memindahkan warung: " + e.message);
+            }
+        };
+
+        // --- ISI KATEGORI BAWAAN (sekali saja, saat daftar masih kosong) ---
+        window.seedKategoriBawaan = async () => {
+            if (daftarKategoriTerurut().length > 0) return alert("Daftar kategori sudah terisi.");
+            if (!confirm("Isi daftar dengan " + KAT_BAWAAN.length + " kategori bawaan?")) return;
+            try {
+                const batch = writeBatch(db);
+                KAT_BAWAAN.forEach((k, i) => {
+                    batch.set(doc(collection(db, "kategori_utama")), { nama: k.nama, icon_url: k.icon_url, urutan: i });
+                });
+                await batch.commit();
+                await window.fetchKategori();
+                window.renderKategoriPage();
+                alert("Kategori bawaan berhasil dimasukkan.");
+            } catch (e) {
+                alert("Gagal mengisi kategori bawaan: " + e.message);
+            }
+        };
 
         window.fetchVendors = async () => {
             const snap = await getDocs(collection(db, "vendors"));
