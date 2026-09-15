@@ -1339,8 +1339,13 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-end; /* Teks di bawah */
-            height: 90px; /* Tinggi kotak */
+            justify-content: flex-start;
+            /* Dulu height:90px dengan ikon position:absolute. Di layar sempit nama
+               kategori yang panjang pecah jadi dua baris lalu menabrak ikonnya.
+               Sekarang ikon dan teks mengalir normal, kotaknya boleh memanjang. */
+            min-height: 90px;
+            padding: 8px 3px 9px 3px;
+            box-sizing: border-box;
             border-radius: 20px; /* Kotak melengkung */
             position: relative;
             cursor: pointer;
@@ -1382,21 +1387,30 @@
         .bg-grad-halal::before { background: linear-gradient(to top, #e8f5e9, transparent); }
 
         .cat-item-box img {
-            width: 55px; /* Diperbesar dari 45px */
-            height: 55px; /* Diperbesar dari 45px */
+            width: 52px;
+            height: 52px;
             object-fit: contain;
-            position: absolute;
-            top: 8px; /* Dinaikkan sedikit dari 15px agar ikon yang besar tidak menabrak teks */
+            position: static;   /* tidak lagi absolute, supaya tidak menimpa teks */
+            flex-shrink: 0;
+            margin-bottom: 4px;
             z-index: 2;
         }
 
         .cat-box-text {
-            font-size: 11px;
+            font-size: 10.5px;
             font-weight: 600;
             color: #555;
             text-align: center;
-            line-height: 1.2;
-            margin-bottom: 12px;
+            line-height: 1.25;
+            margin-top: auto;   /* tetap menempel di bawah kotak */
+            width: 100%;
+            padding: 0 2px;
+            box-sizing: border-box;
+            overflow-wrap: anywhere;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;   /* nama panjang dipotong, bukan melebar tak terkendali */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
             z-index: 2;
         }
 
@@ -10387,13 +10401,23 @@
         });
         // ------------------------------------------------------------------------
 
-        // Fungsi sorting bawaan (Buka -> Andalan -> Order Index)
+        // Daftar warung yang punya menu, dihitung sekali saja supaya pengurutan tidak
+        // menyaring ulang seluruh produk untuk setiap perbandingan.
+        const idWarungBermenu = new Set();
+        rawProducts.forEach(p => { if (p.vendor_id) idWarungBermenu.add(p.vendor_id); });
+
+        // Peringkat tampil: 0 = buka & ada menu, 1 = buka tapi menunya kosong, 2 = tutup.
+        // Warung yang sedang mengupdate menu ikut turun ke bawah seperti warung tutup.
+        const peringkatWarung = (v) => {
+            const buka = (v.status || 'BUKA').toUpperCase() === 'BUKA';
+            if (!buka) return 2;
+            return idWarungBermenu.has(v.id) ? 0 : 1;
+        };
+
+        // Fungsi sorting bawaan (Buka & ada menu -> Andalan -> Order Index)
         const defaultWarungSort = (a, b) => {
-            const isOpenA = (a.status || 'BUKA').toUpperCase() === 'BUKA';
-            const isOpenB = (b.status || 'BUKA').toUpperCase() === 'BUKA';
-            
-            if (isOpenA && !isOpenB) return -1;
-            if (!isOpenA && isOpenB) return 1;
+            const pa = peringkatWarung(a), pb = peringkatWarung(b);
+            if (pa !== pb) return pa - pb;
             
             const isAndalanA = a.is_andalan === true;
             const isAndalanB = b.is_andalan === true;
@@ -10421,12 +10445,10 @@
                     v.tempDistance = window.calculateDistance(uLat, uLng, vLat, vLng);
                 });
                 
-                // Urutkan Buka -> Jarak Terdekat
+                // Urutkan Buka & ada menu -> Jarak Terdekat
                 foodVendors.sort((a, b) => {
-                    const isOpenA = (a.status || 'BUKA').toUpperCase() === 'BUKA';
-                    const isOpenB = (b.status || 'BUKA').toUpperCase() === 'BUKA';
-                    if (isOpenA && !isOpenB) return -1;
-                    if (!isOpenA && isOpenB) return 1;
+                    const pa = peringkatWarung(a), pb = peringkatWarung(b);
+                    if (pa !== pb) return pa - pb;
                     
                     return (a.tempDistance || 999) - (b.tempDistance || 999);
                 });
@@ -11113,5 +11135,38 @@
         </div>
     </div>
 
+    <script>
+        /* ==========================================================
+           PENYERAGAMAN UKURAN TAMPILAN ANTAR UKURAN LAYAR
+           Seluruh CSS aplikasi ini memakai satuan px tetap dan dirancang untuk
+           lebar sekitar 430px. Di HP yang layarnya lebih sempit, ukuran px yang
+           sama jadi terasa lebih besar dibanding layarnya, sehingga teks mudah
+           menabrak gambar. Di sini seluruh halaman dikecilkan secara proporsional
+           mengikuti lebar layar, jadi tata letaknya sama persis di HP besar
+           maupun kecil — hanya skalanya yang menyesuaikan.
+           Ubah LEBAR_DESAIN kalau ingin patokannya berbeda.
+           ========================================================== */
+        (function () {
+            var LEBAR_DESAIN = 430;   // lebar layar yang jadi patokan desain
+            var SKALA_MIN = 0.85;     // batas bawah, supaya teks tidak jadi terlalu kecil
+
+            function terapkanSkala() {
+                var lebar = window.innerWidth || document.documentElement.clientWidth || LEBAR_DESAIN;
+                var skala = lebar / LEBAR_DESAIN;
+                if (skala > 1) skala = 1;             // layar lebar tidak ikut dibesarkan
+                if (skala < SKALA_MIN) skala = SKALA_MIN;
+                skala = Math.round(skala * 1000) / 1000;
+                document.documentElement.style.zoom = skala;
+                document.documentElement.style.setProperty('--skala-ui', skala);
+            }
+
+            terapkanSkala();
+            window.addEventListener('resize', terapkanSkala);
+            window.addEventListener('orientationchange', function () {
+                setTimeout(terapkanSkala, 150);
+            });
+        })();
+    </script>
 </body>
+
 </html>
