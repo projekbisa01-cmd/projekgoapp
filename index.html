@@ -1447,14 +1447,18 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) rotate(-15deg);
-            color: rgba(255, 255, 255, 0.45); /* Putih transparan */
-            font-size: 18px;
+            color: rgba(255, 255, 255, 0.42); /* Putih transparan */
+            /* Ukuran dikecilkan dari 18px agar foto menu tetap enak dilihat.
+               Memakai clamp supaya tetap proporsional: di kartu kecil ikut mengecil,
+               di foto besar tidak ikut membesar berlebihan. Fungsinya sebagai penanda
+               tetap jalan karena posisi tengah, miring, dan bayangannya dipertahankan. */
+            font-size: clamp(8px, 2.6vw, 11px);
             font-weight: 900;
-            letter-spacing: 2px;
+            letter-spacing: 1.2px;
             pointer-events: none; /* Aman diklik tembus ke bawah */
             z-index: 2; /* Berada di atas gambar */
             white-space: nowrap;
-            text-shadow: 1px 1px 4px rgba(0,0,0,0.2); /* Shadow tipis agar tetap terbaca jika gambar aslinya kebetulan sangat putih */
+            text-shadow: 0 1px 3px rgba(0,0,0,0.22); /* Shadow tipis agar tetap terbaca jika gambar aslinya kebetulan sangat putih */
         }
     </style>
 </head>
@@ -3443,6 +3447,69 @@
             "'": '&#39;', '`': '&#96;', '=': '&#61;', '/': '&#47;'
         }[c]));
 
+        /* ==========================================================
+           URUTAN TAMPILAN CUSTOM DARI MITRA
+           products.urutan        -> posisi menu di dalam etalasenya
+           vendors.urutan_kategori -> urutan etalase milik warung itu
+           ========================================================== */
+
+        // Nama etalase diketik bebas oleh mitra dan dipakai sebagai kunci objek pengelompokan.
+        // "__proto__" dan kawan-kawannya harus ditolak, kalau tidak grup akan menimpa prototype
+        // objek/array dan merusak seluruh halaman.
+        const KUNCI_TERLARANG = ['__proto__', 'constructor', 'prototype'];
+        const kunciEtalaseAman = (k) => {
+            const t = String(k == null ? '' : k).trim();
+            if (!t || KUNCI_TERLARANG.includes(t)) return 'Lainnya';
+            return t;
+        };
+        const etalaseDari = (p) => kunciEtalaseAman(p && (p.tipe || p.kategori));
+        const nomorUrutMenu = (p) => { const n = Number(p && p.urutan); return Number.isFinite(n) ? n : 999999; };
+
+        function urutanKategoriWarung(vendorId) {
+            const v = allVendors.find(x => x.id === vendorId);
+            const arr = (v && Array.isArray(v.urutan_kategori)) ? v.urutan_kategori : [];
+            return arr.filter(x => typeof x === 'string').map(x => x.trim());
+        }
+
+        function posisiKategori(vendorId, kunci) {
+            const i = urutanKategoriWarung(vendorId).indexOf(kunci);
+            return i === -1 ? 9999 : i;
+        }
+
+        // Untuk daftar menu milik SATU warung (detail warung, grup per warung di halaman kategori)
+        function urutkanMenuWarung(list, vendorId) {
+            return [...(list || [])].sort((a, b) => {
+                const ka = posisiKategori(vendorId, etalaseDari(a));
+                const kb = posisiKategori(vendorId, etalaseDari(b));
+                if (ka !== kb) return ka - kb;
+                const ua = nomorUrutMenu(a), ub = nomorUrutMenu(b);
+                if (ua !== ub) return ua - ub;
+                return String(a.nama_menu || '').localeCompare(String(b.nama_menu || ''), 'id');
+            });
+        }
+
+        // Untuk daftar campuran banyak warung (beranda, pencarian, flash sale):
+        // dipakai sebagai penentu kedua setelah kriteria aslinya.
+        function bandingUrutanMitra(a, b) {
+            if (a.vendor_id && a.vendor_id === b.vendor_id) {
+                const ka = posisiKategori(a.vendor_id, etalaseDari(a));
+                const kb = posisiKategori(b.vendor_id, etalaseDari(b));
+                if (ka !== kb) return ka - kb;
+            }
+            return nomorUrutMenu(a) - nomorUrutMenu(b);
+        }
+
+        // Urutan nama etalase sebuah warung (yang belum diatur mitra jatuh di belakang, lalu abjad)
+        function urutkanNamaEtalase(keys, vendorId) {
+            const daftar = urutanKategoriWarung(vendorId);
+            const pos = (k) => { const i = daftar.indexOf(k); return i === -1 ? 9999 : i; };
+            return [...(keys || [])].sort((a, b) => {
+                const pa = pos(a), pb = pos(b);
+                if (pa !== pb) return pa - pb;
+                return String(a).localeCompare(String(b), 'id');
+            });
+        }
+
         const FALLBACK_MENU_IMG = "https://i.ibb.co.com/Z1BCmTTp/Gambar-ilustrasi-dari-PROJEKGO.png"; 
         
         const FALLBACK_VENDOR_IMG = "https://i.ibb.co.com/Z1BCmTTp/Gambar-ilustrasi-dari-PROJEKGO.png";
@@ -4184,6 +4251,11 @@
         }
         // --------------------------
 
+        window.openReviewModalByRef = (refIdx, orderId) => {
+            const daftar = window.__reviewVendorRefs || [];
+            window.openReviewModal(daftar[refIdx] || '', orderId);
+        };
+
         window.openReviewModal = (vendorName, orderId) => { 
             currentReviewOrderId = orderId; 
             document.getElementById('review-vendor-name').innerText = vendorName; 
@@ -4317,6 +4389,7 @@
         function renderOrderHistory() {
             const container = document.getElementById('order-history-list'); 
             const history = JSON.parse(localStorage.getItem('order_history')) || [];
+            window.__reviewVendorRefs = []; // direset tiap render supaya tidak menumpuk
             
             if(history.length === 0) { 
                 container.innerHTML = '<div style="text-align:center; margin-top:50px; color:#999; font-size:12px;">Belum ada riwayat pesanan.</div>'; 
@@ -4337,7 +4410,12 @@
                 if (displayStatus === 'MENUNGGU KONFIRMASI' && diffMinutes > 5) displayStatus = 'TERIMAKASIH';
                 if (displayStatus === 'MENUNGGU KONFIRMASI') { statusColor = "#FFF3E0"; statusTextColor = "#E65100"; }
                 
-                let reviewButtonHtml = !order.isReviewed ? `<button class="btn-review-action" onclick="openReviewModal('${order.vendor}', ${order.id})">⭐ Beri Ulasan</button>` : '';
+                // KEAMANAN: nama warung diketik bebas oleh mitra. Entitas HTML tetap didekode
+                // sebelum JS dijalankan, jadi nama tidak boleh ditaruh di dalam atribut onclick
+                // sama sekali. Nilainya dititipkan ke array, yang dikirim cuma nomor indeks.
+                if (!Array.isArray(window.__reviewVendorRefs)) window.__reviewVendorRefs = [];
+                const refIdx = window.__reviewVendorRefs.push(order.vendor) - 1;
+                let reviewButtonHtml = !order.isReviewed ? `<button class="btn-review-action" onclick="openReviewModalByRef(${refIdx}, ${Number(order.id) || 0})">⭐ Beri Ulasan</button>` : '';
                 
                 let processHtml = '';
                 if (displayStatus === 'MENUNGGU KONFIRMASI') {
@@ -4599,7 +4677,8 @@
             
             // NOTE: ambil dari rawProducts agar tetap bisa dibuka meski beda filter
             const vendorMenu = rawProducts.filter(p => p.vendor_name === vendor.nama_warung || p.vendor_id === vendor.id);
-            const availableMenu = vendorMenu; 
+            // Urutan tampilan mengikuti pengaturan mitra (etalase + posisi menu)
+            const availableMenu = urutkanMenuWarung(vendorMenu, vendor.id); 
 
             const priorityItems = availableMenu.filter(p => p.is_priority === true);
             const gridContainer = document.getElementById('vendor-menu-grid');
@@ -4692,12 +4771,13 @@
             // --- START: LOGIKA MENU LENGKAP BARU (PILL CAPSULE & KARTU MENONJOL) ---
             const groups = { "Semua": availableMenu };
             availableMenu.forEach(item => {
-                const groupKey = item.tipe || item.kategori || 'Lainnya';
+                const groupKey = kunciEtalaseAman(item.tipe || item.kategori);
                 if(!groups[groupKey]) groups[groupKey] = [];
                 groups[groupKey].push(item);
             });
 
-            const sortedKeys = ["Semua", ...Object.keys(groups).filter(k => k !== "Semua").sort()];
+            // Urutan etalase: ikut pengaturan mitra dulu, sisanya abjad
+            const sortedKeys = ["Semua", ...urutkanNamaEtalase(Object.keys(groups).filter(k => k !== "Semua"), vendor.id)];
 
             if(availableMenu.length === 0) { 
                 // --- AWAL PERUBAHAN LANGKAH 3 (DESAIN ILUSTRASI KOSONG MENARIK) ---
@@ -4715,7 +4795,9 @@
                 sortedKeys.forEach((key, idx) => {
                     const bgActive = '#00a35c'; 
                     const isActive = idx === 0 ? `background:${bgActive}; color:white; border-color:${bgActive};` : 'background:white; color:#333; border-color:#ddd;';
-                    pillsHtml += `<div class="menu-pill-btn" onclick="filterMenuVendor('${key}', this)" style="white-space:nowrap; padding:8px 20px; border-radius:20px; font-size:13px; font-weight:700; border:1px solid; cursor:pointer; transition:0.2s; box-shadow:0 2px 4px rgba(0,0,0,0.02); ${isActive}">${key}</div>`;
+                    // KEAMANAN: nama etalase diketik bebas oleh mitra, jadi tidak boleh masuk
+                    // mentah ke atribut onclick. Dikirim sebagai nomor indeks, teksnya di-esc().
+                    pillsHtml += `<div class="menu-pill-btn" onclick="filterMenuVendor(${idx}, this)" style="white-space:nowrap; padding:8px 20px; border-radius:20px; font-size:13px; font-weight:700; border:1px solid; cursor:pointer; transition:0.2s; box-shadow:0 2px 4px rgba(0,0,0,0.02); ${isActive}">${esc(key)}</div>`;
                 });
                 pillsHtml += '</div></div>';
 
@@ -4725,7 +4807,8 @@
                 listContainer.innerHTML = pillsHtml + listItemsHtml;
 
                 // 3. Fungsi Render Menu berdasarkan Kategori yang diklik
-                window.filterMenuVendor = (categoryKey, clickedEl) => {
+                window.filterMenuVendor = (categoryIdx, clickedEl) => {
+                    const categoryKey = sortedKeys[categoryIdx] !== undefined ? sortedKeys[categoryIdx] : "Semua";
                     // Ubah visual tombol kategori
                     document.querySelectorAll('.menu-pill-btn').forEach(btn => {
                         btn.style.background = 'white';
@@ -4813,7 +4896,7 @@
                 const firstPillBtn = listContainer.querySelector('.menu-pill-btn');
                 if(firstPillBtn) {
                     // Beri sedikit jeda agar DOM terload sempurna
-                    setTimeout(() => window.filterMenuVendor('Semua', firstPillBtn), 10);
+                    setTimeout(() => window.filterMenuVendor(0, firstPillBtn), 10);
                 }
             }
             // --- END: LOGIKA MENU LENGKAP BARU ---
@@ -5068,12 +5151,12 @@
             if (cat === 'Exclusive') { 
                 filteredItems = allProducts.filter(p => p.is_exclusive === true); 
             } else if (cat === 'Paling Laris') { 
-                const sortedAllProducts = [...allProducts].sort((a, b) => (b.jumlah_terjual || 0) - (a.jumlah_terjual || 0));
+                const sortedAllProducts = [...allProducts].sort((a, b) => ((b.jumlah_terjual || 0) - (a.jumlah_terjual || 0)) || bandingUrutanMitra(a, b));
                 filteredItems = sortedAllProducts.slice(0, 15); 
             } else if (cat === 'Sedang Promo') {
-                filteredItems = allProducts.filter(p => p.is_available !== false && (p.is_promo === true || parseInt(p.harga_coret) > parseInt(p.harga))).slice(0, 30);
+                filteredItems = allProducts.filter(p => p.is_available !== false && (p.is_promo === true || parseInt(p.harga_coret) > parseInt(p.harga))).sort(bandingUrutanMitra).slice(0, 30);
             } else if (cat === 'Flash Sale') {
-                filteredItems = allProducts.filter(p => p.is_available !== false && p.is_flash_sale === true).slice(0, 30);
+                filteredItems = allProducts.filter(p => p.is_available !== false && p.is_flash_sale === true).sort(bandingUrutanMitra).slice(0, 30);
             } else if (cat === 'Top Rating') {
                 const topVendorsIds = currentDisplayVendors.slice(0, 10).map(v => v.id);
                 filteredItems = allProducts.filter(p => topVendorsIds.includes(p.vendor_id));
@@ -5135,6 +5218,9 @@
                         grouped[vName].items.push(item);
                         if (!grouped[vName].id && item.vendor_id) grouped[vName].id = item.vendor_id;
                     });
+
+                    // Di dalam tiap warung, ikuti urutan tampilan yang diatur mitra
+                    Object.values(grouped).forEach(g => { g.items = urutkanMenuWarung(g.items, g.id); });
 
                     // TAHAP 3: Simpan state kategori untuk Pagination
                     window.currentCategoryGroups = Object.entries(grouped);
@@ -5316,7 +5402,11 @@
 
                 let groupsHtml = '';
                 item.varian_grup.forEach((grup, gIdx) => {
-                    const isWajib = grup.wajib !== false; // Jika tidak diisi, default Wajib
+                    // Aplikasi mitra menyimpan { nama, tipe }, bukan { nama_grup, wajib }.
+                    // Keduanya dibaca supaya data lama maupun baru sama-sama tampil benar.
+                    const namaGrupTampil = grup.nama_grup || grup.nama || 'Pilihan';
+                    const bolehBanyak = grup.tipe === 'checkbox';
+                    const isWajib = grup.tipe ? (grup.tipe === 'radio') : (grup.wajib !== false);
                     const badgeHtml = isWajib 
                         ? `<span id="badge-vg-${gIdx}" style="background:#FFEBEE; color:#D32F2F; font-size:11px; font-weight:800; padding:4px 10px; border-radius:12px;">Wajib</span>` 
                         : `<span style="background:#f5f5f5; color:#666; font-size:11px; font-weight:800; padding:4px 10px; border-radius:12px;">Opsional</span>`;
@@ -5324,7 +5414,8 @@
                     groupsHtml += `
                     <div style="background:white; border-top:8px solid #f0f0f0;">
                         <div style="display:flex; justify-content:space-between; align-items:center; padding: 16px 20px; border-bottom: 1px solid #eee;">
-                            <div style="font-size:16px; font-weight:800; color:var(--dark);">${grup.nama_grup || 'Pilihan'}</div>
+                            <div style="font-size:16px; font-weight:800; color:var(--dark);">${esc(namaGrupTampil)}</div>
+                            ${bolehBanyak ? '<div style="font-size:11px; color:#888; font-weight:600;">Boleh pilih lebih dari satu</div>' : ''}
                             ${badgeHtml}
                         </div>
                         <div style="padding: 0 20px;">
@@ -5339,10 +5430,10 @@
 
                             if (isAvailable) {
                                 groupsHtml += `
-                                <div id="vg-row-${gIdx}-${oIdx}" class="vg-opt-row" onclick="selectVariantGroup('${gIdx}', '${oIdx}', ${optPrice}, ${realPrice}, ${isWajib}, '${optName}')" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #f9f9f9; cursor: pointer;">
+                                <div id="vg-row-${gIdx}-${oIdx}" class="vg-opt-row" onclick="selectVariantGroup(${gIdx}, ${oIdx}, ${realPrice})" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #f9f9f9; cursor: pointer;">
                                     <div style="display:flex; align-items:center;">
-                                        <div class="vg-radio" id="vg-radio-${gIdx}-${oIdx}" style="width: 20px; height: 20px; border: 2px solid #ccc; border-radius: 50%; position: relative; flex-shrink: 0; transition: 0.2s; margin-right: 15px; display:flex; align-items:center; justify-content:center;"></div>
-                                        <span style="font-size:14px; color:#333; font-weight:400;">${optName}</span>
+                                        <div class="vg-radio" id="vg-radio-${gIdx}-${oIdx}" style="width: 20px; height: 20px; border: 2px solid #ccc; border-radius: ${bolehBanyak ? '5px' : '50%'}; position: relative; flex-shrink: 0; transition: 0.2s; margin-right: 15px; display:flex; align-items:center; justify-content:center;"></div>
+                                        <span style="font-size:14px; color:#333; font-weight:400;">${esc(optName)}</span>
                                     </div>
                                     <span style="font-size:13px; color:#333;">${priceText}</span>
                                 </div>`;
@@ -5423,37 +5514,69 @@
         }
 
         // HELPER UNTUK MENGATUR STATE VARIAN GRUP YANG DIPILIH
-        window.selectVariantGroup = (gIdx, oIdx, optPrice, basePrice, isWajib, optName) => {
-            // Hapus pilihan sebelumnya di grup ini
-            document.querySelectorAll(`[id^="vg-row-${gIdx}-"]`).forEach(el => el.classList.remove('selected'));
-            document.querySelectorAll(`[id^="vg-radio-${gIdx}-"]`).forEach(el => {
-                el.style.borderColor = '#ccc';
-                el.innerHTML = '';
+        // Nama dan harga pilihan diambil dari data produk lewat nomor indeks, tidak lagi
+        // dikirim sebagai teks di dalam atribut onclick (nama pilihan diketik bebas oleh mitra).
+        window.selectVariantGroup = (gIdx, oIdx, basePrice) => {
+            const grup = currentDetailProduct && currentDetailProduct.varian_grup
+                ? currentDetailProduct.varian_grup[gIdx] : null;
+            if (!grup || !Array.isArray(grup.pilihan)) return;
+            const opt = grup.pilihan[oIdx];
+            if (!opt) return;
+
+            const namaGrup = grup.nama_grup || grup.nama || 'Pilihan';
+            const bolehBanyak = grup.tipe === 'checkbox';
+            const isWajib = grup.tipe ? (grup.tipe === 'radio') : (grup.wajib !== false);
+            const optName = opt.nama || opt.name || 'Opsi';
+            const optPrice = parseInt(opt.harga) || 0;
+            const bulat = bolehBanyak ? '5px' : '50%';
+
+            const state = window.selectedGroupVariants[gIdx] || { groupName: namaGrup, opsi: [] };
+            state.groupName = namaGrup;
+
+            if (bolehBanyak) {
+                // Boleh pilih banyak: ketuk untuk mencentang, ketuk lagi untuk membatalkan
+                const posisi = state.opsi.findIndex(o => o.oIdx === oIdx);
+                if (posisi >= 0) state.opsi.splice(posisi, 1);
+                else state.opsi.push({ oIdx: oIdx, name: optName, price: optPrice });
+            } else {
+                // Wajib pilih 1: pilihan lama di grup ini digantikan
+                state.opsi = [{ oIdx: oIdx, name: optName, price: optPrice }];
+            }
+            window.selectedGroupVariants[gIdx] = state;
+
+            // Gambar ulang seluruh baris di grup ini sesuai state terbaru
+            (grup.pilihan || []).forEach((_, i) => {
+                const row = document.getElementById(`vg-row-${gIdx}-${i}`);
+                const radio = document.getElementById(`vg-radio-${gIdx}-${i}`);
+                if (!row || !radio) return;
+                const terpilih = state.opsi.some(o => o.oIdx === i);
+                if (terpilih) {
+                    row.classList.add('selected');
+                    radio.style.borderColor = '#00a35c';
+                    radio.innerHTML = `<div style="width:10px; height:10px; background:#00a35c; border-radius:${bulat};"></div>`;
+                } else {
+                    row.classList.remove('selected');
+                    radio.style.borderColor = '#ccc';
+                    radio.innerHTML = '';
+                }
             });
 
-            // Tandai yang dipilih
-            const row = document.getElementById(`vg-row-${gIdx}-${oIdx}`);
-            const radio = document.getElementById(`vg-radio-${gIdx}-${oIdx}`);
-            row.classList.add('selected');
-            radio.style.borderColor = '#00a35c'; // Warna Hijau Grab
-            radio.innerHTML = `<div style="width:10px; height:10px; background:#00a35c; border-radius:50%;"></div>`;
-
-            // Ubah badge jadi hijau gelap "Selesai" (Sesuai Gambar Referensi)
+            // Badge "Wajib" berubah jadi "Selesai" kalau sudah ada yang dipilih
             if (isWajib) {
                 const badge = document.getElementById(`badge-vg-${gIdx}`);
                 if (badge) {
-                    badge.innerText = "Selesai";
-                    badge.style.background = "#00a35c"; // Warna Hijau Grab
-                    badge.style.color = "white";
+                    const sudah = state.opsi.length > 0;
+                    badge.innerText = sudah ? "Selesai" : "Wajib";
+                    badge.style.background = sudah ? "#00a35c" : "#FFEBEE";
+                    badge.style.color = sudah ? "white" : "#D32F2F";
                 }
             }
 
-            // Simpan state pilihan
-            window.selectedGroupVariants[gIdx] = { name: optName, price: optPrice, groupName: currentDetailProduct.varian_grup[gIdx].nama_grup };
-
             // Kalkulasi Total Harga Baru
             let totalVariantPrice = 0;
-            Object.values(window.selectedGroupVariants).forEach(val => totalVariantPrice += val.price);
+            Object.values(window.selectedGroupVariants).forEach(val => {
+                (val.opsi || []).forEach(o => { totalVariantPrice += o.price; });
+            });
             updateDetailPrice(basePrice, totalVariantPrice);
         }
 
@@ -5523,27 +5646,34 @@
                 openProductDetail(item.id);
                 return;
             }
+            // KEAMANAN: nama varian diketik bebas oleh mitra, jadi tidak ditaruh di dalam
+            // atribut onclick. Nilainya dititipkan ke array dan yang dikirim nomor indeksnya.
             else if (item.varian && Array.isArray(item.varian) && item.varian.length > 0) {
-                item.varian.forEach((opt, idx) => { 
-                    const varName = opt.nama || opt.name || opt.varian || 'Varian ' + (idx+1);
-                    const varPrice = opt.harga ? parseInt(opt.harga) : 0;
-                    const priceLabel = varPrice > 0 ? ` (+Rp ${varPrice.toLocaleString('id-ID')})` : '';
-                    container.innerHTML += `<div class="vm-radio-item" onclick="selectVariantOption(this, '${varName}', ${varPrice}, ${item.harga})"><span>${varName}${priceLabel}</span><div class="vm-radio-circle"></div></div>`; 
+                window.__vmOpsi = item.varian.map((opt, idx) => ({
+                    nama: opt.nama || opt.name || opt.varian || 'Varian ' + (idx + 1),
+                    harga: opt.harga ? parseInt(opt.harga) : 0
+                }));
+                window.__vmOpsi.forEach((o, idx) => { 
+                    const priceLabel = o.harga > 0 ? ` (+Rp ${o.harga.toLocaleString('id-ID')})` : '';
+                    container.innerHTML += `<div class="vm-radio-item" onclick="selectVariantOption(this, ${idx}, ${item.harga})"><span>${esc(o.nama)}${priceLabel}</span><div class="vm-radio-circle"></div></div>`; 
                 });
             } else if (item.variant_options && item.variant_options.length > 0) {
-                item.variant_options.forEach((opt, idx) => { 
-                    container.innerHTML += `<div class="vm-radio-item" onclick="selectVariantOption(this, '${opt}', 0, ${item.harga})"><span>${opt}</span><div class="vm-radio-circle"></div></div>`; 
+                window.__vmOpsi = item.variant_options.map(o => ({ nama: String(o), harga: 0 }));
+                window.__vmOpsi.forEach((o, idx) => { 
+                    container.innerHTML += `<div class="vm-radio-item" onclick="selectVariantOption(this, ${idx}, ${item.harga})"><span>${esc(o.nama)}</span><div class="vm-radio-circle"></div></div>`; 
                 }); 
             }
             modal.style.display = 'flex'; modal.offsetHeight; modal.classList.add('show'); 
         }
 
-        window.selectVariantOption = (el, val, varPrice, basePrice) => { 
+        window.selectVariantOption = (el, idx, basePrice) => { 
+            const opsi = (window.__vmOpsi || [])[idx];
+            if (!opsi) return;
             document.querySelectorAll('.vm-radio-item').forEach(x => x.classList.remove('selected')); 
             el.classList.add('selected'); 
-            selectedVariantValue = val; 
-            pendingVariantPrice = varPrice;
-            document.getElementById('vm-price-display').innerText = (parseInt(basePrice) + parseInt(varPrice)).toLocaleString('id-ID');
+            selectedVariantValue = opsi.nama; 
+            pendingVariantPrice = opsi.harga;
+            document.getElementById('vm-price-display').innerText = (parseInt(basePrice) + parseInt(opsi.harga)).toLocaleString('id-ID');
         }
 
         window.closeVariantModal = () => { const modal = document.getElementById('variant-modal'); modal.classList.remove('show'); setTimeout(() => { modal.style.display = 'none'; }, 300); pendingVariantItem = null; }
@@ -5573,9 +5703,10 @@
                 if (currentDetailProduct.varian_grup && Array.isArray(currentDetailProduct.varian_grup) && currentDetailProduct.varian_grup.length > 0) {
                     let missingGroups = [];
                     currentDetailProduct.varian_grup.forEach((grup, gIdx) => {
-                        const isWajib = grup.wajib !== false;
-                        if (isWajib && !window.selectedGroupVariants[gIdx]) {
-                            missingGroups.push(grup.nama_grup || `Grup ${gIdx+1}`);
+                        const isWajib = grup.tipe ? (grup.tipe === 'radio') : (grup.wajib !== false);
+                        const dipilih = window.selectedGroupVariants[gIdx];
+                        if (isWajib && (!dipilih || !dipilih.opsi || dipilih.opsi.length === 0)) {
+                            missingGroups.push(grup.nama_grup || grup.nama || `Grup ${gIdx+1}`);
                         }
                     });
 
@@ -5589,8 +5720,10 @@
                     // Kumpulkan nama varian & harga
                     let varNames = [];
                     Object.values(window.selectedGroupVariants).forEach(val => {
-                        varNames.push(val.name);
-                        variantPrice += val.price;
+                        (val.opsi || []).forEach(o => {
+                            varNames.push(o.name);
+                            variantPrice += o.price;
+                        });
                     });
                     variant = varNames.length > 0 ? varNames.join(', ') : "-";
                 } 
@@ -8095,7 +8228,7 @@
                     c.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:#999;">Tidak ada hasil di lokasi ini.</div>'; 
                 } else { 
                     // TAHAP 3: Batasi hasil pencarian maksimal 30 teratas agar tidak lag
-                    const limitedResults = filtered.slice(0, 30);
+                    const limitedResults = [...filtered].sort(bandingUrutanMitra).slice(0, 30);
                     limitedResults.forEach(item => { renderPcard(c, item); }); 
                     
                     if (filtered.length > 30) {
@@ -9531,7 +9664,7 @@
             container.innerHTML = '';
             
             // PERBAIKAN 1: Tambah batas maksimal dari 5 menjadi 12 agar cukup untuk dibagi 2 baris
-            const products = allProducts.filter(p => p.is_available !== false && p.is_flash_sale === true).slice(0, 12);
+            const products = allProducts.filter(p => p.is_available !== false && p.is_flash_sale === true).sort(bandingUrutanMitra).slice(0, 12);
             if(products.length === 0) return;
             
             const promoDiv = document.createElement('div');
@@ -9623,7 +9756,7 @@
             if (!wrapper) return;
             wrapper.innerHTML = '';
             
-            let promoProducts = allProducts.filter(p => p.is_available !== false && (p.is_promo === true || parseInt(p.harga_coret) > parseInt(p.harga))).slice(0, 5);
+            let promoProducts = allProducts.filter(p => p.is_available !== false && (p.is_promo === true || parseInt(p.harga_coret) > parseInt(p.harga))).sort(bandingUrutanMitra).slice(0, 5);
             
             if(promoProducts.length === 0) {
                 promoProducts = allProducts.filter(p => p.is_available !== false).slice(0, 5);
@@ -10056,27 +10189,38 @@
             // TAHAP 2: Urutan kategori default sesuai gambar (Kategori 'Halal' dimasukkan ke dalam opsi utama)
             const baseCategories = ['Sarapan', 'Pernasian', 'Minuman', 'Ayam', 'Berkuah', 'Aneka Mie', 'Halal', 'Snack'];
             
-            let extractedFromVendors = [];
-            currentDisplayVendors.forEach(v => {
-                extractedFromVendors.push(...extractCategories(v.kategori_utama));
-            });
+            // Sumber utama kategori sekarang koleksi "kategori_utama" yang dikelola admin
+            // lewat halaman Kategori di ADPRO — termasuk urutannya. Daftar baseCategories
+            // di atas cuma dipakai sebagai cadangan kalau koleksi itu masih kosong,
+            // supaya aplikasi tidak tampil kosong sebelum admin mengisinya.
+            const katDb = allMainCategories
+                .map(c => ({
+                    nama: String((c && (c.nama || c.name)) || '').trim(),
+                    icon_url: (c && typeof c.icon_url === 'string') ? c.icon_url : '',
+                    urutan: (c && typeof c.urutan === 'number') ? c.urutan : 999999
+                }))
+                .filter(c => c.nama)
+                .sort((a, b) => (a.urutan - b.urutan) || a.nama.localeCompare(b.nama, 'id'));
 
-            let dbCategories = [];
-            allMainCategories.forEach(catDoc => {
-                const catName = catDoc.nama || catDoc.name;
-                if(catName) dbCategories.push(catName);
-            });
-            
+            let sumberKategori;
+            if (katDb.length > 0) {
+                sumberKategori = katDb;
+            } else {
+                let extractedFromVendors = [];
+                currentDisplayVendors.forEach(v => {
+                    extractedFromVendors.push(...extractCategories(v.kategori_utama));
+                });
+                sumberKategori = [...baseCategories, ...extractedFromVendors]
+                    .filter(c => typeof c === 'string' && c.trim() !== '')
+                    .map(c => ({ nama: c.trim(), icon_url: '', urutan: 0 }));
+            }
+
             const uniqueCatsMap = new Map();
-            // Masukkan baseCategories lebih dulu agar urutannya tetap
-            [...baseCategories, ...extractedFromVendors, ...dbCategories].forEach(c => {
-                if (typeof c === 'string' && c.trim() !== '') {
-                    const lower = c.trim().toLowerCase();
-                    if(!uniqueCatsMap.has(lower)) {
-                        const display = c.trim().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-                        uniqueCatsMap.set(lower, display);
-                    }
-                }
+            sumberKategori.forEach(c => {
+                const lower = c.nama.toLowerCase();
+                if (uniqueCatsMap.has(lower)) return;
+                const display = c.nama.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                uniqueCatsMap.set(lower, { display: display, icon_url: c.icon_url });
             });
 
             // Map untuk kelas background gradien (sesuai gambar)
@@ -10108,10 +10252,13 @@
                 'halal': "https://i.ibb.co.com/GQ7T7bqV/Desain-tanpa-judul-74.png"
             };
 
-            let finalCategories = Array.from(uniqueCatsMap.entries()).map(([lowerCat, displayCat]) => {
+            let finalCategories = Array.from(uniqueCatsMap.entries()).map(([lowerCat, info]) => {
                 const bgClass = bgClassMap[lowerCat] || 'bg-grad-sarapan'; // Fallback
-                const iconSrc = iconImgMap[lowerCat] || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='20' fill='%23EEEEEE'/%3E%3C/svg%3E";
-                return { name: displayCat, bgClass: bgClass, icon: iconSrc };
+                // Ikon dari database dipakai lebih dulu, tapi hanya kalau benar-benar https://
+                // supaya link aneh tidak ikut dimuat. Kalau kosong, pakai ikon bawaan.
+                const iconDb = info.icon_url.startsWith('https://') ? info.icon_url : '';
+                const iconSrc = iconDb || iconImgMap[lowerCat] || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='20' fill='%23EEEEEE'/%3E%3C/svg%3E";
+                return { name: info.display, bgClass: bgClass, icon: iconSrc };
             });
 
             // 1. Render untuk Modal (Tampilkan Semua)
@@ -10120,7 +10267,7 @@
                     const modalDiv = document.createElement('div');
                     modalDiv.className = `cat-item-box ${cat.bgClass}`;
                     modalDiv.onclick = () => { closeAllCategoriesModal(); openCategoryPage(cat.name); };
-                    modalDiv.innerHTML = `<img src="${cat.icon}"><div class="cat-box-text">${cat.name}</div>`;
+                    modalDiv.innerHTML = `<img src="${esc(cat.icon)}"><div class="cat-box-text">${esc(cat.name)}</div>`;
                     catModalGrid.appendChild(modalDiv);
                 }
             });
@@ -10133,7 +10280,7 @@
                 const div = document.createElement('div');
                 div.className = `cat-item-box ${cat.bgClass}`;
                 div.onclick = () => openCategoryPage(cat.name);
-                div.innerHTML = `<img src="${cat.icon}"><div class="cat-box-text">${cat.name}</div>`;
+                div.innerHTML = `<img src="${esc(cat.icon)}"><div class="cat-box-text">${esc(cat.name)}</div>`;
                 catGrid.appendChild(div);
             });
             
@@ -10306,7 +10453,7 @@
         c.innerHTML='';
 
         const availableProducts = allProducts.filter(p => p.is_available !== false);
-        availableProducts.sort((a, b) => (b.jumlah_terjual || 0) - (a.jumlah_terjual || 0));
+        availableProducts.sort((a, b) => ((b.jumlah_terjual || 0) - (a.jumlah_terjual || 0)) || bandingUrutanMitra(a, b));
         const bestSellerItems = availableProducts.slice(0, 15);
         
         let bestSellerInserted = false;
@@ -10478,7 +10625,7 @@
         const renderCustomPromoScroll = (urutan) => {
             if (customPromoInserted) return;
             // Mengambil 12 data agar bisa mengisi layout grid 2 baris (Sesuai permintaan)
-            const promoItems = allProducts.filter(p => p.is_available !== false && (p.is_promo === true || parseInt(p.harga_coret) > parseInt(p.harga))).slice(0, 12);
+            const promoItems = allProducts.filter(p => p.is_available !== false && (p.is_promo === true || parseInt(p.harga_coret) > parseInt(p.harga))).sort(bandingUrutanMitra).slice(0, 12);
             
             if (promoItems.length === 0) return;
 
@@ -10598,7 +10745,11 @@
         if (topRatedContainer) topRatedContainer.innerHTML = '';
         renderTopRatedResto();
 
-        const vendorsToRender = foodVendors.slice(0, window.warungRenderLimit);
+        // Semua warung langsung ditampilkan (tidak ada lagi tombol "Tampilkan Lebih Banyak").
+        // Ini tidak menambah pembacaan Firebase sama sekali: data warung dan menu sudah
+        // ditarik sekali lewat onSnapshot dan diperbarui realtime dari cache lokal —
+        // yang berubah cuma berapa banyak yang digambar ke layar.
+        const vendorsToRender = foodVendors;
 
         vendorsToRender.forEach((v, index) => {
             if (index > 0 && index % 3 === 0) {
@@ -10613,6 +10764,12 @@
             }
 
             const vendorProds = allProducts.filter(p => p.vendor_id === v.id && p.is_available !== false);
+
+            // Cek kosong pakai rawProducts, bukan allProducts: allProducts sudah disaring
+            // hanya untuk warung yang BUKA, jadi warung tutup akan selalu terlihat "kosong"
+            // kalau dicek dari sana.
+            const menuWarungAda = rawProducts.some(p => p.vendor_id === v.id);
+            const belumAdaMenu = !menuWarungAda;
             const s = (v.status||'BUKA').toUpperCase()==='BUKA'; 
             const img = v.shop_photo || FALLBACK_VENDOR_IMG; 
             const prices = vendorProds.map(p => parseInt(p.harga)); 
@@ -10654,19 +10811,38 @@
             const div = document.createElement('div');
             div.style.cssText = "background: white; border-bottom: 1px solid #f0f0f0; padding: 12px 15px 12px 15px; margin-bottom: 0;";
             
-            if (s) { 
+            if (s && !belumAdaMenu) { 
                 div.onclick = () => openVendorPage(v.id); 
                 div.style.cursor = "pointer";
             } else { 
                 div.style.cursor = "default";
             }
 
-            const imgOverlay = !s ? '<div style="position:absolute; inset:0; background:rgba(255,255,255,0.7); display:flex; align-items:center; justify-content:center; border-radius:20px;"><span style="background:rgba(0,0,0,0.8); color:white; font-size:9px; font-weight:800; padding:3px 5px; border-radius:4px;">TUTUP</span></div>' : '';
+            let imgOverlay = '';
+            if (!s) {
+                imgOverlay = '<div style="position:absolute; inset:0; background:rgba(255,255,255,0.7); display:flex; align-items:center; justify-content:center; border-radius:20px;"><span style="background:rgba(0,0,0,0.8); color:white; font-size:9px; font-weight:800; padding:3px 5px; border-radius:4px;">TUTUP</span></div>';
+            } else if (belumAdaMenu) {
+                imgOverlay = '<div style="position:absolute; inset:0; background:rgba(255,255,255,0.7); display:flex; align-items:center; justify-content:center; border-radius:20px;"><span style="background:rgba(0,0,0,0.75); color:white; font-size:9px; font-weight:800; padding:3px 5px; border-radius:4px;">UPDATE</span></div>';
+            }
+
+            // Warung yang belum punya menu: baris rating & harga diganti keterangan,
+            // karena angkanya cuma nilai bawaan dan malah menyesatkan pelanggan.
+            const barisInfoHtml = belumAdaMenu
+                ? `<div style="font-size:11px; color:#8a6d3b; background:#fff8e1; border:1px solid #ffe0a3; border-radius:8px; padding:5px 8px; margin-bottom:6px; display:inline-flex; align-items:center; gap:5px; font-weight:700;"><i class="ph-fill ph-clock-countdown" style="font-size:13px;"></i> Penjual sedang mengupdate menu</div>`
+                : `<div style="font-size: 11px; color: #666; display: flex; align-items: center; gap: 4px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            <i class="ph-fill ph-star" style="color: #FF7300; font-size: 13px;"></i>
+                            <span style="font-weight: 700; color: #333;">${rating}</span>
+                            <span style="color: #888;">(${ratingCountText} ratings)</span>
+                            <span style="color: #ccc;">•</span>
+                            <span>${formattedPrice}rb-${maxPriceStr}rb</span>
+                            <span style="color: #ccc;">•</span>
+                            <span style="overflow: hidden; text-overflow: ellipsis;">${esc(menuDesc)}</span>
+                        </div>`;
 
             div.innerHTML = `
-                <div style="display: flex; gap: 10px; ${!s ? 'opacity:0.6; filter:grayscale(100%);' : ''} transition: transform 0.2s;" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'" onmouseleave="this.style.transform='scale(1)'">
+                <div style="display: flex; gap: 10px; ${(!s || belumAdaMenu) ? 'opacity:0.6; filter:grayscale(100%);' : ''} transition: transform 0.2s;" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'" onmouseleave="this.style.transform='scale(1)'">
                     <div style="position: relative; width: 95px; height: 95px; flex-shrink: 0;">
-                        <img src="${img}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 20px; border: 1px solid #eee;" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
+                        <img src="${img}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; border-radius: 20px; border: 1px solid #eee;" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
                         
                         <div style="position: absolute; top: 0; left: 0; background: linear-gradient(135deg, #d32f2f, #b71c1c); color: white; font-size: 8px; font-weight: 800; padding: 3px 8px; border-radius: 20px 0 10px 0; z-index: 2; box-shadow: 2px 2px 6px rgba(0,0,0,0.2);">
                             Hemat 25%
@@ -10677,20 +10853,12 @@
 
                     <div style="flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; justify-content: flex-start;">
                         <div style="font-size: 15px; font-weight: 600; color: #111; line-height: 1.2; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            ${v.nama_warung || 'Warung Projekgo'}
+                            ${esc(v.nama_warung || 'Warung Projekgo')}
                         </div>
 
                         ${halalBadgeHtml ? `<div style="margin-bottom: 3px;">${halalBadgeHtml}</div>` : ''}
 
-                        <div style="font-size: 11px; color: #666; display: flex; align-items: center; gap: 4px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            <i class="ph-fill ph-star" style="color: #FF7300; font-size: 13px;"></i>
-                            <span style="font-weight: 700; color: #333;">${rating}</span>
-                            <span style="color: #888;">(${ratingCountText} ratings)</span>
-                            <span style="color: #ccc;">•</span>
-                            <span>${formattedPrice}rb-${maxPriceStr}rb</span>
-                            <span style="color: #ccc;">•</span>
-                            <span style="overflow: hidden; text-overflow: ellipsis;">${menuDesc}</span>
-                        </div>
+                        ${barisInfoHtml}
 
                         <!-- Baris Ongkir & Waktu (DIUBAH) -->
                         <div style="font-size: 11px; color: #666; display: flex; align-items: center; gap: 4px; margin-bottom: 8px;">
@@ -10730,13 +10898,7 @@
 
         if (!bestSellerInserted) renderBestSeller();
 
-        if (window.warungRenderLimit < foodVendors.length) {
-            const btnContainer = document.createElement('div');
-            btnContainer.style.padding = "20px";
-            btnContainer.style.textAlign = "center";
-            btnContainer.innerHTML = `<button onclick="loadMoreWarung()" style="background:var(--primary-light); color:var(--primary); font-weight:800; border:none; padding:12px 24px; border-radius:20px; font-size:14px; cursor:pointer; box-shadow: 0 4px 10px rgba(255,102,0,0.1); transition: 0.2s;">Tampilkan Lebih Banyak <i class="ph-bold ph-caret-down"></i></button>`;
-            c.appendChild(btnContainer);
-        } else if (foodVendors.length > 0) {
+        if (foodVendors.length > 0) {
             const endContainer = document.createElement('div');
             endContainer.style.padding = "20px 15px 40px 15px";
             endContainer.style.textAlign = "center";
@@ -10782,9 +10944,9 @@
             }
         }
 
-        // TAHAP 2: Fungsi untuk menambah limit dan merender ulang
+        // Dipertahankan sebagai jaring pengaman kalau masih ada tombol lama yang memanggilnya.
+        // Sekarang seluruh warung sudah langsung tampil, jadi fungsinya cukup menggambar ulang.
         window.loadMoreWarung = () => {
-            window.warungRenderLimit += 6; 
             renderWarungList(currentDisplayVendors); 
         }
 
