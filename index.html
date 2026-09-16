@@ -1474,6 +1474,15 @@
             white-space: nowrap;
             text-shadow: 0 1px 3px rgba(0,0,0,0.22); /* Shadow tipis agar tetap terbaca jika gambar aslinya kebetulan sangat putih */
         }
+        /* === JAM OPERASIONAL: tombol pesan abu-abu + badge tutup === */
+        .pg-closed-badge { display: none; margin-top: 10px; background: #FFF4E5; border: 1px solid #FFCC80; color: #8A4B00; font-size: 12px; font-weight: 600; line-height: 1.45; padding: 10px 12px; border-radius: 12px; text-align: center; }
+        .pg-closed-badge .pg-when::after { content: "besok"; }
+        body.pg-tutup-pagi .pg-closed-badge .pg-when::after { content: "hari ini"; }
+        body.pg-tutup .pg-order-btn { background: #BDBDBD !important; color: #F5F5F5 !important; box-shadow: none !important; cursor: not-allowed !important; pointer-events: none !important; }
+        body.pg-tutup .pg-order-btn + .pg-closed-badge { display: block; }
+        #my-cart-items-container input[type=checkbox]:disabled { opacity: 0.4; cursor: not-allowed; }
+        body.pg-tutup .pg-order-btn[style*="display: none"] + .pg-closed-badge,
+        body.pg-tutup .pg-order-btn[style*="display:none"] + .pg-closed-badge { display: none; }
     </style>
 </head>
 <body>
@@ -2589,7 +2598,7 @@
         
         <div id="page-service-form" class="page">
             <div class="sub-header"><div class="btn-back" onclick="goBack()"><i class="ph ph-arrow-left"></i></div><div class="page-title" id="form-service-title">Form</div></div>
-            <div style="padding:20px;"><div id="dynamic-form-fields"></div><button id="generic-submit-btn" onclick="submitServiceForm()" style="width:100%; background:#25D366; color:white; padding:15px; border:none; border-radius:12px; margin-top:20px; font-weight:700; font-size:16px; box-shadow:0 4px 15px rgba(37, 211, 102, 0.4);">Pesan ke Admin</button></div>
+            <div style="padding:20px;"><div id="dynamic-form-fields"></div><button id="generic-submit-btn" class="pg-order-btn" onclick="submitServiceForm()" style="width:100%; background:#25D366; color:white; padding:15px; border:none; border-radius:12px; margin-top:20px; font-weight:700; font-size:16px; box-shadow:0 4px 15px rgba(37, 211, 102, 0.4);">Pesan ke Admin</button><div class="pg-closed-badge">Mohon maaf, jam operasional kami sudah tutup. Kami tersedia <span class="pg-when"></span> dari pukul 06.30 - 21.00 WIB</div></div>
         </div>
 
         <!-- ===== HALAMAN COMING SOON ===== -->
@@ -3431,6 +3440,29 @@
             }
         };
 
+        // --- HELPER: CEK WARUNG DI KERANJANG SEDANG TUTUP (sama dengan logika halaman warung) ---
+        window.isCartVendorClosed = (vendorName, sampleItemId) => {
+            let vendorObj = null;
+            const prod = (typeof rawProducts !== 'undefined') ? rawProducts.find(p => p.id === sampleItemId) : null;
+            if (prod && prod.vendor_id && typeof allVendors !== 'undefined') vendorObj = allVendors.find(v => v.id === prod.vendor_id);
+            if (!vendorObj && typeof allVendors !== 'undefined') vendorObj = allVendors.find(v => v.nama_warung === vendorName);
+            if (!vendorObj) return false; // data warung tidak ditemukan: jangan diblokir
+            const realTime = window.isVendorOpenNow(vendorObj);
+            if (realTime === false) return true;
+            if (realTime === true) return false;
+            return (vendorObj.status || 'BUKA').toUpperCase() !== 'BUKA';
+        };
+        // Kumpulan key item keranjang yang warungnya sedang tutup
+        window.getClosedCartKeys = () => {
+            const closedKeys = new Set();
+            const cache = {};
+            cart.forEach(i => {
+                if (!(i.vendor in cache)) cache[i.vendor] = window.isCartVendorClosed(i.vendor, i.id);
+                if (cache[i.vendor]) closedKeys.add((i.id + '|' + i.variant + '|' + (i.note || '').trim().toLowerCase()));
+            });
+            return closedKeys;
+        };
+
         // --- HELPER UNTUK BYPASS BLOKIR IMGBB & MENGABAIKAN FIREBASE ---
         window.fixImgUrl = (url) => {
             if (!url || typeof url !== 'string') return url;
@@ -3445,7 +3477,29 @@
         let currentArea = localStorage.getItem('user_area') || 'Gombong'; // Default ke Gombong
         let currentDisplayVendors = []; // Warung yang sesuai lokasi aktif
 
-        const ADMIN_WA = "62882008667068";
+        // === ROUTING ADMIN BERDASARKAN JAM (WIB) ===
+        // 06.30-10.00 -> Admin 2 | 10.00-19.00 -> Admin 1 | 19.00-21.00 -> Admin 2 | selain itu tutup
+        const ADMIN_1_WA = "62882008667068";
+        const ADMIN_2_WA = "6281292802623";
+        const getWibMinutes = () => {
+            const now = new Date();
+            const wib = new Date(now.getTime() + now.getTimezoneOffset() * 60000 + 7 * 3600000);
+            return wib.getHours() * 60 + wib.getMinutes();
+        };
+        window.getAdminWA = () => {
+            const m = getWibMinutes();
+            if (m >= 600 && m < 1140) return ADMIN_1_WA; // 10.00 - 18.59
+            return ADMIN_2_WA;                            // 06.30 - 09.59 dan 19.00 - 20.59
+        };
+        window.updateOrderButtonsState = () => {
+            const m = getWibMinutes();
+            const open = m >= 390 && m < 1260;
+            document.body.classList.toggle('pg-tutup', !open);
+            document.body.classList.toggle('pg-tutup-pagi', !open && m < 390);
+        };
+        if (document.body) updateOrderButtonsState();
+        else document.addEventListener('DOMContentLoaded', updateOrderButtonsState);
+        setInterval(updateOrderButtonsState, 30000);
 
         // ====================================================================
         // GAMBAR PENGGANTI (FALLBACK) JIKA PENJUAL BELUM UPLOAD FOTO ATAU FOTO ERROR
@@ -3456,6 +3510,20 @@
         // Nama menu dan nama warung ditulis mitra, lalu ditempelkan lewat
         // innerHTML ke layar semua pelanggan. Tanpa disaring, tag HTML di
         // dalamnya akan dijalankan sebagai kode di browser pelanggan.
+        // --- PENGAMAN INLINE HANDLER ---
+        // Teks dari database (nama warung, varian, nama menu) tidak ditulis mentah ke onclick.
+        // Yang ditulis hanya nomor urut; nilai aslinya diambil lagi lewat uiVal(nomor).
+        const __uiRefs = [];
+        const __uiRefIndex = new Map();
+        const uiRef = (v) => {
+            const str = String(v == null ? '' : v);
+            if (__uiRefIndex.has(str)) return __uiRefIndex.get(str);
+            const idx = __uiRefs.push(str) - 1;
+            __uiRefIndex.set(str, idx);
+            return idx;
+        };
+        window.uiVal = (i) => __uiRefs[Number(i)];
+
         const esc = (v) => String(v == null ? '' : v).replace(/[&<>"'`=\/]/g, c => ({
             '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;',
             "'": '&#39;', '`': '&#96;', '=': '&#61;', '/': '&#47;'
@@ -3723,21 +3791,13 @@
 
         // FUNGSI CEK JAM OPERASIONAL YANG DIPERBARUI
         window.checkOperationalStatus = (isAction = true) => {
-            const now = new Date();
-            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-            const wibDate = new Date(utc + (3600000 * 7));
-            const hours = wibDate.getHours();
-            const minutes = wibDate.getMinutes();
-            const totalMinutes = (hours * 60) + minutes;
-            
-            // Jam Buka: 06:30 (390) sampai 21:00 (1260)
-            const isOpen = totalMinutes >= 390 && totalMinutes <= 1260;
-            
+            const totalMinutes = getWibMinutes();
+            // Jam Buka: 06:30 (390) sampai sebelum 21:00 (1260)
+            const isOpen = totalMinutes >= 390 && totalMinutes < 1260;
+            if (typeof updateOrderButtonsState === 'function') updateOrderButtonsState();
             if (!isOpen && isAction) {
-                // Hapus logika pemblokiran, biarkan return true agar action berlanjut
-                // showClosedModal(); 
-                // return false; 
-                return true; 
+                if (window.showToast) window.showToast("Mohon maaf, jam operasional kami sudah tutup. Kami buka 06.30 - 21.00 WIB");
+                return false;
             }
             return isOpen;
         }
@@ -4488,7 +4548,7 @@
                 } else {
                     // LOGIKA PESANAN MAKANAN (Default)
                     const reorderData = encodeURIComponent(JSON.stringify(order.rawItems || []));
-                    reorderBtnHtml = `<button class="btn-reorder-action" onclick="reorder('${reorderData}')">Pesan Lagi ↻</button>`;
+                    reorderBtnHtml = `<button class="btn-reorder-action" onclick="reorder(uiVal(${uiRef(reorderData)}))">Pesan Lagi ↻</button>`;
 
                     if (order.rawItems && order.rawItems.length > 0) {
                         const consolidated = [];
@@ -5936,6 +5996,10 @@
                 return;
             }
 
+            // Item dari warung yang sedang tutup tidak boleh ikut tercentang
+            const closedCartKeys = window.getClosedCartKeys();
+            selectedCartKeys = selectedCartKeys.filter(k => !closedCartKeys.has(k));
+
             // Kelompokkan item berdasarkan warung (vendor)
             const grouped = {};
             cart.forEach(item => {
@@ -5962,8 +6026,11 @@
                     }
                 });
 
+                // Status tutup warung ini
+                const vendorClosed = consolidatedItems.some(i => closedCartKeys.has(i._key));
+
                 // Cek apakah SEMUA item di warung ini dicentang
-                const allVendorItemsChecked = consolidatedItems.every(i => selectedCartKeys.includes(i._key));
+                const allVendorItemsChecked = !vendorClosed && consolidatedItems.every(i => selectedCartKeys.includes(i._key));
 
                 // --- CARI ID VENDOR UNTUK NAVIGASI KETIKA NAMA DIKLIK ---
                 let targetVendorId = vendor; 
@@ -5989,20 +6056,20 @@
 
                 html += `
                 <div style="background: white; margin-bottom: 0; padding-bottom: 12px;">
-                    
+                    ${vendorClosed ? `<div style="display:flex; align-items:center; gap:8px; background:#FFEBEE; color:#B71C1C; font-size:11px; font-weight:700; line-height:1.4; padding:9px 15px;"><i class="ph-fill ph-moon-stars" style="font-size:16px; flex-shrink:0;"></i><span>Warung ini sedang tutup. Menunya tidak ikut dipesan saat checkout.</span></div>` : ''}
                     <!-- HEADER WARUNG -->
                     <div style="display: flex; align-items: center; padding: 13px 15px 10px; gap: 12px;">
                         
                         <!-- Checkbox Toko (Tetap di kiri, terpisah dari area klik navigasi) -->
                         <input type="checkbox" style="width: 18px; height: 18px; accent-color: #E53935; cursor: pointer; flex-shrink: 0;" 
-                               onchange="toggleSelectVendor(this, '${vendor}')" ${allVendorItemsChecked ? 'checked' : ''}>
+                               onchange="toggleSelectVendor(this, uiVal(${uiRef(vendor)}))" ${allVendorItemsChecked ? 'checked' : ''} ${vendorClosed ? 'disabled' : ''}>
                         
                         <!-- Area Nama & Arrow yang bisa diklik untuk pergi ke halaman warung -->
-                        <div onclick="openVendorPage('${targetVendorId}')" style="display: flex; align-items: center; justify-content: space-between; flex-grow: 1; cursor: pointer;">
+                        <div onclick="openVendorPage(uiVal(${uiRef(targetVendorId)}))" style="display: flex; align-items: center; justify-content: space-between; flex-grow: 1; cursor: pointer;">
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <i class="ph-fill ph-storefront" style="color: #E65100; font-size: 18px;"></i>
                                 <div style="min-width:0;">
-                                    <div style="font-weight: 800; font-size: 14px; color: var(--dark); text-transform: uppercase; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(vendor)}</div>
+                                    <div style="display:flex; align-items:center; gap:6px; min-width:0;"><div style="font-weight: 800; font-size: 14px; color: ${vendorClosed ? '#9E9E9E' : 'var(--dark)'}; text-transform: uppercase; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(vendor)}</div>${vendorClosed ? '<span style="background:#D32F2F; color:white; font-size:9px; font-weight:800; padding:2px 7px; border-radius:6px; flex-shrink:0;">TUTUP</span>' : ''}</div>
                                     <div style="font-size:11px; color:#999; margin-top:1px;">${items.length} porsi</div>
                                 </div>
                             </div>
@@ -6019,6 +6086,7 @@
 
                 consolidatedItems.forEach(item => {
                     const isChecked = selectedCartKeys.includes(item._key);
+                    const itemClosed = closedCartKeys.has(item._key);
                     
                     // --- MENCARI GAMBAR PRODUK & DESKRIPSI (LANGKAH 1) ---
                     const product = rawProducts.find(p => p.id === item.id);
@@ -6035,20 +6103,23 @@
                     
                     // --- UI BARU: KARTU ITEM ---
                     html += `
-                        <div style="display: flex; align-items: flex-start; gap: 10px; padding: 11px 0; border-bottom: 1px solid #f4f4f4;">
+                        <div style="display: flex; align-items: flex-start; gap: 10px; padding: 11px 0; border-bottom: 1px solid #f4f4f4; ${itemClosed ? 'background:#FAFAFA;' : ''}">
                             
                             <!-- CHECKBOX KIRI -->
                             <div style="display: flex; align-items: center;">
-                                <input type="checkbox" class="cb-item-${vendor.replace(/\s+/g, '-')}" value="${item._key}" 
+                                <input type="checkbox" class="cb-item-${esc(vendor.replace(/\s+/g, '-'))}" value="${esc(item._key)}" 
                                        style="width: 18px; height: 18px; accent-color: #E53935; cursor: pointer; flex-shrink: 0;" 
-                                       onchange="toggleSelectItem(this)" ${isChecked ? 'checked' : ''}>
+                                       onchange="toggleSelectItem(this)" ${isChecked ? 'checked' : ''} ${itemClosed ? 'disabled' : ''}>
                             </div>
                             
                             <!-- GAMBAR PRODUK -->
-                            <img src="${imgUrl}" style="width: 58px; height: 58px; border-radius: 10px; object-fit: cover; flex-shrink: 0;" onerror="this.src='${FALLBACK_MENU_IMG}'">
+                            <div style="position:relative; flex-shrink:0;">
+                                <img src="${imgUrl}" style="width: 58px; height: 58px; border-radius: 10px; object-fit: cover; flex-shrink: 0; ${itemClosed ? 'filter:grayscale(100%); opacity:0.6;' : ''}" onerror="this.src='${FALLBACK_MENU_IMG}'">
+                                ${itemClosed ? '<span style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); background:rgba(211,47,47,0.92); color:white; font-size:9px; font-weight:800; padding:2px 6px; border-radius:5px;">TUTUP</span>' : ''}
+                            </div>
 
                             <!-- DETAIL PRODUK & AKSI KANAN -->
-                            <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                            <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between; ${itemClosed ? 'filter:grayscale(100%); opacity:0.55;' : ''}">
                                 
                                 <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
                                     <div style="font-size: 13px; font-weight: 700; color: #222; line-height: 1.25; min-width:0;">${esc(item.nama)}</div>
@@ -6063,11 +6134,11 @@
 
                                 <!-- HAPUS & KONTROL QTY -->
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-                                    <i class="ph-regular ph-trash" onclick="removeMyCartItem('${item._key}')" style="color: #E53935; font-size: 18px; cursor: pointer;"></i>
+                                    <i class="ph-regular ph-trash" onclick="removeMyCartItem(uiVal(${uiRef(item._key)}))" style="color: #E53935; font-size: 18px; cursor: pointer;"></i>
                                     <div style="display: flex; align-items: center; border: 1px solid #ddd; border-radius: 6px; background: white; overflow: hidden;">
-                                        <div onclick="updateMyCartQty('${item._key}', -1)" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #555; font-weight: bold; user-select: none;">-</div>
+                                        <div onclick="updateMyCartQty(uiVal(${uiRef(item._key)}), -1)" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #555; font-weight: bold; user-select: none;">-</div>
                                         <div style="font-size: 13px; font-weight: 700; width: 30px; text-align: center; border-left: 1px solid #ddd; border-right: 1px solid #ddd; line-height: 28px;">${item.qty}</div>
-                                        <div onclick="updateMyCartQty('${item._key}', 1)" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #555; font-weight: bold; user-select: none;">+</div>
+                                        <div onclick="updateMyCartQty(uiVal(${uiRef(item._key)}), 1)" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #555; font-weight: bold; user-select: none;">+</div>
                                     </div>
                                 </div>
 
@@ -6107,7 +6178,8 @@
             let selectedCount = 0;
 
             // Sinkronisasi status Checkbox "Semua" di Action Bar bawah
-            const uniqueKeysInCart = [...new Set(cart.map(i => i.id + '|' + i.variant + '|' + (i.note || '').trim().toLowerCase()))];
+            const closedKeysForTotal = window.getClosedCartKeys();
+            const uniqueKeysInCart = [...new Set(cart.map(i => i.id + '|' + i.variant + '|' + (i.note || '').trim().toLowerCase()))].filter(k => !closedKeysForTotal.has(k));
             const cbAll = document.getElementById('cb-select-all');
             if(cbAll) {
                 cbAll.checked = uniqueKeysInCart.length > 0 && selectedCartKeys.length === uniqueKeysInCart.length;
@@ -6116,7 +6188,7 @@
             // Hitung subtotal dan jumlah item berdasarkan item yang dicentang saja
             cart.forEach(item => {
                 const key = item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase();
-                if (selectedCartKeys.includes(key)) {
+                if (selectedCartKeys.includes(key) && !closedKeysForTotal.has(key)) {
                     selectedTotal += item.harga;
                     selectedCount++; // Hitung total kuantitas unit yang dipilih
                 }
@@ -6156,6 +6228,7 @@
         window.toggleSelectItem = (checkbox) => {
             const key = checkbox.value;
             if (checkbox.checked) {
+                if (window.getClosedCartKeys().has(key)) { showToast("Warung ini sedang tutup."); renderMyCartPage(); return; }
                 if (!selectedCartKeys.includes(key)) selectedCartKeys.push(key);
             } else {
                 selectedCartKeys = selectedCartKeys.filter(k => k !== key);
@@ -6179,7 +6252,8 @@
 
         window.toggleSelectAllCart = (checkbox) => {
             if (checkbox.checked) {
-                selectedCartKeys = [...new Set(cart.map(i => i.id + '|' + i.variant + '|' + (i.note || '').trim().toLowerCase()))];
+                const closedKeys = window.getClosedCartKeys();
+                selectedCartKeys = [...new Set(cart.map(i => i.id + '|' + i.variant + '|' + (i.note || '').trim().toLowerCase()))].filter(k => !closedKeys.has(k));
             } else {
                 selectedCartKeys = [];
             }
@@ -6245,6 +6319,15 @@
         };
 
         window.proceedFromMyCart = () => {
+            // Cek ulang: warung bisa saja baru tutup saat halaman keranjang masih terbuka
+            const closedNow = window.getClosedCartKeys();
+            const before = selectedCartKeys.length;
+            selectedCartKeys = selectedCartKeys.filter(k => !closedNow.has(k));
+            if (selectedCartKeys.length !== before) {
+                renderMyCartPage();
+                showToast("Ada warung yang baru saja tutup. Menunya dikeluarkan dari checkout.");
+                return;
+            }
             if(selectedCartKeys.length === 0) {
                 showToast("⚠️ Centang minimal satu pesanan untuk dicheckout.");
                 return;
@@ -6566,13 +6649,13 @@
                             ${metaText ? `<div style="font-size:11px; color:#E65100; background:#FFF6EE; padding:4px 8px; border-radius:8px; margin-top:6px; line-height:1.3;">${esc(metaText)}</div>` : ''}
 
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
-                                <button onclick="promptNote('${item._key}')" style="background:none; border:none; padding:0; font-size:11px; font-weight:700; color:#888; display:flex; align-items:center; gap:5px; cursor:pointer;">
+                                <button onclick="promptNote(uiVal(${uiRef(item._key)}))" style="background:none; border:none; padding:0; font-size:11px; font-weight:700; color:#888; display:flex; align-items:center; gap:5px; cursor:pointer;">
                                     <i class="ph-bold ph-pencil-simple" style="font-size:14px;"></i> ${metaText ? 'Ubah catatan' : 'Catatan'}
                                 </button>
                                 <div style="display:flex; align-items:center; gap:10px;">
-                                    <div onclick="updateCartItemQty('${item._key}', -1)" style="width:26px; height:26px; border:1.5px solid #e0e0e0; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#666; font-weight:bold; cursor:pointer; user-select:none;">-</div>
+                                    <div onclick="updateCartItemQty(uiVal(${uiRef(item._key)}), -1)" style="width:26px; height:26px; border:1.5px solid #e0e0e0; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#666; font-weight:bold; cursor:pointer; user-select:none;">-</div>
                                     <span style="font-size:14px; font-weight:800; color:#222; min-width:14px; text-align:center;">${item.qty}</span>
-                                    <div onclick="updateCartItemQty('${item._key}', 1)" style="width:26px; height:26px; background:#FF6600; border:1.5px solid #FF6600; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; cursor:pointer; user-select:none;">+</div>
+                                    <div onclick="updateCartItemQty(uiVal(${uiRef(item._key)}), 1)" style="width:26px; height:26px; background:#FF6600; border:1.5px solid #FF6600; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; cursor:pointer; user-select:none;">+</div>
                                 </div>
                             </div>
                         </div>
@@ -6581,7 +6664,7 @@
                 
                 // Bagian "Ada lagi yang mau dibeli?"
                 html += `
-                <div onclick="openVendorPage('${targetVendorId}')" style="display:flex; align-items:center; justify-content:center; gap:7px; margin-top:10px; padding:9px; border:1px dashed #FFC59B; border-radius:10px; color:#FF6600; font-size:12px; font-weight:700; cursor:pointer;">
+                <div onclick="openVendorPage(uiVal(${uiRef(targetVendorId)}))" style="display:flex; align-items:center; justify-content:center; gap:7px; margin-top:10px; padding:9px; border:1px dashed #FFC59B; border-radius:10px; color:#FF6600; font-size:12px; font-weight:700; cursor:pointer;">
                     <i class="ph-bold ph-plus-circle" style="font-size:15px;"></i> Tambah menu lain dari ${esc(vendor)}
                 </div>
                 
@@ -6828,9 +6911,9 @@
 
             <!-- STICKY BUTTON CONTAINER -->
             <div style="position: fixed; bottom: 0; left: 0; right: 0; max-width: var(--max-width); margin: 0 auto; background: white; padding: 15px 20px; box-shadow: 0 -4px 15px rgba(0,0,0,0.05); z-index: 2000; border-top-left-radius: 20px; border-top-right-radius: 20px; padding-bottom: max(15px, env(safe-area-bottom));">
-                <button onclick="processCheckout()" style="width:100%; background:#25D366; color:white; padding:15px; border:none; border-radius:14px; font-weight:800; font-size:16px; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: transform 0.2s;" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform='scale(1)'">
+                <button class="pg-order-btn" onclick="processCheckout()" style="width:100%; background:#25D366; color:white; padding:15px; border:none; border-radius:14px; font-weight:800; font-size:16px; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: transform 0.2s;" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform='scale(1)'">
                     Pesan Dan Kami Antar Sekarang <i class="ph-bold ph-whatsapp-logo" style="font-size: 20px;"></i>
-                </button>
+                </button><div class="pg-closed-badge">Mohon maaf, jam operasional kami sudah tutup. Kami tersedia <span class="pg-when"></span> dari pukul 06.30 - 21.00 WIB</div>
             </div>`;
             
             container.innerHTML = html; 
@@ -7730,7 +7813,7 @@
             }
             
             const textWA = `Admin saya mau tanya kalau pesan ${vendors || 'Warung'} dianter ke ${lokasiTujuan} berapa yah?`;
-            window.open(`https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(textWA)}`, '_blank');
+            window.open(`https://wa.me/${getAdminWA()}?text=${encodeURIComponent(textWA)}`, '_blank');
         }
 
         // --- TAMBAHAN LANGKAH 2: FUNGSI AUTOFETCH LOKASI CHECKOUT ---
@@ -7960,6 +8043,11 @@
 
         window.processCheckout = () => {
             if(!checkOperationalStatus()) return; 
+            if (window.getClosedCartKeys().size > 0) {
+                showToast("Ada warung yang baru saja tutup. Cek lagi keranjangmu ya.");
+                renderMyCartPage(); openPage('my-cart');
+                return;
+            }
             
             let addr = "";
             let mapsLink = "";
@@ -8138,7 +8226,7 @@
 
             // 4. Arahkan ke WhatsApp dengan proteksi error
             try {
-                const waUrl = `https://wa.me/${ADMIN_WA}?text=${message}`;
+                const waUrl = `https://wa.me/${getAdminWA()}?text=${message}`;
                 const waWindow = window.open(waUrl, '_blank');
                 
                 // Cek jika browser memblokir popup atau gagal membuka jendela baru
@@ -8474,9 +8562,9 @@
                                 <div id="summary-price" style="font-size:20px; font-weight:900; color:var(--dark);">Rp -</div>
                             </div>
                             <div style="border-top: 1px dashed #eee; margin-bottom: 15px;"></div>
-                            <button onclick="submitServiceForm()" style="width:100%; background:var(--primary); color:white; padding:14px; border:none; border-radius:14px; font-weight:800; font-size:16px; box-shadow:0 8px 20px rgba(255,102,0,0.3); display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition:transform 0.2s;" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform='scale(1)'">
+                            <button class="pg-order-btn" onclick="submitServiceForm()" style="width:100%; background:var(--primary); color:white; padding:14px; border:none; border-radius:14px; font-weight:800; font-size:16px; box-shadow:0 8px 20px rgba(255,102,0,0.3); display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition:transform 0.2s;" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform='scale(1)'">
                                 Pesan ${svc} <i class="ph-bold ph-arrow-right"></i>
-                            </button>
+                            </button><div class="pg-closed-badge">Mohon maaf, jam operasional kami sudah tutup. Kami tersedia <span class="pg-when"></span> dari pukul 06.30 - 21.00 WIB</div>
                         </div>
 
                         <!-- LOADING ROUTE (LANGKAH 1: Dikeluarkan dari Dalam Peta) -->
@@ -8498,9 +8586,9 @@
                         ${extraFields}
                         
                         <!-- TOMBOL SUBMIT KHUSUS MODE MANUAL (DIUBAH: Ditampilkan Default) -->
-                        <button id="btn-submit-manual" onclick="submitServiceForm()" style="display:flex; width:100%; background:linear-gradient(45deg, var(--primary), #FF9900); color:white; padding:14px; border:none; border-radius:12px; margin-top:15px; font-weight:800; font-size:14px; box-shadow:0 4px 15px rgba(255,102,0,0.3); align-items:center; justify-content:center; gap:8px; cursor:pointer;">
+                        <button id="btn-submit-manual" class="pg-order-btn" onclick="submitServiceForm()" style="display:flex; width:100%; background:linear-gradient(45deg, var(--primary), #FF9900); color:white; padding:14px; border:none; border-radius:12px; margin-top:15px; font-weight:800; font-size:14px; box-shadow:0 4px 15px rgba(255,102,0,0.3); align-items:center; justify-content:center; gap:8px; cursor:pointer;">
                             Pesan ${svc} via WA <i class="ph-bold ph-whatsapp-logo" style="font-size:18px;"></i>
-                        </button>
+                        </button><div class="pg-closed-badge">Mohon maaf, jam operasional kami sudah tutup. Kami tersedia <span class="pg-when"></span> dari pukul 06.30 - 21.00 WIB</div>
                     </div>
 
                     <!-- DIUBAH: List suggest lokasi di-hide secara default mengikuti mode manual -->
@@ -9340,6 +9428,7 @@
         // ----------------------------------------------------
 
         window.submitServiceForm = () => { 
+            if (!checkOperationalStatus()) return;
             let message = `Halo Admin Projekgo, pesan jasa *${currentServiceType}*:%0A%0A`; 
             
             if (currentServiceType === 'Ngojek' || currentServiceType === 'Mobil' || currentServiceType === 'Kirim Paket') {
@@ -9480,7 +9569,7 @@
             localStorage.setItem('order_history', JSON.stringify(history));
             // --------------------------------------------------
 
-            window.open(`https://wa.me/${ADMIN_WA}?text=${message}`, '_blank'); 
+            window.open(`https://wa.me/${getAdminWA()}?text=${message}`, '_blank'); 
             
             // Arahkan ke halaman riwayat pesanan
             setTimeout(() => {
