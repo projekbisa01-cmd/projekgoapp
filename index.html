@@ -760,19 +760,22 @@
         .bottom-nav-container { position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000; pointer-events: none; }
         
         /* DIPERBARUI: Background navbar bawah menjadi putih murni tanpa efek blur */
-        .bottom-nav { pointer-events: auto; max-width: var(--max-width); margin: 0 auto; background: #ffffff; padding: 10px 30px; display: flex; justify-content: space-around; box-shadow: 0 -5px 25px rgba(0,0,0,0.05); padding-bottom: max(15px, env(safe-area-inset-bottom)); border-top: 1px solid #f0f0f0; overflow: visible; }
+        /* NAVBAR BAWAH BARU: dock mengambang + blok oranye penanda menu aktif */
+        .bottom-nav-container { padding: 0 12px calc(12px + env(safe-area-inset-bottom, 0px)); transition: transform 0.3s ease; }
+        .bottom-nav { pointer-events: auto; position: relative; max-width: calc(var(--max-width) - 24px); margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); padding: 7px; background: #ffffff; border-radius: 26px; box-shadow: 0 14px 34px rgba(28,28,30,0.16), 0 2px 6px rgba(28,28,30,0.06), 0 0 0 1px rgba(28,28,30,0.05); overflow: visible; }
+        .nav-blob { position: absolute; top: 7px; bottom: 7px; left: 7px; width: calc((100% - 14px) / 4); border-radius: 20px; background: linear-gradient(160deg, #FF7A1A, #E85300); box-shadow: 0 6px 14px rgba(232,83,0,0.38); transform: translateX(calc(100% * var(--i, 0))); transition: transform 0.45s cubic-bezier(.3,1.35,.45,1), opacity 0.25s; pointer-events: none; }
+        .nav-item { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 0 7px; color: #56565B; cursor: pointer; font-size: 11px; font-weight: 700; -webkit-tap-highlight-color: transparent; transition: color 0.3s; }
+        .nav-item i { font-size: 24px; transition: transform 0.35s cubic-bezier(.3,1.5,.5,1); }
+        .nav-item:active i { transform: scale(0.88); }
+        .nav-item.active { color: #ffffff; }
+        .nav-item.active i { transform: translateY(-1px) scale(1.08); }
         
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #ccc; cursor: pointer; font-size: 10px; font-weight: 600; position: relative; transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .nav-item i { font-size: 24px; margin-bottom: 2px; transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .nav-item.active { color: var(--primary); }
-        .nav-item.active i { transform: translateY(-2px); font-weight: 700; }
-        
-        .nav-badge { position: absolute; top: -2px; right: 8px; background: #FF6600; color: white; font-size: 9px; width: 16px; height: 16px; border-radius: 50%; display: none; align-items: center; justify-content: center; border: 2px solid white; z-index: 10; font-weight: 700; }
+        .nav-badge { position: absolute; top: 2px; left: calc(50% + 5px); background: #E53935; color: white; font-size: 10px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; display: none; align-items: center; justify-content: center; border: 2px solid white; z-index: 10; font-weight: 800; }
         
         @keyframes pulse-orange {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 102, 0, 0.7); }
-            70% { transform: scale(1.3); box-shadow: 0 0 0 8px rgba(255, 102, 0, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 102, 0, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.55); }
+            70% { box-shadow: 0 0 0 7px rgba(229, 57, 53, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0); }
         }
         
         .nav-badge.has-items {
@@ -781,6 +784,100 @@
         }
         
         /* .nav-center-item { position: relative; top: -25px; } */ /* Dihapus karena FAB pindah */
+
+        /* =========================================================
+           ALUR PESAN PROJEKGO (dipakai di Beranda & Food)
+           Semua kelas diawali "ap-" supaya tidak bentrok dengan CSS lama
+           (mis. ".dot { display:none !important }" yang sudah ada).
+           ========================================================= */
+        .ap { --ap-deep: #E85300; --ap-muted: #6B6B70; --ap-wa: #1FAF55; --ap-wa-dark: #128C3E;
+            margin: 14px 16px 6px; background: #fff; border-radius: 24px; position: relative; overflow: hidden;
+            box-shadow: 0 10px 28px rgba(255,102,0,0.10), 0 0 0 1px rgba(255,102,0,0.08); font-family: 'Plus Jakarta Sans', sans-serif; color: var(--dark); }
+        .ap::before { content: ''; position: absolute; top: -90px; right: -70px; width: 220px; height: 220px; border-radius: 50%; background: radial-gradient(circle, #FFE3CF 0%, transparent 70%); pointer-events: none; }
+        .ap button { font-family: inherit; }
+        .ap-head { position: relative; display: block; width: 100%; text-align: left; background: none; border: 0; padding: 16px 16px 14px; cursor: pointer; color: inherit; -webkit-tap-highlight-color: transparent; }
+        .ap-head:focus-visible { outline: 3px solid var(--primary); outline-offset: -3px; border-radius: 24px; }
+        .ap-top { display: flex; align-items: center; gap: 12px; }
+        .ap-txt { flex: 1; min-width: 0; }
+        .ap-txt b { display: block; font-size: 16px; font-weight: 800; letter-spacing: -0.01em; }
+        .ap-txt small { display: block; font-size: 12.5px; color: var(--ap-muted); margin-top: 2px; font-weight: 500; }
+        .ap-cta { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; background: var(--primary); color: #fff; font-size: 12px; font-weight: 800; padding: 8px 10px 8px 13px; border-radius: 20px; box-shadow: 0 5px 12px rgba(255,102,0,0.35); animation: apNudge 3.2s ease-in-out infinite; }
+        .ap-cta svg { width: 14px; height: 14px; transition: transform 0.35s; }
+        .ap.ap-open .ap-cta { animation: none; background: var(--primary-light); color: var(--ap-deep); box-shadow: none; }
+        .ap.ap-open .ap-cta svg { transform: rotate(180deg); }
+        @keyframes apNudge { 0%,80%,100% { transform: translateY(0); } 86% { transform: translateY(-3px); } 92% { transform: translateY(0); } 96% { transform: translateY(-1.5px); } }
+        .ap-strip { display: flex; align-items: center; gap: 4px; margin-top: 12px; max-height: 44px; transition: opacity 0.3s, margin 0.35s, max-height 0.35s; }
+        .ap-m { width: 36px; height: 36px; flex: 0 0 36px; border-radius: 12px; display: grid; place-items: center; background: linear-gradient(160deg, #fff, #FFF4EC); box-shadow: 0 3px 0 #F3D9C6; animation: apHop 5s ease-in-out infinite; }
+        .ap-m.ap-wa { background: linear-gradient(160deg, #fff, #EAF8EF); box-shadow: 0 3px 0 #CDEBD8; }
+        .ap-m svg { width: 24px; height: 24px; }
+        .ap-ar { flex: 1; height: 2px; min-width: 6px; background: repeating-linear-gradient(90deg, #F0C7A8 0 4px, transparent 4px 7px); }
+        .ap-m:nth-of-type(2) { animation-delay: .25s; } .ap-m:nth-of-type(3) { animation-delay: .5s; }
+        .ap-m:nth-of-type(4) { animation-delay: .75s; } .ap-m:nth-of-type(5) { animation-delay: 1s; }
+        @keyframes apHop { 0%,20%,100% { transform: translateY(0); } 8% { transform: translateY(-6px); } 14% { transform: translateY(0); } }
+        .ap.ap-open .ap-strip { opacity: 0; max-height: 0; margin-top: 0; }
+        .ap-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.45s cubic-bezier(.3,.8,.3,1); }
+        .ap.ap-open .ap-body { grid-template-rows: 1fr; }
+        .ap-inner { overflow: hidden; min-height: 0; }
+        .ap-pad { padding: 0 16px 16px; }
+        .ap-stage { perspective: 700px; padding: 16px 0 4px; }
+        .ap-track { position: relative; display: flex; justify-content: space-between; align-items: flex-end; transform: rotateX(16deg); transform-style: preserve-3d; }
+        .ap-rail { position: absolute; left: 29px; right: 29px; bottom: 18px; height: 6px; border-radius: 6px; background: #F1E7DF; }
+        .ap-rail-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; width: 0; background: linear-gradient(90deg, #FFB27A, var(--primary)); transition: width 0.6s cubic-bezier(.3,.8,.3,1); }
+        .ap-rail-fill.ap-to-wa { background: linear-gradient(90deg, #FFB27A, var(--primary) 70%, var(--ap-wa)); }
+        .ap-st { position: relative; z-index: 1; flex: 0 0 58px; display: flex; flex-direction: column; align-items: center; gap: 10px; background: none; border: 0; padding: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .ap-tile { width: 58px; height: 58px; border-radius: 18px; display: grid; place-items: center; background: linear-gradient(160deg, #fff, #FFF4EC); box-shadow: 0 5px 0 #F3D9C6, 0 10px 16px rgba(255,102,0,0.10); transition: transform 0.45s cubic-bezier(.2,1.4,.4,1), box-shadow 0.45s; }
+        .ap-tile svg { width: 40px; height: 40px; filter: drop-shadow(0 3px 3px rgba(0,0,0,0.10)); }
+        .ap-st.ap-wa .ap-tile { background: linear-gradient(160deg, #fff, #EAF8EF); box-shadow: 0 5px 0 #CDEBD8, 0 10px 16px rgba(31,175,85,0.12); }
+        .ap-dot { width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 3px solid #F1E7DF; transition: border-color 0.4s, transform 0.4s; }
+        .ap-st.ap-done .ap-dot { border-color: var(--primary); }
+        .ap-st.ap-wa.ap-done .ap-dot { border-color: var(--ap-wa); }
+        .ap-st.ap-on .ap-tile { transform: translateY(-14px) translateZ(20px) scale(1.08); box-shadow: 0 9px 0 #F0C7A8, 0 22px 26px rgba(255,102,0,0.25); }
+        .ap-st.ap-wa.ap-on .ap-tile { box-shadow: 0 9px 0 #B6E2C6, 0 22px 26px rgba(31,175,85,0.28); }
+        .ap-st.ap-on .ap-tile svg { animation: apBob 1.6s ease-in-out infinite; }
+        .ap-st.ap-on .ap-dot { transform: scale(1.25); }
+        .ap-st:focus-visible .ap-tile { outline: 3px solid var(--primary); outline-offset: 3px; }
+        @keyframes apBob { 0%,100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-4px) rotate(-4deg); } }
+        .ap-hint { text-align: center; font-size: 11.5px; font-weight: 600; color: var(--ap-muted); margin: 6px 0 0; transition: opacity 0.3s; }
+        .ap.ap-touched .ap-hint { opacity: 0; }
+        .ap-detail { margin-top: 10px; border-radius: 18px; background: #FFF8F2; padding: 14px 14px 12px; border: 1px solid #FFE6D3; }
+        .ap-detail.ap-is-wa { background: #F1FBF5; border-color: #D3F0DE; }
+        .ap-in { animation: apRise 0.4s cubic-bezier(.2,.9,.3,1); }
+        .ap-n { font-size: 12px; font-weight: 700; color: var(--ap-deep); }
+        .ap-detail.ap-is-wa .ap-n { color: var(--ap-wa-dark); }
+        .ap-detail h3 { font-size: 16px; font-weight: 800; margin: 3px 0 4px; color: var(--dark); }
+        .ap-detail p { font-size: 13px; color: var(--ap-muted); margin: 0 0 8px; line-height: 1.5; }
+        .ap-detail ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+        .ap-detail li { display: flex; gap: 8px; font-size: 12.5px; line-height: 1.45; color: #3A3A3F; }
+        .ap-detail li::before { content: ''; flex: 0 0 18px; height: 18px; border-radius: 6px; margin-top: 1px; background: var(--primary) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 12px no-repeat; }
+        .ap-detail.ap-is-wa li::before { background-color: var(--ap-wa); }
+        .ap-nav { display: flex; gap: 8px; margin-top: 12px; }
+        .ap-nav button { flex: 1; border: 0; border-radius: 14px; padding: 11px 10px; font-size: 13px; font-weight: 800; cursor: pointer; }
+        .ap-prev { background: #fff; color: var(--ap-muted); box-shadow: inset 0 0 0 1.5px #EDE3DB; }
+        .ap-next { background: var(--primary); color: #fff; box-shadow: 0 5px 12px rgba(255,102,0,0.3); }
+        .ap-next.ap-go { background: var(--ap-wa); box-shadow: 0 5px 12px rgba(31,175,85,0.3); }
+        .ap-nav button:disabled { opacity: 0.4; cursor: default; }
+        .ap-nav button:focus-visible { outline: 3px solid var(--dark); outline-offset: 2px; }
+        @keyframes apRise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+        .ap-beda { margin-top: 12px; border-radius: 18px; padding: 14px; background: linear-gradient(135deg, #FFF6EF, #EFFAF3); }
+        .ap-bridge { display: flex; align-items: center; gap: 8px; }
+        .ap-node { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--ap-muted); }
+        .ap-b { width: 48px; height: 48px; border-radius: 15px; display: grid; place-items: center; background: #fff; box-shadow: 0 4px 0 #F3D9C6, 0 8px 14px rgba(0,0,0,0.06); }
+        .ap-node.ap-wa .ap-b { box-shadow: 0 4px 0 #CDEBD8, 0 8px 14px rgba(31,175,85,0.14); }
+        .ap-node svg { width: 30px; height: 30px; }
+        .ap-lane { flex: 1; position: relative; height: 48px; align-self: flex-start; }
+        .ap-lane::before { content: ''; position: absolute; left: 0; right: 0; top: 23px; border-top: 2.5px dashed #E8CDB9; }
+        .ap-msg { position: absolute; left: 0; top: 12px; width: 24px; height: 20px; border-radius: 8px 8px 8px 3px; background: var(--primary); box-shadow: 0 4px 8px rgba(255,102,0,0.3); animation: apFly 2.4s cubic-bezier(.45,.05,.55,.95) infinite; }
+        .ap-msg::after { content: ''; position: absolute; left: 5px; right: 5px; top: 6px; height: 2px; border-radius: 2px; background: #fff; box-shadow: 0 5px 0 rgba(255,255,255,0.7); }
+        .ap-msg:nth-child(2) { animation-delay: .8s; } .ap-msg:nth-child(3) { animation-delay: 1.6s; }
+        @keyframes apFly { 0% { transform: translate(0,4px) scale(.6); opacity: 0; background: var(--primary); } 15% { opacity: 1; } 50% { transform: translate(calc(var(--w,120px) * .5), -12px) scale(1); } 85% { opacity: 1; background: var(--ap-wa); } 100% { transform: translate(var(--w,120px), 4px) scale(.6); opacity: 0; background: var(--ap-wa); } }
+        .ap-beda h4 { font-size: 14px; font-weight: 800; margin: 10px 0 4px; color: var(--dark); }
+        .ap-beda p { font-size: 12.5px; color: var(--ap-muted); margin: 0; line-height: 1.55; }
+        .ap-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+        @media (prefers-reduced-motion: reduce) {
+            .ap-cta, .ap-m, .ap-st.ap-on .ap-tile svg, .ap-msg, .nav-badge.has-items { animation: none; }
+            .ap-msg { opacity: 0; } .ap-msg:nth-child(2) { opacity: 1; transform: translate(calc(var(--w,120px) * .5), -6px); }
+            .ap-body, .ap-tile, .ap-rail-fill, .nav-blob { transition: none; }
+        }
         /* .fab-whatsapp { width: 56px; height: 56px; background: #25D366; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 28px; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); border: 4px solid #f5f5f5; text-decoration: none; transition: transform 0.2s; cursor: pointer; } */ /* Dihapus dari navbar, diganti dengan style di profil */
         /* .fab-whatsapp:active { transform: scale(0.95); } */
 
@@ -808,7 +905,7 @@
         /* --- FLOATING CART BANNER --- */
         .floating-cart-banner {
             position: fixed;
-            bottom: 85px; /* Tepat di atas navbar bawah */
+            bottom: calc(96px + env(safe-area-inset-bottom, 0px)); /* Tepat di atas navbar bawah (dock baru) */
             left: 20px;
             right: 20px;
             max-width: calc(var(--max-width) - 40px);
@@ -1414,6 +1511,36 @@
             z-index: 2;
         }
 
+        /* --- KATEGORI HALAMAN FOOD: SATU BARIS, BISA DIGESER, BERPUTAR TANPA UJUNG ---
+           Pakai #id supaya grid di modal "Semua Pilihan Kuliner" tidak ikut berubah. */
+        #dynamic-cat-grid {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 8px 20px 12px 20px;
+            margin: 0 -20px;              /* lebar penuh sampai tepi layar */
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior-x: contain;
+        }
+        #dynamic-cat-grid::-webkit-scrollbar { display: none; }
+        #dynamic-cat-grid > .cat-item-box {
+            flex: 0 0 86px;
+            min-height: 108px;
+            padding: 10px 4px 10px 4px;
+            border-radius: 22px;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.05);
+        }
+        #dynamic-cat-grid > .cat-item-box img {
+            width: 64px;
+            height: 64px;
+            -webkit-user-drag: none;
+        }
+        #dynamic-cat-grid > .cat-item-box .cat-box-text { font-size: 11.5px; font-weight: 700; }
+        #dynamic-cat-grid > .skel-cat-wrapper { flex: 0 0 86px; }
+        #dynamic-cat-grid > .skel-cat-wrapper .skel-cat-icon { width: 64px; height: 64px; border-radius: 22px; }
+
         /* Hilangkan sisa CSS Kategori Lama yang bentrok */
         .menu-container, .menu-grid, .menu-item, .icon-container, .menu-text, .pagination, .dot { display: none !important; }
         
@@ -1486,6 +1613,23 @@
     </style>
 </head>
 <body>
+
+    <!-- SPRITE IKON ALUR PESAN: sekali saja, TIDAK display:none supaya gradien tetap tampil -->
+    <svg class="ap-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <linearGradient id="apg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF8A3D"/><stop offset="1" stop-color="#E24A0B"/></linearGradient>
+            <linearGradient id="apg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFB547"/><stop offset="1" stop-color="#FF7A00"/></linearGradient>
+            <linearGradient id="apg3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF5E5B"/><stop offset="1" stop-color="#D62839"/></linearGradient>
+            <linearGradient id="apg4" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4ADE80"/><stop offset="1" stop-color="#15A04A"/></linearGradient>
+            <linearGradient id="apg5" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFC857"/><stop offset="1" stop-color="#FF9F1C"/></linearGradient>
+        </defs>
+        <symbol id="ap-ic1" viewBox="0 0 48 48"><path d="M14 12c0-3 3-3 3-6M22 12c0-3 3-3 3-6M30 12c0-3 3-3 3-6" stroke="#FFB27A" stroke-width="2.4" fill="none" stroke-linecap="round"/><ellipse cx="24" cy="21" rx="18" ry="5" fill="#FFE0A8"/><ellipse cx="18" cy="20" rx="4" ry="1.6" fill="#7BC96F"/><ellipse cx="29" cy="21" rx="3.4" ry="1.4" fill="#F25C54"/><path d="M6 21h36c0 10-8 17-18 17S6 31 6 21z" fill="url(#apg1)"/><path d="M11 26c2 5 6 8 11 9" stroke="#fff" stroke-opacity=".45" stroke-width="2.4" fill="none" stroke-linecap="round"/><rect x="17" y="38" width="14" height="4" rx="2" fill="#C13D06"/></symbol>
+        <symbol id="ap-ic2" viewBox="0 0 48 48"><path d="M4 9h6l5 22h22l5-16H13" fill="none" stroke="#5A4A42" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 15h29l-5 16H17z" fill="url(#apg2)"/><path d="M17 19h20" stroke="#fff" stroke-opacity=".5" stroke-width="2.4" stroke-linecap="round"/><rect x="21" y="6" width="9" height="9" rx="2.5" fill="#F25C54"/><rect x="29" y="9" width="8" height="6" rx="2" fill="#7BC96F"/><circle cx="19" cy="38" r="3.6" fill="#3A302B"/><circle cx="34" cy="38" r="3.6" fill="#3A302B"/></symbol>
+        <symbol id="ap-ic3" viewBox="0 0 48 48"><rect x="7" y="7" width="26" height="34" rx="5" fill="#fff" stroke="#F0D5C4" stroke-width="2"/><rect x="12" y="13" width="15" height="3" rx="1.5" fill="#FFB27A"/><rect x="12" y="20" width="11" height="3" rx="1.5" fill="#E5E5EA"/><rect x="12" y="26" width="13" height="3" rx="1.5" fill="#E5E5EA"/><path d="M34 18c-5.5 0-9 4-9 8.6C25 33 34 42 34 42s9-9 9-15.4C43 22 39.5 18 34 18z" fill="url(#apg3)"/><circle cx="34" cy="26.5" r="3.4" fill="#fff"/></symbol>
+        <symbol id="ap-ic4" viewBox="0 0 48 48"><path d="M24 5C13.5 5 5 13 5 23c0 3.6 1.1 7 3 9.8L6 42l9.6-2.6A19.7 19.7 0 0 0 24 41c10.5 0 19-8 19-18S34.5 5 24 5z" fill="url(#apg4)"/><path d="M17.5 15.5c.8-.8 2-.7 2.6.2l1.8 2.7c.5.8.3 1.8-.4 2.4l-1 .9c1 2.4 3 4.5 5.4 5.5l.9-1c.6-.7 1.6-.9 2.4-.4l2.7 1.8c.9.6 1 1.9.2 2.6l-1.3 1.3c-1.4 1.4-3.6 1.6-5.3.6-4-2.3-7.3-5.6-9.6-9.6-1-1.7-.8-3.9.6-5.3z" fill="#fff"/></symbol>
+        <symbol id="ap-ic5" viewBox="0 0 48 48"><circle cx="21" cy="17" r="8" fill="#FFD7B5"/><path d="M13 16a8 8 0 0 1 16 0" fill="none" stroke="#3A302B" stroke-width="3" stroke-linecap="round"/><rect x="10" y="15" width="5" height="8" rx="2.5" fill="#3A302B"/><path d="M29 22c0 3-3 4-6 4" stroke="#3A302B" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M6 42c0-8 7-13 15-13s15 5 15 13z" fill="url(#apg5)"/><circle cx="36" cy="33" r="9" fill="#1FAF55"/><path d="M31.8 33.2l3 3 5.4-6" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+        <symbol id="ap-phone" viewBox="0 0 48 48"><rect x="12" y="4" width="24" height="40" rx="6" fill="#2B2B2E"/><rect x="15" y="9" width="18" height="28" rx="3" fill="#FF6600"/><path d="M19 20h10M19 25h7" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><circle cx="24" cy="40.5" r="1.6" fill="#777"/></symbol>
+    </svg>
 
     <!-- KUMPULAN SVG SPRITE SHEET UNTUK IKON KATEGORI (TEMA PASTEL COLORFUL) -->
     <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
@@ -1995,6 +2139,9 @@
             </div>
         </div>
 
+        <!-- ALUR PESAN PROJEKGO (BERANDA) - isi dibuat oleh pasangAlurPesan() -->
+        <div data-alur-pesan data-lokasi="home"></div>
+
         <!-- BANNER PROJEKGO DELIVERY PRIORITAS (TAMBAHAN BARU) -->
             <div class="promo-banner-orange" onclick="openProjekgoInfoModal()">
                 <!-- Ikon tiket di kiri dan kanan background -->
@@ -2180,6 +2327,9 @@
                     <!-- Data dimuat dari JS -->
                 </div>
             </div>
+
+            <!-- ALUR PESAN PROJEKGO (FOOD) - isi dibuat oleh pasangAlurPesan() -->
+            <div data-alur-pesan data-lokasi="food"></div>
             
             <script>
                 // FUNGSI LOKASI OTOMATIS (HEMAT TOKEN API - METODE KODULAR)
@@ -3098,6 +3248,7 @@
     <!-- NAVBAR BAWAH -->
     <div class="bottom-nav-container">
         <nav class="bottom-nav">
+            <span class="nav-blob" aria-hidden="true"></span>
             <div class="nav-item active" onclick="openPage('home')" id="nav-home"><i class="ph ph-house"></i><span>Beranda</span></div>
             <div class="nav-item" onclick="openPage('food')" id="nav-food"><i class="ph ph-fork-knife"></i><span>Food</span></div>
             <div class="nav-item" onclick="toggleCartPopup()" id="nav-cart">
@@ -3108,6 +3259,168 @@
             <div class="nav-item" onclick="openPage('profile')" id="nav-profile"><i class="ph ph-user"></i><span>Profil</span></div>
         </nav>
     </div>
+
+    <!-- SCRIPT: NAVBAR BLOK AKTIF + ALUR PESAN PROJEKGO -->
+    <script>
+    (function () {
+        // Blok oranye navbar mengikuti menu yang aktif (dipanggil dari renderPage)
+        window.geserNavBlob = function () {
+            const blob = document.querySelector('.bottom-nav .nav-blob');
+            if (!blob) return;
+            const items = Array.from(document.querySelectorAll('.bottom-nav .nav-item'));
+            const idx = items.findIndex(el => el.classList.contains('active'));
+            blob.style.opacity = idx < 0 ? '0' : '1';   // halaman tanpa menu aktif: blok disembunyikan
+            if (idx >= 0) blob.style.setProperty('--i', idx);
+        };
+        window.geserNavBlob();
+
+        // Isi langkah: teks statis, selalu dipasang dengan textContent (bukan innerHTML)
+        const LANGKAH = [
+            { j: 'Pilih makanan', t: 'Jelajahi warung dan menu favoritmu di aplikasi.',
+              p: ['Buka Food, pilih kategori atau cari nama warung.', 'Ketuk menu, pilih varian kalau ada, lalu tambahkan.', 'Boleh pesan dari beberapa menu sekaligus.'] },
+            { j: 'Cek keranjang', t: 'Semua pilihanmu terkumpul dan dihitung otomatis.',
+              p: ['Ubah jumlah atau hapus menu yang tidak jadi.', 'Total harga langsung terlihat, tidak perlu hitung manual.'] },
+            { j: 'Checkout', t: 'Pastikan semuanya sudah sesuai sebelum dikirim.',
+              p: ['Detail pesanan ditampilkan lengkap.', 'Cek alamat antar dan titik lokasimu.'] },
+            { j: 'Pesan lewat WhatsApp', t: 'Ini bedanya ProjekGo: pesananmu dialihkan ke WhatsApp admin.',
+              p: ['Tekan tombol pesan WhatsApp.', 'Isi pesanan dan alamat sudah tersusun, tinggal kirim.'] },
+            { j: 'Diproses admin', t: 'Semua diproses lewat WhatsApp sampai pesanan tiba.',
+              p: ['Admin mengonfirmasi pesanan dan totalnya.', 'Mau tanya atau ubah pesanan? Langsung balas chat-nya.', 'Kurir ProjekGo mengantar ke alamatmu.'] }
+        ];
+
+        // Kerangka statis: tidak memuat data pengguna/database sama sekali
+        const TEMPLATE = `
+            <button class="ap-head" type="button" aria-expanded="false">
+                <span class="ap-top">
+                    <span class="ap-txt"><b>Cara pesan di ProjekGo</b><small>5 langkah mudah, selesai di WhatsApp</small></span>
+                    <span class="ap-cta"><span class="ap-cta-t">Lihat caranya</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+                </span>
+                <span class="ap-strip" aria-hidden="true">
+                    <span class="ap-m"><svg><use href="#ap-ic1"/></svg></span><span class="ap-ar"></span>
+                    <span class="ap-m"><svg><use href="#ap-ic2"/></svg></span><span class="ap-ar"></span>
+                    <span class="ap-m"><svg><use href="#ap-ic3"/></svg></span><span class="ap-ar"></span>
+                    <span class="ap-m ap-wa"><svg><use href="#ap-ic4"/></svg></span><span class="ap-ar"></span>
+                    <span class="ap-m ap-wa"><svg><use href="#ap-ic5"/></svg></span>
+                </span>
+            </button>
+            <div class="ap-body"><div class="ap-inner"><div class="ap-pad">
+                <div class="ap-stage"><div class="ap-track" role="tablist" aria-label="Langkah pemesanan">
+                    <div class="ap-rail"><div class="ap-rail-fill"></div></div>
+                    ${[1,2,3,4,5].map(i => `<button class="ap-st${i >= 4 ? ' ap-wa' : ''}" type="button" role="tab"><span class="ap-tile"><svg><use href="#ap-ic${i}"/></svg></span><span class="ap-dot"></span></button>`).join('')}
+                </div></div>
+                <p class="ap-hint">Ketuk ikon untuk melihat detail tiap langkah</p>
+                <div class="ap-detail" role="tabpanel" aria-live="polite"></div>
+                <div class="ap-nav"><button class="ap-prev" type="button">Sebelumnya</button><button class="ap-next" type="button">Lanjut</button></div>
+                <div class="ap-beda">
+                    <div class="ap-bridge" aria-hidden="true">
+                        <div class="ap-node"><span class="ap-b"><svg><use href="#ap-phone"/></svg></span>Aplikasi</div>
+                        <div class="ap-lane"><span class="ap-msg"></span><span class="ap-msg"></span><span class="ap-msg"></span></div>
+                        <div class="ap-node ap-wa"><span class="ap-b"><svg><use href="#ap-ic4"/></svg></span>Admin</div>
+                    </div>
+                    <h4>Bedanya ProjekGo dengan aplikasi lain</h4>
+                    <p>ProjekGo adalah delivery berbasis WhatsApp. Aplikasi hanya jembatan untuk memudahkan kamu memesan, semua pesanan dialihkan ke WhatsApp admin dan diproses di sana.</p>
+                </div>
+            </div></div></div>`;
+
+        let urut = 0;
+        function pasangAlurPesan(host) {
+            if (host.dataset.apSiap === '1') return;   // jangan dipasang dua kali
+            host.dataset.apSiap = '1';
+            urut++;
+            host.classList.add('ap');
+            host.innerHTML = TEMPLATE;
+
+            const head = host.querySelector('.ap-head');
+            const body = host.querySelector('.ap-body');
+            const ctaT = host.querySelector('.ap-cta-t');
+            const st = Array.from(host.querySelectorAll('.ap-st'));
+            const rail = host.querySelector('.ap-rail');
+            const fill = host.querySelector('.ap-rail-fill');
+            const det = host.querySelector('.ap-detail');
+            const prev = host.querySelector('.ap-prev');
+            const next = host.querySelector('.ap-next');
+            const lane = host.querySelector('.ap-lane');
+            const lokasi = host.dataset.lokasi === 'food' ? 'food' : 'home';
+            body.id = 'ap-body-' + urut;
+            head.setAttribute('aria-controls', body.id);
+            body.inert = true;
+
+            let aktif = 0, disentuh = false, timer = null;
+
+            function tampil(i) {
+                aktif = i;
+                st.forEach((el, k) => {
+                    el.classList.toggle('ap-on', k === i);
+                    el.classList.toggle('ap-done', k <= i);
+                    el.setAttribute('aria-selected', k === i ? 'true' : 'false');
+                    el.setAttribute('aria-label', 'Langkah ' + (k + 1) + ': ' + LANGKAH[k].j);
+                });
+                const r = rail.getBoundingClientRect(), d = st[i].querySelector('.ap-dot').getBoundingClientRect();
+                if (r.width) fill.style.width = Math.max(0, d.left + d.width / 2 - r.left) + 'px';
+                fill.classList.toggle('ap-to-wa', i >= 3);
+                det.classList.toggle('ap-is-wa', i >= 3);
+
+                const box = document.createElement('div'); box.className = 'ap-in';
+                const n = document.createElement('div'); n.className = 'ap-n'; n.textContent = 'Langkah ' + (i + 1) + ' dari ' + LANGKAH.length;
+                const h = document.createElement('h3'); h.textContent = LANGKAH[i].j;
+                const p = document.createElement('p'); p.textContent = LANGKAH[i].t;
+                const ul = document.createElement('ul');
+                LANGKAH[i].p.forEach(txt => { const li = document.createElement('li'); li.textContent = txt; ul.appendChild(li); });
+                box.append(n, h, p, ul);
+                det.replaceChildren(box);
+
+                prev.disabled = i === 0;
+                const akhir = i === LANGKAH.length - 1;
+                next.textContent = akhir ? (lokasi === 'food' ? 'Mulai pilih makanan' : 'Pesan sekarang') : 'Lanjut';
+                next.classList.toggle('ap-go', akhir);
+            }
+
+            // Jalan otomatis hanya saat terbuka & belum disentuh; berhenti setelah disentuh
+            function mulaiOtomatis() {
+                clearInterval(timer);
+                if (disentuh || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+                timer = setInterval(() => {
+                    // berhenti juga kalau halamannya sedang tidak tampil (hemat baterai)
+                    if (!host.classList.contains('ap-open') || host.offsetParent === null) return;
+                    tampil((aktif + 1) % LANGKAH.length);
+                }, 3200);
+            }
+            function sentuh() { disentuh = true; host.classList.add('ap-touched'); clearInterval(timer); }
+
+            function buka(b) {
+                host.classList.toggle('ap-open', b);
+                head.setAttribute('aria-expanded', b ? 'true' : 'false');
+                body.inert = !b;
+                ctaT.textContent = b ? 'Tutup' : 'Lihat caranya';
+                if (b) {
+                    lane.style.setProperty('--w', Math.max(0, lane.clientWidth - 24) + 'px');
+                    requestAnimationFrame(() => tampil(aktif));
+                    setTimeout(() => tampil(aktif), 460);   // ukur ulang setelah animasi buka selesai
+                    mulaiOtomatis();
+                } else clearInterval(timer);
+            }
+
+            head.addEventListener('click', () => buka(!host.classList.contains('ap-open')));
+            st.forEach((el, k) => el.addEventListener('click', () => { sentuh(); tampil(k); }));
+            prev.addEventListener('click', () => { sentuh(); if (aktif > 0) tampil(aktif - 1); });
+            next.addEventListener('click', () => {
+                sentuh();
+                if (aktif < LANGKAH.length - 1) { tampil(aktif + 1); return; }
+                buka(false);
+                if (lokasi === 'home') {
+                    if (typeof window.openPage === 'function') window.openPage('food');
+                } else {
+                    const kat = document.getElementById('kategori-makanan');
+                    if (kat) kat.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+
+            tampil(0);
+        }
+
+        document.querySelectorAll('[data-alur-pesan]').forEach(pasangAlurPesan);
+    })();
+    </script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -4212,6 +4525,7 @@
             if(name === 'cart') { document.getElementById('nav-cart')?.classList.add('active'); renderCartPage(); }
             if(name === 'favorites') renderFavoritesPage();
             
+            if (typeof window.geserNavBlob === 'function') window.geserNavBlob();
             updateCartBadge(name);
 
             // 5. Kembalikan posisi scroll jika menggunakan tombol back, atau scroll ke atas jika buka halaman baru
@@ -10283,7 +10597,8 @@
             const catGrid = document.getElementById('dynamic-cat-grid');
             const catModalGrid = document.getElementById('category-modal-grid');
             if(!catGrid) return;
-            catGrid.innerHTML = '';
+            // catGrid TIDAK dikosongkan di sini lagi: baris beranda hanya dibangun ulang
+            // kalau isi kategorinya benar-benar berubah (lihat "sidikKategori" di bawah).
             
             if(catModalGrid) {
                 catModalGrid.innerHTML = '';
@@ -10375,26 +10690,86 @@
                 }
             });
 
-            // 2. Render untuk Beranda (Tepat 8 Kotak: 7 Kategori + 1 Lainnya)
-            // Ambil maksimal 7 kategori pertama
-            const berandaCategories = finalCategories.slice(0, 7);
-            
-            berandaCategories.forEach(cat => {
-                const div = document.createElement('div');
-                div.className = `cat-item-box ${cat.bgClass}`;
-                div.onclick = () => openCategoryPage(cat.name);
-                div.innerHTML = `<img src="${esc(cat.icon)}"><div class="cat-box-text">${esc(cat.name)}</div>`;
-                catGrid.appendChild(div);
-            });
-            
-            // Tambahkan kotak "Lainnya" selalu di urutan ke-8
-        const moreDiv = document.createElement('div');
-        moreDiv.className = `cat-item-box bg-grad-lainnya`;
-        moreDiv.onclick = () => openAllCategoriesModal();
-        // Icon grid kotak-kotak untuk "Lainnya" (warna orange seperti gambar)
-        moreDiv.innerHTML = `<img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='30' y='30' width='15' height='15' rx='3' fill='none' stroke='%23FFA726' stroke-width='4'/%3E%3Crect x='55' y='30' width='15' height='15' rx='3' fill='none' stroke='%23FFA726' stroke-width='4'/%3E%3Crect x='30' y='55' width='15' height='15' rx='3' fill='none' stroke='%23FFA726' stroke-width='4'/%3E%3Crect x='55' y='55' width='15' height='15' rx='3' fill='none' stroke='%23FFA726' stroke-width='4'/%3E%3C/svg%3E"><div class="cat-box-text">Lainnya</div>`;
-        catGrid.appendChild(moreDiv);
-    }
+            // 2. Render untuk Beranda: SEMUA kategori dalam SATU BARIS geser.
+            //    Isinya dibuat 3 salinan (kiri - tengah - kanan). Pengguna selalu berada
+            //    di salinan tengah; begitu mendekati ujung, posisi diam-diam dilompatkan
+            //    satu salinan, jadi terasa tidak ada ujungnya.
+            const satuPutaran = finalCategories
+                .map(cat => ({ name: cat.name, bgClass: cat.bgClass, icon: cat.icon, aksi: () => openCategoryPage(cat.name) }));
+
+            // Tanpa kategori sama sekali: jangan jalankan loop di bawah (bisa macet tanpa henti).
+            if (satuPutaran.length === 0) { catGrid.innerHTML = ''; delete catGrid.dataset.sidik; return; }
+
+            // Data realtime (warung/menu/promo) memanggil fungsi ini berkali-kali. Kalau daftar
+            // kategorinya sama persis, jangan bangun ulang supaya posisi geser pengguna tidak reset.
+            const sidikKategori = JSON.stringify(satuPutaran.map(c => [c.name, c.icon, c.bgClass]));
+            if (catGrid.dataset.sidik === sidikKategori && catGrid.querySelector('[data-loop-start]')) return;
+
+            // Kalau kategorinya sedikit, ulangi dulu supaya satu set lebih lebar dari layar
+            // (kalau tidak, lompatannya kelihatan).
+            let satuSet = satuPutaran.slice();
+            while (satuSet.length < 10) satuSet = satuSet.concat(satuPutaran);
+
+            const frag = document.createDocumentFragment();
+            for (let salinan = 0; salinan < 3; salinan++) {
+                satuSet.forEach((cat, idx) => {
+                    const div = document.createElement('div');
+                    div.className = `cat-item-box ${cat.bgClass}`;
+                    if (salinan === 1 && idx === 0) div.dataset.loopStart = '1';
+                    if (salinan !== 1) div.setAttribute('aria-hidden', 'true'); // salinan kiri/kanan cuma pemanis
+                    div.onclick = cat.aksi;
+                    div.innerHTML = `<img src="${esc(cat.icon)}" alt="" draggable="false"><div class="cat-box-text">${esc(cat.name)}</div>`;
+                    frag.appendChild(div);
+                });
+            }
+            catGrid.innerHTML = '';
+            catGrid.appendChild(frag);
+            catGrid.dataset.sidik = sidikKategori;
+            pasangGeserTanpaUjung(catGrid);
+        }
+
+        // Geser berputar untuk baris kategori. Listener dipasang SEKALI saja per elemen,
+        // walaupun renderCategories() dipanggil berulang (tidak menumpuk / bocor).
+        function pasangGeserTanpaUjung(grid) {
+            const lebarSatuSet = () => {
+                const awalTengah = grid.querySelector('[data-loop-start]');
+                const pertama = grid.firstElementChild;
+                return (awalTengah && pertama) ? (awalTengah.offsetLeft - pertama.offsetLeft) : 0;
+            };
+            // Posisi disimpan sebagai pecahan (0..1) di dalam satu set, jadi tetap benar
+            // walaupun baris dibangun ulang atau lebarnya berubah.
+            const simpanPosisi = () => {
+                const w = lebarSatuSet();
+                if (w > 0 && grid.clientWidth > 0) grid._posisiGeser = (((grid.scrollLeft - w) % w) + w) % w / w;
+            };
+            const keTengah = () => {
+                const w = lebarSatuSet();
+                if (w > 0) grid.scrollLeft = w + (grid._posisiGeser || 0) * w;
+            };
+            keTengah();
+
+            if (grid.dataset.loopSiap === '1') return;
+            grid.dataset.loopSiap = '1';
+
+            grid.addEventListener('scroll', () => {
+                const w = lebarSatuSet();
+                if (w <= 0) return;
+                if (grid.scrollLeft < w * 0.5) grid.scrollLeft += w;
+                else if (grid.scrollLeft > w * 1.5) grid.scrollLeft -= w;
+                simpanPosisi();
+            }, { passive: true });
+
+            // Saat halaman food disembunyikan (display:none) browser membuang posisi geser.
+            // Begitu tampil lagi, kembalikan ke posisi terakhir yang tersimpan.
+            if ('ResizeObserver' in window) {
+                let lebarLama = grid.clientWidth;
+                new ResizeObserver(() => {
+                    const lebar = grid.clientWidth;
+                    if (lebarLama === 0 && lebar > 0) keTengah();
+                    lebarLama = lebar;
+                }).observe(grid);
+            }
+        }
 
     // --- TAMBAHAN LANGKAH 2: STATE & FUNGSI FILTER AREA ---
     window.currentFoodFilter = 'Semua';
