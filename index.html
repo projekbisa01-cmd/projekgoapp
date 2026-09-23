@@ -635,7 +635,7 @@
         .vh-btn-poster { position: absolute; top: 65px; right: 20px; height: 32px; padding: 0 13px 0 10px; background: rgba(0,0,0,0.55); border-radius: 20px; display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 800; color: #fff; cursor: pointer; z-index: 10; transition: transform 0.2s; backdrop-filter: blur(4px); }
         .vh-btn-poster i { font-size: 15px; }
         .vh-btn-poster:active { transform: scale(0.92); }
-        #poster-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100000; align-items: center; justify-content: center; padding: 18px; }
+        #poster-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2147482000; align-items: center; justify-content: center; padding: 18px; }
         #poster-modal .poster-box { width: 100%; max-width: 330px; text-align: center; }
         #poster-preview { width: 100%; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); background: #fff; }
         .poster-actions { display: flex; flex-direction: column; gap: 9px; margin-top: 14px; }
@@ -2978,7 +2978,7 @@
     </div>
 
     <!-- MODAL SARAN DAN MASUKAN (masuk ke ADPRO, tab "Saran & Masukan") -->
-    <div id="saran-modal" onclick="if(event.target===this) closeSaranModal()" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:100002; align-items:center; justify-content:center; padding:20px;">
+    <div id="saran-modal" onclick="if(event.target===this) closeSaranModal()" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:2147483000; align-items:center; justify-content:center; padding:20px;">
         <div class="modal-content" style="background:white; width:100%; max-width:340px; padding:28px 22px; border-radius:20px; box-shadow:0 10px 40px rgba(0,0,0,0.2); text-align:center;">
             <div style="width:60px; height:60px; background:#FFF0E5; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 14px auto; color:#FF6600; font-size:28px;"><i class="ph-fill ph-lightbulb"></i></div>
             <h3 style="margin:0 0 6px 0; color:var(--dark); font-weight:800; font-size:17px;">Saran dan Masukan</h3>
@@ -4953,6 +4953,38 @@
             const nama = document.getElementById('saran-nama');
             if (!nama.value) nama.value = (savedProfile && savedProfile.name) ? savedProfile.name : '';
             modal.style.display = 'flex';
+            pastikanSaranBisaDiklik();
+        }
+
+        // Di aplikasi ini ada banyak lapisan layar penuh (layar pendaftaran, pop-up
+        // install, modal profil warung) dengan z-index sangat tinggi. Kalau salah
+        // satunya masih menutupi layar walau tidak terlihat, tombol di form ini
+        // jadi mati total: kliknya mendarat di lapisan itu, bukan di tombol.
+        // Fungsi ini memeriksa titik tengah tombol, lalu menaikkan form di atas
+        // apa pun yang menutupinya.
+        function pastikanSaranBisaDiklik(sisaPercobaan = 4) {
+            const modal = document.getElementById('saran-modal');
+            const tombol = document.getElementById('btn-kirim-saran');
+            if (!modal || !tombol || modal.style.display !== 'flex') return;
+
+            requestAnimationFrame(() => {
+                const kotak = tombol.getBoundingClientRect();
+                const atas = document.elementFromPoint(kotak.left + kotak.width / 2, kotak.top + kotak.height / 2);
+                if (!atas || modal.contains(atas)) return;   // tidak ada yang menghalangi
+
+                // z-index bisa dimiliki induknya, bukan elemen yang tepat tersentuh,
+                // jadi telusuri ke atas sampai body dan ambil yang tertinggi.
+                let zPenghalang = 0;
+                for (let el = atas; el && el !== document.body; el = el.parentElement) {
+                    const z = parseInt(getComputedStyle(el).zIndex);
+                    if (!isNaN(z) && z > zPenghalang) zPenghalang = z;
+                }
+                const zModal = parseInt(modal.style.zIndex) || 2147483000;
+                modal.style.zIndex = String(Math.max(zModal, zPenghalang) + 10);
+                console.warn('Form masukan tertutup oleh:', atas.id || atas.className, '— z-index dinaikkan ke', modal.style.zIndex);
+                if (sisaPercobaan > 1) pastikanSaranBisaDiklik(sisaPercobaan - 1);
+                else showToast("Ada layar lain menutupi form. Tutup dulu lalu buka lagi ya.");
+            });
         }
         window.closeSaranModal = () => { document.getElementById('saran-modal').style.display = 'none'; }
 
