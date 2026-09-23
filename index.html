@@ -4966,25 +4966,37 @@
             try { jejak = (JSON.parse(localStorage.getItem('saran_log')) || []).filter(w => w > batas); } catch (e) { jejak = []; }
             if (jejak.length >= 3) { showToast("Masukanmu sudah kami terima hari ini. Coba lagi besok ya."); return; }
 
+            // Rules mewajibkan uid dokumen sama persis dengan uid sesi.
+            const uidSaya = currentUserUid || (auth.currentUser && auth.currentUser.uid) || null;
+            if (!uidSaya) { showToast("Koneksi belum siap. Coba lagi sebentar ya."); return; }
+
             tombol.disabled = true;
             tombol.innerText = 'Mengirim...';
             try {
-                const kirim = addDoc(collection(db, "reviews"), {
-                    jenis: "saran",                 // penanda utama untuk tab "Saran & Masukan" di ADPRO
-                    order_id: "APP_SARAN",
-                    vendor_name: "Saran & Masukan", // bukan nama warung, jadi tidak muncul di ulasan mitra
+                // Saran & masukan TIDAK ikut koleksi "reviews".
+                // Koleksi reviews wajib bisa dibaca publik (agar ulasan warung tampil
+                // ke semua pelanggan), sedangkan masukan ini pesan pribadi ke admin.
+                // Koleksi "saran_masukan" hanya boleh dibaca admin lewat Rules.
+                const kirim = addDoc(collection(db, "saran_masukan"), {
+                    jenis: "saran",
                     user: nama || "Pelanggan",
                     text: isi,
-                    rating: 0,
                     status: "baru",
                     timestamp: Date.now(),
-                    uid: currentUserUid || "anonim"
+                    uid: uidSaya
                 });
                 // Aplikasi memakai penyimpanan offline Firestore. Kalau sinyal lemah, janji
                 // addDoc() baru selesai setelah server menjawab, sehingga tombol bisa
                 // menggantung tanpa respons. Data tetap tersimpan lokal dan dikirim otomatis,
                 // jadi cukup tunggu 4 detik lalu beri jawaban ke pengguna.
-                kirim.catch((err) => { console.error("Saran gagal terkirim ke server:", err); });
+                kirim.catch((err) => {
+                    console.error("Saran gagal terkirim ke server:", err);
+                    // Penolakan server baru datang setelah jawaban, jadi beri tahu pengguna
+                    // supaya tidak mengira masukannya sudah masuk.
+                    showToast(err && err.code === 'permission-denied'
+                        ? "Masukan ditolak server. Beritahu admin ya 🙏"
+                        : "Masukan belum terkirim. Coba lagi nanti.");
+                });
                 const hasil = await Promise.race([
                     kirim.then(() => 'ok'),
                     new Promise(r => setTimeout(() => r('lambat'), 4000))
