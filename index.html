@@ -25,6 +25,13 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <title>Katalog Projekgo</title>
+    <!-- PRATINJAU LINK saat dibagikan ke WhatsApp/Status -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Katalog Projekgo">
+    <meta property="og:title" content="Katalog Projekgo - Delivery berbasis WhatsApp">
+    <meta property="og:description" content="Lihat menu warung favoritmu, pesan lewat WhatsApp. Gombong - Kebumen.">
+    <meta property="og:image" content="https://i.ibb.co.com/hJ43nXyc/Whats-App-Image-2026-01-29-at-10-12-08.jpg">
+    <meta name="twitter:card" content="summary_large_image">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
@@ -622,6 +629,20 @@
         .vh-cover-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 40%, transparent 100%); }
         .vh-btn-back { position: absolute; top: 20px; left: 20px; width: 35px; height: 35px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--dark); box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; z-index: 10; transition: transform 0.2s; }
         .vh-btn-back:active { transform: scale(0.9); }
+        .vh-btn-share { position: absolute; top: 20px; right: 20px; height: 35px; padding: 0 14px 0 11px; background: white; border-radius: 20px; display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; z-index: 10; transition: transform 0.2s; }
+        .vh-btn-share i { font-size: 16px; }
+        .vh-btn-share:active { transform: scale(0.92); }
+        .vh-btn-poster { position: absolute; top: 65px; right: 20px; height: 32px; padding: 0 13px 0 10px; background: rgba(0,0,0,0.55); border-radius: 20px; display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 800; color: #fff; cursor: pointer; z-index: 10; transition: transform 0.2s; backdrop-filter: blur(4px); }
+        .vh-btn-poster i { font-size: 15px; }
+        .vh-btn-poster:active { transform: scale(0.92); }
+        #poster-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100000; align-items: center; justify-content: center; padding: 18px; }
+        #poster-modal .poster-box { width: 100%; max-width: 330px; text-align: center; }
+        #poster-preview { width: 100%; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); background: #fff; }
+        .poster-actions { display: flex; flex-direction: column; gap: 9px; margin-top: 14px; }
+        .poster-actions button { border: none; padding: 13px; border-radius: 14px; font-weight: 800; font-size: 13.5px; font-family: 'Plus Jakarta Sans', sans-serif; cursor: pointer; }
+        .poster-btn-main { background: #25D366; color: #fff; }
+        .poster-btn-sec { background: rgba(255,255,255,0.15); color: #fff; }
+        .poster-btn-close { background: transparent; color: #bbb; }
         .vh-card { margin: -60px 20px 0 20px; background: var(--primary); color: white; border-radius: 25px; padding: 45px 20px 20px 20px; position: relative; box-shadow: 0 10px 30px rgba(255, 102, 0, 0.3); text-align: center; z-index: 5; }
         .vh-logo { position: absolute; top: -35px; left: 50%; transform: translateX(-50%); width: 70px; height: 70px; background: white; border-radius: 50%; padding: 4px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
         .vh-logo img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
@@ -785,32 +806,97 @@
         
         /* .nav-center-item { position: relative; top: -25px; } */ /* Dihapus karena FAB pindah */
 
+
+        /* =========================================================
+           KARTU KEUNTUNGAN PESAN DI PROJEKGO (halaman Food)
+           Kelas diawali "kp-" agar tidak bentrok dengan gaya lain.
+           ========================================================= */
+        .kp-card { margin: 15px 20px 0 20px; background: #fff; border-radius: 20px; padding: 16px 14px 14px; border: 1px dashed #FFB74D; box-shadow: 0 6px 18px rgba(255,152,0,0.12); overflow: hidden; position: relative; }
+        .kp-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+        .kp-head-ic { width: 30px; height: 30px; flex: 0 0 30px; border-radius: 10px; background: linear-gradient(160deg, #FF9A4D, #EF5A00); color: #fff; display: grid; place-items: center; font-size: 16px; animation: kpDenyut 2.4s ease-in-out infinite; }
+        .kp-head-txt b { display: block; font-size: 14.5px; font-weight: 800; color: #FF6600; line-height: 1.2; }
+        .kp-head-txt small { display: block; font-size: 11px; color: #8A8A90; font-weight: 600; }
+        @keyframes kpDenyut { 0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,102,0,0.35); } 50% { transform: scale(1.08); box-shadow: 0 0 0 7px rgba(255,102,0,0); } }
+
+        .kp-item { width: 100%; text-align: left; background: #FFFCF8; border: 1px solid #FFE6D3; border-radius: 16px; padding: 11px 12px; margin-top: 10px; display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; opacity: 0; transform: translateY(12px); animation: kpMasuk 0.5s cubic-bezier(.2,.9,.3,1) forwards; transition: border-color 0.25s, background 0.25s; }
+        .kp-item:nth-of-type(2) { animation-delay: 0.12s; } .kp-item:nth-of-type(3) { animation-delay: 0.24s; }
+        .kp-item.kp-buka { background: #fff; border-color: #FF9A4D; }
+        .kp-item:active { transform: scale(0.985); }
+        @keyframes kpMasuk { to { opacity: 1; transform: none; } }
+        .kp-ic { width: 34px; height: 34px; flex: 0 0 34px; border-radius: 12px; display: grid; place-items: center; font-size: 18px; color: #fff; }
+        .kp-ic.kp-hijau { background: linear-gradient(160deg, #66BB6A, #2E7D32); }
+        .kp-ic.kp-oranye { background: linear-gradient(160deg, #FFB547, #FF7A00); }
+        .kp-ic.kp-biru { background: linear-gradient(160deg, #64B5F6, #1976D2); }
+        .kp-item.kp-buka .kp-ic { animation: kpGoyang 0.6s ease; }
+        @keyframes kpGoyang { 25% { transform: rotate(-12deg) scale(1.1); } 60% { transform: rotate(10deg) scale(1.1); } 100% { transform: none; } }
+        .kp-body { flex: 1; min-width: 0; }
+        .kp-judul { display: block; font-size: 14px; font-weight: 800; color: #1C1C1E; line-height: 1.3; }
+        /* Bagian tebal yang ingin ditonjolkan: disorot + ada kilau berjalan */
+        .kp-tebal { position: relative; display: inline-block; padding: 1px 7px; border-radius: 8px; color: #fff; background: linear-gradient(135deg, #FF9A4D, #EF5A00); font-weight: 800; overflow: hidden; }
+        .kp-tebal.kp-tebal-hijau { background: linear-gradient(135deg, #66BB6A, #2E7D32); }
+        .kp-tebal::after { content: ''; position: absolute; top: 0; left: -60%; width: 45%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.65), transparent); transform: skewX(-20deg); animation: kpKilau 3.2s ease-in-out infinite; }
+        .kp-item:nth-of-type(2) .kp-tebal::after { animation-delay: 0.6s; }
+        .kp-item:nth-of-type(3) .kp-tebal::after { animation-delay: 1.2s; }
+        @keyframes kpKilau { 0%, 60% { left: -60%; } 85%, 100% { left: 115%; } }
+        .kp-chev { color: #FFB27A; font-size: 14px; margin-top: 3px; transition: transform 0.3s; }
+        .kp-item.kp-buka .kp-chev { transform: rotate(180deg); }
+        .kp-isi { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.35s cubic-bezier(.3,.8,.3,1); }
+        .kp-item.kp-buka .kp-isi { grid-template-rows: 1fr; }
+        .kp-isi > div { overflow: hidden; min-height: 0; }
+        .kp-isi p { margin: 7px 0 0; font-size: 12px; line-height: 1.55; color: #5A5A60; font-weight: 600; }
+        .kp-petunjuk { text-align: center; font-size: 10.5px; font-weight: 700; color: #B0A79F; margin: 10px 0 0; }
+
+        /* =========================================================
+           KARTU "TIDAK KETEMU? TANYA ADMIN" (penutup halaman Food)
+           ========================================================= */
+        .ta-card { margin: 10px 20px 30px 20px; border-radius: 22px; padding: 22px 18px 18px; text-align: center; position: relative; overflow: hidden; background: linear-gradient(150deg, #FF9A4D 0%, #FF6B00 48%, #EF5A00 100%); box-shadow: 0 14px 30px rgba(234,90,0,0.26); color: #fff; }
+        .ta-card::before { content: ''; position: absolute; top: -80px; right: -60px; width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.28), transparent 70%); }
+        .ta-lup { width: 62px; height: 62px; margin: 0 auto 12px; border-radius: 50%; background: rgba(255,255,255,0.22); display: grid; place-items: center; font-size: 30px; color: #fff; animation: kpCari 3s ease-in-out infinite; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.5); }
+        @keyframes kpCari { 0%, 100% { transform: translateX(-8px) rotate(-8deg); } 50% { transform: translateX(8px) rotate(8deg); } }
+        .ta-card h3 { font-size: 18px; font-weight: 800; margin: 0 0 6px; letter-spacing: -0.01em; }
+        .ta-card p { font-size: 12.5px; line-height: 1.6; color: rgba(255,255,255,0.93); margin: 0 0 12px; font-weight: 600; }
+        .ta-contoh { background: rgba(255,255,255,0.16); border-radius: 14px; padding: 11px 13px; font-size: 12.5px; line-height: 1.5; font-weight: 700; margin-bottom: 14px; box-shadow: inset 0 0 0 1.2px rgba(255,255,255,0.3); }
+        .ta-contoh b { display: block; margin-bottom: 2px; }
+        .ta-btn { width: 100%; border: 0; border-radius: 16px; padding: 15px; background: #fff; color: #E85300; font-size: 14.5px; font-weight: 800; font-family: 'Plus Jakarta Sans', sans-serif; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 8px 18px rgba(120,40,0,0.25); animation: kpDenyutTombol 2.6s ease-in-out infinite; }
+        .ta-btn i { font-size: 20px; color: #25D366; }
+        .ta-btn:active { transform: scale(0.97); animation: none; }
+        @keyframes kpDenyutTombol { 0%, 82%, 100% { transform: translateY(0); } 88% { transform: translateY(-4px); } 94% { transform: translateY(0); } }
+        .ta-tutup { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.92); margin: 12px 4px 0; line-height: 1.55; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .kp-head-ic, .kp-tebal::after, .ta-lup, .ta-btn { animation: none; }
+            .kp-item { animation: none; opacity: 1; transform: none; }
+        }
+
         /* =========================================================
            ALUR PESAN PROJEKGO (dipakai di Beranda & Food)
            Semua kelas diawali "ap-" supaya tidak bentrok dengan CSS lama
            (mis. ".dot { display:none !important }" yang sudah ada).
            ========================================================= */
         .ap { --ap-deep: #E85300; --ap-muted: #6B6B70; --ap-wa: #1FAF55; --ap-wa-dark: #128C3E;
-            margin: 14px 16px 6px; background: #fff; border-radius: 24px; position: relative; overflow: hidden;
-            box-shadow: 0 10px 28px rgba(255,102,0,0.10), 0 0 0 1px rgba(255,102,0,0.08); font-family: 'Plus Jakarta Sans', sans-serif; color: var(--dark); }
-        .ap::before { content: ''; position: absolute; top: -90px; right: -70px; width: 220px; height: 220px; border-radius: 50%; background: radial-gradient(circle, #FFE3CF 0%, transparent 70%); pointer-events: none; }
+            margin: 14px 16px 6px; border-radius: 24px; position: relative; overflow: hidden;
+            background: linear-gradient(150deg, #FF9A4D 0%, #FF6B00 48%, #EF5A00 100%);
+            box-shadow: 0 14px 30px rgba(234,90,0,0.28), inset 0 1px 0 rgba(255,255,255,0.25);
+            font-family: 'Plus Jakarta Sans', sans-serif; color: #fff; }
+        .ap::before { content: ''; position: absolute; top: -90px; right: -70px; width: 220px; height: 220px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.28) 0%, transparent 70%); pointer-events: none; }
+        .ap::after { content: ''; position: absolute; left: -60px; bottom: -80px; width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.16) 0%, transparent 70%); pointer-events: none; }
         .ap button { font-family: inherit; }
         .ap-head { position: relative; display: block; width: 100%; text-align: left; background: none; border: 0; padding: 16px 16px 14px; cursor: pointer; color: inherit; -webkit-tap-highlight-color: transparent; }
-        .ap-head:focus-visible { outline: 3px solid var(--primary); outline-offset: -3px; border-radius: 24px; }
+        .ap-head:focus-visible { outline: 3px solid #fff; outline-offset: -3px; border-radius: 24px; }
         .ap-top { display: flex; align-items: center; gap: 12px; }
         .ap-txt { flex: 1; min-width: 0; }
         .ap-txt b { display: block; font-size: 16px; font-weight: 800; letter-spacing: -0.01em; }
-        .ap-txt small { display: block; font-size: 12.5px; color: var(--ap-muted); margin-top: 2px; font-weight: 500; }
-        .ap-cta { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; background: var(--primary); color: #fff; font-size: 12px; font-weight: 800; padding: 8px 10px 8px 13px; border-radius: 20px; box-shadow: 0 5px 12px rgba(255,102,0,0.35); animation: apNudge 3.2s ease-in-out infinite; }
+        .ap-txt small { display: block; font-size: 12.5px; color: rgba(255,255,255,0.88); margin-top: 2px; font-weight: 500; }
+        .ap-cta { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; background: #fff; color: var(--ap-deep); font-size: 12px; font-weight: 800; padding: 8px 10px 8px 13px; border-radius: 20px; box-shadow: 0 5px 12px rgba(0,0,0,0.18); animation: apNudge 3.2s ease-in-out infinite; }
         .ap-cta svg { width: 14px; height: 14px; transition: transform 0.35s; }
-        .ap.ap-open .ap-cta { animation: none; background: var(--primary-light); color: var(--ap-deep); box-shadow: none; }
+        .ap.ap-open .ap-cta { animation: none; background: rgba(255,255,255,0.22); color: #fff; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.6); }
         .ap.ap-open .ap-cta svg { transform: rotate(180deg); }
         @keyframes apNudge { 0%,80%,100% { transform: translateY(0); } 86% { transform: translateY(-3px); } 92% { transform: translateY(0); } 96% { transform: translateY(-1.5px); } }
         .ap-strip { display: flex; align-items: center; gap: 4px; margin-top: 12px; max-height: 44px; transition: opacity 0.3s, margin 0.35s, max-height 0.35s; }
         .ap-m { width: 36px; height: 36px; flex: 0 0 36px; border-radius: 12px; display: grid; place-items: center; background: linear-gradient(160deg, #fff, #FFF4EC); box-shadow: 0 3px 0 #F3D9C6; animation: apHop 5s ease-in-out infinite; }
         .ap-m.ap-wa { background: linear-gradient(160deg, #fff, #EAF8EF); box-shadow: 0 3px 0 #CDEBD8; }
         .ap-m svg { width: 24px; height: 24px; }
-        .ap-ar { flex: 1; height: 2px; min-width: 6px; background: repeating-linear-gradient(90deg, #F0C7A8 0 4px, transparent 4px 7px); }
+        .ap-ar { flex: 1; height: 2px; min-width: 6px; background: repeating-linear-gradient(90deg, rgba(255,255,255,0.7) 0 4px, transparent 4px 7px); }
         .ap-m:nth-of-type(2) { animation-delay: .25s; } .ap-m:nth-of-type(3) { animation-delay: .5s; }
         .ap-m:nth-of-type(4) { animation-delay: .75s; } .ap-m:nth-of-type(5) { animation-delay: 1s; }
         @keyframes apHop { 0%,20%,100% { transform: translateY(0); } 8% { transform: translateY(-6px); } 14% { transform: translateY(0); } }
@@ -819,28 +905,61 @@
         .ap.ap-open .ap-body { grid-template-rows: 1fr; }
         .ap-inner { overflow: hidden; min-height: 0; }
         .ap-pad { padding: 0 16px 16px; }
+        /* --- PEMILIH CARA PESAN --- */
+        .ap-tabs { display: flex; gap: 8px; background: rgba(255,255,255,0.18); padding: 5px; border-radius: 18px; margin-top: 14px; }
+        .ap-tab { flex: 1; border: 0; background: transparent; color: rgba(255,255,255,0.9); font-size: 12.5px; font-weight: 800; padding: 10px 6px; border-radius: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.3s, color 0.3s, transform 0.3s; }
+        .ap-tab i { font-size: 16px; }
+        .ap-tab.ap-aktif { background: #fff; color: var(--ap-deep); box-shadow: 0 5px 12px rgba(120,40,0,0.22); }
+        .ap-panel { animation: apRise 0.4s cubic-bezier(.2,.9,.3,1); }
+        /* --- CARA 1: SIMULASI CHAT ADMIN --- */
+        .ap-chat { margin-top: 12px; background: #fff; border-radius: 18px; padding: 12px; box-shadow: 0 10px 22px rgba(120,40,0,0.18); }
+        .ap-chat-head { display: flex; align-items: center; gap: 9px; border-bottom: 1px solid #F0F0F2; padding-bottom: 9px; margin-bottom: 10px; }
+        .ap-chat-ava { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(160deg, #25D366, #128C3E); display: grid; place-items: center; color: #fff; font-size: 18px; flex: 0 0 34px; }
+        .ap-chat-nama, .ap-chat-status { display: block; }
+        .ap-chat-nama { font-size: 13px; font-weight: 800; color: var(--dark); line-height: 1.2; }
+        .ap-chat-status { font-size: 10.5px; font-weight: 700; color: #25D366; }
+        .ap-bubbles { display: flex; flex-direction: column; gap: 7px; min-height: 148px; }
+        .ap-bub { max-width: 80%; padding: 9px 12px; border-radius: 14px; font-size: 12.5px; line-height: 1.4; color: #1C1C1E; opacity: 0; animation: apBubble 9s ease-in-out infinite; }
+        .ap-bub.ap-kiri { align-self: flex-start; background: #F1F1F3; border-bottom-left-radius: 4px; }
+        .ap-bub.ap-kanan { align-self: flex-end; background: #DCF8C6; border-bottom-right-radius: 4px; }
+        .ap-bub:nth-of-type(2) { animation-delay: 1.4s; } .ap-bub:nth-of-type(3) { animation-delay: 2.8s; } .ap-bub:nth-of-type(4) { animation-delay: 4.2s; }
+        @keyframes apBubble { 0% { opacity: 0; transform: translateY(10px) scale(.96); } 7% { opacity: 1; transform: none; } 94% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-4px); } }
+        .ap-titik { display: inline-flex; gap: 3px; }
+        .ap-titik span { width: 6px; height: 6px; border-radius: 50%; background: #9A9AA0; animation: apTitik 1.2s infinite; }
+        .ap-titik span:nth-child(2) { animation-delay: .2s; } .ap-titik span:nth-child(3) { animation-delay: .4s; }
+        @keyframes apTitik { 0%, 60%, 100% { transform: translateY(0); opacity: .5; } 30% { transform: translateY(-4px); opacity: 1; } }
+        .ap-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+        .ap-chip { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.2); color: #fff; font-size: 11.5px; font-weight: 700; padding: 8px 11px; border-radius: 14px; box-shadow: inset 0 0 0 1.2px rgba(255,255,255,0.35); animation: apChip 6s ease-in-out infinite; }
+        .ap-chip i { font-size: 14px; }
+        .ap-chip:nth-of-type(2) { animation-delay: .5s; } .ap-chip:nth-of-type(3) { animation-delay: 1s; }
+        .ap-chip:nth-of-type(4) { animation-delay: 1.5s; } .ap-chip:nth-of-type(5) { animation-delay: 2s; }
+        @keyframes apChip { 0%, 70%, 100% { transform: translateY(0); background: rgba(255,255,255,0.2); } 78% { transform: translateY(-4px); background: rgba(255,255,255,0.34); } 86% { transform: translateY(0); } }
+        .ap-catatan { font-size: 12px; line-height: 1.5; color: rgba(255,255,255,0.92); margin: 12px 2px 0; font-weight: 600; }
+        .ap-btn-wa { width: 100%; margin-top: 12px; border: 0; border-radius: 16px; padding: 14px; background: #fff; color: var(--ap-deep); font-size: 14px; font-weight: 800; cursor: pointer; box-shadow: 0 8px 18px rgba(120,40,0,0.22); display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .ap-btn-wa i { font-size: 19px; color: #25D366; }
+        .ap-btn-wa:active { transform: scale(0.97); }
         .ap-stage { perspective: 700px; padding: 16px 0 4px; }
         .ap-track { position: relative; display: flex; justify-content: space-between; align-items: flex-end; transform: rotateX(16deg); transform-style: preserve-3d; }
-        .ap-rail { position: absolute; left: 29px; right: 29px; bottom: 18px; height: 6px; border-radius: 6px; background: #F1E7DF; }
-        .ap-rail-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; width: 0; background: linear-gradient(90deg, #FFB27A, var(--primary)); transition: width 0.6s cubic-bezier(.3,.8,.3,1); }
-        .ap-rail-fill.ap-to-wa { background: linear-gradient(90deg, #FFB27A, var(--primary) 70%, var(--ap-wa)); }
+        .ap-rail { position: absolute; left: 29px; right: 29px; bottom: 18px; height: 6px; border-radius: 6px; background: rgba(255,255,255,0.3); }
+        .ap-rail-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; width: 0; background: linear-gradient(90deg, #FFDDBC, #fff); transition: width 0.6s cubic-bezier(.3,.8,.3,1); }
+        .ap-rail-fill.ap-to-wa { background: linear-gradient(90deg, #FFDDBC, #fff 65%, #8BEFB4); }
         .ap-st { position: relative; z-index: 1; flex: 0 0 58px; display: flex; flex-direction: column; align-items: center; gap: 10px; background: none; border: 0; padding: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-        .ap-tile { width: 58px; height: 58px; border-radius: 18px; display: grid; place-items: center; background: linear-gradient(160deg, #fff, #FFF4EC); box-shadow: 0 5px 0 #F3D9C6, 0 10px 16px rgba(255,102,0,0.10); transition: transform 0.45s cubic-bezier(.2,1.4,.4,1), box-shadow 0.45s; }
+        .ap-tile { width: 58px; height: 58px; border-radius: 18px; display: grid; place-items: center; background: linear-gradient(160deg, #fff, #FFF4EC); box-shadow: 0 5px 0 #E8B88F, 0 10px 16px rgba(120,40,0,0.22); transition: transform 0.45s cubic-bezier(.2,1.4,.4,1), box-shadow 0.45s; }
         .ap-tile svg { width: 40px; height: 40px; filter: drop-shadow(0 3px 3px rgba(0,0,0,0.10)); }
-        .ap-st.ap-wa .ap-tile { background: linear-gradient(160deg, #fff, #EAF8EF); box-shadow: 0 5px 0 #CDEBD8, 0 10px 16px rgba(31,175,85,0.12); }
-        .ap-dot { width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 3px solid #F1E7DF; transition: border-color 0.4s, transform 0.4s; }
-        .ap-st.ap-done .ap-dot { border-color: var(--primary); }
-        .ap-st.ap-wa.ap-done .ap-dot { border-color: var(--ap-wa); }
-        .ap-st.ap-on .ap-tile { transform: translateY(-14px) translateZ(20px) scale(1.08); box-shadow: 0 9px 0 #F0C7A8, 0 22px 26px rgba(255,102,0,0.25); }
-        .ap-st.ap-wa.ap-on .ap-tile { box-shadow: 0 9px 0 #B6E2C6, 0 22px 26px rgba(31,175,85,0.28); }
+        .ap-st.ap-wa .ap-tile { background: linear-gradient(160deg, #fff, #EAF8EF); box-shadow: 0 5px 0 #A9D9BC, 0 10px 16px rgba(120,40,0,0.22); }
+        .ap-dot { width: 14px; height: 14px; border-radius: 50%; background: rgba(255,255,255,0.35); border: 3px solid rgba(255,255,255,0.55); transition: border-color 0.4s, background 0.4s, transform 0.4s; }
+        .ap-st.ap-done .ap-dot { background: #fff; border-color: #fff; }
+        .ap-st.ap-wa.ap-done .ap-dot { background: #8BEFB4; border-color: #8BEFB4; }
+        .ap-st.ap-on .ap-tile { transform: translateY(-14px) translateZ(20px) scale(1.08); box-shadow: 0 9px 0 #E0A87A, 0 22px 26px rgba(120,40,0,0.32); }
+        .ap-st.ap-wa.ap-on .ap-tile { box-shadow: 0 9px 0 #9BD0B2, 0 22px 26px rgba(120,40,0,0.32); }
         .ap-st.ap-on .ap-tile svg { animation: apBob 1.6s ease-in-out infinite; }
         .ap-st.ap-on .ap-dot { transform: scale(1.25); }
-        .ap-st:focus-visible .ap-tile { outline: 3px solid var(--primary); outline-offset: 3px; }
+        .ap-st:focus-visible .ap-tile { outline: 3px solid #fff; outline-offset: 3px; }
         @keyframes apBob { 0%,100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-4px) rotate(-4deg); } }
-        .ap-hint { text-align: center; font-size: 11.5px; font-weight: 600; color: var(--ap-muted); margin: 6px 0 0; transition: opacity 0.3s; }
+        .ap-hint { text-align: center; font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,0.9); margin: 6px 0 0; transition: opacity 0.3s; }
         .ap.ap-touched .ap-hint { opacity: 0; }
-        .ap-detail { margin-top: 10px; border-radius: 18px; background: #FFF8F2; padding: 14px 14px 12px; border: 1px solid #FFE6D3; }
-        .ap-detail.ap-is-wa { background: #F1FBF5; border-color: #D3F0DE; }
+        .ap-detail { margin-top: 10px; border-radius: 18px; background: #fff; padding: 14px 14px 12px; border: 0; box-shadow: 0 10px 22px rgba(120,40,0,0.18); }
+        .ap-detail.ap-is-wa { background: #F4FCF7; }
         .ap-in { animation: apRise 0.4s cubic-bezier(.2,.9,.3,1); }
         .ap-n { font-size: 12px; font-weight: 700; color: var(--ap-deep); }
         .ap-detail.ap-is-wa .ap-n { color: var(--ap-wa-dark); }
@@ -852,13 +971,13 @@
         .ap-detail.ap-is-wa li::before { background-color: var(--ap-wa); }
         .ap-nav { display: flex; gap: 8px; margin-top: 12px; }
         .ap-nav button { flex: 1; border: 0; border-radius: 14px; padding: 11px 10px; font-size: 13px; font-weight: 800; cursor: pointer; }
-        .ap-prev { background: #fff; color: var(--ap-muted); box-shadow: inset 0 0 0 1.5px #EDE3DB; }
-        .ap-next { background: var(--primary); color: #fff; box-shadow: 0 5px 12px rgba(255,102,0,0.3); }
-        .ap-next.ap-go { background: var(--ap-wa); box-shadow: 0 5px 12px rgba(31,175,85,0.3); }
-        .ap-nav button:disabled { opacity: 0.4; cursor: default; }
-        .ap-nav button:focus-visible { outline: 3px solid var(--dark); outline-offset: 2px; }
+        .ap-prev { background: rgba(255,255,255,0.18); color: #fff; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.55); }
+        .ap-next { background: #fff; color: var(--ap-deep); box-shadow: 0 6px 14px rgba(120,40,0,0.22); }
+        .ap-next.ap-go { background: #12A150; color: #fff; box-shadow: 0 6px 14px rgba(0,0,0,0.2); }
+        .ap-nav button:disabled { opacity: 0.45; cursor: default; }
+        .ap-nav button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
         @keyframes apRise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-        .ap-beda { margin-top: 12px; border-radius: 18px; padding: 14px; background: linear-gradient(135deg, #FFF6EF, #EFFAF3); }
+        .ap-beda { margin-top: 12px; border-radius: 18px; padding: 14px; background: linear-gradient(135deg, #FFF8F2, #F1FBF5); box-shadow: 0 10px 22px rgba(120,40,0,0.18); }
         .ap-bridge { display: flex; align-items: center; gap: 8px; }
         .ap-node { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--ap-muted); }
         .ap-b { width: 48px; height: 48px; border-radius: 15px; display: grid; place-items: center; background: #fff; box-shadow: 0 4px 0 #F3D9C6, 0 8px 14px rgba(0,0,0,0.06); }
@@ -874,7 +993,8 @@
         .ap-beda p { font-size: 12.5px; color: var(--ap-muted); margin: 0; line-height: 1.55; }
         .ap-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
         @media (prefers-reduced-motion: reduce) {
-            .ap-cta, .ap-m, .ap-st.ap-on .ap-tile svg, .ap-msg, .nav-badge.has-items { animation: none; }
+            .ap-cta, .ap-m, .ap-st.ap-on .ap-tile svg, .ap-msg, .nav-badge.has-items, .ap-chip, .ap-titik span { animation: none; }
+            .ap-bub { animation: none; opacity: 1; }
             .ap-msg { opacity: 0; } .ap-msg:nth-child(2) { opacity: 1; transform: translate(calc(var(--w,120px) * .5), -6px); }
             .ap-body, .ap-tile, .ap-rail-fill, .nav-blob { transition: none; }
         }
@@ -1526,20 +1646,20 @@
         }
         #dynamic-cat-grid::-webkit-scrollbar { display: none; }
         #dynamic-cat-grid > .cat-item-box {
-            flex: 0 0 86px;
-            min-height: 108px;
-            padding: 10px 4px 10px 4px;
-            border-radius: 22px;
-            box-shadow: 0 6px 14px rgba(0,0,0,0.05);
+            flex: 0 0 102px;
+            min-height: 128px;
+            padding: 12px 5px 12px 5px;
+            border-radius: 26px;
+            box-shadow: 0 7px 16px rgba(0,0,0,0.06);
         }
         #dynamic-cat-grid > .cat-item-box img {
-            width: 64px;
-            height: 64px;
+            width: 78px;
+            height: 78px;
             -webkit-user-drag: none;
         }
-        #dynamic-cat-grid > .cat-item-box .cat-box-text { font-size: 11.5px; font-weight: 700; }
-        #dynamic-cat-grid > .skel-cat-wrapper { flex: 0 0 86px; }
-        #dynamic-cat-grid > .skel-cat-wrapper .skel-cat-icon { width: 64px; height: 64px; border-radius: 22px; }
+        #dynamic-cat-grid > .cat-item-box .cat-box-text { font-size: 12.5px; font-weight: 700; }
+        #dynamic-cat-grid > .skel-cat-wrapper { flex: 0 0 102px; }
+        #dynamic-cat-grid > .skel-cat-wrapper .skel-cat-icon { width: 78px; height: 78px; border-radius: 26px; }
 
         /* Hilangkan sisa CSS Kategori Lama yang bentrok */
         .menu-container, .menu-grid, .menu-item, .icon-container, .menu-text, .pagination, .dot { display: none !important; }
@@ -1976,7 +2096,7 @@
                 </a>
 
                 <!-- Card 3: Saran Masukan -->
-                <div onclick="openAdminModal()" style="cursor: pointer; display: flex; align-items: center; gap: 10px; background: white; border: 1px solid #FFE0B2; border-radius: 12px; padding: 8px 12px; flex: 0 0 auto; box-shadow: 0 4px 10px rgba(255, 102, 0, 0.06); transition: transform 0.2s;" onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1)'" onmouseleave="this.style.transform='scale(1)'">
+                <div onclick="openSaranModal()" style="cursor: pointer; display: flex; align-items: center; gap: 10px; background: white; border: 1px solid #FFE0B2; border-radius: 12px; padding: 8px 12px; flex: 0 0 auto; box-shadow: 0 4px 10px rgba(255, 102, 0, 0.06); transition: transform 0.2s;" onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1)'" onmouseleave="this.style.transform='scale(1)'">
                     <div style="width: 36px; height: 36px; background: #FFF0E5; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #FF6600; font-size: 20px;"><i class="ph-fill ph-lightbulb"></i></div>
                     <div style="display: flex; flex-direction: column; line-height: 1.2;">
                         <span style="font-size: 10px; color: #888; font-weight: 600;">Saran dan</span>
@@ -2466,6 +2586,19 @@
                 <div class="section-title" id="warung-sticky-header"><span>🏪 Warung di Sekitar Gombong</span></div>
                 <div id="container-warung" class="warung-list" style="padding: 0; gap: 0;"></div>
             </div>
+
+            <!-- PENUTUP HALAMAN FOOD: TIDAK KETEMU? TANYA ADMIN -->
+            <div class="ta-card">
+                <div class="ta-lup" aria-hidden="true"><i class="ph-fill ph-magnifying-glass"></i></div>
+                <h3>Yang kamu cari tidak ada di sini?</h3>
+                <p>Tenang saja. Kamu tetap bisa pesan, tinggal tanya ke admin.</p>
+                <div class="ta-contoh">
+                    <b>Contohnya:</b>
+                    Kamu cari soto langganan kamu, tapi warungnya belum ada di katalog. Chat admin saja, langsung kami proses dan kami antarkan.
+                </div>
+                <button type="button" class="ta-btn" onclick="openAdminModal()"><i class="ph-fill ph-whatsapp-logo"></i> Pesan Lewat Admin</button>
+                <p class="ta-tutup">Inilah kelebihan Projekgo: bisa di mana saja, bisa pesan apa saja. Komitmen kami memberikan solusi dan menjadi andalan kamu dalam segala hal.</p>
+            </div>
         </div>
 
         <!-- HALAMAN KERANJANG SAYA (TAMPILAN PENUH) -->
@@ -2832,6 +2965,35 @@
         </div>
     </div>
 
+    <!-- MODAL POSTER STATUS WHATSAPP -->
+    <div id="poster-modal" onclick="if(event.target===this) tutupPoster()">
+        <div class="poster-box">
+            <img id="poster-preview" alt="Poster status warung">
+            <div class="poster-actions">
+                <button class="poster-btn-main" onclick="bagikanPoster()"><i class="ph-fill ph-whatsapp-logo"></i> Bagikan ke Status WhatsApp</button>
+                <button class="poster-btn-sec" onclick="unduhPoster()"><i class="ph-bold ph-download-simple"></i> Simpan ke Galeri</button>
+                <button class="poster-btn-close" onclick="tutupPoster()">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL SARAN DAN MASUKAN (masuk ke ADPRO, tab "Saran & Masukan") -->
+    <div id="saran-modal" onclick="if(event.target===this) closeSaranModal()" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:99999; align-items:center; justify-content:center; padding:20px;">
+        <div class="modal-content" style="background:white; width:100%; max-width:340px; padding:28px 22px; border-radius:20px; box-shadow:0 10px 40px rgba(0,0,0,0.2); text-align:center;">
+            <div style="width:60px; height:60px; background:#FFF0E5; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 14px auto; color:#FF6600; font-size:28px;"><i class="ph-fill ph-lightbulb"></i></div>
+            <h3 style="margin:0 0 6px 0; color:var(--dark); font-weight:800; font-size:17px;">Saran dan Masukan</h3>
+            <p style="font-size:12px; color:#666; margin:0 0 16px 0; line-height:1.5;">Ada ide, keluhan, atau fitur yang kamu inginkan? Tulis di sini, langsung dibaca admin Projekgo.</p>
+            <input id="saran-nama" class="form-input" type="text" maxlength="40" placeholder="Nama kamu (boleh dikosongkan)" style="margin-bottom:10px;">
+            <textarea id="saran-text" class="form-input" rows="4" maxlength="500" placeholder="Tulis saran atau masukanmu di sini..." style="resize:none; background:#f9f9f9;"></textarea>
+            <div id="saran-counter" style="font-size:11px; color:#999; text-align:right; margin-top:4px;">0/500</div>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-top:14px;">
+                <button id="btn-kirim-saran" onclick="submitSaran()" style="width:100%; background:var(--primary); color:white; border:none; padding:14px; border-radius:14px; font-weight:800; font-size:14px; box-shadow:0 4px 15px rgba(255,102,0,0.3);">Kirim Masukan</button>
+                <button onclick="openAdminModal(); closeSaranModal();" style="width:100%; background:#f0f0f0; color:#444; border:none; padding:12px; border-radius:14px; font-weight:700; font-size:13px;">Chat Admin Lewat WhatsApp</button>
+                <button onclick="closeSaranModal()" style="width:100%; background:transparent; color:#999; border:none; padding:6px; font-weight:700; font-size:13px;">Tutup</button>
+            </div>
+        </div>
+    </div>
+
     <div id="closed-modal" onclick="if(event.target===this) closeClosedModal()">
         <div class="closed-content">
             <i class="ph-fill ph-moon-stars closed-icon"></i>
@@ -3153,8 +3315,11 @@
 
             <!-- Area untuk Android -->
             <div id="pwa-action-android">
-                <button class="btn-pwa-agg-install" onclick="installPwa()">
-                    <i class="ph-bold ph-download-simple"></i> Install Sekarang
+                <a href="https://play.google.com/store/apps/details?id=id.projekgo.katalog" target="_blank" rel="noopener noreferrer" class="btn-pwa-agg-install" style="display:flex; align-items:center; justify-content:center; gap:8px; text-decoration:none;">
+                    <i class="ph-fill ph-google-play-logo"></i> Download di Play Store
+                </a>
+                <button class="btn-pwa-agg-install" onclick="installPwa()" style="background:#fff; color:var(--primary); border:1.5px solid var(--primary); box-shadow:none; margin-top:10px;">
+                    <i class="ph-bold ph-download-simple"></i> Install Langsung dari Browser
                 </button>
             </div>
 
@@ -3292,7 +3457,7 @@
         const TEMPLATE = `
             <button class="ap-head" type="button" aria-expanded="false">
                 <span class="ap-top">
-                    <span class="ap-txt"><b>Cara pesan di ProjekGo</b><small>5 langkah mudah, selesai di WhatsApp</small></span>
+                    <span class="ap-txt"><b>Cara pesan di ProjekGo</b><small>Ada 2 cara, pilih yang ternyaman buat kamu</small></span>
                     <span class="ap-cta"><span class="ap-cta-t">Lihat caranya</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
                 </span>
                 <span class="ap-strip" aria-hidden="true">
@@ -3304,6 +3469,40 @@
                 </span>
             </button>
             <div class="ap-body"><div class="ap-inner"><div class="ap-pad">
+                <div class="ap-tabs" role="tablist" aria-label="Pilihan cara pesan">
+                    <button class="ap-tab ap-aktif" type="button" role="tab" data-cara="1"><i class="ph-fill ph-chat-circle-dots"></i> Chat Admin</button>
+                    <button class="ap-tab" type="button" role="tab" data-cara="2"><i class="ph-fill ph-device-mobile"></i> Lewat Aplikasi</button>
+                </div>
+
+                <!-- CARA 1: LANGSUNG CHAT ADMIN -->
+                <div class="ap-panel" data-panel="1">
+                    <p class="ap-catatan"><b>Cara 1 — paling bebas.</b> Tinggal chat admin, bilang mau dibantu apa. Projekgo bisa apa saja, di mana saja. Ini yang tidak dimiliki jasa lain.</p>
+                    <div class="ap-chat" aria-hidden="true">
+                        <div class="ap-chat-head">
+                            <span class="ap-chat-ava"><i class="ph-fill ph-headset"></i></span>
+                            <span><span class="ap-chat-nama">Admin Projekgo</span><span class="ap-chat-status">online</span></span>
+                        </div>
+                        <div class="ap-bubbles">
+                            <div class="ap-bub ap-kanan">Bang, beliin nasi goreng Bu Sri ya 🙏</div>
+                            <div class="ap-bub ap-kiri">Siap kak! Diantar ke mana?</div>
+                            <div class="ap-bub ap-kanan">Kos Melati, Gombong. Sekalian titip galon ya 😄</div>
+                            <div class="ap-bub ap-kiri">Beres, meluncur 🛵</div>
+                        </div>
+                    </div>
+                    <div class="ap-chips">
+                        <span class="ap-chip"><i class="ph-fill ph-bowl-food"></i> Beliin makanan di mana saja</span>
+                        <span class="ap-chip"><i class="ph-fill ph-shopping-cart"></i> Belanja pasar, Alfamart, Indomaret</span>
+                        <span class="ap-chip"><i class="ph-fill ph-magnifying-glass"></i> Cariin sesuatu</span>
+                        <span class="ap-chip"><i class="ph-fill ph-package"></i> Ambil & antar barang</span>
+                        <span class="ap-chip"><i class="ph-fill ph-sparkle"></i> Pokoknya apa saja</span>
+                    </div>
+                    <p class="ap-catatan">Menu yang tidak ada di katalog pun tetap bisa dibeliin. Tinggal sebut mau beli apa dan di mana.</p>
+                    <button class="ap-btn-wa" type="button" data-aksi="chat-admin"><i class="ph-fill ph-whatsapp-logo"></i> Chat Admin Sekarang</button>
+                </div>
+
+                <!-- CARA 2: LEWAT APLIKASI -->
+                <div class="ap-panel" data-panel="2" style="display:none;">
+                <p class="ap-catatan"><b>Cara 2 — lewat aplikasi ini.</b> Katalog produk UMKM lokal, cocok kalau kamu terbiasa memakai aplikasi. Saat checkout kamu tetap diarahkan ke admin.</p>
                 <div class="ap-stage"><div class="ap-track" role="tablist" aria-label="Langkah pemesanan">
                     <div class="ap-rail"><div class="ap-rail-fill"></div></div>
                     ${[1,2,3,4,5].map(i => `<button class="ap-st${i >= 4 ? ' ap-wa' : ''}" type="button" role="tab"><span class="ap-tile"><svg><use href="#ap-ic${i}"/></svg></span><span class="ap-dot"></span></button>`).join('')}
@@ -3319,6 +3518,7 @@
                     </div>
                     <h4>Bedanya ProjekGo dengan aplikasi lain</h4>
                     <p>ProjekGo adalah delivery berbasis WhatsApp. Aplikasi hanya jembatan untuk memudahkan kamu memesan, semua pesanan dialihkan ke WhatsApp admin dan diproses di sana.</p>
+                </div>
                 </div>
             </div></div></div>`;
 
@@ -3340,7 +3540,11 @@
             const prev = host.querySelector('.ap-prev');
             const next = host.querySelector('.ap-next');
             const lane = host.querySelector('.ap-lane');
+            const tabs = Array.from(host.querySelectorAll('.ap-tab'));
+            const panels = Array.from(host.querySelectorAll('.ap-panel'));
+            const btnChat = host.querySelector('[data-aksi="chat-admin"]');
             const lokasi = host.dataset.lokasi === 'food' ? 'food' : 'home';
+            let cara = '1';
             body.id = 'ap-body-' + urut;
             head.setAttribute('aria-controls', body.id);
             body.inert = true;
@@ -3378,12 +3582,29 @@
             // Jalan otomatis hanya saat terbuka & belum disentuh; berhenti setelah disentuh
             function mulaiOtomatis() {
                 clearInterval(timer);
-                if (disentuh || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+                if (disentuh || cara !== '2' || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
                 timer = setInterval(() => {
                     // berhenti juga kalau halamannya sedang tidak tampil (hemat baterai)
                     if (!host.classList.contains('ap-open') || host.offsetParent === null) return;
                     tampil((aktif + 1) % LANGKAH.length);
                 }, 3200);
+            }
+
+            function pilihCara(nomor) {
+                cara = String(nomor);
+                tabs.forEach(b => {
+                    const iniAktif = b.dataset.cara === cara;
+                    b.classList.toggle('ap-aktif', iniAktif);
+                    b.setAttribute('aria-selected', iniAktif ? 'true' : 'false');
+                });
+                panels.forEach(pn => { pn.style.display = pn.dataset.panel === cara ? 'block' : 'none'; });
+                if (cara === '2') {
+                    lane.style.setProperty('--w', Math.max(0, lane.clientWidth - 24) + 'px');
+                    tampil(aktif);            // ukur ulang rel setelah panel benar-benar tampil
+                    mulaiOtomatis();
+                } else {
+                    clearInterval(timer);
+                }
             }
             function sentuh() { disentuh = true; host.classList.add('ap-touched'); clearInterval(timer); }
 
@@ -3393,14 +3614,20 @@
                 body.inert = !b;
                 ctaT.textContent = b ? 'Tutup' : 'Lihat caranya';
                 if (b) {
-                    lane.style.setProperty('--w', Math.max(0, lane.clientWidth - 24) + 'px');
-                    requestAnimationFrame(() => tampil(aktif));
-                    setTimeout(() => tampil(aktif), 460);   // ukur ulang setelah animasi buka selesai
+                    requestAnimationFrame(() => { if (cara === '2') tampil(aktif); });
+                    setTimeout(() => {                       // ukur ulang setelah animasi buka selesai
+                        lane.style.setProperty('--w', Math.max(0, lane.clientWidth - 24) + 'px');
+                        if (cara === '2') tampil(aktif);
+                    }, 460);
                     mulaiOtomatis();
                 } else clearInterval(timer);
             }
 
             head.addEventListener('click', () => buka(!host.classList.contains('ap-open')));
+            tabs.forEach(b => b.addEventListener('click', () => pilihCara(b.dataset.cara)));
+            if (btnChat) btnChat.addEventListener('click', () => {
+                if (typeof window.openAdminModal === 'function') window.openAdminModal();
+            });
             st.forEach((el, k) => el.addEventListener('click', () => { sentuh(); tampil(k); }));
             prev.addEventListener('click', () => { sentuh(); if (aktif > 0) tampil(aktif - 1); });
             next.addEventListener('click', () => {
@@ -3419,6 +3646,16 @@
         }
 
         document.querySelectorAll('[data-alur-pesan]').forEach(pasangAlurPesan);
+
+        // Poin "Keuntungan Pesan di PROJEKGO" bisa diketuk. Dipasang sekali lewat delegasi,
+        // supaya tetap jalan walau kartunya digambar ulang oleh renderTopRatedResto().
+        document.addEventListener('click', (e) => {
+            const item = e.target.closest ? e.target.closest('.kp-item[data-kp]') : null;
+            if (!item) return;
+            const sedangBuka = item.classList.contains('kp-buka');
+            item.parentElement.querySelectorAll('.kp-item.kp-buka').forEach(el => el.classList.remove('kp-buka'));
+            if (!sedangBuka) item.classList.add('kp-buka');
+        });
     })();
     </script>
 
@@ -3501,7 +3738,11 @@
 
         // Deteksi apakah web sedang dibuka di dalam mode aplikasi (standalone)
         const isPwaInstalled = () => {
-            return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+            // Aplikasi Play Store (TWA) membuka web ini dengan penanda referrer android-app://
+            const dariAplikasiPlayStore = document.referrer.startsWith('android-app://');
+            return window.matchMedia('(display-mode: standalone)').matches
+                || window.navigator.standalone === true
+                || dariAplikasiPlayStore;
         };
         const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
 
@@ -3524,11 +3765,14 @@
         // Modifikasi "Seperti Baru Lahir": 
         // Selalu munculkan modal setiap kali web dibuka di browser (setelah 5 detik), 
         // tanpa mempedulikan ingatan session/local storage masa lalu.
+        // Pengunjung dari link Status WhatsApp diberi waktu melihat menu dulu (14 detik),
+        // pengunjung biasa tetap 5 detik.
+        const dariLinkWarung = new URLSearchParams(window.location.search).has('warung');
         setTimeout(() => {
             if (!isPwaInstalled()) {
                 showPwaPromptAggressively();
             }
-        }, 5000);
+        }, dariLinkWarung ? 14000 : 5000);
 
         window.closePwaModal = () => {
             document.getElementById('pwa-install-modal').style.display = 'none';
@@ -4693,6 +4937,62 @@
         window.closeAppReviewModal = () => { document.getElementById('app-review-modal').style.display = 'none'; }
         window.setAppRating = (n) => { currentAppRatingValue = n; document.querySelectorAll('.app-star-rating').forEach((s, i) => { if (i < n) s.classList.add('active'); else s.classList.remove('active'); }); }
         
+        // --- SARAN DAN MASUKAN (satu jalur database dengan ulasan: koleksi "reviews") ---
+        window.openSaranModal = () => {
+            const modal = document.getElementById('saran-modal');
+            document.getElementById('saran-text').value = '';
+            document.getElementById('saran-counter').innerText = '0/500';
+            const nama = document.getElementById('saran-nama');
+            if (!nama.value) nama.value = (savedProfile && savedProfile.name) ? savedProfile.name : '';
+            modal.style.display = 'flex';
+        }
+        window.closeSaranModal = () => { document.getElementById('saran-modal').style.display = 'none'; }
+
+        window.submitSaran = async () => {
+            const tombol = document.getElementById('btn-kirim-saran');
+            const isi = document.getElementById('saran-text').value.trim().slice(0, 500);
+            const nama = document.getElementById('saran-nama').value.trim().slice(0, 40);
+
+            if (isi.length < 10) { showToast("Tulis masukannya minimal 10 huruf ya."); return; }
+
+            // Rem anti-spam: maksimal 3 masukan per 24 jam dari HP ini
+            const batas = Date.now() - 24 * 60 * 60 * 1000;
+            let jejak = [];
+            try { jejak = (JSON.parse(localStorage.getItem('saran_log')) || []).filter(w => w > batas); } catch (e) { jejak = []; }
+            if (jejak.length >= 3) { showToast("Masukanmu sudah kami terima hari ini. Coba lagi besok ya."); return; }
+
+            tombol.disabled = true;
+            tombol.innerText = 'Mengirim...';
+            try {
+                await addDoc(collection(db, "reviews"), {
+                    jenis: "saran",                 // penanda utama untuk tab "Saran & Masukan" di ADPRO
+                    order_id: "APP_SARAN",
+                    vendor_name: "Saran & Masukan", // bukan nama warung, jadi tidak muncul di ulasan mitra
+                    user: nama || "Pelanggan",
+                    text: isi,
+                    rating: 0,
+                    status: "baru",
+                    timestamp: Date.now(),
+                    uid: currentUserUid || "anonim"
+                });
+                jejak.push(Date.now());
+                localStorage.setItem('saran_log', JSON.stringify(jejak));
+                showToast("Terima kasih! Masukanmu sudah kami terima ❤️");
+                closeSaranModal();
+            } catch (error) {
+                console.error(error);
+                showToast("Gagal mengirim masukan. Coba lagi nanti.");
+            } finally {
+                tombol.disabled = false;
+                tombol.innerText = 'Kirim Masukan';
+            }
+        }
+
+        document.getElementById('saran-text')?.addEventListener('input', (e) => {
+            document.getElementById('saran-counter').innerText = e.target.value.length + '/500';
+        });
+        // -------------------------------------------------------------------------
+
         window.submitAppReview = async () => {
             const text = document.getElementById('app-review-text').value;
             const user = savedProfile.name;
@@ -4979,6 +5279,243 @@
             }
         };
 
+        // ================== BAGIKAN WARUNG (untuk Status WhatsApp) ==================
+        const PLAYSTORE_URL = "https://play.google.com/store/apps/details?id=id.projekgo.katalog";
+
+        // Link menuju halaman warung ini. Memakai alamat yang sedang dibuka,
+        // jadi tetap benar walau nanti domainnya berubah.
+        window.linkWarung = (vendorId) => `${window.location.origin}${window.location.pathname}?warung=${encodeURIComponent(vendorId)}`;
+
+        window.bagikanWarung = async (vendorId) => {
+            const vendor = allVendors.find(v => v.id === vendorId);
+            const nama = (vendor && vendor.nama_warung) ? vendor.nama_warung : 'Warung Projekgo';
+            const link = window.linkWarung(vendorId);
+            const teks =
+                `🍽️ *${nama}* sekarang ada di Projekgo!\n\n` +
+                `Lihat menu & harganya di sini, pesan langsung lewat WhatsApp 👇\n${link}\n\n` +
+                `#ProjekgoGombong #DeliveryGombong`;
+
+            try {
+                if (navigator.share) {
+                    await navigator.share({ title: nama + ' - Katalog Projekgo', text: teks });
+                    return;
+                }
+            } catch (e) {
+                if (e && e.name === 'AbortError') return; // pengguna membatalkan, bukan gagal
+            }
+            try {
+                await navigator.clipboard.writeText(teks);
+                showToast("Teks & link tersalin. Tinggal tempel di Status WhatsApp 📋");
+            } catch (e) {
+                window.open('https://wa.me/?text=' + encodeURIComponent(teks), '_blank');
+            }
+        };
+        // ===========================================================================
+
+        // ================== PEMBUAT POSTER STATUS (CANVAS, TANPA SERVER) ==================
+        let posterBlob = null, posterNamaFile = 'poster-projekgo.jpg', posterCaption = '';
+
+        // Gambar dimuat dengan crossOrigin: kalau servernya tidak mengizinkan, pemuatan
+        // gagal dan kita lewati. Ini penting supaya canvas tidak "tercemar" (tainted),
+        // karena canvas yang tercemar tidak bisa diubah jadi file sama sekali.
+        const muatGambarPoster = (url) => new Promise((selesai) => {
+            if (!url || url.length < 5) return selesai(null);
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            const waktu = setTimeout(() => selesai(null), 7000);
+            img.onload = () => { clearTimeout(waktu); selesai(img); };
+            img.onerror = () => { clearTimeout(waktu); selesai(null); };
+            img.src = url;
+        });
+
+        const kotakBulat = (ctx, x, y, w, h, r) => {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.arcTo(x + w, y, x + w, y + h, r);
+            ctx.arcTo(x + w, y + h, x, y + h, r);
+            ctx.arcTo(x, y + h, x, y, r);
+            ctx.arcTo(x, y, x + w, y, r);
+            ctx.closePath();
+        };
+        const potongTeks = (ctx, teks, maksLebar) => {
+            let hasil = String(teks || '');
+            if (ctx.measureText(hasil).width <= maksLebar) return hasil;
+            while (hasil.length > 1 && ctx.measureText(hasil + '…').width > maksLebar) hasil = hasil.slice(0, -1);
+            return hasil + '…';
+        };
+        const rupiah = (n) => 'Rp ' + (parseInt(n) || 0).toLocaleString('id-ID');
+
+        window.buatPosterWarung = async (vendorId) => {
+            const vendor = allVendors.find(v => v.id === vendorId) || { id: vendorId, nama_warung: window.currentOpenedVendorName || 'Warung Projekgo' };
+            const menu = rawProducts
+                .filter(p => p.vendor_id === vendorId && p.is_available !== false)
+                .sort((a, b) => (b.is_promo === true) - (a.is_promo === true) || (parseInt(b.jumlah_terjual) || 0) - (parseInt(a.jumlah_terjual) || 0))
+                .slice(0, 4);
+
+            if (menu.length === 0) { showToast("Warung ini belum punya menu untuk dijadikan poster."); return; }
+            showToast("Menyiapkan poster... ⏳");
+
+            try { await document.fonts.ready; } catch (e) {}
+
+            const [logo, ...fotoMenu] = await Promise.all([
+                muatGambarPoster(vendor.shop_photo),
+                ...menu.map(m => muatGambarPoster(m.foto_url))
+            ]);
+
+            const W = 1080, H = 1920;
+            const cv = document.createElement('canvas');
+            cv.width = W; cv.height = H;
+            const c = cv.getContext('2d');
+            const font = (b, s) => `${b} ${s}px 'Plus Jakarta Sans', sans-serif`;
+
+            // Latar oranye
+            const grad = c.createLinearGradient(0, 0, 0, H);
+            grad.addColorStop(0, '#FF9A4D'); grad.addColorStop(0.5, '#FF6B00'); grad.addColorStop(1, '#E24A0B');
+            c.fillStyle = grad; c.fillRect(0, 0, W, H);
+            c.fillStyle = 'rgba(255,255,255,0.10)';
+            c.beginPath(); c.arc(920, 190, 300, 0, Math.PI * 2); c.fill();
+            c.beginPath(); c.arc(120, 1740, 260, 0, Math.PI * 2); c.fill();
+
+            // Kepala
+            c.textAlign = 'center'; c.fillStyle = '#fff';
+            c.font = font(800, 62); c.fillText('PROJEKGO', W / 2, 150);
+            c.font = font(600, 32); c.fillStyle = 'rgba(255,255,255,0.9)';
+            c.fillText('Delivery berbasis WhatsApp', W / 2, 200);
+
+            // Kartu putih
+            // Tinggi kartu mengikuti jumlah menu supaya tidak ada ruang kosong menganga
+            const cardH = 300 + menu.length * 160 + 260;
+            const cardY = Math.max(370, Math.round((H - cardH) / 2) - 40);
+            c.fillStyle = '#fff'; kotakBulat(c, 60, cardY, W - 120, cardH, 60); c.fill();
+
+            // Logo warung
+            const lx = W / 2, ly = cardY, lr = 105;
+            c.save(); c.beginPath(); c.arc(lx, ly, lr + 10, 0, Math.PI * 2); c.fillStyle = '#fff'; c.fill(); c.restore();
+            c.save(); c.beginPath(); c.arc(lx, ly, lr, 0, Math.PI * 2); c.clip();
+            if (logo) {
+                const sisi = Math.min(logo.width, logo.height);
+                c.drawImage(logo, (logo.width - sisi) / 2, (logo.height - sisi) / 2, sisi, sisi, lx - lr, ly - lr, lr * 2, lr * 2);
+            } else {
+                c.fillStyle = '#FFE3CF'; c.fillRect(lx - lr, ly - lr, lr * 2, lr * 2);
+                c.fillStyle = '#FF6600'; c.font = font(800, 90); c.textBaseline = 'middle';
+                c.fillText((vendor.nama_warung || 'P').trim().charAt(0).toUpperCase(), lx, ly);
+                c.textBaseline = 'alphabetic';
+            }
+            c.restore();
+
+            // Nama & alamat warung
+            c.fillStyle = '#1C1C1E'; c.font = font(800, 54);
+            c.fillText(potongTeks(c, vendor.nama_warung || 'Warung Projekgo', W - 220), W / 2, cardY + 190);
+            const alamat = vendor.area || vendor.lokasi || vendor.alamat_warung || vendor.alamat || '';
+            if (alamat) {
+                c.fillStyle = '#8A8A90'; c.font = font(500, 30);
+                c.fillText(potongTeks(c, alamat, W - 240), W / 2, cardY + 240);
+            }
+
+            // Daftar menu
+            let y = cardY + 310;
+            menu.forEach((m, i) => {
+                const foto = fotoMenu[i];
+                const px = 110, tinggi = 160;
+                c.save(); kotakBulat(c, px, y, 140, 140, 34); c.clip();
+                if (foto) {
+                    const sisi = Math.min(foto.width, foto.height);
+                    c.drawImage(foto, (foto.width - sisi) / 2, (foto.height - sisi) / 2, sisi, sisi, px, y, 140, 140);
+                } else {
+                    c.fillStyle = '#FFF0E5'; c.fillRect(px, y, 140, 140);
+                    c.fillStyle = '#FFB27A'; c.font = font(800, 60); c.textAlign = 'center'; c.textBaseline = 'middle';
+                    c.fillText('🍽', px + 70, y + 70); c.textBaseline = 'alphabetic';
+                }
+                c.restore();
+
+                c.textAlign = 'left'; c.fillStyle = '#1C1C1E'; c.font = font(700, 40);
+                c.fillText(potongTeks(c, m.nama_menu || 'Menu', 690), px + 175, y + 62);
+
+                c.fillStyle = '#FF6600'; c.font = font(800, 42);
+                const hargaTeks = rupiah(m.harga);
+                c.fillText(hargaTeks, px + 175, y + 118);
+
+                const coret = parseInt(m.harga_coret) || 0;
+                if (coret > (parseInt(m.harga) || 0)) {
+                    const lebarHarga = c.measureText(hargaTeks).width;
+                    c.fillStyle = '#B0B0B5'; c.font = font(500, 30);
+                    const teksCoret = rupiah(coret);
+                    c.fillText(teksCoret, px + 195 + lebarHarga, y + 115);
+                    const lc = c.measureText(teksCoret).width;
+                    c.fillRect(px + 195 + lebarHarga, y + 104, lc, 3);
+                }
+                c.textAlign = 'center';
+                y += tinggi;
+            });
+
+            // Ajakan pesan
+            const ajakY = cardY + cardH - 170;
+            c.fillStyle = '#FF6600'; kotakBulat(c, 110, ajakY, W - 220, 110, 34); c.fill();
+            c.fillStyle = '#fff'; c.font = font(800, 40);
+            c.fillText('Pesan sekarang, diantar sampai rumah', W / 2, ajakY + 68);
+
+            // Kaki
+            c.fillStyle = 'rgba(255,255,255,0.95)'; c.font = font(800, 38);
+            c.fillText('Link menunya ada di caption 👆', W / 2, cardY + cardH + 95);
+            c.fillStyle = 'rgba(255,255,255,0.85)'; c.font = font(600, 30);
+            c.fillText('Atau cari "Katalog Projekgo" di Play Store', W / 2, cardY + cardH + 150);
+
+            posterCaption =
+                `🍽️ *${vendor.nama_warung || 'Warung Projekgo'}* sekarang ada di Projekgo!\n\n` +
+                `Lihat menu & harganya di sini, pesan langsung lewat WhatsApp 👇\n${window.linkWarung(vendorId)}\n\n` +
+                `Download aplikasinya: ${PLAYSTORE_URL}`;
+            posterNamaFile = 'projekgo-' + String(vendor.nama_warung || 'warung').toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 30) + '.jpg';
+
+            cv.toBlob((blob) => {
+                if (!blob) { showToast("Gagal membuat poster. Coba lagi ya."); return; }
+                posterBlob = blob;
+                const prev = document.getElementById('poster-preview');
+                if (prev.dataset.url) URL.revokeObjectURL(prev.dataset.url);
+                const url = URL.createObjectURL(blob);
+                prev.dataset.url = url;
+                prev.src = url;
+                document.getElementById('poster-modal').style.display = 'flex';
+            }, 'image/jpeg', 0.9);
+        };
+
+        window.tutupPoster = () => {
+            const prev = document.getElementById('poster-preview');
+            document.getElementById('poster-modal').style.display = 'none';
+            if (prev.dataset.url) { URL.revokeObjectURL(prev.dataset.url); delete prev.dataset.url; prev.removeAttribute('src'); }
+            posterBlob = null;
+        };
+
+        window.bagikanPoster = async () => {
+            if (!posterBlob) return;
+            const berkas = new File([posterBlob], posterNamaFile, { type: 'image/jpeg' });
+            try {
+                if (navigator.canShare && navigator.canShare({ files: [berkas] })) {
+                    await navigator.share({ files: [berkas], text: posterCaption });
+                    return;
+                }
+            } catch (e) {
+                if (e && e.name === 'AbortError') return;
+            }
+            // Cadangan: simpan gambarnya, lalu salin caption supaya tinggal ditempel
+            window.unduhPoster();
+            try {
+                await navigator.clipboard.writeText(posterCaption);
+                showToast("Poster tersimpan & caption tersalin. Tinggal unggah ke Status 📋");
+            } catch (e) {
+                showToast("Poster tersimpan di galeri. Tinggal unggah ke Status 🖼️");
+            }
+        };
+
+        window.unduhPoster = () => {
+            if (!posterBlob) return;
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(posterBlob);
+            a.download = posterNamaFile;
+            document.body.appendChild(a); a.click();
+            setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+        };
+        // ==================================================================================
+
         window.openVendorPage = (vendorId) => {
             let vendor = allVendors.find(v => v.id === vendorId);
             if (!vendor) { const prod = rawProducts.find(p => p.vendor_id === vendorId); if (prod) vendor = {id: vendorId, nama_warung: prod.vendor_name, shop_photo: null}; else { const vByName = allVendors.find(v => v.nama_warung === vendorId); if (vByName) vendor = vByName; else vendor = {id: 'temp', nama_warung: 'Detail Warung', shop_photo: null}; } }
@@ -5031,6 +5568,8 @@
                         <div class="vh-cover-overlay"></div>
                         ${tutupOverlay}
                         <div class="vh-btn-back" onclick="goBack()" style="z-index:10;"><i class="ph-bold ph-caret-left"></i></div>
+                        <div class="vh-btn-share" onclick="event.stopPropagation(); bagikanWarung('${esc(vendor.id)}')"><i class="ph-fill ph-share-network"></i> Bagikan</div>
+                        <div class="vh-btn-poster" onclick="event.stopPropagation(); buatPosterWarung('${esc(vendor.id)}')"><i class="ph-fill ph-image-square"></i> Poster</div>
                     </div>
                     <div class="vh-card" style="${!isOpen ? 'background: #666; box-shadow: none;' : ''} cursor:pointer;" onclick="openVendorProfileModal('${vendor.id}')">
                         <div class="vh-logo">
@@ -11024,24 +11563,40 @@
             
             // TAMBAHAN: Pesan edukasi harga asli & pengantaran (Diubah menjadi format poin-poin)
             let edukasiMsg = `
-                <div style="padding: 15px; background: #ffffff; border-radius: 12px; margin: 15px 20px 0 20px; color: #333; font-size: 12px; font-weight: 600; line-height: 1.5; border: 1px dashed #FFB74D; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
-                    <div style="font-weight: 800; color: #FF6600; margin-bottom: 10px; font-size: 14px; display: flex; align-items: center; gap: 6px;">
-                        <i class="ph-fill ph-info"></i> Keuntungan Pesan di PROJEKGO
+                <div class="kp-card">
+                    <div class="kp-head">
+                        <span class="kp-head-ic"><i class="ph-fill ph-seal-check"></i></span>
+                        <span class="kp-head-txt"><b>Keuntungan Pesan di PROJEKGO</b><small>Ketuk tiap poin untuk penjelasannya</small></span>
                     </div>
-                    <div style="display: flex; flex-direction: column; gap: 8px;">
-                        <div style="display: flex; gap: 8px; align-items: flex-start;">
-                            <i class="ph-fill ph-check-circle" style="color: #4CAF50; font-size: 16px; margin-top: 1px; flex-shrink: 0;"></i>
-                            <span><b>Harga ASLI warung</b> (tidak dinaikkan), jadi harganya sama persis ketika kamu beli sendiri.</span>
-                        </div>
-                        <div style="display: flex; gap: 8px; align-items: flex-start;">
-                            <i class="ph-fill ph-check-circle" style="color: #4CAF50; font-size: 16px; margin-top: 1px; flex-shrink: 0;"></i>
-                            <span><b>Pengantaran Express & Prioritas</b>, langsung diantar oleh 1 rider (tidak digabung pesanan lain).</span>
-                        </div>
-                        <div style="display: flex; gap: 8px; align-items: flex-start;">
-                            <i class="ph-fill ph-check-circle" style="color: #4CAF50; font-size: 16px; margin-top: 1px; flex-shrink: 0;"></i>
-                            <span><b>GRATIS</b> biaya tambahan layanan aplikasi. Pesan di <b style="color:#FF6600;">PROJEKGO</b> pasti lebih Hemat!</span>
-                        </div>
-                    </div>
+
+                    <button type="button" class="kp-item" data-kp>
+                        <span class="kp-ic kp-hijau"><i class="ph-fill ph-tag"></i></span>
+                        <span class="kp-body">
+                            <span class="kp-judul">Harga <span class="kp-tebal kp-tebal-hijau">ASLI WARUNG</span></span>
+                            <span class="kp-isi"><div><p>Harga di aplikasi sama persis dengan harga kalau kamu beli sendiri ke warungnya. Tidak kami naikkan sepeser pun.</p></div></span>
+                        </span>
+                        <i class="ph-bold ph-caret-down kp-chev"></i>
+                    </button>
+
+                    <button type="button" class="kp-item" data-kp>
+                        <span class="kp-ic kp-oranye"><i class="ph-fill ph-moped"></i></span>
+                        <span class="kp-body">
+                            <span class="kp-judul">Pengantaran <span class="kp-tebal">EXPRESS &amp; PRIORITAS</span></span>
+                            <span class="kp-isi"><div><p>Pesananmu diantar oleh 1 rider khusus, tidak digabung dengan pesanan orang lain. Jadi makanannya sampai lebih cepat dan masih hangat.</p></div></span>
+                        </span>
+                        <i class="ph-bold ph-caret-down kp-chev"></i>
+                    </button>
+
+                    <button type="button" class="kp-item" data-kp>
+                        <span class="kp-ic kp-biru"><i class="ph-fill ph-hand-coins"></i></span>
+                        <span class="kp-body">
+                            <span class="kp-judul"><span class="kp-tebal kp-tebal-hijau">GRATIS</span> biaya layanan aplikasi</span>
+                            <span class="kp-isi"><div><p>Tidak ada biaya tambahan seperti di aplikasi lain. Kamu cuma bayar harga makanan dan ongkos kirim. Pesan di PROJEKGO pasti lebih hemat.</p></div></span>
+                        </span>
+                        <i class="ph-bold ph-caret-down kp-chev"></i>
+                    </button>
+
+                    <p class="kp-petunjuk">Harga jujur, antar cepat, tanpa biaya siluman 🧡</p>
                 </div>
             `;
 
