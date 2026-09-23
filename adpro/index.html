@@ -468,6 +468,7 @@
             <div class="capsule-tabs">
                 <div class="capsule-tab active" onclick="switchReviewTab('mitra', this)">Ulasan Mitra</div>
                 <div class="capsule-tab" onclick="switchReviewTab('projekgo', this)">Ulasan Projekgo</div>
+                <div class="capsule-tab" onclick="switchReviewTab('saran', this)">Saran &amp; Masukan <span id="saran-badge" style="display:none; background:#dc2626; color:#fff; font-size:10px; font-weight:700; padding:1px 6px; border-radius:10px; margin-left:4px;">0</span></div>
             </div>
 
             <!-- TAB CONTENT: MITRA -->
@@ -516,6 +517,23 @@
                     <div class="card-header">Komentar Pengguna</div>
                     <div id="projekgo-reviews-container">
                         <!-- Ulasan Projekgo akan muncul di sini -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB CONTENT: SARAN & MASUKAN (dari kartu "Saran dan Masukan" di aplikasi pelanggan) -->
+            <div id="tab-review-saran" style="display:none;">
+                <div class="stat-card" style="margin-bottom: 20px;">
+                    <div class="stat-icon" style="background:#fff7ed; color:#ea580c;"><i class="ph-fill ph-lightbulb"></i></div>
+                    <div class="stat-info">
+                        <div style="font-weight:700; color:var(--dark);">Masukan Pelanggan</div>
+                        <span id="saran-total">0</span> <small style="color:var(--gray); font-weight:400;">masukan, <span id="saran-baru">0</span> belum dibaca</small>
+                    </div>
+                </div>
+                <div class="data-card">
+                    <div class="card-header">Kotak Saran</div>
+                    <div id="saran-container">
+                        <!-- Saran & masukan akan muncul di sini -->
                     </div>
                 </div>
             </div>
@@ -1723,14 +1741,21 @@
             document.querySelectorAll('.capsule-tab').forEach(t => t.classList.remove('active'));
             element.classList.add('active');
 
+            const tampil = (mitra, projekgo, saran) => {
+                document.getElementById('tab-review-mitra').style.display = mitra;
+                document.getElementById('tab-review-projekgo').style.display = projekgo;
+                document.getElementById('tab-review-saran').style.display = saran;
+            };
+
             if (tabName === 'mitra') {
-                document.getElementById('tab-review-mitra').style.display = 'block';
-                document.getElementById('tab-review-projekgo').style.display = 'none';
+                tampil('block', 'none', 'none');
                 window.showReviewList();
             } else if (tabName === 'projekgo') {
-                document.getElementById('tab-review-mitra').style.display = 'none';
-                document.getElementById('tab-review-projekgo').style.display = 'block';
+                tampil('none', 'block', 'none');
                 window.renderReviewProjekgo();
+            } else if (tabName === 'saran') {
+                tampil('none', 'none', 'block');
+                window.renderSaranMasukan();
             }
         }
 
@@ -1745,10 +1770,10 @@
             document.getElementById('review-detail-view').style.display = 'block';
             document.getElementById('rev-detail-vendor-name').innerText = vendorName;
             
-            const vendorReviews = adminAllReviews.filter(r => 
+            const vendorReviews = adminAllReviews.filter(r => !window.adalahSaran(r) && (
                 r.vendor_id === vendorId || 
                 (r.vendor_name && r.vendor_name === vendorName)
-            );
+            ));
 
             const container = document.getElementById('review-items-container');
             const avgDisplay = document.getElementById('rev-detail-avg-rating');
@@ -1863,10 +1888,10 @@
             body.innerHTML = '';
             
             adminAllVendors.forEach(v => {
-                const vendorReviews = adminAllReviews.filter(r => 
+                const vendorReviews = adminAllReviews.filter(r => !window.adalahSaran(r) && (
                     r.vendor_id === v.id || 
                     (r.vendor_name && r.vendor_name === v.nama_warung)
-                );
+                ));
 
                 // Pisahkan untuk menghitung rata-rata (hanya approved) dan melihat adakah yang pending
                 const approvedReviews = vendorReviews.filter(r => r.status !== 'pending');
@@ -3802,16 +3827,85 @@
             const snap = await getDocs(collection(db, "reviews"));
             adminAllReviews = [];
             let totalRating = 0;
+            let jumlahBerbintang = 0;
             snap.forEach(d => {
                 const data = d.data();
                 adminAllReviews.push({id: d.id, ...data});
-                totalRating += parseFloat(data.rating || 0);
+                // Saran & masukan tidak punya bintang, jadi jangan ikut menarik turun rata-rata
+                const bintang = parseFloat(data.rating || 0);
+                if (!window.adalahSaran(data) && bintang > 0) { totalRating += bintang; jumlahBerbintang++; }
             });
-            if(snap.size > 0) {
-                document.getElementById('global-rating').innerText = (totalRating / snap.size).toFixed(1);
+            if(jumlahBerbintang > 0) {
+                document.getElementById('global-rating').innerText = (totalRating / jumlahBerbintang).toFixed(1);
             }
             window.renderReviewVendors();
             window.renderReviewProjekgo();
+            window.renderSaranMasukan();
+        }
+
+        // Penanda dokumen "saran & masukan" di dalam koleksi reviews yang sama
+        window.adalahSaran = (r) => r && (r.jenis === 'saran' || r.order_id === 'APP_SARAN');
+
+        window.renderSaranMasukan = () => {
+            const container = document.getElementById('saran-container');
+            if (!container) return;
+
+            const daftar = adminAllReviews.filter(window.adalahSaran)
+                .sort((a, b) => (Number(b.timestamp) || 0) - (Number(a.timestamp) || 0));
+            const belumDibaca = daftar.filter(r => r.status !== 'dibaca').length;
+
+            const elTotal = document.getElementById('saran-total');
+            const elBaru = document.getElementById('saran-baru');
+            const badge = document.getElementById('saran-badge');
+            if (elTotal) elTotal.innerText = daftar.length;
+            if (elBaru) elBaru.innerText = belumDibaca;
+            if (badge) { badge.innerText = belumDibaca; badge.style.display = belumDibaca > 0 ? 'inline-block' : 'none'; }
+
+            if (daftar.length === 0) {
+                container.innerHTML = '<div style="padding:40px; text-align:center; color:#999;">Belum ada saran atau masukan dari pelanggan.</div>';
+                return;
+            }
+
+            // Semua isi dari database ditempel lewat esc() supaya tag HTML tidak ikut jalan di panel ini
+            container.innerHTML = daftar.map(r => {
+                let tanggal = '-';
+                if (r.timestamp) {
+                    tanggal = r.timestamp.toDate ? r.timestamp.toDate().toLocaleString('id-ID') : new Date(r.timestamp).toLocaleString('id-ID');
+                } else if (r.date) tanggal = esc(r.date);
+
+                const baru = r.status !== 'dibaca';
+                return `
+                    <div class="review-item" style="position:relative; ${baru ? 'background:#fffbeb;' : ''}">
+                        <div class="review-user">
+                            <span>${esc(r.user || r.user_name || 'Pelanggan')} ${baru ? '<span style="background:#dc2626; color:#fff; font-size:9px; font-weight:700; padding:1px 6px; border-radius:8px; margin-left:4px;">BARU</span>' : ''}</span>
+                            <span class="review-date">${esc(tanggal)}</span>
+                        </div>
+                        <div class="review-comment" style="white-space:pre-wrap;">${esc(r.text || '(kosong)')}</div>
+                        <div style="display:flex; gap:8px; margin-top:10px;">
+                            ${baru ? `<button class="btn-status" style="background:#dcfce7; color:#166534;" onclick="window.tandaiSaranDibaca('${esc(r.id)}')"><i class="ph ph-check"></i> Tandai dibaca</button>` : ''}
+                            <button class="btn-status" style="background:#fee2e2; color:#991b1b;" onclick="window.hapusSaran('${esc(r.id)}')"><i class="ph ph-trash"></i> Hapus</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.tandaiSaranDibaca = async (id) => {
+            try {
+                await updateDoc(doc(db, "reviews", id), { status: "dibaca" });
+                const item = adminAllReviews.find(r => r.id === id);
+                if (item) item.status = "dibaca";
+                window.renderSaranMasukan();
+            } catch (e) { alert("Gagal menandai masukan: " + e.message); }
+        }
+
+        window.hapusSaran = async (id) => {
+            if (!confirm("Hapus masukan ini secara permanen?")) return;
+            try {
+                await deleteDoc(doc(db, "reviews", id));
+                adminAllReviews = adminAllReviews.filter(r => r.id !== id);
+                window.renderSaranMasukan();
+            } catch (e) { alert("Gagal menghapus masukan: " + e.message); }
         }
 
         window.renderReviewProjekgo = () => {
@@ -3819,7 +3913,7 @@
             const avgDisplay = document.getElementById('rev-projekgo-avg-rating');
             if(!container) return;
 
-            const projekgoReviews = adminAllReviews.filter(r => r.vendor_name === "Aplikasi Projekgo");
+            const projekgoReviews = adminAllReviews.filter(r => r.vendor_name === "Aplikasi Projekgo" && !window.adalahSaran(r));
 
             container.innerHTML = '';
 
