@@ -2986,11 +2986,11 @@
             <input id="saran-nama" class="form-input" type="text" maxlength="40" placeholder="Nama kamu (boleh dikosongkan)" style="margin-bottom:10px;">
             <textarea id="saran-text" class="form-input" rows="4" maxlength="500" placeholder="Tulis saran atau masukanmu di sini..." style="resize:none; background:#f9f9f9;"></textarea>
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
-                <span style="font-size:10px; color:#CFCFD4; font-weight:700;">form v3</span>
+                <span style="font-size:10px; color:#CFCFD4; font-weight:700;">form v4</span>
                 <span id="saran-counter" style="font-size:11px; color:#999;">0/500</span>
             </div>
             <div style="display:flex; flex-direction:column; gap:10px; margin-top:14px;">
-                <button id="btn-kirim-saran" type="button" onclick="window.submitSaran && window.submitSaran()" style="width:100%; background:var(--primary); color:white; border:none; padding:14px; border-radius:14px; font-weight:800; font-size:14px; box-shadow:0 4px 15px rgba(255,102,0,0.3); cursor:pointer;">Kirim Masukan</button>
+                <button id="btn-kirim-saran" type="button" onclick="window.submitSaran ? window.submitSaran() : alert('Fungsi kirim belum termuat (form v4). Tutup aplikasi lalu buka lagi ya.')" style="width:100%; background:var(--primary); color:white; border:none; padding:14px; border-radius:14px; font-weight:800; font-size:14px; box-shadow:0 4px 15px rgba(255,102,0,0.3); cursor:pointer;">Kirim Masukan</button>
                 <div style="display:flex; align-items:center; gap:10px; margin:2px 0;">
                     <span style="flex:1; height:1px; background:#EDEDF0;"></span>
                     <span style="font-size:11.5px; font-weight:800; color:#A0A0A6;">atau</span>
@@ -5396,15 +5396,35 @@
         // Gambar dimuat dengan crossOrigin: kalau servernya tidak mengizinkan, pemuatan
         // gagal dan kita lewati. Ini penting supaya canvas tidak "tercemar" (tainted),
         // karena canvas yang tercemar tidak bisa diubah jadi file sama sekali.
-        const muatGambarPoster = (url) => new Promise((selesai) => {
+        const cobaMuatGambar = (url) => new Promise((selesai) => {
             if (!url || url.length < 5) return selesai(null);
             const img = new Image();
             img.crossOrigin = 'anonymous';
-            const waktu = setTimeout(() => selesai(null), 7000);
+            const waktu = setTimeout(() => selesai(null), 8000);
             img.onload = () => { clearTimeout(waktu); selesai(img); };
             img.onerror = () => { clearTimeout(waktu); selesai(null); };
             img.src = url;
         });
+
+        // Jalur cadangan kalau server foto tidak mengirim izin CORS (misalnya foto lama
+        // di ibb.co, atau bucket Storage yang belum diatur CORS-nya). Layanan gambar
+        // pihak ketiga ini hanya dipanggil SAAT membuat poster, dan hanya menerima
+        // alamat foto yang memang sudah tampil publik di katalog — tidak ada data
+        // pengguna yang ikut. Kalau nanti CORS bucket sudah diatur, jalur ini
+        // praktis tidak pernah terpakai lagi.
+        const lewatProxy = (url) => 'https://images.weserv.nl/?url=' +
+            encodeURIComponent(String(url).replace(/^https?:\/\//, '')) + '&w=400&output=jpg';
+
+        let posterFotoGagal = 0;
+        const muatGambarPoster = async (url) => {
+            if (!url || url.length < 5) return null;
+            const langsung = await cobaMuatGambar(url);
+            if (langsung) return langsung;
+            if (!/^https:\/\//i.test(url)) { posterFotoGagal++; return null; }
+            const lewat = await cobaMuatGambar(lewatProxy(url));
+            if (!lewat) posterFotoGagal++;
+            return lewat;
+        };
 
         const kotakBulat = (ctx, x, y, w, h, r) => {
             ctx.beginPath();
@@ -5432,6 +5452,7 @@
 
             if (menu.length === 0) { showToast("Warung ini belum punya menu untuk dijadikan poster."); return; }
             showToast("Menyiapkan poster... ⏳");
+            posterFotoGagal = 0;
 
             try { await document.fonts.ready; } catch (e) {}
 
@@ -5547,6 +5568,7 @@
             cv.toBlob((blob) => {
                 if (!blob) { showToast("Gagal membuat poster. Coba lagi ya."); return; }
                 posterBlob = blob;
+                if (posterFotoGagal > 0) showToast("Poster jadi, tapi " + posterFotoGagal + " foto tidak bisa dimuat.");
                 const prev = document.getElementById('poster-preview');
                 if (prev.dataset.url) URL.revokeObjectURL(prev.dataset.url);
                 const url = URL.createObjectURL(blob);
@@ -12264,6 +12286,108 @@
             });
         })();
     </script>
+
+    <!-- =============================================================
+         KIRIM SARAN & MASUKAN — SKRIP MANDIRI
+         Skrip besar di atas berisi ratusan fungsi. Kalau ada satu saja
+         kesalahan di tengahnya, semua definisi SETELAH titik itu tidak
+         pernah terpasang, dan tombol yang memanggilnya jadi mati total
+         walau tombol lain (yang definisinya di atas) tetap jalan.
+         Blok ini berdiri sendiri: punya koneksi Firebase sendiri, dan
+         dijalankan paling akhir sehingga selalu menang.
+         ============================================================= -->
+    <script type="module">
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const konfigSaran = {
+            apiKey: "AIzaSyAc4ZnBU6xAil7Un4Y53Jxncj_B6eURHBo",
+            authDomain: "projekgo-app.firebaseapp.com",
+            projectId: "projekgo-app",
+            storageBucket: "projekgo-app.firebasestorage.app",
+            messagingSenderId: "910691523179",
+            appId: "1:910691523179:web:2c78d27de6a02cec952f2e"
+        };
+        // Pakai aplikasi Firebase yang sudah ada; buat baru hanya kalau belum ada.
+        const appSaran = getApps().length ? getApp() : initializeApp(konfigSaran);
+        const dbSaran = getFirestore(appSaran);
+        const authSaran = getAuth(appSaran);
+
+        const pesan = (teks) => {
+            if (window.showToast) window.showToast(teks); else alert(teks);
+        };
+
+        let sedangKirim = false;
+        window.submitSaran = async () => {
+            if (sedangKirim) return;
+            const tombol = document.getElementById('btn-kirim-saran');
+            const kotakIsi = document.getElementById('saran-text');
+            const kotakNama = document.getElementById('saran-nama');
+            if (!tombol || !kotakIsi) { alert("Form masukan belum siap. Tutup dan buka lagi ya."); return; }
+
+            const isi = kotakIsi.value.trim().slice(0, 500);
+            const nama = (kotakNama ? kotakNama.value : '').trim().slice(0, 40);
+            if (isi.length < 10) { pesan("Tulis masukannya minimal 10 huruf ya."); return; }
+
+            // Rem anti-spam: maksimal 3 masukan per 24 jam dari HP ini
+            const batas = Date.now() - 24 * 60 * 60 * 1000;
+            let jejak = [];
+            try { jejak = (JSON.parse(localStorage.getItem('saran_log')) || []).filter(w => w > batas); } catch (e) { jejak = []; }
+            if (jejak.length >= 3) { pesan("Masukanmu sudah kami terima hari ini. Coba lagi besok ya."); return; }
+
+            sedangKirim = true;
+            pesan("Mengirim masukan...");
+            tombol.disabled = true;
+            tombol.innerText = 'Mengirim...';
+
+            try {
+                // Rules mewajibkan uid dokumen sama dengan uid sesi. Kalau sesi belum
+                // ada (mis. skrip utama gagal login), masuk anonim dari sini.
+                let pengguna = authSaran.currentUser;
+                if (!pengguna) pengguna = (await signInAnonymously(authSaran)).user;
+
+                const kirim = addDoc(collection(dbSaran, "saran_masukan"), {
+                    jenis: "saran",
+                    user: nama || "Pelanggan",
+                    text: isi,
+                    status: "baru",
+                    timestamp: Date.now(),
+                    uid: pengguna.uid
+                });
+                kirim.catch((err) => {
+                    console.error("Saran gagal terkirim:", err);
+                    pesan(err && err.code === 'permission-denied'
+                        ? "Masukan ditolak server. Beritahu admin ya 🙏"
+                        : "Masukan belum terkirim. Coba lagi nanti.");
+                });
+                // Penyimpanan offline Firestore membuat janji addDoc baru selesai setelah
+                // server menjawab. Jangan menunggu selamanya: 4 detik cukup.
+                const hasil = await Promise.race([
+                    kirim.then(() => 'ok'),
+                    new Promise(r => setTimeout(() => r('lambat'), 4000))
+                ]);
+                jejak.push(Date.now());
+                localStorage.setItem('saran_log', JSON.stringify(jejak));
+                pesan(hasil === 'ok'
+                    ? "Terima kasih! Masukanmu sudah kami terima ❤️"
+                    : "Masukanmu tersimpan & akan terkirim saat sinyal stabil 📶");
+                if (window.closeSaranModal) window.closeSaranModal();
+                else document.getElementById('saran-modal').style.display = 'none';
+            } catch (error) {
+                console.error("submitSaran gagal:", error);
+                pesan("Gagal mengirim masukan: " + ((error && (error.code || error.message)) || 'penyebab tidak diketahui'));
+            } finally {
+                sedangKirim = false;
+                tombol.disabled = false;
+                tombol.innerText = 'Kirim Masukan';
+            }
+        };
+
+        document.getElementById('btn-kirim-saran')?.addEventListener('click', () => window.submitSaran());
+        console.log('Form saran v4 siap.');
+    </script>
+
 </body>
 
 </html>
