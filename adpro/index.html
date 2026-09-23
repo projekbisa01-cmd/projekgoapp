@@ -1110,6 +1110,7 @@
         let adminAllProducts = []; 
         let adminAllVendors = [];
         let adminAllReviews = [];
+        let adminAllSaran = [];   // dari koleksi "saran_masukan" (hanya admin yang boleh baca)
         let adminAllKategori = []; 
         let currentVendorView = null; 
         let deleteTarget = null; 
@@ -3840,17 +3841,34 @@
             }
             window.renderReviewVendors();
             window.renderReviewProjekgo();
-            window.renderSaranMasukan();
+            await window.fetchSaranMasukan();
         }
 
-        // Penanda dokumen "saran & masukan" di dalam koleksi reviews yang sama
+        // Penanda saran lama yang sempat tersimpan di koleksi reviews
         window.adalahSaran = (r) => r && (r.jenis === 'saran' || r.order_id === 'APP_SARAN');
+
+        // Saran & masukan kini tinggal di koleksi terpisah "saran_masukan" yang
+        // tertutup untuk publik. Saran lama yang terlanjur ada di "reviews" tetap
+        // ikut ditampilkan supaya tidak ada masukan pelanggan yang hilang.
+        window.fetchSaranMasukan = async () => {
+            adminAllSaran = [];
+            try {
+                const snap = await getDocs(collection(db, "saran_masukan"));
+                snap.forEach(d => adminAllSaran.push({ id: d.id, _kol: 'saran_masukan', ...d.data() }));
+            } catch (e) {
+                console.error("Gagal mengambil saran & masukan:", e);
+            }
+            adminAllReviews.filter(window.adalahSaran)
+                .forEach(r => adminAllSaran.push({ ...r, _kol: 'reviews' }));
+            window.renderSaranMasukan();
+        };
 
         window.renderSaranMasukan = () => {
             const container = document.getElementById('saran-container');
             if (!container) return;
 
-            const daftar = adminAllReviews.filter(window.adalahSaran)
+            const daftar = adminAllSaran
+                .slice()
                 .sort((a, b) => (Number(b.timestamp) || 0) - (Number(a.timestamp) || 0));
             const belumDibaca = daftar.filter(r => r.status !== 'dibaca').length;
 
@@ -3882,27 +3900,32 @@
                         </div>
                         <div class="review-comment" style="white-space:pre-wrap;">${esc(r.text || '(kosong)')}</div>
                         <div style="display:flex; gap:8px; margin-top:10px;">
-                            ${baru ? `<button class="btn-status" style="background:#dcfce7; color:#166534;" onclick="window.tandaiSaranDibaca('${esc(r.id)}')"><i class="ph ph-check"></i> Tandai dibaca</button>` : ''}
-                            <button class="btn-status" style="background:#fee2e2; color:#991b1b;" onclick="window.hapusSaran('${esc(r.id)}')"><i class="ph ph-trash"></i> Hapus</button>
+                            ${baru ? `<button class="btn-status" style="background:#dcfce7; color:#166534;" onclick="window.tandaiSaranDibaca('${esc(r.id)}', '${esc(r._kol || 'saran_masukan')}')"><i class="ph ph-check"></i> Tandai dibaca</button>` : ''}
+                            <button class="btn-status" style="background:#fee2e2; color:#991b1b;" onclick="window.hapusSaran('${esc(r.id)}', '${esc(r._kol || 'saran_masukan')}')"><i class="ph ph-trash"></i> Hapus</button>
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
-        window.tandaiSaranDibaca = async (id) => {
+        // Koleksi hanya boleh salah satu dari dua ini, supaya nama koleksi tidak bisa
+        // disisipi dari luar lewat argumen.
+        const kolSaran = (k) => (k === 'reviews' ? 'reviews' : 'saran_masukan');
+
+        window.tandaiSaranDibaca = async (id, kol) => {
             try {
-                await updateDoc(doc(db, "reviews", id), { status: "dibaca" });
-                const item = adminAllReviews.find(r => r.id === id);
+                await updateDoc(doc(db, kolSaran(kol), id), { status: "dibaca" });
+                const item = adminAllSaran.find(r => r.id === id);
                 if (item) item.status = "dibaca";
                 window.renderSaranMasukan();
             } catch (e) { alert("Gagal menandai masukan: " + e.message); }
         }
 
-        window.hapusSaran = async (id) => {
+        window.hapusSaran = async (id, kol) => {
             if (!confirm("Hapus masukan ini secara permanen?")) return;
             try {
-                await deleteDoc(doc(db, "reviews", id));
+                await deleteDoc(doc(db, kolSaran(kol), id));
+                adminAllSaran = adminAllSaran.filter(r => r.id !== id);
                 adminAllReviews = adminAllReviews.filter(r => r.id !== id);
                 window.renderSaranMasukan();
             } catch (e) { alert("Gagal menghapus masukan: " + e.message); }
