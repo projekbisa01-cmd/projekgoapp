@@ -2978,7 +2978,7 @@
     </div>
 
     <!-- MODAL SARAN DAN MASUKAN (masuk ke ADPRO, tab "Saran & Masukan") -->
-    <div id="saran-modal" onclick="if(event.target===this) closeSaranModal()" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:99999; align-items:center; justify-content:center; padding:20px;">
+    <div id="saran-modal" onclick="if(event.target===this) closeSaranModal()" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:100002; align-items:center; justify-content:center; padding:20px;">
         <div class="modal-content" style="background:white; width:100%; max-width:340px; padding:28px 22px; border-radius:20px; box-shadow:0 10px 40px rgba(0,0,0,0.2); text-align:center;">
             <div style="width:60px; height:60px; background:#FFF0E5; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 14px auto; color:#FF6600; font-size:28px;"><i class="ph-fill ph-lightbulb"></i></div>
             <h3 style="margin:0 0 6px 0; color:var(--dark); font-weight:800; font-size:17px;">Saran dan Masukan</h3>
@@ -2987,8 +2987,13 @@
             <textarea id="saran-text" class="form-input" rows="4" maxlength="500" placeholder="Tulis saran atau masukanmu di sini..." style="resize:none; background:#f9f9f9;"></textarea>
             <div id="saran-counter" style="font-size:11px; color:#999; text-align:right; margin-top:4px;">0/500</div>
             <div style="display:flex; flex-direction:column; gap:10px; margin-top:14px;">
-                <button id="btn-kirim-saran" onclick="submitSaran()" style="width:100%; background:var(--primary); color:white; border:none; padding:14px; border-radius:14px; font-weight:800; font-size:14px; box-shadow:0 4px 15px rgba(255,102,0,0.3);">Kirim Masukan</button>
-                <button onclick="openAdminModal(); closeSaranModal();" style="width:100%; background:#f0f0f0; color:#444; border:none; padding:12px; border-radius:14px; font-weight:700; font-size:13px;">Chat Admin Lewat WhatsApp</button>
+                <button id="btn-kirim-saran" type="button" style="width:100%; background:var(--primary); color:white; border:none; padding:14px; border-radius:14px; font-weight:800; font-size:14px; box-shadow:0 4px 15px rgba(255,102,0,0.3); cursor:pointer;">Kirim Masukan</button>
+                <div style="display:flex; align-items:center; gap:10px; margin:2px 0;">
+                    <span style="flex:1; height:1px; background:#EDEDF0;"></span>
+                    <span style="font-size:11.5px; font-weight:800; color:#A0A0A6;">atau</span>
+                    <span style="flex:1; height:1px; background:#EDEDF0;"></span>
+                </div>
+                <button type="button" onclick="openAdminModal(); closeSaranModal();" style="width:100%; background:#f0f0f0; color:#444; border:none; padding:12px; border-radius:14px; font-weight:700; font-size:13px; cursor:pointer;">Chat Admin Lewat WhatsApp</button>
                 <button onclick="closeSaranModal()" style="width:100%; background:transparent; color:#999; border:none; padding:6px; font-weight:700; font-size:13px;">Tutup</button>
             </div>
         </div>
@@ -4964,7 +4969,7 @@
             tombol.disabled = true;
             tombol.innerText = 'Mengirim...';
             try {
-                await addDoc(collection(db, "reviews"), {
+                const kirim = addDoc(collection(db, "reviews"), {
                     jenis: "saran",                 // penanda utama untuk tab "Saran & Masukan" di ADPRO
                     order_id: "APP_SARAN",
                     vendor_name: "Saran & Masukan", // bukan nama warung, jadi tidak muncul di ulasan mitra
@@ -4975,9 +4980,20 @@
                     timestamp: Date.now(),
                     uid: currentUserUid || "anonim"
                 });
+                // Aplikasi memakai penyimpanan offline Firestore. Kalau sinyal lemah, janji
+                // addDoc() baru selesai setelah server menjawab, sehingga tombol bisa
+                // menggantung tanpa respons. Data tetap tersimpan lokal dan dikirim otomatis,
+                // jadi cukup tunggu 4 detik lalu beri jawaban ke pengguna.
+                kirim.catch((err) => { console.error("Saran gagal terkirim ke server:", err); });
+                const hasil = await Promise.race([
+                    kirim.then(() => 'ok'),
+                    new Promise(r => setTimeout(() => r('lambat'), 4000))
+                ]);
                 jejak.push(Date.now());
                 localStorage.setItem('saran_log', JSON.stringify(jejak));
-                showToast("Terima kasih! Masukanmu sudah kami terima ❤️");
+                showToast(hasil === 'ok'
+                    ? "Terima kasih! Masukanmu sudah kami terima ❤️"
+                    : "Masukanmu tersimpan & akan terkirim saat sinyal stabil 📶");
                 closeSaranModal();
             } catch (error) {
                 console.error(error);
@@ -4991,6 +5007,9 @@
         document.getElementById('saran-text')?.addEventListener('input', (e) => {
             document.getElementById('saran-counter').innerText = e.target.value.length + '/500';
         });
+        // Tombol kirim dipasang lewat JS (bukan onclick di HTML) supaya tetap jalan
+        // walau ada perbedaan urutan pemuatan skrip.
+        document.getElementById('btn-kirim-saran')?.addEventListener('click', () => window.submitSaran());
         // -------------------------------------------------------------------------
 
         window.submitAppReview = async () => {
