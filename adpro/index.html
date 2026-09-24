@@ -240,6 +240,85 @@
             .modal-box { border-radius: 24px; align-self: center; }
             .modal-overlay { align-items: center; }
         }
+        /* =========================================================
+           HALAMAN KELOLA WARUNG UMKM (menu, jam buka, profil & foto)
+           Pengganti pop-up: admin mengatur warung UMKM dalam satu halaman,
+           setara dengan yang bisa dilakukan mitra di aplikasi seller.
+           Semua kelas diawali "uk-".
+           ========================================================= */
+        .uk-back { display: inline-flex; align-items: center; gap: 6px; background: none; border: none; color: var(--gray); font-weight: 700; font-size: 14px; cursor: pointer; padding: 8px 0; margin-bottom: 8px; font-family: inherit; min-height: 44px; }
+        .uk-head { display: flex; align-items: center; gap: 14px; background: #fff; border-radius: 18px; padding: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); border: 1px solid #f0f0f0; }
+        .uk-head-foto { width: 56px; height: 56px; border-radius: 14px; background: #fff7ed; flex-shrink: 0; display: grid; place-items: center; color: var(--primary); font-size: 26px; overflow: hidden; }
+        .uk-head-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .uk-head-info { flex: 1; min-width: 0; }
+        .uk-nama { font-size: 18px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .uk-sub { font-size: 12px; color: var(--gray); margin-top: 2px; overflow-wrap: anywhere; }
+        .uk-status { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; flex-shrink: 0; }
+        .uk-switch { position: relative; width: 50px; height: 28px; display: inline-block; flex-shrink: 0; }
+        .uk-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+        .uk-slider { position: absolute; inset: 0; background: #cbd5e1; border-radius: 99px; transition: 0.2s; cursor: pointer; }
+        .uk-slider::before { content: ''; position: absolute; width: 22px; height: 22px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        .uk-switch input:checked + .uk-slider { background: var(--success); }
+        .uk-switch input:checked + .uk-slider::before { transform: translateX(22px); }
+        .uk-switch input:focus-visible + .uk-slider { outline: 2px solid var(--primary); outline-offset: 2px; }
+        .uk-switch input:disabled + .uk-slider { opacity: 0.5; cursor: default; }
+        .uk-switch.kecil { width: 40px; height: 22px; }
+        .uk-switch.kecil .uk-slider::before { width: 16px; height: 16px; }
+        .uk-switch.kecil input:checked + .uk-slider::before { transform: translateX(18px); }
+        .uk-tabs { display: flex; gap: 6px; background: #eef2f7; padding: 5px; border-radius: 14px; margin: 16px 0; }
+        .uk-tab { flex: 1; border: 0; background: transparent; padding: 11px 6px; min-height: 44px; border-radius: 10px; font-weight: 800; font-size: 13px; color: var(--gray); cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .uk-tab.active { background: #fff; color: var(--primary); box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+        .uk-card { background: #fff; border-radius: 16px; padding: 16px; border: 1px solid #f0f0f0; margin-bottom: 14px; }
+        .uk-card-judul { font-size: 16px; font-weight: 800; margin-bottom: 12px; }
+        .uk-toolbar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+        .uk-btn { border: 0; border-radius: 12px; padding: 12px 16px; min-height: 44px; font-weight: 800; font-size: 13px; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+        .uk-btn.primer { background: var(--primary); color: #fff; }
+        .uk-btn.sekunder { background: #eef2f7; color: #334155; }
+        .uk-btn.bahaya { background: #fef2f2; color: #b91c1c; }
+        .uk-btn.garis { background: #fff; border: 1.5px dashed #cbd5e1; color: #334155; }
+        .uk-btn:disabled { opacity: 0.6; cursor: default; }
+        .uk-pills { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 6px; scrollbar-width: none; }
+        .uk-pill { white-space: nowrap; border: 1.5px solid #e2e8f0; background: #fff; border-radius: 99px; padding: 8px 14px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; color: #334155; }
+        .uk-pill.active { background: var(--dark); color: #fff; border-color: var(--dark); }
+        .uk-etalase { display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; letter-spacing: 0.04em; color: var(--gray); margin: 16px 2px 8px; }
+        .uk-etalase span:first-child { color: var(--dark); font-size: 14px; letter-spacing: 0; overflow-wrap: anywhere; }
+        .uk-menu { display: flex; gap: 12px; align-items: center; background: #fff; border: 1px solid #f0f0f0; border-radius: 14px; padding: 12px; margin-bottom: 8px; }
+        .uk-menu.habis { background: #fafafa; }
+        .uk-thumb { width: 52px; height: 52px; border-radius: 12px; object-fit: cover; flex-shrink: 0; background: #fff7ed; display: grid; place-items: center; color: #fdba74; font-size: 22px; }
+        .uk-menu-info { flex: 1; min-width: 0; }
+        .uk-menu-nama { font-weight: 800; font-size: 14px; overflow-wrap: anywhere; }
+        .uk-menu.habis .uk-menu-nama { color: #94a3b8; text-decoration: line-through; }
+        .uk-menu-harga { font-size: 13px; font-weight: 700; color: #c2410c; margin-top: 2px; }
+        .uk-menu-meta { font-size: 11px; color: var(--gray); margin-top: 2px; }
+        .uk-menu-aksi { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+        .uk-stok { display: flex; flex-direction: column; align-items: center; font-size: 10px; font-weight: 800; gap: 3px; cursor: pointer; }
+        .uk-ikon { width: 40px; height: 40px; border: 0; border-radius: 10px; background: #f1f5f9; cursor: pointer; display: grid; place-items: center; font-size: 18px; flex-shrink: 0; }
+        .uk-field { margin-bottom: 14px; }
+        .uk-2kol { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .uk-help { font-size: 11.5px; color: var(--gray); margin-top: 5px; line-height: 1.5; }
+        .uk-foto-box { display: flex; gap: 12px; align-items: center; }
+        .uk-foto-prev { width: 86px; height: 86px; border-radius: 14px; background: #fff7ed; border: 1.5px dashed #fdba74; display: grid; place-items: center; color: #fdba74; font-size: 28px; overflow: hidden; flex-shrink: 0; }
+        .uk-foto-prev.lebar { width: 140px; height: 86px; }
+        .uk-foto-prev img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .uk-hari { display: grid; grid-template-columns: 64px 1fr 1fr auto; gap: 8px; align-items: center; padding: 10px 0; border-bottom: 1px dashed #eee; }
+        .uk-hari b { font-size: 13px; text-transform: capitalize; }
+        .uk-hari input[type="time"] { padding: 9px; font-size: 14px; }
+        .uk-hari input:disabled { background: #eef2f7; color: #94a3b8; }
+        .uk-libur { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; cursor: pointer; }
+        .uk-varian { border: 1px solid #fde68a; background: #fffbeb; border-radius: 14px; padding: 12px; margin-bottom: 10px; }
+        .uk-varian-head { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+        .uk-opsi { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
+        .uk-sticky-aksi { position: sticky; bottom: calc(var(--nav-height) + 8px); display: flex; gap: 8px; background: rgba(248,249,251,0.95); padding: 10px 0; z-index: 5; }
+        .uk-hiasan { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+        .uk-hiasan-item { position: relative; width: 72px; height: 72px; border-radius: 12px; overflow: hidden; border: 1px solid #eee; }
+        .uk-hiasan-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .uk-hiasan-item button { position: absolute; top: 3px; right: 3px; width: 26px; height: 26px; border: 0; border-radius: 50%; background: rgba(0,0,0,0.7); color: #fff; font-size: 16px; line-height: 1; cursor: pointer; }
+        .uk-kosong { text-align: center; color: #94a3b8; padding: 36px 10px; font-size: 13px; line-height: 1.6; }
+        .uk-toast { position: fixed; left: 50%; bottom: calc(var(--nav-height) + 20px); transform: translate(-50%, 20px); background: #1A1A1A; color: #fff; padding: 12px 18px; border-radius: 12px; font-size: 13px; font-weight: 700; opacity: 0; transition: 0.25s; z-index: 100000; pointer-events: none; max-width: 90%; text-align: center; }
+        .uk-toast.show { opacity: 1; transform: translate(-50%, 0); }
+        .uk-toast.gagal { background: #b91c1c; }
+        @media (max-width: 380px) { .uk-hari { grid-template-columns: 56px 1fr 1fr; } .uk-hari .uk-libur { grid-column: 2 / 4; } }
+
     </style>
 </head>
 <body>
@@ -608,6 +687,152 @@
             <button class="btn-add-float" onclick="window.openAddWarungAdminModal()"><i class="ph-bold ph-plus"></i></button>
         </div>
 
+        <!-- HALAMAN KELOLA WARUNG UMKM (menu, jam buka, profil & foto) — bukan pop-up -->
+        <div id="page-umkm-kelola" class="page-content">
+            <button type="button" class="uk-back" onclick="window.tutupKelolaUmkm()"><i class="ph-bold ph-arrow-left"></i> Daftar UMKM</button>
+            <div class="uk-head">
+                <div class="uk-head-foto" id="uk-head-foto"><i class="ph-fill ph-storefront"></i></div>
+                <div class="uk-head-info">
+                    <div class="uk-nama" id="uk-head-nama">-</div>
+                    <div class="uk-sub" id="uk-head-sub"></div>
+                </div>
+                <label class="uk-status">
+                    <span class="uk-switch"><input type="checkbox" id="uk-status" aria-label="Status warung buka" onchange="window.ukSimpanStatus(this)"><span class="uk-slider"></span></span>
+                    <span id="uk-status-teks">BUKA</span>
+                </label>
+            </div>
+
+            <div class="uk-tabs">
+                <button type="button" class="uk-tab" data-tab="menu" onclick="window.ukPindahTab('menu')"><i class="ph-bold ph-bowl-food"></i> Menu</button>
+                <button type="button" class="uk-tab" data-tab="jam" onclick="window.ukPindahTab('jam')"><i class="ph-bold ph-clock"></i> Jam Buka</button>
+                <button type="button" class="uk-tab" data-tab="profil" onclick="window.ukPindahTab('profil')"><i class="ph-bold ph-storefront"></i> Profil &amp; Foto</button>
+            </div>
+
+            <!-- TAB MENU -->
+            <div id="uk-tab-menu" class="uk-panel">
+                <div id="uk-menu-daftar">
+                    <div class="uk-toolbar">
+                        <button type="button" class="uk-btn primer" style="flex: 1;" onclick="window.ukBukaFormMenu()"><i class="ph-bold ph-plus"></i> Tambah Menu</button>
+                        <button type="button" class="uk-btn garis" onclick="window.ukBukaUrutan()"><i class="ph-bold ph-arrows-down-up"></i> Atur Urutan</button>
+                    </div>
+                    <div style="position: relative; margin-bottom: 10px;">
+                        <i class="ph ph-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--gray); font-size: 18px;"></i>
+                        <input type="text" id="uk-cari" class="form-input" style="padding-left: 42px;" placeholder="Cari menu..." oninput="window.ukRenderMenu()">
+                    </div>
+                    <div class="uk-pills" id="uk-filter"></div>
+                    <div id="uk-menu-list"></div>
+                </div>
+
+                <div id="uk-urutan" style="display: none;"></div>
+
+                <div id="uk-menu-form" style="display: none;">
+                    <button type="button" class="uk-back" onclick="window.ukTutupFormMenu()"><i class="ph-bold ph-arrow-left"></i> Kembali ke daftar menu</button>
+                    <div class="uk-card">
+                        <div class="uk-card-judul" id="uk-form-judul">Tambah Menu</div>
+                        <input type="hidden" id="uk-menu-id">
+                        <div class="uk-field">
+                            <label class="form-label" for="uk-menu-nama">Nama Menu *</label>
+                            <input type="text" id="uk-menu-nama" class="form-input" maxlength="80" placeholder="Contoh: Nasi Goreng Telur">
+                        </div>
+                        <div class="uk-2kol">
+                            <div class="uk-field">
+                                <label class="form-label" for="uk-menu-harga">Harga *</label>
+                                <input type="text" id="uk-menu-harga" class="form-input" inputmode="numeric" placeholder="15.000" oninput="window.ukFormatRibuan(this)">
+                            </div>
+                            <div class="uk-field">
+                                <label class="form-label" for="uk-menu-harga-asli">Harga Coret</label>
+                                <input type="text" id="uk-menu-harga-asli" class="form-input" inputmode="numeric" placeholder="Opsional" oninput="window.ukFormatRibuan(this)">
+                            </div>
+                        </div>
+                        <div class="uk-field">
+                            <label class="form-label" for="uk-menu-etalase">Etalase / Kelompok *</label>
+                            <input type="text" id="uk-menu-etalase" class="form-input" list="uk-etalase-list" maxlength="40" placeholder="Contoh: Makanan, Minuman, Coffee">
+                            <datalist id="uk-etalase-list"></datalist>
+                            <div class="uk-help">Jadi judul kelompok di buku menu, misalnya "# Makanan". Pilih yang sudah ada atau ketik yang baru.</div>
+                        </div>
+                        <div class="uk-field">
+                            <label class="form-label" for="uk-menu-desk">Deskripsi</label>
+                            <textarea id="uk-menu-desk" rows="2" maxlength="300" placeholder="Opsional. Muncul di pop-up saat pelanggan mengetuk menu."></textarea>
+                        </div>
+                        <div class="uk-field">
+                            <label class="form-label" for="uk-menu-foto">Foto Menu (opsional)</label>
+                            <div class="uk-foto-box">
+                                <div class="uk-foto-prev" id="uk-menu-foto-prev"><i class="ph ph-image"></i></div>
+                                <div style="flex: 1; min-width: 0;">
+                                    <input type="file" id="uk-menu-foto" class="form-input" accept="image/*" onchange="window.ukPilihFotoMenu(this)">
+                                    <button type="button" class="uk-btn bahaya" id="uk-menu-foto-hapus" style="margin-top: 8px; padding: 8px 12px; display: none;" onclick="window.ukHapusFotoMenu()">Hapus foto</button>
+                                </div>
+                            </div>
+                            <div class="uk-help">Warung tanpa foto menu tetap tampil rapi sebagai buku menu tulisan.</div>
+                        </div>
+                        <div class="uk-field">
+                            <label class="form-label">Varian / Pilihan</label>
+                            <div id="uk-varian-wadah"></div>
+                            <button type="button" class="uk-btn garis" style="width: 100%;" onclick="window.ukTambahGrupVarian()"><i class="ph-bold ph-plus"></i> Tambah Grup Varian</button>
+                            <div class="uk-help">Contoh: Level Pedas, Ukuran Porsi, Topping. Menu bervarian akan membuka pilihan varian di aplikasi pelanggan.</div>
+                        </div>
+                        <label class="uk-libur" style="font-size: 14px;"><input type="checkbox" id="uk-menu-tersedia" checked> Menu tersedia (tidak habis)</label>
+                    </div>
+                    <div class="uk-sticky-aksi">
+                        <button type="button" class="uk-btn bahaya" id="uk-menu-hapus" style="display: none;" aria-label="Hapus menu" onclick="window.ukHapusMenu()"><i class="ph-bold ph-trash"></i></button>
+                        <button type="button" class="uk-btn sekunder" style="flex: 1;" onclick="window.ukTutupFormMenu()">Batal</button>
+                        <button type="button" class="uk-btn primer" style="flex: 2;" id="uk-menu-simpan" onclick="window.ukSimpanMenu()">Simpan Menu</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB JAM BUKA -->
+            <div id="uk-tab-jam" class="uk-panel" style="display: none;">
+                <div class="uk-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                        <div class="uk-card-judul" style="margin: 0;">Jam Operasional</div>
+                        <button type="button" class="uk-btn garis" style="padding: 8px 12px;" onclick="window.ukSalinSenin()">Salin Senin ke semua</button>
+                    </div>
+                    <div class="uk-help" style="margin-bottom: 4px;">Aplikasi pelanggan otomatis menampilkan BUKA / TUTUP sesuai jam ini (WIB).</div>
+                    <div id="uk-jam-list"></div>
+                </div>
+                <div class="uk-sticky-aksi">
+                    <button type="button" class="uk-btn primer" style="flex: 1;" id="uk-jam-simpan" onclick="window.ukSimpanJam()">Simpan Jam Operasional</button>
+                </div>
+            </div>
+
+            <!-- TAB PROFIL & FOTO -->
+            <div id="uk-tab-profil" class="uk-panel" style="display: none;">
+                <div class="uk-card">
+                    <div class="uk-card-judul">Profil Warung</div>
+                    <div class="uk-field"><label class="form-label" for="uk-prof-nama">Nama Warung *</label><input type="text" id="uk-prof-nama" class="form-input" maxlength="60"></div>
+                    <div class="uk-field"><label class="form-label" for="uk-prof-alamat">Alamat / Lokasi</label><input type="text" id="uk-prof-alamat" class="form-input" maxlength="120" placeholder="Contoh: Jl. Kartini no. 7, Gombong"></div>
+                    <div class="uk-field"><label class="form-label" for="uk-prof-kategori">Kategori Utama</label><select id="uk-prof-kategori" class="form-input"></select></div>
+                    <div class="uk-2kol">
+                        <div class="uk-field"><label class="form-label" for="uk-prof-lat">Latitude</label><input type="number" step="any" id="uk-prof-lat" class="form-input" placeholder="-7.xxx"></div>
+                        <div class="uk-field"><label class="form-label" for="uk-prof-lng">Longitude</label><input type="number" step="any" id="uk-prof-lng" class="form-input" placeholder="109.xxx"></div>
+                    </div>
+                    <div class="uk-field"><label class="form-label" for="uk-prof-catatan">Catatan Toko</label><textarea id="uk-prof-catatan" rows="2" maxlength="200" placeholder="Opsional. Contoh: Pesanan di atas 10 porsi harap H-1."></textarea></div>
+                </div>
+                <div class="uk-card">
+                    <div class="uk-card-judul">Foto</div>
+                    <div class="uk-field">
+                        <label class="form-label" for="uk-prof-foto">Foto Profil / Logo</label>
+                        <div class="uk-foto-box"><div class="uk-foto-prev" id="uk-prof-foto-prev"><i class="ph ph-storefront"></i></div><input type="file" id="uk-prof-foto" class="form-input" accept="image/*" onchange="window.ukPilihFotoProfil(this, 'logo')"></div>
+                    </div>
+                    <div class="uk-field">
+                        <label class="form-label" for="uk-prof-sampul">Foto Sampul Buku Menu</label>
+                        <div class="uk-foto-box"><div class="uk-foto-prev lebar" id="uk-prof-sampul-prev"><i class="ph ph-image"></i></div><input type="file" id="uk-prof-sampul" class="form-input" accept="image/*" onchange="window.ukPilihFotoProfil(this, 'sampul')"></div>
+                        <div class="uk-help">Tampil di bagian atas buku menu (diberi warna sepia). Kalau kosong, dipakai foto profil.</div>
+                    </div>
+                    <div class="uk-field" style="margin-bottom: 0;">
+                        <label class="form-label" for="uk-hiasan-input">Foto Hiasan Buku Menu (maks. 4)</label>
+                        <div class="uk-hiasan" id="uk-hiasan"></div>
+                        <input type="file" id="uk-hiasan-input" class="form-input" accept="image/*" multiple onchange="window.ukPilihHiasan(this)">
+                        <div class="uk-help">Foto suasana warung atau makanan. Hanya jadi hiasan di pinggir buku menu, bukan foto per menu.</div>
+                    </div>
+                </div>
+                <div class="uk-sticky-aksi">
+                    <button type="button" class="uk-btn primer" style="flex: 1;" id="uk-prof-simpan" onclick="window.ukSimpanProfil()">Simpan Profil &amp; Foto</button>
+                </div>
+            </div>
+        </div>
+
         <!-- HALAMAN KELOLA KATEGORI UTAMA -->
         <div id="page-kategori" class="page-content">
             <div class="page-header">
@@ -886,6 +1111,12 @@
                 <label class="form-label">Foto Profil Warung</label>
                 <input type="file" id="wa-photo" class="form-input" accept="image/*">
                 <div style="font-size: 11px; color: var(--gray); margin-top: 4px;">*Pilih foto untuk profil warung UMKM (Opsional).</div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Foto Hiasan Buku Menu (maks. 4)</label>
+                <div id="wa-hiasan-lama" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;"></div>
+                <input type="file" id="wa-hiasan" class="form-input" accept="image/jpeg,image/png,image/webp" multiple>
+                <div style="font-size: 11px; color: var(--gray); margin-top: 4px;">*Foto suasana warung atau makanan. Hanya jadi hiasan di pinggir buku menu, bukan foto per menu. Opsional, maks. 3 MB per foto.</div>
             </div>
             <div class="form-group">
                 <label class="form-label">ID Unik Warung (Sistem)</label>
@@ -2520,7 +2751,9 @@
             }
 
             let html = '';
-            umkmList.forEach(v => {
+            // Tombol memakai nomor urut, bukan ID/nama mentah di dalam onclick
+            window.__umkmIds = umkmList.map(v => v.id);
+            umkmList.forEach((v, urut) => {
                 const name = v.nama_warung || 'Tanpa Nama';
                 const id = v.id;
                 const status = v.status || 'TUTUP';
@@ -2539,7 +2772,7 @@
                         if (todayJadwal.libur) {
                             jadwalHtml = `<div style="font-size:12px; color:var(--danger); font-weight:600;">Hari ini: Libur</div>`;
                         } else {
-                            jadwalHtml = `<div style="font-size:12px; color:var(--dark);"><span style="color:var(--gray);">Hari ini:</span> <b>${todayJadwal.buka} - ${todayJadwal.tutup}</b></div>`;
+                            jadwalHtml = `<div style="font-size:12px; color:var(--dark);"><span style="color:var(--gray);">Hari ini:</span> <b>${esc(todayJadwal.buka)} - ${esc(todayJadwal.tutup)}</b></div>`;
                         }
                     }
                 }
@@ -2550,27 +2783,27 @@
                 html += `
                     <tr style="background: white; border-bottom: 1px solid #f0f0f0;">
                         <td data-label="Info UMKM">
-                            <div style="font-weight:700; color:var(--dark);">${name}</div>
-                            <div style="font-size:11px; color:var(--gray); margin-top:4px;">ID: ${id}</div>
-                            <span style="display:inline-block; margin-top:6px; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:700; background:${statusBg}; color:${statusColor};">${status}</span>
+                            <div style="font-weight:700; color:var(--dark);">${esc(name)}</div>
+                            <div style="font-size:11px; color:var(--gray); margin-top:4px;">ID: ${esc(id)}</div>
+                            <span style="display:inline-block; margin-top:6px; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:700; background:${statusBg}; color:${statusColor};">${esc(status)}</span>
                         </td>
                         <td data-label="Jam Operasional">
                             ${jadwalHtml}
-                            <button onclick="window.showJadwalLengkap('${id}')" style="background:none; border:none; color:var(--info); font-size:11px; font-weight:700; cursor:pointer; padding:0; margin-top:4px; text-decoration:underline;">Lihat Full Jadwal</button>
+                            <button onclick="window.bukaKelolaUmkm(window.__umkmIds[${urut}], 'jam')" style="background:none; border:none; color:var(--info); font-size:11px; font-weight:700; cursor:pointer; padding:0; margin-top:4px; text-decoration:underline;">Atur Jam Buka</button>
                         </td>
                         <td data-label="Lokasi & Kategori">
-                            <div style="font-size:13px; margin-bottom:4px;"><i class="ph-fill ph-map-pin" style="color:var(--danger);"></i> ${v.alamat_warung || '-'}</div>
-                            <div style="font-size:11px; font-weight:600; color:var(--primary);"><i class="ph-fill ph-tag"></i> ${catStr}</div>
+                            <div style="font-size:13px; margin-bottom:4px;"><i class="ph-fill ph-map-pin" style="color:var(--danger);"></i> ${esc(v.alamat_warung || '-')}</div>
+                            <div style="font-size:11px; font-weight:600; color:var(--primary);"><i class="ph-fill ph-tag"></i> ${esc(catStr)}</div>
                         </td>
                         <td data-label="Aksi">
                             <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                                <button class="action-btn btn-view" title="Tambah Menu UMKM" onclick="window.openAddProductUmkm('${id}', '${safeName}')">
+                                <button class="action-btn btn-view" title="Kelola Menu" aria-label="Kelola menu" onclick="window.bukaKelolaUmkm(window.__umkmIds[${urut}], 'menu')">
                                     <i class="ph-bold ph-bowl-food"></i>
                                 </button>
-                                <button class="action-btn btn-edit-info" title="Edit Info UMKM" onclick="window.openEditWarungAdminModal('${id}')">
+                                <button class="action-btn btn-edit-info" title="Profil, Jam & Foto" aria-label="Kelola profil" onclick="window.bukaKelolaUmkm(window.__umkmIds[${urut}], 'profil')">
                                     <i class="ph-bold ph-pencil-simple"></i>
                                 </button>
-                                <button class="action-btn btn-delete" onclick="window.askDelete('vendors', '${id}')" title="Hapus UMKM">
+                                <button class="action-btn btn-delete" onclick="window.askDelete('vendors', window.__umkmIds[${urut}])" title="Hapus UMKM">
                                     <i class="ph-bold ph-trash"></i>
                                 </button>
                             </div>
@@ -2930,6 +3163,32 @@
             }
         };
 
+        // ===== FOTO HIASAN BUKU MENU UMKM (vendors.menu_hiasan) =====
+        // Daftar URL yang dipertahankan saat edit. Digambar lewat DOM (bukan innerHTML)
+        // dan hanya URL https:// yang diterima.
+        const HIASAN_MAKS = 4;
+        const HIASAN_MAKS_BYTE = 3 * 1024 * 1024;
+        const HIASAN_TIPE = ['image/jpeg', 'image/png', 'image/webp'];
+        window.__waHiasan = [];
+        const hiasanUrlAman = (u) => typeof u === 'string' && /^https:\/\/[^\s"'<>\\]+$/i.test(u);
+        window.renderHiasanLama = () => {
+            const box = document.getElementById('wa-hiasan-lama');
+            if (!box) return;
+            box.textContent = '';
+            window.__waHiasan.forEach((url, i) => {
+                const wrap = document.createElement('div');
+                wrap.style.cssText = 'position:relative; width:64px; height:64px; border-radius:10px; overflow:hidden; border:1px solid #eee;';
+                const img = document.createElement('img');
+                img.src = url; img.alt = 'Foto hiasan ' + (i + 1);
+                img.style.cssText = 'width:100%; height:100%; object-fit:cover; display:block;';
+                const del = document.createElement('button');
+                del.type = 'button'; del.title = 'Hapus foto ini'; del.textContent = '×';
+                del.style.cssText = 'position:absolute; top:2px; right:2px; width:22px; height:22px; border:0; border-radius:50%; background:rgba(0,0,0,0.65); color:#fff; font-size:15px; line-height:1; cursor:pointer;';
+                del.onclick = () => { window.__waHiasan.splice(i, 1); window.renderHiasanLama(); };
+                wrap.appendChild(img); wrap.appendChild(del); box.appendChild(wrap);
+            });
+        };
+
         window.openAddWarungAdminModal = () => {
             document.getElementById('wa-modal-title').innerText = 'Buat Warung Admin Baru';
             document.getElementById('wa-is-edit').value = 'false';
@@ -2943,6 +3202,9 @@
             document.getElementById('wa-lng').value = '';
             window.isiSelectKategori(document.getElementById('wa-category'), null, '');
             document.getElementById('wa-photo').value = ''; // Reset Foto
+            window.__waHiasan = [];
+            document.getElementById('wa-hiasan').value = '';
+            window.renderHiasanLama();
             
             // Render Jadwal Mingguan Inputs
             const container = document.getElementById('wa-jadwal-container');
@@ -2983,6 +3245,9 @@
             document.getElementById('wa-lng').value = v.longitude || '';
             window.isiSelectKategori(document.getElementById('wa-category'), null, (v.kategori_utama && v.kategori_utama.length > 0) ? v.kategori_utama[0] : '');
             document.getElementById('wa-photo').value = ''; // Reset file input karena file tidak bisa di-set otomatis via JS
+            window.__waHiasan = (Array.isArray(v.menu_hiasan) ? v.menu_hiasan : []).filter(hiasanUrlAman).slice(0, HIASAN_MAKS);
+            document.getElementById('wa-hiasan').value = '';
+            window.renderHiasanLama();
             
             // Render Jadwal Mingguan Inputs sesuai data tersimpan
             const container = document.getElementById('wa-jadwal-container');
@@ -3042,6 +3307,18 @@
                     return;
                 }
 
+                // Validasi foto hiasan sebelum menyimpan apa pun
+                const hiasanInput = document.getElementById('wa-hiasan');
+                const hiasanBaru = hiasanInput ? Array.from(hiasanInput.files || []) : [];
+                if (window.__waHiasan.length + hiasanBaru.length > HIASAN_MAKS) {
+                    alert(`Foto hiasan maksimal ${HIASAN_MAKS}. Sekarang ada ${window.__waHiasan.length} foto lama + ${hiasanBaru.length} foto baru.`);
+                    return;
+                }
+                for (const f of hiasanBaru) {
+                    if (!HIASAN_TIPE.includes(f.type)) { alert(`"${f.name}" bukan foto JPG/PNG/WEBP.`); return; }
+                    if (f.size > HIASAN_MAKS_BYTE) { alert(`"${f.name}" lebih dari 3 MB. Kecilkan dulu fotonya.`); return; }
+                }
+
                 // Kumpulkan jam operasional (jadwal_mingguan)
                 const days = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu'];
                 const jadwal_mingguan = {};
@@ -3087,6 +3364,17 @@
                 }
 
                 // Siapkan data untuk Firestore
+                // Upload foto hiasan buku menu (jika ada yang baru)
+                const hiasanUrl = [...window.__waHiasan];
+                for (let i = 0; i < hiasanBaru.length; i++) {
+                    if (btn) btn.innerText = `Mengunggah Hiasan ${i + 1}/${hiasanBaru.length}...`;
+                    const ext = hiasanBaru[i].type === 'image/png' ? 'png' : (hiasanBaru[i].type === 'image/webp' ? 'webp' : 'jpg');
+                    const hRef = ref(storage, `vendors/${vId}/profile/hiasan_${Date.now()}_${i}.${ext}`);
+                    await uploadBytes(hRef, hiasanBaru[i], { contentType: hiasanBaru[i].type });
+                    hiasanUrl.push(await getDownloadURL(hRef));
+                }
+                if (btn && hiasanBaru.length) btn.innerText = "Menyimpan Data...";
+
                 const vendorData = {
                     id: vId,
                     nama_warung: vName,
@@ -3096,6 +3384,7 @@
                     kategori_utama: vCat ? [vCat] : [], 
                     jadwal_mingguan: jadwal_mingguan,   
                     is_admin_managed: true,             
+                    menu_hiasan: hiasanUrl.slice(0, HIASAN_MAKS),
                     status: 'BUKA',
                     role: 'vendor',
                     ...(isEdit ? {} : { is_andalan: false, created_at: new Date().toISOString() })
@@ -3119,6 +3408,8 @@
 
                 if (btn) btn.innerText = originalText;
                 await window.fetchVendors(); 
+                // Warung baru langsung dibuka di halaman Kelola supaya admin bisa isi menunya
+                if (!isEdit && typeof window.bukaKelolaUmkm === 'function') window.bukaKelolaUmkm(vId, 'menu');
 
             } catch (e) {
                 console.error("Error Simpan UMKM:", e);
@@ -3253,6 +3544,780 @@
             } catch (e) {
                 alert("Gagal menyimpan menu: " + e.message);
                 if(btn) btn.innerText = originalText;
+            }
+        };
+
+        /* ==========================================================
+           HALAMAN KELOLA WARUNG UMKM
+           Admin mengatur menu, urutan, jam buka, profil & foto warung UMKM
+           langsung dari ADPRO (tanpa masuk aplikasi seller, tanpa pop-up).
+           KEAMANAN: teks dari database lewat esc()/textContent, onclick hanya
+           berisi nomor indeks, URL gambar hanya https://, foto dikompres
+           ulang jadi JPEG sebelum diunggah.
+           ========================================================== */
+        const UK_HARI = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu'];
+        const UK_MAKS_HIASAN = 4;
+        let ukVendorId = null;
+        let ukFilter = 'Semua';
+        let ukFotoMenuBlob = null, ukFotoMenuUrl = '', ukFotoMenuPreview = '';
+        let ukUrutKat = [], ukUrutMenu = {}, ukUrutBuka = null;
+        let ukLogoBlob = null, ukSampulBlob = null, ukHiasanLama = [], ukHiasanBaru = [];
+
+        const ukToast = (pesan, berhasil = true) => {
+            let el = document.getElementById('uk-toast');
+            if (!el) { el = document.createElement('div'); el.id = 'uk-toast'; el.className = 'uk-toast'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
+            el.textContent = pesan;
+            el.classList.toggle('gagal', !berhasil);
+            el.classList.add('show');
+            clearTimeout(el._t);
+            el._t = setTimeout(() => el.classList.remove('show'), 2400);
+        };
+        const ukVendor = () => adminAllVendors.find(v => v.id === ukVendorId);
+        const ukMenus = () => adminAllProducts.filter(p => p.vendor_id === ukVendorId);
+        const ukKunci = (k) => { const t = String(k == null ? '' : k).trim(); return (!t || ['__proto__', 'constructor', 'prototype'].includes(t)) ? 'Lainnya' : t; };
+        // Sama dengan aplikasi pelanggan: tipe -> kategori -> category (data UMKM lama)
+        const ukEtalase = (p) => ukKunci(p.tipe || p.kategori || String(p.category || '').split(',')[0]);
+        const ukNomor = (p) => { const n = Number(p && p.urutan); return Number.isFinite(n) ? n : 999999; };
+        const ukUrutkanMenu = (list) => [...list].sort((a, b) => (ukNomor(a) - ukNomor(b)) || String(a.nama_menu || '').localeCompare(String(b.nama_menu || ''), 'id'));
+        const ukUrutkanKat = (keys) => {
+            const v = ukVendor();
+            const ord = (v && Array.isArray(v.urutan_kategori)) ? v.urutan_kategori.filter(x => typeof x === 'string').map(x => x.trim()) : [];
+            const pos = (k) => { const i = ord.indexOf(k); return i === -1 ? 9999 : i; };
+            return [...keys].sort((a, b) => (pos(a) - pos(b)) || a.localeCompare(b, 'id'));
+        };
+        const ukGrup = () => { const g = new Map(); ukMenus().forEach(p => { const k = ukEtalase(p); if (!g.has(k)) g.set(k, []); g.get(k).push(p); }); return g; };
+        const ukRp = (n) => 'Rp ' + (parseInt(n, 10) || 0).toLocaleString('id-ID');
+        const ukAngka = (s) => parseInt(String(s || '').replace(/\D/g, ''), 10) || 0;
+        const ukUrlAman = (u) => typeof u === 'string' && /^https:\/\/[^\s"'<>\\]+$/i.test(u);
+        const ukHabis = (p) => p.is_sold_out === true || p.is_available === false;
+        const ukJamValid = (s) => /^([01]\d|2[0-3]):[0-5]\d$/.test(s);
+
+        window.ukFormatRibuan = (input) => {
+            const n = ukAngka(input.value);
+            input.value = n ? n.toLocaleString('id-ID') : '';
+        };
+
+        // Foto dibaca lalu digambar ulang ke canvas -> JPEG baru (ukuran kecil & isi file dibersihkan)
+        const ukKompres = (file, lebarMaks, kualitas = 0.82) => new Promise((resolve, reject) => {
+            if (!file || !/^image\//.test(file.type)) return reject(new Error('File harus berupa foto.'));
+            if (file.size > 15 * 1024 * 1024) return reject(new Error('Foto terlalu besar (maks. 15 MB).'));
+            const url = URL.createObjectURL(file);
+            const img = new Image();
+            img.onload = () => {
+                const s = Math.min(1, lebarMaks / img.width);
+                const c = document.createElement('canvas');
+                c.width = Math.max(1, Math.round(img.width * s));
+                c.height = Math.max(1, Math.round(img.height * s));
+                c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+                URL.revokeObjectURL(url);
+                c.toBlob(b => b ? resolve(b) : reject(new Error('Gagal memproses foto.')), 'image/jpeg', kualitas);
+            };
+            img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Foto tidak bisa dibaca.')); };
+            img.src = url;
+        });
+        const ukUnggah = async (blob, path) => {
+            const r = ref(storage, path);
+            await uploadBytes(r, blob, { contentType: 'image/jpeg' });
+            return await getDownloadURL(r);
+        };
+        // Pratinjau foto: https dari database, atau blob: dari foto yang baru dipilih
+        const ukSetPrev = (el, src, ikon = 'ph-image') => {
+            if (!el) return;
+            el.textContent = '';
+            if (src && (ukUrlAman(src) || String(src).startsWith('blob:'))) {
+                const img = document.createElement('img');
+                img.src = src; img.alt = '';
+                el.appendChild(img);
+            } else {
+                const i = document.createElement('i');
+                i.className = 'ph ' + ikon;
+                el.appendChild(i);
+            }
+        };
+
+        // ---------- BUKA / TUTUP HALAMAN ----------
+        window.bukaKelolaUmkm = (id, tab = 'menu') => {
+            const v = adminAllVendors.find(x => x.id === id);
+            if (!v) { alert('Data UMKM tidak ditemukan.'); return; }
+            ukVendorId = id;
+            ukFilter = 'Semua';
+            document.getElementById('uk-cari').value = '';
+            document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-umkm-kelola').classList.add('active');
+            ukRenderKepala();
+            ukTutupUrutanPanel();
+            window.ukTutupFormMenu(true);
+            window.ukPindahTab(tab);
+            window.scrollTo(0, 0);
+        };
+
+        window.tutupKelolaUmkm = () => {
+            ukVendorId = null;
+            document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-umkm').classList.add('active');
+            window.renderWarungAdminList();
+            window.scrollTo(0, 0);
+        };
+
+        function ukRenderKepala() {
+            const v = ukVendor();
+            if (!v) return;
+            document.getElementById('uk-head-nama').textContent = v.nama_warung || 'Tanpa Nama';
+            document.getElementById('uk-head-sub').textContent = `ID: ${v.id} · ${ukMenus().length} menu`;
+            ukSetPrev(document.getElementById('uk-head-foto'), v.shop_photo, 'ph-storefront');
+            const buka = (v.status || 'BUKA').toUpperCase() === 'BUKA';
+            document.getElementById('uk-status').checked = buka;
+            const t = document.getElementById('uk-status-teks');
+            t.textContent = buka ? 'BUKA' : 'TUTUP';
+            t.style.color = buka ? 'var(--success)' : 'var(--danger)';
+        }
+
+        window.ukSimpanStatus = async (el) => {
+            const v = ukVendor();
+            if (!v) return;
+            const status = el.checked ? 'BUKA' : 'TUTUP';
+            el.disabled = true;
+            try {
+                await updateDoc(doc(db, 'vendors', v.id), { status });
+                v.status = status;
+                ukToast(status === 'BUKA' ? 'Warung dibuka' : 'Warung ditutup');
+            } catch (e) {
+                el.checked = !el.checked;
+                ukToast('Gagal mengubah status warung', false);
+            } finally {
+                el.disabled = false;
+                ukRenderKepala();
+            }
+        };
+
+        window.ukPindahTab = (tab) => {
+            if (!['menu', 'jam', 'profil'].includes(tab)) tab = 'menu';
+            document.querySelectorAll('#page-umkm-kelola .uk-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+            ['menu', 'jam', 'profil'].forEach(t => { document.getElementById('uk-tab-' + t).style.display = t === tab ? 'block' : 'none'; });
+            if (tab === 'menu') window.ukRenderMenu();
+            if (tab === 'jam') ukIsiJam();
+            if (tab === 'profil') ukIsiProfil();
+        };
+
+        // ---------- TAB MENU: DAFTAR ----------
+        window.ukRenderMenu = () => {
+            const list = document.getElementById('uk-menu-list');
+            const pills = document.getElementById('uk-filter');
+            if (!list || !ukVendorId) return;
+            const grup = ukGrup();
+            const kats = ukUrutkanKat([...grup.keys()]);
+            if (ukFilter !== 'Semua' && !kats.includes(ukFilter)) ukFilter = 'Semua';
+            window.__ukKats = kats;
+            pills.innerHTML = `<button type="button" class="uk-pill ${ukFilter === 'Semua' ? 'active' : ''}" onclick="window.ukSetFilter(-1)">Semua (${ukMenus().length})</button>`
+                + kats.map((k, i) => `<button type="button" class="uk-pill ${ukFilter === k ? 'active' : ''}" onclick="window.ukSetFilter(${i})">${esc(k)} (${grup.get(k).length})</button>`).join('');
+
+            const q = (document.getElementById('uk-cari').value || '').trim().toLowerCase();
+            window.__ukMenuIds = [];
+            let html = '';
+            kats.forEach(k => {
+                if (!q && ukFilter !== 'Semua' && ukFilter !== k) return;
+                const items = ukUrutkanMenu(grup.get(k)).filter(p => !q || String(p.nama_menu || '').toLowerCase().includes(q));
+                if (!items.length) return;
+                html += `<div class="uk-etalase"><span># ${esc(k)}</span><span>${items.length} menu</span></div>`;
+                items.forEach(p => {
+                    const i = window.__ukMenuIds.push(p.id) - 1;
+                    const habis = ukHabis(p);
+                    const foto = ukUrlAman(p.foto_url)
+                        ? `<img class="uk-thumb" src="${esc(p.foto_url)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`
+                        : `<div class="uk-thumb"><i class="ph-fill ph-fork-knife"></i></div>`;
+                    const nVar = Array.isArray(p.varian_grup) ? p.varian_grup.length : 0;
+                    html += `
+                    <div class="uk-menu${habis ? ' habis' : ''}">
+                        ${foto}
+                        <div class="uk-menu-info">
+                            <div class="uk-menu-nama">${esc(p.nama_menu || '(tanpa nama)')}</div>
+                            <div class="uk-menu-harga">${ukRp(p.harga)}</div>
+                            ${nVar ? `<div class="uk-menu-meta">${nVar} grup varian</div>` : ''}
+                        </div>
+                        <div class="uk-menu-aksi">
+                            <label class="uk-stok">
+                                <span class="uk-switch kecil"><input type="checkbox" ${habis ? '' : 'checked'} aria-label="Stok tersedia" onchange="window.ukToggleStok(window.__ukMenuIds[${i}], this)"><span class="uk-slider"></span></span>
+                                <span style="color:${habis ? 'var(--danger)' : 'var(--success)'};">${habis ? 'Habis' : 'Ada'}</span>
+                            </label>
+                            <button type="button" class="uk-ikon" style="color:var(--info);" aria-label="Edit menu" onclick="window.ukBukaFormMenu(window.__ukMenuIds[${i}])"><i class="ph-bold ph-pencil-simple"></i></button>
+                        </div>
+                    </div>`;
+                });
+            });
+            if (!html) {
+                html = ukMenus().length
+                    ? `<div class="uk-kosong">Menu "${esc(q)}" tidak ditemukan.</div>`
+                    : `<div class="uk-kosong">Belum ada menu.<br>Tekan <b>Tambah Menu</b> untuk mulai mengisi buku menu warung ini.</div>`;
+            }
+            list.innerHTML = html;
+        };
+
+        window.ukSetFilter = (i) => {
+            const keys = window.__ukKats || [];
+            ukFilter = (i === -1 || !keys[i]) ? 'Semua' : keys[i];
+            window.ukRenderMenu();
+        };
+
+        window.ukToggleStok = async (id, el) => {
+            const p = adminAllProducts.find(x => x.id === id);
+            if (!p || p.vendor_id !== ukVendorId) return;
+            const tersedia = el.checked;
+            el.disabled = true;
+            const data = tersedia ? { is_sold_out: false, is_available: true } : { is_sold_out: true, is_flash_sale: false, is_promo: false };
+            try {
+                await updateDoc(doc(db, 'products', id), data);
+                Object.assign(p, data);
+                ukToast(tersedia ? 'Menu ditandai tersedia' : 'Menu ditandai habis');
+            } catch (e) {
+                el.checked = !tersedia;
+                ukToast('Gagal mengubah stok', false);
+            } finally {
+                window.ukRenderMenu();
+            }
+        };
+
+        // ---------- TAB MENU: FORM TAMBAH / EDIT (halaman, bukan pop-up) ----------
+        window.ukBukaFormMenu = (id) => {
+            const p = id ? adminAllProducts.find(x => x.id === id && x.vendor_id === ukVendorId) : null;
+            if (id && !p) return;
+            document.getElementById('uk-menu-daftar').style.display = 'none';
+            document.getElementById('uk-urutan').style.display = 'none';
+            document.getElementById('uk-menu-form').style.display = 'block';
+            document.getElementById('uk-form-judul').textContent = p ? 'Edit Menu' : 'Tambah Menu';
+            document.getElementById('uk-menu-id').value = p ? p.id : '';
+            document.getElementById('uk-menu-nama').value = p ? (p.nama_menu || '') : '';
+            document.getElementById('uk-menu-harga').value = p && p.harga ? (parseInt(p.harga, 10) || 0).toLocaleString('id-ID') : '';
+            const coret = p ? (parseInt(p.harga_asli || p.harga_coret, 10) || 0) : 0;
+            document.getElementById('uk-menu-harga-asli').value = coret ? coret.toLocaleString('id-ID') : '';
+            document.getElementById('uk-menu-etalase').value = p ? ukEtalase(p) : (ukFilter !== 'Semua' ? ukFilter : '');
+            document.getElementById('uk-menu-desk').value = p ? (p.deskripsi || '') : '';
+            document.getElementById('uk-menu-tersedia').checked = p ? !ukHabis(p) : true;
+
+            const dl = document.getElementById('uk-etalase-list');
+            dl.textContent = '';
+            ukUrutkanKat([...ukGrup().keys()]).forEach(k => { const o = document.createElement('option'); o.value = k; dl.appendChild(o); });
+
+            if (ukFotoMenuPreview) URL.revokeObjectURL(ukFotoMenuPreview);
+            ukFotoMenuBlob = null; ukFotoMenuPreview = '';
+            ukFotoMenuUrl = p && ukUrlAman(p.foto_url) ? p.foto_url : '';
+            document.getElementById('uk-menu-foto').value = '';
+            ukSetPrev(document.getElementById('uk-menu-foto-prev'), ukFotoMenuUrl);
+            document.getElementById('uk-menu-foto-hapus').style.display = ukFotoMenuUrl ? 'inline-flex' : 'none';
+
+            const wadah = document.getElementById('uk-varian-wadah');
+            wadah.textContent = '';
+            if (p && Array.isArray(p.varian_grup) && p.varian_grup.length) {
+                p.varian_grup.forEach(g => window.ukTambahGrupVarian(g.nama, g.tipe, Array.isArray(g.pilihan) ? g.pilihan : []));
+            } else if (p && Array.isArray(p.varian) && p.varian.length) {
+                // Varian versi lama diubah jadi satu grup "boleh pilih banyak"
+                const pilihan = p.varian.map(x => typeof x === 'string' ? { nama: x, harga: 0 } : { nama: x && x.nama, harga: x && x.harga }).filter(x => x.nama);
+                window.ukTambahGrupVarian('Pilihan Tambahan', 'checkbox', pilihan);
+            }
+            document.getElementById('uk-menu-hapus').style.display = p ? 'inline-flex' : 'none';
+            window.scrollTo(0, 0);
+            if (!p) document.getElementById('uk-menu-nama').focus();
+        };
+
+        window.ukTutupFormMenu = (diam) => {
+            document.getElementById('uk-menu-form').style.display = 'none';
+            document.getElementById('uk-menu-daftar').style.display = 'block';
+            if (ukFotoMenuPreview) URL.revokeObjectURL(ukFotoMenuPreview);
+            ukFotoMenuBlob = null; ukFotoMenuPreview = '';
+            if (diam !== true) window.ukRenderMenu();
+        };
+
+        window.ukPilihFotoMenu = async (input) => {
+            const f = input.files && input.files[0];
+            if (!f) return;
+            try {
+                const blob = await ukKompres(f, 600);
+                if (ukFotoMenuPreview) URL.revokeObjectURL(ukFotoMenuPreview);
+                ukFotoMenuBlob = blob;
+                ukFotoMenuPreview = URL.createObjectURL(blob);
+                ukSetPrev(document.getElementById('uk-menu-foto-prev'), ukFotoMenuPreview);
+                document.getElementById('uk-menu-foto-hapus').style.display = 'inline-flex';
+            } catch (e) {
+                input.value = '';
+                ukToast(e.message, false);
+            }
+        };
+
+        window.ukHapusFotoMenu = () => {
+            if (ukFotoMenuPreview) URL.revokeObjectURL(ukFotoMenuPreview);
+            ukFotoMenuBlob = null; ukFotoMenuPreview = ''; ukFotoMenuUrl = '';
+            document.getElementById('uk-menu-foto').value = '';
+            ukSetPrev(document.getElementById('uk-menu-foto-prev'), '');
+            document.getElementById('uk-menu-foto-hapus').style.display = 'none';
+        };
+
+        // Grup varian dibangun lewat DOM; nilai dari database dipasang lewat .value
+        window.ukTambahGrupVarian = (nama = '', tipe = 'radio', pilihan = []) => {
+            const wadah = document.getElementById('uk-varian-wadah');
+            const box = document.createElement('div');
+            box.className = 'uk-varian';
+            box.innerHTML = `
+                <div class="uk-varian-head">
+                    <input type="text" class="form-input ukv-nama" maxlength="40" placeholder="Nama grup, cth: Level Pedas" style="flex:1; padding:10px; font-size:14px;">
+                    <button type="button" class="uk-ikon ukv-hapus" style="color:#b91c1c; background:#fef2f2;" aria-label="Hapus grup varian"><i class="ph-bold ph-trash"></i></button>
+                </div>
+                <select class="form-input ukv-tipe" style="padding:10px; font-size:13px; margin-bottom:8px;">
+                    <option value="radio">Wajib pilih 1 (level pedas, ukuran)</option>
+                    <option value="checkbox">Boleh pilih banyak / opsional (topping)</option>
+                </select>
+                <div class="ukv-opsi"></div>
+                <button type="button" class="uk-btn garis ukv-tambah" style="width:100%; padding:9px; font-size:12px;">+ Tambah Pilihan</button>`;
+            box.querySelector('.ukv-nama').value = String(nama || '');
+            box.querySelector('.ukv-tipe').value = tipe === 'checkbox' ? 'checkbox' : 'radio';
+            box.querySelector('.ukv-hapus').addEventListener('click', () => box.remove());
+            const opsi = box.querySelector('.ukv-opsi');
+            box.querySelector('.ukv-tambah').addEventListener('click', () => ukTambahOpsi(opsi));
+            (pilihan && pilihan.length ? pilihan : [{}, {}]).forEach(o => ukTambahOpsi(opsi, o && o.nama, o && o.harga));
+            wadah.appendChild(box);
+        };
+
+        function ukTambahOpsi(wadah, nama = '', harga = '') {
+            const row = document.createElement('div');
+            row.className = 'uk-opsi';
+            row.innerHTML = `
+                <input type="text" class="form-input ukv-o-nama" maxlength="40" placeholder="Cth: Pedas Sedang" style="flex:2; min-width:0; padding:9px; font-size:13px;">
+                <input type="number" inputmode="numeric" min="0" class="form-input ukv-o-harga" placeholder="+Rp 0" style="flex:1; min-width:0; padding:9px; font-size:13px;">
+                <button type="button" class="uk-ikon" style="color:#b91c1c; width:36px; height:36px;" aria-label="Hapus pilihan"><i class="ph-bold ph-x"></i></button>`;
+            row.querySelector('.ukv-o-nama').value = String(nama || '');
+            const h = parseInt(harga, 10);
+            row.querySelector('.ukv-o-harga').value = (Number.isFinite(h) && h > 0) ? h : '';
+            row.querySelector('button').addEventListener('click', () => row.remove());
+            wadah.appendChild(row);
+        }
+
+        window.ukSimpanMenu = async () => {
+            const v = ukVendor();
+            if (!v) return;
+            const id = document.getElementById('uk-menu-id').value;
+            const lama = id ? adminAllProducts.find(x => x.id === id && x.vendor_id === v.id) : null;
+            if (id && !lama) { ukToast('Menu tidak ditemukan', false); return; }
+            const nama = document.getElementById('uk-menu-nama').value.trim().slice(0, 80);
+            const harga = ukAngka(document.getElementById('uk-menu-harga').value);
+            const hargaCoret = ukAngka(document.getElementById('uk-menu-harga-asli').value);
+            const etalase = ukKunci(document.getElementById('uk-menu-etalase').value.slice(0, 40));
+            const desk = document.getElementById('uk-menu-desk').value.trim().slice(0, 300);
+            const tersedia = document.getElementById('uk-menu-tersedia').checked;
+
+            if (!nama) return ukToast('Nama menu wajib diisi', false);
+            if (!harga) return ukToast('Harga wajib diisi', false);
+            if (harga > 10000000) return ukToast('Harga terlalu besar, cek lagi', false);
+
+            const grup = [];
+            for (const box of document.querySelectorAll('#uk-varian-wadah .uk-varian')) {
+                const gNama = box.querySelector('.ukv-nama').value.trim().slice(0, 40);
+                const pil = [];
+                box.querySelectorAll('.uk-opsi').forEach(r => {
+                    const n = r.querySelector('.ukv-o-nama').value.trim().slice(0, 40);
+                    const h = Math.min(10000000, Math.max(0, parseInt(r.querySelector('.ukv-o-harga').value, 10) || 0));
+                    if (n) pil.push({ nama: n, harga: h });
+                });
+                if (!gNama && !pil.length) continue; // grup kosong diabaikan
+                if (!gNama) return ukToast('Nama grup varian belum diisi', false);
+                if (!pil.length) return ukToast(`Grup "${gNama}" minimal punya 1 pilihan`, false);
+                grup.push({ nama: gNama, tipe: box.querySelector('.ukv-tipe').value === 'checkbox' ? 'checkbox' : 'radio', pilihan: pil.slice(0, 30) });
+            }
+
+            const btn = document.getElementById('uk-menu-simpan');
+            btn.disabled = true; btn.textContent = 'Menyimpan...';
+            try {
+                let foto = ukFotoMenuUrl;
+                if (ukFotoMenuBlob) {
+                    btn.textContent = 'Mengunggah foto...';
+                    foto = await ukUnggah(ukFotoMenuBlob, `vendors/${v.id}/menu/${Date.now()}.jpg`);
+                }
+                const data = {
+                    nama_menu: nama,
+                    harga,
+                    harga_asli: hargaCoret > harga ? hargaCoret : 0,
+                    tipe: etalase,
+                    category: etalase,
+                    deskripsi: desk,
+                    varian_grup: grup.slice(0, 10),
+                    varian: [],
+                    foto_url: foto || '',
+                    vendor_id: v.id,
+                    vendor_name: v.nama_warung || 'Warung UMKM',
+                    is_sold_out: !tersedia,
+                    updated_at: new Date().toISOString()
+                };
+                if (tersedia) data.is_available = true;
+                // Menu baru / pindah etalase diletakkan paling bawah di etalasenya
+                if (!lama || ukEtalase(lama) !== etalase) {
+                    let max = -1;
+                    ukMenus().forEach(p => { if (p.id !== id && ukEtalase(p) === etalase) { const n = Number(p.urutan); if (Number.isFinite(n) && n > max) max = n; } });
+                    data.urutan = max + 1;
+                }
+                if (lama) {
+                    await updateDoc(doc(db, 'products', lama.id), data);
+                    Object.assign(lama, data);
+                } else {
+                    const r = doc(collection(db, 'products'));
+                    const baru = { id: r.id, ...data, is_available: true, is_promo: false, is_flash_sale: false, created_at: new Date().toISOString() };
+                    await setDoc(r, baru);
+                    adminAllProducts.push(baru);
+                }
+                ukToast('Menu disimpan');
+                window.ukTutupFormMenu();
+                ukRenderKepala();
+                if (typeof window.renderVendorMenuOverview === 'function') window.renderVendorMenuOverview();
+            } catch (e) {
+                console.error('Gagal simpan menu UMKM:', e);
+                ukToast('Gagal menyimpan menu. Coba lagi.', false);
+            } finally {
+                btn.disabled = false; btn.textContent = 'Simpan Menu';
+            }
+        };
+
+        window.ukHapusMenu = async () => {
+            const id = document.getElementById('uk-menu-id').value;
+            const p = adminAllProducts.find(x => x.id === id && x.vendor_id === ukVendorId);
+            if (!p) return;
+            if (!confirm(`Hapus menu "${p.nama_menu || ''}"? Tindakan ini tidak bisa dibatalkan.`)) return;
+            try {
+                await deleteDoc(doc(db, 'products', p.id));
+                const i = adminAllProducts.indexOf(p);
+                if (i > -1) adminAllProducts.splice(i, 1);
+                ukToast('Menu dihapus');
+                window.ukTutupFormMenu();
+                ukRenderKepala();
+                if (typeof window.renderVendorMenuOverview === 'function') window.renderVendorMenuOverview();
+            } catch (e) {
+                ukToast('Gagal menghapus menu', false);
+            }
+        };
+
+        // ---------- TAB MENU: ATUR URUTAN (geser, sama seperti aplikasi seller) ----------
+        window.ukBukaUrutan = () => {
+            const grup = ukGrup();
+            if (!grup.size) { ukToast('Belum ada menu untuk diurutkan', false); return; }
+            ukUrutKat = ukUrutkanKat([...grup.keys()]);
+            ukUrutMenu = {};
+            ukUrutKat.forEach(k => { ukUrutMenu[k] = ukUrutkanMenu(grup.get(k)).map(p => p.id); });
+            ukUrutBuka = null;
+            document.getElementById('uk-menu-daftar').style.display = 'none';
+            document.getElementById('uk-urutan').style.display = 'block';
+            ukRenderUrutan();
+        };
+
+        function ukTutupUrutanPanel() {
+            const u = document.getElementById('uk-urutan');
+            if (u) { u.style.display = 'none'; u.textContent = ''; }
+            const d = document.getElementById('uk-menu-daftar');
+            if (d) d.style.display = 'block';
+        }
+        window.ukTutupUrutan = () => { ukTutupUrutanPanel(); window.ukRenderMenu(); };
+
+        function ukBarisUrut(kunci, nomor, judul, meta) {
+            const row = document.createElement('div');
+            row.className = 'kat-row';
+            row.dataset.kunci = kunci;
+            const head = document.createElement('div');
+            head.className = 'kat-row-head';
+            const handle = document.createElement('i');
+            handle.className = 'ph-bold ph-dots-six-vertical kat-handle';
+            head.appendChild(handle);
+            const num = document.createElement('span');
+            num.className = 'kat-num';
+            num.textContent = String(nomor);
+            head.appendChild(num);
+            const nm = document.createElement('div');
+            nm.style.cssText = 'flex:1; min-width:0; font-weight:800; font-size:14px; overflow-wrap:anywhere;';
+            nm.textContent = judul;
+            const mt = document.createElement('div');
+            mt.style.cssText = 'font-size:11px; color:var(--gray); font-weight:600;';
+            mt.textContent = meta;
+            nm.appendChild(mt);
+            head.appendChild(nm);
+            row.appendChild(head);
+            return { row, head };
+        }
+
+        function ukRenderUrutan() {
+            const panel = document.getElementById('uk-urutan');
+            panel.textContent = '';
+            const kembali = document.createElement('button');
+            kembali.type = 'button'; kembali.className = 'uk-back';
+            kembali.innerHTML = '<i class="ph-bold ph-arrow-left"></i> Kembali ke daftar menu';
+            kembali.addEventListener('click', window.ukTutupUrutan);
+            panel.appendChild(kembali);
+
+            const info = document.createElement('div');
+            info.style.cssText = 'background:#f0f9ff; border:1px solid #bae6fd; color:#075985; border-radius:12px; padding:12px; font-size:12px; line-height:1.6; margin-bottom:14px;';
+            info.innerHTML = '<b>Cara pakai:</b> tahan ikon <i class="ph-bold ph-dots-six-vertical"></i> lalu geser ke atas / bawah. Urutan etalase = urutan kelompok di buku menu pelanggan. Ketuk tanda panah untuk mengurutkan menu di dalam etalase. Jangan lupa <b>Simpan Urutan</b>.';
+            panel.appendChild(info);
+
+            const listKat = document.createElement('div');
+            panel.appendChild(listKat);
+
+            ukUrutKat.forEach((kat, idx) => {
+                const { row, head } = ukBarisUrut(kat, idx + 1, '# ' + kat, (ukUrutMenu[kat] || []).length + ' menu');
+                const caret = document.createElement('button');
+                caret.type = 'button';
+                caret.className = 'uk-ikon';
+                caret.setAttribute('aria-label', 'Buka isi etalase');
+                caret.innerHTML = ukUrutBuka === kat ? '<i class="ph-bold ph-caret-up"></i>' : '<i class="ph-bold ph-caret-down"></i>';
+                caret.addEventListener('click', () => { ukUrutBuka = (ukUrutBuka === kat) ? null : kat; ukRenderUrutan(); });
+                head.appendChild(caret);
+
+                if (ukUrutBuka === kat) {
+                    const sub = document.createElement('div');
+                    sub.style.cssText = 'padding:0 12px 4px 20px;';
+                    (ukUrutMenu[kat] || []).forEach((pid, j) => {
+                        const p = adminAllProducts.find(x => x.id === pid);
+                        if (!p) return;
+                        const m = ukBarisUrut(pid, j + 1, p.nama_menu || '(tanpa nama)', ukRp(p.harga) + (ukHabis(p) ? ' · HABIS' : ''));
+                        sub.appendChild(m.row);
+                    });
+                    row.appendChild(sub);
+                    pasangDragKat(sub, (baru) => { ukUrutMenu[kat] = baru.filter(Boolean); });
+                }
+                listKat.appendChild(row);
+            });
+            pasangDragKat(listKat, (baru) => { ukUrutKat = baru.filter(Boolean); });
+
+            const aksi = document.createElement('div');
+            aksi.className = 'uk-sticky-aksi';
+            const batal = document.createElement('button');
+            batal.type = 'button'; batal.className = 'uk-btn sekunder'; batal.style.flex = '1'; batal.textContent = 'Batal';
+            batal.addEventListener('click', window.ukTutupUrutan);
+            const simpan = document.createElement('button');
+            simpan.type = 'button'; simpan.className = 'uk-btn primer'; simpan.style.flex = '2'; simpan.textContent = 'Simpan Urutan';
+            simpan.addEventListener('click', () => ukSimpanUrutan(simpan));
+            aksi.appendChild(batal); aksi.appendChild(simpan);
+            panel.appendChild(aksi);
+        }
+
+        async function ukSimpanUrutan(btn) {
+            const v = ukVendor();
+            if (!v) return;
+            btn.disabled = true; btn.textContent = 'Menyimpan...';
+            try {
+                const grup = ukGrup();
+                const kat = ukUrutKat.filter(k => grup.has(k)).slice(0, 60);
+                const ubah = [];
+                kat.forEach(k => (ukUrutMenu[k] || []).forEach((pid, i) => {
+                    const p = adminAllProducts.find(x => x.id === pid);
+                    if (!p || p.vendor_id !== v.id) return; // menu warung lain tidak pernah ikut ditulis
+                    if (Number(p.urutan) === i) return;
+                    ubah.push({ p, i });
+                }));
+                for (let i = 0; i < ubah.length; i += 400) {
+                    const b = writeBatch(db);
+                    ubah.slice(i, i + 400).forEach(u => b.update(doc(db, 'products', u.p.id), { urutan: u.i }));
+                    await b.commit();
+                }
+                ubah.forEach(u => { u.p.urutan = u.i; });
+                await updateDoc(doc(db, 'vendors', v.id), { urutan_kategori: kat });
+                v.urutan_kategori = kat;
+                ukToast('Urutan disimpan');
+                window.ukTutupUrutan();
+            } catch (e) {
+                console.error('Gagal simpan urutan UMKM:', e);
+                ukToast('Gagal menyimpan urutan', false);
+                btn.disabled = false; btn.textContent = 'Simpan Urutan';
+            }
+        }
+
+        // ---------- TAB JAM BUKA ----------
+        function ukIsiJam() {
+            const v = ukVendor();
+            const j = (v && v.jadwal_mingguan && typeof v.jadwal_mingguan === 'object') ? v.jadwal_mingguan : {};
+            const wadah = document.getElementById('uk-jam-list');
+            wadah.textContent = '';
+            UK_HARI.forEach(h => {
+                const d = j[h] || {};
+                const row = document.createElement('div');
+                row.className = 'uk-hari';
+                row.dataset.hari = h;
+                row.innerHTML = `<b></b><input type="time" class="form-input uk-j-buka" aria-label="Jam buka"><input type="time" class="form-input uk-j-tutup" aria-label="Jam tutup"><label class="uk-libur"><input type="checkbox" class="uk-j-libur"> Libur</label>`;
+                row.querySelector('b').textContent = h;
+                const b = row.querySelector('.uk-j-buka'), t = row.querySelector('.uk-j-tutup'), l = row.querySelector('.uk-j-libur');
+                l.checked = d.libur === true;
+                b.value = ukJamValid(d.buka) ? d.buka : '08:00';
+                t.value = ukJamValid(d.tutup) ? d.tutup : '21:00';
+                const sinkron = () => { b.disabled = l.checked; t.disabled = l.checked; };
+                l.addEventListener('change', sinkron);
+                sinkron();
+                wadah.appendChild(row);
+            });
+        }
+
+        window.ukSalinSenin = () => {
+            const rows = Array.from(document.querySelectorAll('#uk-jam-list .uk-hari'));
+            if (!rows.length) return;
+            const s = rows[0];
+            rows.slice(1).forEach(r => {
+                r.querySelector('.uk-j-buka').value = s.querySelector('.uk-j-buka').value;
+                r.querySelector('.uk-j-tutup').value = s.querySelector('.uk-j-tutup').value;
+                const l = r.querySelector('.uk-j-libur');
+                l.checked = s.querySelector('.uk-j-libur').checked;
+                l.dispatchEvent(new Event('change'));
+            });
+            ukToast('Jam Senin disalin ke semua hari (belum disimpan)');
+        };
+
+        window.ukSimpanJam = async () => {
+            const v = ukVendor();
+            if (!v) return;
+            const jadwal = {};
+            for (const r of document.querySelectorAll('#uk-jam-list .uk-hari')) {
+                const h = r.dataset.hari;
+                if (!UK_HARI.includes(h)) continue;
+                const libur = r.querySelector('.uk-j-libur').checked;
+                const buka = r.querySelector('.uk-j-buka').value;
+                const tutup = r.querySelector('.uk-j-tutup').value;
+                if (!libur && (!ukJamValid(buka) || !ukJamValid(tutup))) { ukToast(`Jam hari ${h} belum lengkap`, false); return; }
+                if (!libur && buka === tutup) { ukToast(`Jam buka dan tutup hari ${h} tidak boleh sama`, false); return; }
+                jadwal[h] = { libur, buka: libur ? '' : buka, tutup: libur ? '' : tutup };
+            }
+            const btn = document.getElementById('uk-jam-simpan');
+            btn.disabled = true; btn.textContent = 'Menyimpan...';
+            try {
+                await updateDoc(doc(db, 'vendors', v.id), { jadwal_mingguan: jadwal });
+                v.jadwal_mingguan = jadwal;
+                ukToast('Jam operasional disimpan');
+                window.renderWarungAdminList();
+            } catch (e) {
+                ukToast('Gagal menyimpan jam operasional', false);
+            } finally {
+                btn.disabled = false; btn.textContent = 'Simpan Jam Operasional';
+            }
+        };
+
+        // ---------- TAB PROFIL & FOTO ----------
+        function ukBersihkanBlob() {
+            ukHiasanBaru.forEach(h => URL.revokeObjectURL(h.url));
+            ukHiasanBaru = [];
+            ukLogoBlob = null; ukSampulBlob = null;
+        }
+
+        function ukIsiProfil() {
+            const v = ukVendor();
+            if (!v) return;
+            ukBersihkanBlob();
+            document.getElementById('uk-prof-nama').value = v.nama_warung || '';
+            document.getElementById('uk-prof-alamat').value = v.alamat_warung || '';
+            document.getElementById('uk-prof-lat').value = v.latitude || '';
+            document.getElementById('uk-prof-lng').value = v.longitude || '';
+            document.getElementById('uk-prof-catatan').value = v.catatan || v.catatan_toko || '';
+            const kat = Array.isArray(v.kategori_utama) ? (v.kategori_utama[0] || '') : (v.kategori_utama || '');
+            if (typeof window.isiSelectKategori === 'function') window.isiSelectKategori(document.getElementById('uk-prof-kategori'), null, kat);
+            ['uk-prof-foto', 'uk-prof-sampul', 'uk-hiasan-input'].forEach(i => { document.getElementById(i).value = ''; });
+            ukSetPrev(document.getElementById('uk-prof-foto-prev'), v.shop_photo, 'ph-storefront');
+            ukSetPrev(document.getElementById('uk-prof-sampul-prev'), v.cover_photo);
+            ukHiasanLama = (Array.isArray(v.menu_hiasan) ? v.menu_hiasan : []).filter(ukUrlAman).slice(0, UK_MAKS_HIASAN);
+            ukRenderHiasan();
+        }
+
+        window.ukPilihFotoProfil = async (input, jenis) => {
+            const f = input.files && input.files[0];
+            if (!f) return;
+            try {
+                const blob = await ukKompres(f, jenis === 'sampul' ? 1200 : 500);
+                if (jenis === 'sampul') ukSampulBlob = blob; else ukLogoBlob = blob;
+                ukSetPrev(document.getElementById(jenis === 'sampul' ? 'uk-prof-sampul-prev' : 'uk-prof-foto-prev'), URL.createObjectURL(blob));
+            } catch (e) {
+                input.value = '';
+                ukToast(e.message, false);
+            }
+        };
+
+        window.ukPilihHiasan = async (input) => {
+            const files = Array.from(input.files || []);
+            input.value = '';
+            for (const f of files) {
+                if (ukHiasanLama.length + ukHiasanBaru.length >= UK_MAKS_HIASAN) { ukToast(`Foto hiasan maksimal ${UK_MAKS_HIASAN}`, false); break; }
+                try {
+                    const blob = await ukKompres(f, 900);
+                    ukHiasanBaru.push({ blob, url: URL.createObjectURL(blob) });
+                } catch (e) { ukToast(e.message, false); }
+            }
+            ukRenderHiasan();
+        };
+
+        function ukRenderHiasan() {
+            const box = document.getElementById('uk-hiasan');
+            box.textContent = '';
+            const tambah = (src, hapus) => {
+                const w = document.createElement('div');
+                w.className = 'uk-hiasan-item';
+                const img = document.createElement('img');
+                img.src = src; img.alt = 'Foto hiasan';
+                const x = document.createElement('button');
+                x.type = 'button'; x.textContent = '×'; x.setAttribute('aria-label', 'Hapus foto hiasan');
+                x.addEventListener('click', hapus);
+                w.appendChild(img); w.appendChild(x); box.appendChild(w);
+            };
+            ukHiasanLama.forEach((u, i) => tambah(u, () => { ukHiasanLama.splice(i, 1); ukRenderHiasan(); }));
+            ukHiasanBaru.forEach((h, i) => tambah(h.url, () => { URL.revokeObjectURL(h.url); ukHiasanBaru.splice(i, 1); ukRenderHiasan(); }));
+            if (!box.children.length) {
+                const k = document.createElement('div');
+                k.className = 'uk-help'; k.style.marginTop = '0';
+                k.textContent = 'Belum ada foto hiasan. Kalau kosong, buku menu memakai foto menu yang ada.';
+                box.appendChild(k);
+            }
+        }
+
+        window.ukSimpanProfil = async () => {
+            const v = ukVendor();
+            if (!v) return;
+            const nama = document.getElementById('uk-prof-nama').value.trim().slice(0, 60);
+            if (!nama) return ukToast('Nama warung wajib diisi', false);
+            const latStr = document.getElementById('uk-prof-lat').value.trim();
+            const lngStr = document.getElementById('uk-prof-lng').value.trim();
+            const lat = latStr ? parseFloat(latStr) : 0;
+            const lng = lngStr ? parseFloat(lngStr) : 0;
+            if (!Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lng) || lng < -180 || lng > 180) return ukToast('Latitude / longitude tidak valid', false);
+            const kat = document.getElementById('uk-prof-kategori').value.trim();
+
+            const btn = document.getElementById('uk-prof-simpan');
+            btn.disabled = true; btn.textContent = 'Menyimpan...';
+            try {
+                const data = {
+                    nama_warung: nama,
+                    alamat_warung: document.getElementById('uk-prof-alamat').value.trim().slice(0, 120),
+                    latitude: lat,
+                    longitude: lng,
+                    kategori_utama: kat ? [kat] : [],
+                    catatan: document.getElementById('uk-prof-catatan').value.trim().slice(0, 200)
+                };
+                const ts = Date.now();
+                if (ukLogoBlob) { btn.textContent = 'Mengunggah foto profil...'; data.shop_photo = await ukUnggah(ukLogoBlob, `vendors/${v.id}/profile/${ts}.jpg`); }
+                if (ukSampulBlob) { btn.textContent = 'Mengunggah sampul...'; data.cover_photo = await ukUnggah(ukSampulBlob, `vendors/${v.id}/profile/sampul_${ts}.jpg`); }
+                const hiasan = [...ukHiasanLama];
+                for (let i = 0; i < ukHiasanBaru.length; i++) {
+                    btn.textContent = `Mengunggah hiasan ${i + 1}/${ukHiasanBaru.length}...`;
+                    hiasan.push(await ukUnggah(ukHiasanBaru[i].blob, `vendors/${v.id}/profile/hiasan_${ts}_${i}.jpg`));
+                }
+                data.menu_hiasan = hiasan.slice(0, UK_MAKS_HIASAN);
+                btn.textContent = 'Menyimpan...';
+                await updateDoc(doc(db, 'vendors', v.id), data);
+                const namaLama = v.nama_warung;
+                Object.assign(v, data);
+
+                // vendor_name di tiap menu dipakai keranjang pelanggan, jadi ikut diganti
+                if (namaLama !== nama) {
+                    const ms = ukMenus();
+                    for (let i = 0; i < ms.length; i += 400) {
+                        const b = writeBatch(db);
+                        ms.slice(i, i + 400).forEach(p => b.update(doc(db, 'products', p.id), { vendor_name: nama }));
+                        await b.commit();
+                    }
+                    ms.forEach(p => { p.vendor_name = nama; });
+                }
+                ukToast('Profil & foto disimpan');
+                ukIsiProfil();
+                ukRenderKepala();
+                window.renderWarungAdminList();
+            } catch (e) {
+                console.error('Gagal simpan profil UMKM:', e);
+                ukToast('Gagal menyimpan profil. Coba lagi.', false);
+            } finally {
+                btn.disabled = false; btn.textContent = 'Simpan Profil & Foto';
             }
         };
 
