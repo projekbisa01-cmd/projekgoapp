@@ -32,7 +32,7 @@
     <meta property="og:description" content="Lihat menu warung favoritmu, pesan lewat WhatsApp. Gombong - Kebumen.">
     <meta property="og:image" content="https://i.ibb.co.com/hJ43nXyc/Whats-App-Image-2026-01-29-at-10-12-08.jpg">
     <meta name="twitter:card" content="summary_large_image">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Oswald:wght@500;600;700&family=Pacifico&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <style>
@@ -867,6 +867,103 @@
             .kp-head-ic, .kp-tebal::after, .ta-lup, .ta-btn { animation: none; }
             .kp-item { animation: none; opacity: 1; transform: none; }
         }
+
+        /* =========================================================
+           BUKU MENU WARUNG UMKM (warung yang dikelola admin)
+           Daftar isi di halaman Food + halaman menu 1 lembar + pop-up jumlah.
+           Semua kelas diawali "um-" agar tidak bentrok dengan gaya lain.
+           ========================================================= */
+        .um-daftar { margin: 18px 20px 0; border-radius: 24px; background: #FFF6EC; border: 1px solid #F6DCC2; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif; box-shadow: 0 8px 22px rgba(160,90,0,0.10); }
+        .um-daftar-head { background: #1C1C1E; color: #fff; padding: 18px 18px 16px; }
+        .um-kicker { display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 800; letter-spacing: 0.16em; color: #FFB27A; }
+        .um-kicker i { font-size: 20px; }
+        .um-daftar-judul { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 30px; font-weight: 700; line-height: 1.05; margin-top: 6px; letter-spacing: 0.01em; }
+        .um-daftar-sub { font-size: 12px; font-weight: 600; color: #D8D2CC; line-height: 1.5; margin-top: 6px; }
+        .um-daftar-list { padding: 6px 14px 14px; }
+        .um-row { width: 100%; display: flex; align-items: center; gap: 12px; padding: 14px 4px; min-height: 44px; border: 0; border-bottom: 1px dashed #EBCDB0; background: transparent; cursor: pointer; text-align: left; font-family: inherit; color: #1C1C1E; border-radius: 10px; }
+        .um-row:active { background: #FFEBD6; }
+        .um-no { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 22px; font-weight: 600; color: #C44700; flex: 0 0 30px; }
+        .um-row-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+        .um-row-top { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+        .um-row-nama { font-size: 15px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+        .um-titik { flex: 1; min-width: 12px; border-bottom: 2px dotted #D9B896; transform: translateY(-4px); }
+        .um-row-jml { font-size: 11.5px; font-weight: 800; color: #6B6B70; white-space: nowrap; }
+        .um-row-bawah { display: flex; align-items: center; gap: 6px; min-width: 0; }
+        .um-chip { font-size: 10.5px; font-weight: 800; padding: 2px 7px; border-radius: 99px; flex-shrink: 0; }
+        .um-chip.buka { color: #1B6E2F; background: #DDF3E2; }
+        .um-chip.tutup { color: #5A5A60; background: #ECE7E2; }
+        .um-row-alamat { font-size: 12px; font-weight: 600; color: #6B6B70; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+        .um-chev { color: #C44700; font-size: 18px; flex-shrink: 0; }
+        .um-daftar-kaki { text-align: center; font-size: 11.5px; font-weight: 700; color: #8A7B6C; padding-top: 12px; }
+
+        #page-umkm-menu { background: #F4B04A; min-height: 100vh; padding-bottom: 190px !important; font-family: 'Plus Jakarta Sans', sans-serif; color: #1C1C1E; }
+        .um-cover { position: relative; height: 250px; overflow: hidden; background: #3B2410; color: #fff; }
+        .um-cover > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: sepia(0.85) saturate(1.4); }
+        .um-cover-tint { position: absolute; inset: 0; background: rgba(58,30,6,0.62); }
+        .um-back { position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); left: 14px; z-index: 2; width: 44px; height: 44px; border-radius: 50%; border: 0; background: #fff; color: #1C1C1E; display: grid; place-items: center; font-size: 20px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
+        .um-cover .um-chip { position: absolute; top: calc(24px + env(safe-area-inset-top, 0px)); right: 14px; z-index: 2; font-size: 11px; padding: 4px 10px; }
+        .um-cover-txt { position: absolute; left: 20px; right: 20px; bottom: 22px; z-index: 1; display: flex; align-items: center; gap: 12px; }
+        .um-logo { width: 62px; height: 62px; flex: 0 0 62px; background: #fff; border: 3px solid #1C1C1E; box-shadow: 0 0 0 2px #fff; overflow: hidden; }
+        .um-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .um-nama { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 32px; font-weight: 700; line-height: 1.02; text-transform: uppercase; letter-spacing: 0.01em; overflow-wrap: anywhere; }
+        .um-alamat { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 14px; font-weight: 500; letter-spacing: 0.03em; color: #F3E6D6; margin-top: 4px; text-transform: uppercase; }
+        .um-tutup-info { margin: 14px 16px 0; background: #1C1C1E; color: #fff; border-radius: 14px; padding: 11px 14px; font-size: 12.5px; font-weight: 700; line-height: 1.5; }
+        .um-sec { position: relative; overflow: hidden; padding: 22px 0 12px 16px; }
+        .um-sec.alt { background: #FFE3B0; }
+        .um-sec.deko { min-height: 170px; }
+        .um-sec-kepala, .um-sec-isi { padding-right: 12px; }
+        .um-sec.deko .um-sec-kepala, .um-sec.deko .um-sec-isi { padding-right: 112px; }
+        .um-sec-kicker { font-size: 11px; font-weight: 800; letter-spacing: 0.18em; color: #4A2A08; }
+        .um-sec-judul { font-family: 'Pacifico', cursive; font-size: 32px; line-height: 1.35; color: #1C1C1E; overflow-wrap: anywhere; }
+        .um-sec-isi { display: flex; flex-direction: column; margin-top: 4px; }
+        .um-deko { position: absolute; pointer-events: none; object-fit: cover; box-shadow: 0 10px 22px rgba(80,40,0,0.28); background: #E9C07A; }
+        .um-deko.d1 { top: 18px; right: -26px; width: 128px; height: 128px; border-radius: 50%; border: 6px solid #fff; }
+        .um-deko.d2 { top: 196px; right: 12px; width: 90px; height: 116px; border-radius: 14px; border: 4px solid #fff; transform: rotate(-5deg); }
+        .um-item { width: 100%; box-sizing: border-box; display: flex; align-items: baseline; gap: 7px; min-height: 44px; padding: 9px 8px; border: 0; border-radius: 12px; background: transparent; cursor: pointer; color: #1C1C1E; text-align: left; font-family: inherit; }
+        .um-item:active { background: rgba(255,255,255,0.45); }
+        .um-item.on { background: rgba(255,255,255,0.6); }
+        .um-dot { width: 7px; height: 7px; border-radius: 50%; background: #1C1C1E; flex-shrink: 0; transform: translateY(-2px); }
+        .um-qty { font-size: 11.5px; font-weight: 800; color: #fff; background: #1C1C1E; border-radius: 99px; padding: 1px 6px; flex-shrink: 0; }
+        .um-item-nama { font-size: 14.5px; font-weight: 800; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .um-item .um-titik { min-width: 8px; border-bottom-color: #6E4312; }
+        .um-harga { font-size: 14.5px; font-weight: 800; white-space: nowrap; }
+        .um-item.habis { opacity: 0.55; }
+        .um-item.habis .um-item-nama { text-decoration: line-through; }
+        .um-kosong { margin: 20px 16px; background: #FFF6EC; border-radius: 16px; padding: 18px; text-align: center; font-size: 13px; font-weight: 700; color: #6B6B70; }
+        .um-kaki { padding: 22px 20px 0; text-align: center; font-size: 12px; font-weight: 700; color: #4A2A08; line-height: 1.6; }
+
+        .um-cartbar { position: fixed; left: 14px; right: 14px; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); max-width: calc(var(--max-width) - 28px); margin: 0 auto; z-index: 999; display: none; }
+        .um-cartbar button { width: 100%; min-height: 60px; border: 0; border-radius: 20px; background: #1C1C1E; color: #fff; display: flex; align-items: center; gap: 12px; padding: 10px 14px 10px 12px; cursor: pointer; box-shadow: 0 12px 26px rgba(0,0,0,0.28); font-family: 'Plus Jakarta Sans', sans-serif; }
+        .um-cb-ic { width: 40px; height: 40px; flex: 0 0 40px; border-radius: 12px; background: #C44700; display: grid; place-items: center; font-size: 20px; }
+        .um-cb-teks { flex: 1; display: flex; flex-direction: column; text-align: left; min-width: 0; }
+        .um-cb-teks small { font-size: 12px; font-weight: 700; color: #D8D2CC; }
+        .um-cb-teks b { font-size: 16px; font-weight: 800; }
+        .um-cb-aksi { color: #FFB27A; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 4px; }
+
+        .um-sheet { position: fixed; inset: 0; z-index: 3000; display: none; }
+        .um-sheet.show { display: block; }
+        .um-sheet-bg { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; padding: 0; background: rgba(28,14,4,0.55); cursor: pointer; }
+        .um-sheet-panel { position: absolute; left: 0; right: 0; bottom: 0; max-width: var(--max-width); margin: 0 auto; box-sizing: border-box; background: #FFF6EC; border-radius: 26px 26px 0 0; padding: 10px 20px calc(22px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -10px 30px rgba(0,0,0,0.25); display: flex; flex-direction: column; gap: 14px; font-family: 'Plus Jakarta Sans', sans-serif; color: #1C1C1E; animation: umNaik 0.28s cubic-bezier(.2,.9,.3,1); }
+        @keyframes umNaik { from { transform: translateY(100%); } to { transform: none; } }
+        .um-handle { width: 44px; height: 5px; border-radius: 99px; background: #D9C3AA; align-self: center; }
+        .um-sh-atas { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+        .um-sh-kat { font-family: 'Pacifico', cursive; font-size: 18px; line-height: 1.4; color: #C44700; overflow-wrap: anywhere; }
+        .um-sh-nama { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 30px; font-weight: 700; line-height: 1.05; text-transform: uppercase; overflow-wrap: anywhere; }
+        .um-sh-harga { font-size: 13px; font-weight: 700; color: #6B6B70; margin-top: 4px; }
+        .um-sh-desk { font-size: 12.5px; font-weight: 600; color: #5A5A60; line-height: 1.55; margin-top: 6px; }
+        .um-sh-x { width: 44px; height: 44px; flex: 0 0 44px; border: 0; border-radius: 50%; background: #F1E2D1; color: #1C1C1E; display: grid; place-items: center; font-size: 18px; cursor: pointer; }
+        .um-sh-garis { border-top: 2px dotted #D9B896; }
+        .um-stepper { display: flex; align-items: center; justify-content: center; gap: 26px; padding: 4px 0; }
+        .um-step { width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; font-size: 24px; cursor: pointer; }
+        .um-step.minus { border: 2px solid #1C1C1E; background: #fff; color: #1C1C1E; }
+        .um-step.plus { border: 0; background: #1C1C1E; color: #fff; }
+        .um-step:disabled { opacity: 0.35; cursor: default; }
+        .um-sh-angka { display: flex; flex-direction: column; align-items: center; min-width: 60px; }
+        .um-sh-angka b { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 44px; font-weight: 700; line-height: 1; }
+        .um-sh-angka small { font-size: 11px; font-weight: 800; letter-spacing: 0.12em; color: #8A6A4E; }
+        .um-sh-cta { width: 100%; min-height: 56px; border: 0; border-radius: 18px; background: #C44700; color: #fff; font-size: 15px; font-weight: 800; font-family: inherit; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; cursor: pointer; box-shadow: 0 10px 22px rgba(120,50,0,0.25); }
+        .um-sh-cta.hapus { background: #1C1C1E; }
+        @media (prefers-reduced-motion: reduce) { .um-sheet-panel { animation: none; } }
 
         /* =========================================================
            ALUR PESAN PROJEKGO (dipakai di Beranda & Food)
@@ -2776,6 +2873,11 @@
             <div id="vendor-menu-list" class="vendor-menu-list" style="padding-bottom:40px;"></div>
         </div>
 
+        <!-- ===== HALAMAN BUKU MENU WARUNG UMKM (1 lembar) ===== -->
+        <div id="page-umkm-menu" class="page" style="padding-top: 0;">
+            <div id="umkm-menu-content"></div>
+        </div>
+
         <!-- ===== 7. HALAMAN SEMUA REVIEW ===== -->
         <div id="page-all-reviews" class="page">
             <div class="sub-header">
@@ -3407,6 +3509,37 @@
     </div>
 
     <!-- FLOATING CART BANNER (DI ATAS NAVBAR) -->
+    <!-- BUKU MENU UMKM: bar keranjang + pop-up jumlah (tambah / kurang) -->
+    <div id="umkm-cart-bar" class="um-cartbar">
+        <button type="button" onclick="window.umkmBukaKeranjang()">
+            <span class="um-cb-ic"><i class="ph-bold ph-shopping-bag"></i></span>
+            <span class="um-cb-teks"><small id="um-cb-jml">0 item</small><b id="um-cb-total">Rp 0</b></span>
+            <span class="um-cb-aksi">Keranjang <i class="ph-bold ph-caret-right"></i></span>
+        </button>
+    </div>
+    <div id="umkm-sheet" class="um-sheet" aria-hidden="true">
+        <button type="button" class="um-sheet-bg" aria-label="Tutup" onclick="window.umkmTutupSheet()"></button>
+        <div class="um-sheet-panel" role="dialog" aria-modal="true" aria-labelledby="um-sh-nama">
+            <div class="um-handle"></div>
+            <div class="um-sh-atas">
+                <div style="min-width: 0;">
+                    <div class="um-sh-kat" id="um-sh-kat"></div>
+                    <div class="um-sh-nama" id="um-sh-nama"></div>
+                    <div class="um-sh-harga" id="um-sh-harga"></div>
+                    <div class="um-sh-desk" id="um-sh-desk" style="display: none;"></div>
+                </div>
+                <button type="button" class="um-sh-x" aria-label="Tutup" onclick="window.umkmTutupSheet()"><i class="ph-bold ph-x"></i></button>
+            </div>
+            <div class="um-sh-garis"></div>
+            <div class="um-stepper">
+                <button type="button" class="um-step minus" id="um-sh-minus" aria-label="Kurangi jumlah" onclick="window.umkmUbahJumlah(-1)"><i class="ph-bold ph-minus"></i></button>
+                <span class="um-sh-angka"><b id="um-sh-jml" aria-live="polite">1</b><small>PORSI</small></span>
+                <button type="button" class="um-step plus" id="um-sh-plus" aria-label="Tambah jumlah" onclick="window.umkmUbahJumlah(1)"><i class="ph-bold ph-plus"></i></button>
+            </div>
+            <button type="button" class="um-sh-cta" id="um-sh-cta" onclick="window.umkmSimpan()"><span id="um-sh-cta-label">Tambah ke keranjang</span><span id="um-sh-cta-harga"></span></button>
+        </div>
+    </div>
+
     <div id="floating-cart-banner" class="floating-cart-banner" onclick="toggleCartPopup()">
         <div class="fcb-left">
             <i class="ph-bold ph-shopping-bag" style="font-size: 18px;"></i>
@@ -4752,6 +4885,13 @@
                 return; // Stop disini
             }
 
+            // 2.8 Tombol Back HP saat pop-up jumlah Buku Menu UMKM terbuka
+            const umkmSheet = document.getElementById('umkm-sheet');
+            if (umkmSheet && umkmSheet.classList.contains('show')) {
+                window.umkmTutupSheet(true);
+                return;
+            }
+
             // 3. Normal page routing
             const dest = e.state && e.state.page ? e.state.page : 'home';
             currentPage = dest;
@@ -4779,6 +4919,7 @@
             
             if (typeof window.geserNavBlob === 'function') window.geserNavBlob();
             updateCartBadge(name);
+            if (typeof window.umkmSyncBar === 'function') window.umkmSyncBar(name);
 
             // 5. Kembalikan posisi scroll jika menggunakan tombol back, atau scroll ke atas jika buka halaman baru
             if (restoreScroll && pageScrolls[name] !== undefined) {
@@ -6851,6 +6992,268 @@
             }
         }
         window.updateCartBadge = updateCartBadge;
+
+        /* ==========================================================
+           BUKU MENU WARUNG UMKM (vendors.is_admin_managed === true)
+           - Daftar isi warung di halaman Food (di bawah kartu Keuntungan)
+           - Halaman menu 1 lembar: daftar tulisan, foto hanya hiasan
+           - Ketuk nama menu -> pop-up jumlah (+ / -) -> masuk keranjang biasa
+           KEAMANAN: semua teks dari database lewat esc() / textContent,
+           onclick hanya berisi nomor uiRef, URL gambar hanya https://.
+           ========================================================== */
+        const umkmUrlAman = (url) => {
+            const u = window.fixImgUrl(url);
+            return (typeof u === 'string' && /^https:\/\/[^\s"'<>\\]+$/i.test(u)) ? u : '';
+        };
+        const umkmBuka = (v) => {
+            const rt = window.isVendorOpenNow(v);
+            if (rt === false) return false;
+            if (rt === true) return true;
+            return (v.status || 'BUKA').toUpperCase() === 'BUKA';
+        };
+        const umkmMenuDari = (vendorId) => rawProducts.filter(p => p.vendor_id === vendorId);
+        const umkmEtalase = (p) => kunciEtalaseAman(p.tipe || p.kategori || String(p.category || '').split(',')[0]);
+        const umkmRp = (n) => 'Rp ' + (parseInt(n, 10) || 0).toLocaleString('id-ID');
+        const umkmHargaPendek = (n) => {
+            const x = parseInt(n, 10) || 0;
+            return (x % 1000 === 0 ? String(x / 1000) : (x / 1000).toLocaleString('id-ID', { maximumFractionDigits: 1 })) + ' K';
+        };
+        const umkmHabis = (p) => p.is_available === false || p.is_sold_out === true;
+        const umkmPunyaVarian = (p) => (Array.isArray(p.varian_grup) && p.varian_grup.length > 0) || (Array.isArray(p.varian) && p.varian.length > 0) || (Array.isArray(p.variant_options) && p.variant_options.length > 0);
+        // Item keranjang "polos" (tanpa varian & catatan) — hanya ini yang diatur lewat pop-up
+        const umkmCocokPolos = (id) => (i) => i.id === id && i.variant === '-' && !String(i.note || '').trim();
+        const umkmJumlah = (id) => cart.filter(umkmCocokPolos(id)).length;
+        const UMKM_MAKS_PORSI = 50;
+
+        let umkmVendorAktif = null;
+        let umkmPilihan = null; // { id, draft, punya }
+
+        // ---------- 1. DAFTAR ISI DI HALAMAN FOOD ----------
+        window.renderUmkmDaftar = () => {
+            let wadah = document.getElementById('umkm-daftar-warung');
+            if (!wadah) {
+                const top = document.getElementById('container-top-rated');
+                if (!top) return;
+                wadah = document.createElement('div');
+                wadah.id = 'umkm-daftar-warung';
+                top.prepend(wadah);
+            }
+            const daftar = currentDisplayVendors
+                .filter(v => v.is_admin_managed === true)
+                .map(v => ({ v, jml: umkmMenuDari(v.id).length, buka: umkmBuka(v) }))
+                .filter(x => x.jml > 0)
+                .sort((a, b) => (Number(b.buka) - Number(a.buka)) || (a.v.order_index - b.v.order_index) || String(a.v.nama_warung || '').localeCompare(String(b.v.nama_warung || ''), 'id'));
+
+            if (daftar.length === 0) { wadah.innerHTML = ''; return; }
+
+            const baris = daftar.map((x, i) => {
+                const v = x.v;
+                const kat = extractCategories(v.kategori_utama)[0] || '';
+                const sub = [kat, v.alamat_warung || v.alamat || ''].filter(Boolean).join(' · ');
+                return `
+                <button type="button" class="um-row" onclick="window.openUmkmMenu(uiVal(${uiRef(v.id)}))">
+                    <span class="um-no">${String(i + 1).padStart(2, '0')}</span>
+                    <span class="um-row-body">
+                        <span class="um-row-top"><b class="um-row-nama">${esc(v.nama_warung || 'Warung UMKM')}</b><span class="um-titik"></span><span class="um-row-jml">${x.jml} menu</span></span>
+                        <span class="um-row-bawah"><span class="um-chip ${x.buka ? 'buka' : 'tutup'}">${x.buka ? 'BUKA' : 'TUTUP'}</span><span class="um-row-alamat">${esc(sub)}</span></span>
+                    </span>
+                    <i class="ph-bold ph-caret-right um-chev"></i>
+                </button>`;
+            }).join('');
+
+            wadah.innerHTML = `
+                <div class="um-daftar">
+                    <div class="um-daftar-head">
+                        <div class="um-kicker"><span>WARUNG UMKM · BINAAN PROJEKGO</span><i class="ph ph-book-open-text"></i></div>
+                        <div class="um-daftar-judul">DAFTAR ISI<br>BUKU MENU</div>
+                        <div class="um-daftar-sub">Pilih warung, buka menunya, ketuk nama makanan untuk masuk keranjang.</div>
+                    </div>
+                    <div class="um-daftar-list">
+                        ${baris}
+                        <div class="um-daftar-kaki">Harga sama dengan beli langsung di warungnya</div>
+                    </div>
+                </div>`;
+        };
+
+        // ---------- 2. HALAMAN BUKU MENU 1 LEMBAR ----------
+        window.openUmkmMenu = (vendorId) => {
+            const v = allVendors.find(x => x.id === vendorId);
+            if (!v) { showToast('Warung tidak ditemukan'); return; }
+            umkmVendorAktif = v.id;
+            window.renderUmkmMenu();
+            openPage('umkm-menu');
+        };
+
+        window.renderUmkmMenu = () => {
+            const wadah = document.getElementById('umkm-menu-content');
+            if (!wadah || !umkmVendorAktif) return;
+            const v = allVendors.find(x => x.id === umkmVendorAktif);
+            if (!v) {
+                wadah.innerHTML = `<div class="um-cover" style="height:120px;"><div class="um-cover-tint"></div><button type="button" class="um-back" onclick="goBack()" aria-label="Kembali"><i class="ph-bold ph-arrow-left"></i></button></div><div class="um-kosong">Warung ini sudah tidak tersedia.</div>`;
+                window.umkmSyncBar();
+                return;
+            }
+            const buka = umkmBuka(v);
+            const menu = umkmMenuDari(v.id);
+
+            // Kelompokkan per etalase, urutan etalase ikut pengaturan warung bila ada
+            const grup = new Map();
+            menu.forEach(p => { const k = umkmEtalase(p); if (!grup.has(k)) grup.set(k, []); grup.get(k).push(p); });
+            const urutGrup = [...grup.keys()].sort((a, b) => posisiKategori(v.id, a) - posisiKategori(v.id, b));
+
+            // Foto hiasan: pilihan admin (menu_hiasan); kalau kosong pakai foto menu yang ada
+            const hiasanAdmin = (Array.isArray(v.menu_hiasan) ? v.menu_hiasan : []).map(umkmUrlAman).filter(Boolean);
+            const hiasan = [...new Set(hiasanAdmin.length ? hiasanAdmin : menu.map(p => umkmUrlAman(p.foto_url)).filter(Boolean))].slice(0, 6);
+            const sampul = umkmUrlAman(v.cover_photo) || umkmUrlAman(v.shop_photo) || hiasan[0] || '';
+            const logo = umkmUrlAman(v.shop_photo);
+            let h = 0;
+
+            const seksi = urutGrup.map((k, gi) => {
+                const items = grup.get(k).slice().sort((a, b) => (nomorUrutMenu(a) - nomorUrutMenu(b)) || String(a.nama_menu || '').localeCompare(String(b.nama_menu || ''), 'id'));
+                let deko = '';
+                if (hiasan.length) {
+                    deko += `<img class="um-deko d1" src="${esc(hiasan[h++ % hiasan.length])}" alt="" loading="lazy" onerror="this.remove()">`;
+                    if (items.length >= 6 && hiasan.length > 1) deko += `<img class="um-deko d2" src="${esc(hiasan[h++ % hiasan.length])}" alt="" loading="lazy" onerror="this.remove()">`;
+                }
+                const baris = items.map(p => {
+                    const q = umkmJumlah(p.id);
+                    const habis = umkmHabis(p);
+                    const nama = p.nama_menu || 'Menu';
+                    return `
+                    <button type="button" class="um-item${q ? ' on' : ''}${habis ? ' habis' : ''}" onclick="window.umkmPilih(uiVal(${uiRef(p.id)}))" aria-label="${esc(nama)}, ${habis ? 'habis' : esc(umkmRp(p.harga))}${q ? ', ' + q + ' di keranjang' : ''}">
+                        ${q ? `<span class="um-qty">${q}×</span>` : '<span class="um-dot"></span>'}
+                        <span class="um-item-nama">${esc(nama)}</span><span class="um-titik"></span>
+                        <span class="um-harga">${habis ? 'Habis' : esc(umkmHargaPendek(p.harga))}</span>
+                    </button>`;
+                }).join('');
+                const judul = (k === 'Lainnya' && urutGrup.length === 1) ? 'Menu' : k;
+                return `
+                <section class="um-sec${gi % 2 ? ' alt' : ''}${deko ? ' deko' : ''}">
+                    ${deko}
+                    <div class="um-sec-kepala"><div class="um-sec-kicker">${items.length} PILIHAN</div><div class="um-sec-judul"># ${esc(judul)}</div></div>
+                    <div class="um-sec-isi">${baris}</div>
+                </section>`;
+            }).join('');
+
+            wadah.innerHTML = `
+                <div class="um-cover">
+                    ${sampul ? `<img src="${esc(sampul)}" alt="" onerror="this.remove()">` : ''}
+                    <div class="um-cover-tint"></div>
+                    <button type="button" class="um-back" onclick="goBack()" aria-label="Kembali"><i class="ph-bold ph-arrow-left"></i></button>
+                    <span class="um-chip ${buka ? 'buka' : 'tutup'}">${buka ? 'BUKA' : 'TUTUP'}</span>
+                    <div class="um-cover-txt">
+                        ${logo ? `<div class="um-logo"><img src="${esc(logo)}" alt="" onerror="this.parentElement.remove()"></div>` : ''}
+                        <div style="min-width:0;">
+                            <div class="um-nama">${esc(v.nama_warung || 'Warung UMKM')}</div>
+                            <div class="um-alamat">${esc(v.alamat_warung || v.alamat || '')}</div>
+                        </div>
+                    </div>
+                </div>
+                ${buka ? '' : '<div class="um-tutup-info"><i class="ph-fill ph-moon"></i> Warung sedang tutup. Menu tetap bisa dilihat, tapi belum bisa dipesan.</div>'}
+                ${seksi || '<div class="um-kosong">Menu warung ini belum diisi.</div>'}
+                <div class="um-kaki">Ketuk nama menu untuk menambah ke keranjang.<br>Harga sama dengan beli langsung di warungnya.</div>`;
+
+            window.umkmSyncBar();
+        };
+
+        // ---------- 3. BAR KERANJANG KHUSUS HALAMAN INI ----------
+        window.umkmSyncBar = (halaman) => {
+            const bar = document.getElementById('umkm-cart-bar');
+            if (!bar) return;
+            const hal = halaman || currentPage;
+            if (hal !== 'umkm-menu' || !umkmVendorAktif) {
+                bar.style.display = 'none';
+                if (hal !== 'umkm-menu') window.umkmTutupSheet(true);
+                return;
+            }
+            const ids = new Set(umkmMenuDari(umkmVendorAktif).map(p => p.id));
+            const isi = cart.filter(i => ids.has(i.id));
+            if (isi.length === 0) { bar.style.display = 'none'; return; }
+            const total = isi.reduce((s, i) => s + (parseInt(i.harga, 10) || 0), 0);
+            document.getElementById('um-cb-jml').textContent = isi.length + ' item di keranjang';
+            document.getElementById('um-cb-total').textContent = umkmRp(total);
+            bar.style.display = 'block';
+        };
+        window.umkmBukaKeranjang = () => openPage('my-cart');
+
+        // ---------- 4. POP-UP JUMLAH (+ / -) ----------
+        function umkmSegarkanSheet() {
+            const p = umkmPilihan && rawProducts.find(x => x.id === umkmPilihan.id);
+            if (!p) return;
+            const min = umkmPilihan.punya > 0 ? 0 : 1;
+            const d = umkmPilihan.draft;
+            const hapus = umkmPilihan.punya > 0 && d === 0;
+            document.getElementById('um-sh-jml').textContent = String(d);
+            document.getElementById('um-sh-minus').disabled = d <= min;
+            document.getElementById('um-sh-plus').disabled = d >= UMKM_MAKS_PORSI;
+            document.getElementById('um-sh-cta').classList.toggle('hapus', hapus);
+            document.getElementById('um-sh-cta-label').textContent = hapus ? 'Hapus dari keranjang' : (umkmPilihan.punya > 0 ? 'Simpan perubahan' : 'Tambah ke keranjang');
+            document.getElementById('um-sh-cta-harga').textContent = d > 0 ? umkmRp(d * (parseInt(p.harga, 10) || 0)) : '';
+        }
+
+        window.umkmPilih = (productId) => {
+            const p = rawProducts.find(x => x.id === productId);
+            if (!p) return;
+            const v = allVendors.find(x => x.id === p.vendor_id);
+            if (v && !umkmBuka(v)) { showToast('Warung sedang tutup 🙏'); return; }
+            if (umkmHabis(p)) { showToast('Maaf, menu ini sedang habis 🙏'); return; }
+            if (umkmPunyaVarian(p)) { window.openProductDetail(p.id); return; } // menu bervarian pakai pop-up detail yang sudah ada
+
+            const punya = umkmJumlah(p.id);
+            umkmPilihan = { id: p.id, draft: punya > 0 ? punya : 1, punya };
+            document.getElementById('um-sh-kat').textContent = '# ' + umkmEtalase(p);
+            document.getElementById('um-sh-nama').textContent = p.nama_menu || 'Menu';
+            document.getElementById('um-sh-harga').textContent = umkmRp(p.harga) + ' / porsi · harga asli warung';
+            const desk = document.getElementById('um-sh-desk');
+            desk.textContent = p.deskripsi || '';
+            desk.style.display = p.deskripsi ? 'block' : 'none';
+            umkmSegarkanSheet();
+
+            const el = document.getElementById('umkm-sheet');
+            el.classList.add('show');
+            el.setAttribute('aria-hidden', 'false');
+            window.history.pushState({ isUmkmSheet: true, name: 'umkm-sheet' }, '', '');
+        };
+
+        window.umkmUbahJumlah = (delta) => {
+            if (!umkmPilihan) return;
+            const min = umkmPilihan.punya > 0 ? 0 : 1;
+            umkmPilihan.draft = Math.min(UMKM_MAKS_PORSI, Math.max(min, umkmPilihan.draft + delta));
+            umkmSegarkanSheet();
+        };
+
+        // dariTombolBack = true bila ditutup oleh tombol Back HP (history sudah mundur sendiri)
+        window.umkmTutupSheet = (dariTombolBack) => {
+            const el = document.getElementById('umkm-sheet');
+            if (!el || !el.classList.contains('show')) return;
+            el.classList.remove('show');
+            el.setAttribute('aria-hidden', 'true');
+            umkmPilihan = null;
+            if (!dariTombolBack && window.history.state && window.history.state.isUmkmSheet) {
+                window.isClosingPopup = true;
+                window.history.back();
+            }
+        };
+
+        window.umkmSimpan = () => {
+            if (!umkmPilihan) return;
+            const p = rawProducts.find(x => x.id === umkmPilihan.id);
+            if (!p) { window.umkmTutupSheet(); return; }
+            const d = Math.min(UMKM_MAKS_PORSI, Math.max(0, parseInt(umkmPilihan.draft, 10) || 0));
+            const cocok = umkmCocokPolos(p.id);
+            for (let i = cart.length - 1; i >= 0; i--) { if (cocok(cart[i])) cart.splice(i, 1); }
+            // Bentuk item sama persis dengan addToCartDirect() supaya checkout lama tetap jalan
+            for (let i = 0; i < d; i++) {
+                cart.push({ id: p.id, nama: p.nama_menu, harga: parseInt(p.harga, 10) || 0, vendor: p.vendor_name || "Warung Projekgo", variant: "-", note: "" });
+            }
+            localStorage.setItem('projekgo_cart', JSON.stringify(cart));
+            updateCartBadge('umkm-menu');
+            if (navigator.vibrate) navigator.vibrate(40);
+            const nama = p.nama_menu || 'Menu';
+            window.umkmTutupSheet();
+            window.renderUmkmMenu();
+            showToast(d > 0 ? `${nama} ×${d} di keranjang` : `${nama} dihapus dari keranjang`);
+        };
 
         window.toggleFavorite = (e, id) => { e.stopPropagation(); if(favorites.includes(id)) { favorites = favorites.filter(fav => fav !== id); e.currentTarget.classList.remove('active'); } else { favorites.push(id); e.currentTarget.classList.add('active'); showToast("Disimpan ke Favorit ❤️"); } localStorage.setItem('favs', JSON.stringify(favorites)); }
         
@@ -10576,6 +10979,8 @@
         function checkAndRenderAll() {
             if (isVendorsReady && isProductsReady && isCategoriesReady) {
                 filterAndRenderProducts();
+                // Halaman Buku Menu UMKM ikut diperbarui realtime (harga, stok, buka/tutup)
+                if (currentPage === 'umkm-menu' && typeof window.renderUmkmMenu === 'function') window.renderUmkmMenu();
             }
         }
 
@@ -11698,6 +12103,7 @@
 
                     <p class="kp-petunjuk">Harga jujur, antar cepat, tanpa biaya siluman 🧡</p>
                 </div>
+                <div id="umkm-daftar-warung"></div>
             `;
 
             let header = `
@@ -11885,6 +12291,8 @@
         const topRatedContainer = document.getElementById('container-top-rated');
         if (topRatedContainer) topRatedContainer.innerHTML = '';
         renderTopRatedResto();
+        // Daftar isi Buku Menu Warung UMKM (di bawah kartu Keuntungan)
+        if (typeof window.renderUmkmDaftar === 'function') window.renderUmkmDaftar();
 
         // Semua warung langsung ditampilkan (tidak ada lagi tombol "Tampilkan Lebih Banyak").
         // Ini tidak menambah pembacaan Firebase sama sekali: data warung dan menu sudah
