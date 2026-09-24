@@ -818,7 +818,9 @@
         .kp-head-txt small { display: block; font-size: 11px; color: #8A8A90; font-weight: 600; }
         @keyframes kpDenyut { 0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,102,0,0.35); } 50% { transform: scale(1.08); box-shadow: 0 0 0 7px rgba(255,102,0,0); } }
 
-        .kp-item { width: 100%; text-align: left; background: #FFFCF8; border: 1px solid #FFE6D3; border-radius: 16px; padding: 11px 12px; margin-top: 10px; display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; opacity: 0; transform: translateY(12px); animation: kpMasuk 0.5s cubic-bezier(.2,.9,.3,1) forwards; transition: border-color 0.25s, background 0.25s; }
+        .kp-item { width: 100%; text-align: left; background: #FFFCF8; border: 1px solid #FFE6D3; border-radius: 16px; padding: 11px 12px; margin-top: 10px; display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; transition: border-color 0.25s, background 0.25s; }
+        /* Animasi masuk poin hanya diputar saat pelanggan membuka kartu (bukan tiap data realtime berubah) */
+        .kp-card.kp-animasi.kp-terbuka .kp-item { opacity: 0; transform: translateY(12px); animation: kpMasuk 0.5s cubic-bezier(.2,.9,.3,1) forwards; }
         .kp-item:nth-of-type(2) { animation-delay: 0.12s; } .kp-item:nth-of-type(3) { animation-delay: 0.24s; }
         .kp-item.kp-buka { background: #fff; border-color: #FF9A4D; }
         .kp-item:active { transform: scale(0.985); }
@@ -844,6 +846,21 @@
         .kp-item.kp-buka .kp-isi { grid-template-rows: 1fr; }
         .kp-isi > div { overflow: hidden; min-height: 0; }
         .kp-isi p { margin: 7px 0 0; font-size: 12px; line-height: 1.55; color: #5A5A60; font-weight: 600; }
+        /* --- Kartu bisa dilipat: tertutup = hanya judul + ringkasan --- */
+        .kp-card { padding: 12px 14px; }
+        .kp-card.kp-terbuka { padding-bottom: 14px; }
+        .kp-toggle { width: 100%; min-height: 44px; margin: 0; padding: 0; border: 0; background: none; cursor: pointer; text-align: left; font-family: 'Plus Jakarta Sans', sans-serif; color: inherit; }
+        .kp-toggle .kp-head-txt { flex: 1; min-width: 0; }
+        .kp-ringkas { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+        .kp-chip { font-size: 10.5px; font-weight: 800; padding: 2px 8px; border-radius: 99px; background: #FFF1E4; color: #B84300; white-space: nowrap; }
+        .kp-chip.kp-chip-hijau { background: #E6F4E7; color: #1E6B24; }
+        .kp-card.kp-terbuka .kp-ringkas, .kp-card:not(.kp-terbuka) .kp-sub-buka { display: none !important; }
+        .kp-head-chev { flex: 0 0 32px; width: 32px; height: 32px; border-radius: 50%; background: #FFF1E4; color: #E85300; display: grid; place-items: center; font-size: 15px; transition: transform 0.3s; align-self: center; }
+        .kp-card.kp-terbuka .kp-head-chev { transform: rotate(180deg); }
+        .kp-lipat { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.35s cubic-bezier(.3,.8,.3,1); }
+        .kp-card.kp-terbuka .kp-lipat { grid-template-rows: 1fr; }
+        .kp-lipat > div { overflow: hidden; min-height: 0; visibility: hidden; transition: visibility 0s linear 0.35s; }
+        .kp-card.kp-terbuka .kp-lipat > div { visibility: visible; transition-delay: 0s; }
         .kp-petunjuk { text-align: center; font-size: 10.5px; font-weight: 700; color: #B0A79F; margin: 10px 0 0; }
 
         /* =========================================================
@@ -865,7 +882,8 @@
 
         @media (prefers-reduced-motion: reduce) {
             .kp-head-ic, .kp-tebal::after, .ta-lup, .ta-btn { animation: none; }
-            .kp-item { animation: none; opacity: 1; transform: none; }
+            .kp-item, .kp-card.kp-animasi.kp-terbuka .kp-item { animation: none; opacity: 1; transform: none; }
+            .kp-lipat, .kp-head-chev { transition: none; }
         }
 
         /* =========================================================
@@ -964,6 +982,34 @@
         .um-sh-cta { width: 100%; min-height: 56px; border: 0; border-radius: 18px; background: #C44700; color: #fff; font-size: 15px; font-weight: 800; font-family: inherit; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; cursor: pointer; box-shadow: 0 10px 22px rgba(120,50,0,0.25); }
         .um-sh-cta.hapus { background: #1C1C1E; }
         @media (prefers-reduced-motion: reduce) { .um-sheet-panel { animation: none; } }
+
+        /* =========================================================
+           PANDUAN SEBELUM KIRIM PESANAN KE WHATSAPP ADMIN
+           Kelas diawali "pp-".
+           ========================================================= */
+        .pp-sheet { position: fixed; inset: 0; z-index: 4000; display: none; }
+        .pp-sheet.show { display: block; }
+        .pp-bg { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; padding: 0; background: rgba(20,20,22,0.55); cursor: pointer; }
+        .pp-panel { position: absolute; left: 0; right: 0; bottom: 0; max-width: var(--max-width); max-height: 92vh; overflow-y: auto; margin: 0 auto; box-sizing: border-box; background: #fff; border-radius: 26px 26px 0 0; padding: 10px 20px calc(18px + env(safe-area-inset-bottom, 0px)); font-family: 'Plus Jakarta Sans', sans-serif; color: #1C1C1E; box-shadow: 0 -10px 30px rgba(0,0,0,0.25); animation: umNaik 0.28s cubic-bezier(.2,.9,.3,1); }
+        .pp-handle { width: 44px; height: 5px; border-radius: 99px; background: #E3E3E6; margin: 0 auto 14px; }
+        .pp-ikon { width: 52px; height: 52px; border-radius: 16px; background: #E8F9EF; color: #128C3E; display: grid; place-items: center; font-size: 28px; margin-bottom: 10px; }
+        .pp-judul { font-size: 19px; font-weight: 800; line-height: 1.3; margin: 0 0 6px; }
+        .pp-lead { font-size: 13px; font-weight: 600; color: #5A5A60; line-height: 1.6; margin: 0 0 14px; }
+        .pp-langkah { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+        .pp-langkah li { display: flex; gap: 12px; align-items: flex-start; background: #FAFAFA; border: 1px solid #EFEFF1; border-radius: 14px; padding: 11px 12px; font-size: 13px; line-height: 1.5; font-weight: 600; color: #3A3A3F; }
+        .pp-langkah li b { color: #1C1C1E; }
+        .pp-no { flex: 0 0 26px; width: 26px; height: 26px; border-radius: 50%; background: #1C1C1E; color: #fff; display: grid; place-items: center; font-size: 12.5px; font-weight: 800; }
+        .pp-langkah li.pp-penting { background: #FFF6EC; border-color: #FFD9B3; }
+        .pp-langkah li.pp-penting .pp-no { background: #E85300; }
+        .pp-lihat { width: 100%; min-height: 44px; border: 0; background: none; color: #E85300; font-size: 13px; font-weight: 800; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 0; }
+        .pp-pesan { display: none; white-space: pre-wrap; overflow-wrap: anywhere; background: #E7F7EC; border-radius: 12px; padding: 12px; font-family: inherit; font-size: 12px; line-height: 1.55; color: #1F3B2A; margin: 4px 0 12px; max-height: 220px; overflow-y: auto; }
+        .pp-sheet.pp-lihat-pesan .pp-pesan { display: block; }
+        .pp-btn-wa { width: 100%; min-height: 54px; border: 0; border-radius: 16px; background: #128C3E; color: #fff; font-size: 15.5px; font-weight: 800; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; box-shadow: 0 8px 20px rgba(18,140,62,0.3); }
+        .pp-btn-wa i { font-size: 22px; }
+        .pp-btn-wa:active { transform: scale(0.98); }
+        .pp-aksi2 { display: flex; gap: 8px; margin-top: 8px; }
+        .pp-btn-2 { flex: 1; min-height: 44px; border: 0; border-radius: 14px; background: #F2F2F4; color: #3A3A3F; font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        @media (prefers-reduced-motion: reduce) { .pp-panel { animation: none; } }
 
         /* =========================================================
            ALUR PESAN PROJEKGO (dipakai di Beranda & Food)
@@ -2486,7 +2532,7 @@
             </div>
 
             <!-- ======================================================== -->
-            <!-- RESTO PILIHAN TERFAVORITE (TAMBAHAN BARU) -->
+            <!-- RESTO BARU DI PROJEKGO (dulu: Resto Pilihan Terfavorite) -->
             <!-- ======================================================== -->
             <div id="container-resto-favorite" style="padding: 0 0 20px 0; background: var(--bg); display: none;"></div>
 
@@ -3509,6 +3555,29 @@
     </div>
 
     <!-- FLOATING CART BANNER (DI ATAS NAVBAR) -->
+    <!-- PANDUAN SEBELUM PESANAN DIKIRIM KE WHATSAPP ADMIN -->
+    <div id="panduan-pesan" class="pp-sheet" aria-hidden="true">
+        <button type="button" class="pp-bg" aria-label="Tutup" onclick="window.tutupPanduanPesan()"></button>
+        <div class="pp-panel" role="dialog" aria-modal="true" aria-labelledby="pp-judul">
+            <div class="pp-handle"></div>
+            <div class="pp-ikon"><i class="ph-fill ph-whatsapp-logo"></i></div>
+            <h3 class="pp-judul" id="pp-judul">Pesananmu belum terkirim</h3>
+            <p class="pp-lead">Aplikasi ini membantu menyusun pesananmu. Pesanan baru <b>diproses admin</b> setelah kamu mengirimkannya lewat WhatsApp.</p>
+            <ol class="pp-langkah">
+                <li><span class="pp-no">1</span><span>Tekan <b>Lanjut Tahap Pesan ke Admin</b>. WhatsApp terbuka dengan daftar pesanan &amp; alamatmu yang sudah tertulis.</span></li>
+                <li class="pp-penting"><span class="pp-no">2</span><span><b>Jangan ubah atau hapus pesannya.</b> Langsung tekan tombol <b>Kirim</b> di WhatsApp.</span></li>
+                <li><span class="pp-no">3</span><span>Tunggu balasan admin untuk konfirmasi total &amp; ongkir. Setelah itu pesananmu diproses.</span></li>
+            </ol>
+            <button type="button" class="pp-lihat" id="pp-lihat" aria-expanded="false" aria-controls="pp-pesan" onclick="window.lihatIsiPesan()"><i class="ph-bold ph-eye"></i> <span>Lihat isi pesan yang akan dikirim</span></button>
+            <div class="pp-pesan" id="pp-pesan"></div>
+            <button type="button" class="pp-btn-wa" id="pp-lanjut" onclick="window.lanjutPesanKeAdmin()"><i class="ph-fill ph-whatsapp-logo"></i> Lanjut Tahap Pesan ke Admin</button>
+            <div class="pp-aksi2">
+                <button type="button" class="pp-btn-2" onclick="window.tutupPanduanPesan()"><i class="ph-bold ph-arrow-left"></i> Cek pesanan lagi</button>
+                <button type="button" class="pp-btn-2" onclick="window.salinIsiPesan()"><i class="ph-bold ph-copy"></i> Salin pesan</button>
+            </div>
+        </div>
+    </div>
+
     <!-- BUKU MENU UMKM: bar keranjang + pop-up jumlah (tambah / kurang) -->
     <div id="umkm-cart-bar" class="um-cartbar">
         <button type="button" onclick="window.umkmBukaKeranjang()">
@@ -3791,6 +3860,19 @@
         // Poin "Keuntungan Pesan di PROJEKGO" bisa diketuk. Dipasang sekali lewat delegasi,
         // supaya tetap jalan walau kartunya digambar ulang oleh renderTopRatedResto().
         document.addEventListener('click', (e) => {
+            // Judul kartu: buka / lipat seluruh kartu. Statusnya disimpan supaya tidak
+            // tertutup sendiri saat kartu digambar ulang karena data realtime berubah.
+            const kepala = e.target.closest ? e.target.closest('.kp-toggle') : null;
+            if (kepala) {
+                const kartu = kepala.closest('.kp-card');
+                if (!kartu) return;
+                const buka = !kartu.classList.contains('kp-terbuka');
+                kartu.classList.add('kp-animasi');
+                kartu.classList.toggle('kp-terbuka', buka);
+                kepala.setAttribute('aria-expanded', buka ? 'true' : 'false');
+                window.__kpTerbuka = buka;
+                return;
+            }
             const item = e.target.closest ? e.target.closest('.kp-item[data-kp]') : null;
             if (!item) return;
             const sedangBuka = item.classList.contains('kp-buka');
@@ -4883,6 +4965,13 @@
             if (promoModal && promoModal.style.opacity === '1') {
                 closePromoModal();
                 return; // Stop disini
+            }
+
+            // 2.75 Tombol Back HP saat panduan kirim pesanan terbuka
+            const panduanPesan = document.getElementById('panduan-pesan');
+            if (panduanPesan && panduanPesan.classList.contains('show')) {
+                window.tutupPanduanPesan(true);
+                return;
             }
 
             // 2.8 Tombol Back HP saat pop-up jumlah Buku Menu UMKM terbuka
@@ -9443,8 +9532,8 @@
             
             // 1. Susun Pesan WhatsApp
             let message = `Halo Admin Projekgo, saya mau pesan `;
-            message += orderMode === 'dine_in' ? `(Via QR Meja)%0A%0A` : `makanan:%0A`;
-            message += `*Pesanan:*%0A`;
+            message += orderMode === 'dine_in' ? `(Via QR Meja)\n\n` : `makanan:\n`;
+            message += `*Pesanan:*\n`;
 
             const grouped = {}; 
             let total = 0; 
@@ -9457,7 +9546,7 @@
             });
 
             for(const [vendor, items] of Object.entries(grouped)) {
-                message += `🏪 *${vendor}*%0A`;
+                message += `🏪 *${vendor}*\n`;
                 const consolidatedItems = [];
                 items.forEach(item => { 
                     const key = item.id + '|' + item.variant + '|' + (item.note || '').trim().toLowerCase(); 
@@ -9475,8 +9564,8 @@
                     if(item.variant && item.variant !== '-') metaText += `Varian: ${item.variant}`; 
                     if(item.note) metaText += (metaText ? `, Catatan: ${item.note}` : `Catatan: ${item.note}`);
                     
-                    message += `- ${item.qty}x ${item.nama} (Rp ${item.totalItemPrice.toLocaleString()})%0A`;
-                    if(metaText) message += `   _${metaText}_%0A`;
+                    message += `- ${item.qty}x ${item.nama} (Rp ${item.totalItemPrice.toLocaleString()})\n`;
+                    if(metaText) message += `   _${metaText}_\n`;
                     
                     itemsSummaryText += `${item.qty}x ${item.nama}, `;
                 });
@@ -9485,7 +9574,7 @@
             let numVendors = Object.keys(grouped).length;
             let extraRestoFee = numVendors > 1 ? (numVendors - 1) * 3000 : 0;
 
-            message += `________________________________%0A`;
+            message += `________________________________\n`;
             
             let serviceFee = orderMode === 'dine_in' ? 1000 : 0;
             let finalTotal = total + serviceFee;
@@ -9496,43 +9585,43 @@
 
             if (orderMode !== 'dine_in' && window.checkoutLocMode === 'maps') {
                 finalTotal += window.checkoutOngkir;
-                message += `Subtotal Makanan: Rp ${total.toLocaleString()}%0A`;
-                if(serviceFee > 0) message += `Biaya Layanan: Rp ${serviceFee.toLocaleString()}%0A`;
+                message += `Subtotal Makanan: Rp ${total.toLocaleString()}\n`;
+                if(serviceFee > 0) message += `Biaya Layanan: Rp ${serviceFee.toLocaleString()}\n`;
                 
                 if (window.checkoutOngkir > 0) {
-                    message += `Ongkos Kirim: Rp ${window.checkoutOngkir.toLocaleString()}%0A`;
-                    if (extraRestoFee > 0) message += `Tambahan Ongkir (${numVendors} warung): Rp ${extraRestoFee.toLocaleString()}%0A`;
-                    message += `*Total Bayar: Rp ${finalTotal.toLocaleString()}*%0A%0A`;
+                    message += `Ongkos Kirim: Rp ${window.checkoutOngkir.toLocaleString()}\n`;
+                    if (extraRestoFee > 0) message += `Tambahan Ongkir (${numVendors} warung): Rp ${extraRestoFee.toLocaleString()}\n`;
+                    message += `*Total Bayar: Rp ${finalTotal.toLocaleString()}*\n\n`;
                 } else {
-                    message += `*Ongkos Kirim: (Dihitung manual oleh admin)*%0A`;
-                    if (extraRestoFee > 0) message += `Tambahan Ongkir (${numVendors} warung): Rp ${extraRestoFee.toLocaleString()}%0A`;
-                    message += `*Total Harga Sementara: Rp ${finalTotal.toLocaleString()}*%0A%0A`;
+                    message += `*Ongkos Kirim: (Dihitung manual oleh admin)*\n`;
+                    if (extraRestoFee > 0) message += `Tambahan Ongkir (${numVendors} warung): Rp ${extraRestoFee.toLocaleString()}\n`;
+                    message += `*Total Harga Sementara: Rp ${finalTotal.toLocaleString()}*\n\n`;
                 }
             } else {
                 if (serviceFee > 0) {
-                    message += `Subtotal: Rp ${total.toLocaleString()}%0A`;
-                    message += `Biaya Layanan: Rp ${serviceFee.toLocaleString()}%0A`;
-                    if (extraRestoFee > 0) message += `Tambahan Ongkir (${numVendors} warung): Rp ${extraRestoFee.toLocaleString()}%0A`;
-                    message += `*Total Harga Sementara: Rp ${finalTotal.toLocaleString()}*%0A`;
-                    message += `_(Ongkir akan dikonfirmasi admin)_%0A%0A`;
+                    message += `Subtotal: Rp ${total.toLocaleString()}\n`;
+                    message += `Biaya Layanan: Rp ${serviceFee.toLocaleString()}\n`;
+                    if (extraRestoFee > 0) message += `Tambahan Ongkir (${numVendors} warung): Rp ${extraRestoFee.toLocaleString()}\n`;
+                    message += `*Total Harga Sementara: Rp ${finalTotal.toLocaleString()}*\n`;
+                    message += `_(Ongkir akan dikonfirmasi admin)_\n\n`;
                 } else {
-                    message += `*Total Harga Makanan: Rp ${total.toLocaleString()}*%0A`;
-                    if (extraRestoFee > 0) message += `Tambahan Ongkir (${numVendors} warung): Rp ${extraRestoFee.toLocaleString()}%0A`;
-                    message += `_(Ongkir akan dikonfirmasi admin)_%0A%0A`;
+                    message += `*Total Harga Makanan: Rp ${total.toLocaleString()}*\n`;
+                    if (extraRestoFee > 0) message += `Tambahan Ongkir (${numVendors} warung): Rp ${extraRestoFee.toLocaleString()}\n`;
+                    message += `_(Ongkir akan dikonfirmasi admin)_\n\n`;
                 }
             }
             
-            message += `*Atas Nama:* ${savedProfile.name} (${savedProfile.phone})%0A`;
+            message += `*Atas Nama:* ${savedProfile.name} (${savedProfile.phone})\n`;
 
             if (orderMode === 'dine_in') {
-                message += `*Tipe:* Makan di Tempat%0A`;
-                message += `*Meja:* ${tableNumber}%0A`;
+                message += `*Tipe:* Makan di Tempat\n`;
+                message += `*Meja:* ${tableNumber}\n`;
             } else {
-                message += `*Alamat:* ${addr}%0A`;
-                if (mapsLink) message += `*Maps:* ${mapsLink}%0A`;
+                message += `*Alamat:* ${addr}\n`;
+                if (mapsLink) message += `*Maps:* ${mapsLink}\n`;
             }
             
-            if (note) message += `*Catatan Tambahan:* ${note}%0A`;
+            if (note) message += `*Catatan Tambahan:* ${note}\n`;
             message += `Terima kasih!`;
 
             // TAMBAHAN: Kalkulasi Penghematan untuk disimpan di riwayat
@@ -9543,6 +9632,9 @@
             }
             let totalSavings = foodSavings + ongkirSavings;
 
+            // Pesan belum dikirim: tampilkan panduan dulu. Langkah 2-5 di bawah baru
+            // dijalankan setelah pelanggan menekan "Lanjut Tahap Pesan ke Admin".
+            const selesaikanPesanan = () => {
             // 2. Simpan ke Riwayat Pesanan
             const history = JSON.parse(localStorage.getItem('order_history')) || []; 
             const newOrder = {
@@ -9582,7 +9674,8 @@
 
             // 4. Arahkan ke WhatsApp dengan proteksi error
             try {
-                const waUrl = `https://wa.me/${getAdminWA()}?text=${message}`;
+                // Seluruh isi pesan di-encode supaya tanda & # ? di nama menu / alamat tidak memotong pesan
+                const waUrl = `https://wa.me/${getAdminWA()}?text=${encodeURIComponent(message)}`;
                 const waWindow = window.open(waUrl, '_blank');
                 
                 // Cek jika browser memblokir popup atau gagal membuka jendela baru
@@ -9603,13 +9696,87 @@
             const aoContent = document.getElementById('ao-detail-content');
             if(aoContent) {
                 let feeText = serviceFee > 0 ? `<br><b>Biaya Layanan:</b> Rp ${serviceFee.toLocaleString()}` : '';
-                aoContent.innerHTML = `<b>Vendor:</b> ${newOrder.vendor}<br><b>Menu:</b> ${newOrder.items}<br><b>Subtotal Makanan:</b> Rp ${total.toLocaleString()}${feeText}<br><b>Total Pembayaran:</b> Rp ${finalTotal.toLocaleString()}`;
+                aoContent.innerHTML = `<b>Vendor:</b> ${esc(newOrder.vendor)}<br><b>Menu:</b> ${esc(newOrder.items)}<br><b>Subtotal Makanan:</b> Rp ${total.toLocaleString()}${feeText}<br><b>Total Pembayaran:</b> Rp ${finalTotal.toLocaleString()}`;
             }
 
             activeModal.style.display = 'flex';
             activeModal.offsetHeight; 
             activeModal.classList.add('show');
+            };
+
+            window.bukaPanduanPesan(message, selesaikanPesanan);
         }
+
+        /* ==========================================================
+           PANDUAN SEBELUM KIRIM PESANAN KE WHATSAPP ADMIN
+           processCheckout() menyiapkan pesan, lalu panduan ini muncul.
+           Pesanan baru disimpan & WhatsApp baru dibuka setelah pelanggan
+           menekan "Lanjut Tahap Pesan ke Admin".
+           ========================================================== */
+        let ppLanjut = null;   // fungsi penyelesaian pesanan dari processCheckout
+        let ppTeks = '';
+
+        window.bukaPanduanPesan = (teks, lanjut) => {
+            ppTeks = String(teks || '');
+            ppLanjut = typeof lanjut === 'function' ? lanjut : null;
+            const el = document.getElementById('panduan-pesan');
+            if (!el) { if (ppLanjut) ppLanjut(); return; }
+            document.getElementById('pp-pesan').textContent = ppTeks; // teks biasa, bukan HTML
+            el.classList.remove('pp-lihat-pesan');
+            const lihat = document.getElementById('pp-lihat');
+            lihat.setAttribute('aria-expanded', 'false');
+            lihat.querySelector('span').textContent = 'Lihat isi pesan yang akan dikirim';
+            el.classList.add('show');
+            el.setAttribute('aria-hidden', 'false');
+            window.history.pushState({ isPanduanPesan: true, name: 'panduan-pesan' }, '', '');
+            setTimeout(() => { const b = document.getElementById('pp-lanjut'); if (b) b.focus(); }, 50);
+        };
+
+        // dariTombolBack = true bila ditutup oleh tombol Back HP (history sudah mundur sendiri)
+        window.tutupPanduanPesan = (dariTombolBack) => {
+            const el = document.getElementById('panduan-pesan');
+            if (!el || !el.classList.contains('show')) return;
+            el.classList.remove('show');
+            el.setAttribute('aria-hidden', 'true');
+            ppLanjut = null;
+            if (!dariTombolBack && window.history.state && window.history.state.isPanduanPesan) {
+                window.isClosingPopup = true;
+                window.history.back();
+            }
+        };
+
+        window.lihatIsiPesan = () => {
+            const el = document.getElementById('panduan-pesan');
+            const buka = !el.classList.contains('pp-lihat-pesan');
+            el.classList.toggle('pp-lihat-pesan', buka);
+            const lihat = document.getElementById('pp-lihat');
+            lihat.setAttribute('aria-expanded', buka ? 'true' : 'false');
+            lihat.querySelector('span').textContent = buka ? 'Sembunyikan isi pesan' : 'Lihat isi pesan yang akan dikirim';
+        };
+
+        window.salinIsiPesan = async () => {
+            try {
+                await navigator.clipboard.writeText(ppTeks);
+                showToast('Pesan disalin. Tempel & kirim ke WhatsApp admin ya.');
+            } catch (e) {
+                showToast('Gagal menyalin. Tekan "Lihat isi pesan" lalu salin manual.');
+            }
+        };
+
+        window.lanjutPesanKeAdmin = () => {
+            const lanjut = ppLanjut;
+            if (!lanjut) { window.tutupPanduanPesan(); return; }
+            ppLanjut = null; // cegah pesanan tersimpan dua kali karena tombol ditekan berulang
+            const el = document.getElementById('panduan-pesan');
+            el.classList.remove('show');
+            el.setAttribute('aria-hidden', 'true');
+            // Entri history panduan diganti jadi halaman yang sedang dibuka (tanpa history.back()
+            // yang berjalan belakangan dan bisa bentrok dengan openPage('home') di bawah).
+            if (window.history.state && window.history.state.isPanduanPesan) {
+                window.history.replaceState({ page: currentPage }, '', '');
+            }
+            lanjut(); // window.open dipanggil langsung dari ketukan tombol -> tidak diblokir browser
+        };
 
         window.closeActiveOrderModal = () => {
             const activeModal = document.getElementById('active-order-modal');
@@ -11382,75 +11549,104 @@
             // ----------------------------------------------
         }
 
-        // TAMBAHAN FUNGSI BARU UNTUK MERENDER RESTO FAVORITE
+        // RESTO BARU DI PROJEKGO (menggantikan "Resto Pilihan Terfavorite" di Beranda)
+        // Tampilan mengikuti kontainer "Menu Paling Laris" di halaman Food.
+        // Nama fungsi tetap renderRestoFavorite() supaya pemanggil lama tidak perlu diubah.
         function renderRestoFavorite() {
             const wrapper = document.getElementById('container-resto-favorite');
             if (!wrapper) return;
             wrapper.innerHTML = '';
-            
-            // Ambil 6 resto yang sedang buka & diutamakan andalan sebagai sampel Resto Pilihan
-            const favVendors = currentDisplayVendors
-                .filter(v => (v.status || 'BUKA').toUpperCase() === 'BUKA')
-                .sort((a, b) => (b.is_andalan ? 1 : 0) - (a.is_andalan ? 1 : 0) || (b.rating || 4.5) - (a.rating || 4.5))
-                .slice(0, 6);
-            
-            if(favVendors.length === 0) {
-                wrapper.style.display = 'none';
-                return; 
-            }
 
+            const urlAman = (u) => { const x = window.fixImgUrl(u); return (typeof x === 'string' && /^https:\/\/[^\s"'<>\\]+$/i.test(x)) ? x : ''; };
+            const waktu = (s) => { const t = Date.parse(s || ''); return Number.isFinite(t) ? t : 0; };
+
+            // Tanggal gabung: vendors.created_at; kalau kosong (mitra lama) pakai menu pertamanya
+            const menuPer = {};
+            rawProducts.forEach(p => { if (p.vendor_id) (menuPer[p.vendor_id] = menuPer[p.vendor_id] || []).push(p); });
+            const tglGabung = (v) => {
+                const t = waktu(v.created_at);
+                if (t) return t;
+                const ts = (menuPer[v.id] || []).map(p => waktu(p.created_at)).filter(Boolean);
+                return ts.length ? Math.min(...ts) : 0;
+            };
+            const bukaSekarang = (v) => {
+                const rt = window.isVendorOpenNow(v);
+                if (rt === false) return false;
+                if (rt === true) return true;
+                return (v.status || 'BUKA').toUpperCase() === 'BUKA';
+            };
+
+            const restoBaru = currentDisplayVendors
+                .filter(v => (menuPer[v.id] || []).length > 0)
+                .map(v => ({ v, tgl: tglGabung(v), buka: bukaSekarang(v) }))
+                .sort((a, b) => (b.tgl - a.tgl) || (Number(b.buka) - Number(a.buka)))
+                .slice(0, 10);
+
+            if (restoBaru.length === 0) { wrapper.style.display = 'none'; return; }
             wrapper.style.display = 'block';
 
-            const promoDiv = document.createElement('div');
-            promoDiv.style.cssText = "padding: 0 0 10px 0; background: var(--bg); display: block;";
-            
-            // Header persis gambar: "PROJEKGO" miring, lalu "Resto Pilihan Terfavorite", tombol hijau
-            let headerHtml = `
-                <div style="padding: 0 20px; display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px;">
-                    <div>
-                        <div style="font-size: 13px; font-weight: 800; font-style: italic; color: #111; margin-bottom: 2px;">PROJEKGO</div>
-                        <div style="font-size: 15px; color: #555; font-weight: 500;">Resto Pilihan Terfavorite</div>
-                    </div>
-                    <div onclick="window.openPage('food'); setTimeout(() => { const target = document.getElementById('warung-sticky-header'); if(target) { const offset = target.getBoundingClientRect().top + window.pageYOffset - 80; window.scrollTo({ top: offset, behavior: 'smooth' }); } }, 100);" style="background: #E8F5E9; color: #2E7D32; font-weight: 800; font-size: 13px; padding: 6px 14px; border-radius: 20px; cursor: pointer; flex-shrink: 0; margin-bottom: 2px;">
-                        Lihat semua
-                    </div>
-                </div>
-            `;
+            const kapanGabung = (t) => {
+                if (!t) return '';
+                const hari = Math.floor((Date.now() - t) / 86400000);
+                if (hari < 0 || hari > 90) return '';
+                if (hari === 0) return 'Gabung hari ini';
+                if (hari === 1) return 'Gabung kemarin';
+                if (hari < 14) return `Gabung ${hari} hari lalu`;
+                return `Gabung ${Math.floor(hari / 7)} minggu lalu`;
+            };
 
-            let cardsHtml = '<div style="display: flex; overflow-x: auto; gap: 12px; padding: 5px 20px 20px 20px; scrollbar-width: none; -webkit-overflow-scrolling: touch;">';
-            
-            favVendors.forEach(vendor => {
-                const img = vendor.shop_photo || FALLBACK_VENDOR_IMG;
-                const rating = vendor.rating || (4.5 + Math.random() * 0.4).toFixed(1);
-                const catsArr = extractCategories(vendor.kategori_utama);
-                const catsStr = catsArr.length > 0 ? catsArr.slice(0, 2).join(',') : 'Aneka makanan';
+            const box = document.createElement('div');
+            box.style.cssText = "background: white; padding-bottom: 20px; border-radius: 16px; margin: 0 8px 20px 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden;";
+
+            const headerHtml = `
+                <div style="background: linear-gradient(90deg, #FFF0E5 0%, transparent 100%); display:flex; justify-content:space-between; align-items:center; gap:10px; padding: 15px 15px 12px 15px;">
+                    <div style="font-size: 16px; font-weight: 800; color: #C44700; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                        Resto Baru di PROJEKGO <span style="background:#C44700; color:white; font-size:10px; padding:3px 6px; border-radius:4px; font-weight:800; line-height:1;"><i class="ph-fill ph-sparkle" style="margin-right:2px;"></i>BARU</span>
+                    </div>
+                    <div onclick="window.openPage('food'); setTimeout(() => { const target = document.getElementById('warung-sticky-header'); if(target) { const offset = target.getBoundingClientRect().top + window.pageYOffset - 80; window.scrollTo({ top: offset, behavior: 'smooth' }); } }, 100);" style="font-size: 12px; color: #C44700; display:flex; align-items:center; font-weight: 700; cursor: pointer; flex-shrink:0; min-height:32px;">Lihat Semua <i class="ph-bold ph-caret-right" style="margin-left:2px;"></i></div>
+                </div>`;
+
+            let cardsHtml = '<div class="scroll-container" style="padding: 0 15px; gap: 12px;">';
+            restoBaru.forEach(({ v, tgl, buka }) => {
+                const menu = menuPer[v.id] || [];
+                const img = urlAman(v.cover_photo) || urlAman(v.shop_photo) || menu.map(p => urlAman(p.foto_url)).find(Boolean) || FALLBACK_VENDOR_IMG;
+                const hargaAda = menu.filter(p => p.is_available !== false && p.is_sold_out !== true).map(p => parseInt(p.harga, 10)).filter(n => n > 0);
+                const mulai = hargaAda.length ? Math.min(...hargaAda) : 0;
+                const kat = extractCategories(v.kategori_utama).slice(0, 2).join(', ') || 'Aneka makanan';
+                const area = v.area || v.alamat_warung || v.lokasi || '';
+                const gabung = kapanGabung(tgl);
+                // UMKM kelolaan admin dibuka sebagai Buku Menu, mitra biasa ke halaman warung
+                const aksi = (v.is_admin_managed === true && typeof window.openUmkmMenu === 'function')
+                    ? `window.openUmkmMenu(uiVal(${uiRef(v.id)}))`
+                    : `openVendorPage(uiVal(${uiRef(v.id)}))`;
 
                 cardsHtml += `
-                    <div style="min-width: 140px; max-width: 140px; background: white; border-radius: 14px; border: 1px solid #f0f0f0; box-shadow: 0 4px 10px rgba(0,0,0,0.04); display: flex; flex-direction: column; cursor: pointer; position: relative; overflow: hidden;" onclick="openVendorPage('${vendor.id}')">
-                        
-                        <div style="position: relative; width: 100%; height: 140px; background: #f5f5f5;">
-                            <img src="${img}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
+                    <div role="button" tabindex="0" style="width: 220px; flex-shrink: 0; cursor: pointer; background: white; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.03); display: flex; flex-direction: column; overflow: hidden;" onclick="${aksi}" onkeydown="if(event.key==='Enter'){${aksi}}">
+                        <div style="position:relative; width:100%; height:160px; overflow:hidden; background:#f5f5f5;">
+                            <img src="${esc(img)}" alt="" loading="lazy" style="width:100%; height:100%; object-fit:cover;${buka ? '' : ' filter:grayscale(100%);'}" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
+                            <div class="watermark-projekgo">PROJEKGO</div>
+                            <div style="position:absolute; top:0; left:0; background: #C44700; color: white; font-size:10px; padding:4px 8px; border-bottom-right-radius:8px; font-weight:800; z-index:2;">Baru</div>
+                            ${buka ? '' : '<div style="position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.72); color:#fff; font-size:10px; padding:3px 8px; border-radius:99px; font-weight:800; z-index:2;">TUTUP</div>'}
                         </div>
-
-                        <div style="padding: 12px 10px; display: flex; flex-direction: column; flex-grow: 1;">
-                            <div style="font-size: 14px; font-weight: 800; color: #111; line-height: 1.3; margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                                ${esc(vendor.nama_warung)}
+                        <div style="padding: 12px; display:flex; flex-direction:column; flex-grow:1;">
+                            <div style="font-size: 14px; font-weight: 700; color: var(--dark); margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3;">${esc(v.nama_warung || 'Warung Projekgo')}</div>
+                            <div style="font-size: 11px; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
+                                ${gabung ? `<span style="color: #C44700; font-weight: 700;">${gabung}</span><span style="color: #888;">•</span>` : ''}
+                                <span style="color: #888;">${menu.length} menu</span>
                             </div>
-                            <div style="font-size: 11px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 12px;">
-                                ${catsStr}
+                            <div style="font-size: 11px; color: #888; margin-bottom: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                ${esc(kat)}${area ? ' • ' + esc(area) : ''}
                             </div>
-                            <div style="margin-top: auto; display: flex; align-items: center; gap: 4px;">
-                                <i class="ph-fill ph-star" style="color: #FF6600; font-size: 14px;"></i>
-                                <span style="font-size: 12px; font-weight: 700; color: #333;">${rating}</span>
+                            <div style="display:flex; align-items: baseline; gap: 6px; margin-top:auto;">
+                                ${mulai ? `<span style="font-size: 11px; color: #888;">Mulai</span><span style="font-size: 16px; font-weight: 800; color: var(--dark);">Rp${mulai.toLocaleString('id-ID')}</span>` : '<span style="font-size: 12px; font-weight: 700; color: #888;">Lihat menunya</span>'}
                             </div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
-
             cardsHtml += '</div>';
-            promoDiv.innerHTML = headerHtml + cardsHtml;
-            wrapper.appendChild(promoDiv);
+
+            box.innerHTML = headerHtml + cardsHtml;
+            wrapper.appendChild(box);
         }
 
         // TAMBAHAN FUNGSI BARU UNTUK MERENDER KARTU PROMO (VERTIKAL KEBUMEN/GOMBONG)
@@ -12068,11 +12264,18 @@
             
             // TAMBAHAN: Pesan edukasi harga asli & pengantaran (Diubah menjadi format poin-poin)
             let edukasiMsg = `
-                <div class="kp-card">
-                    <div class="kp-head">
+                <div class="kp-card${window.__kpTerbuka ? ' kp-terbuka' : ''}">
+                    <button type="button" class="kp-head kp-toggle" aria-expanded="${window.__kpTerbuka ? 'true' : 'false'}" aria-controls="kp-isi-kartu">
                         <span class="kp-head-ic"><i class="ph-fill ph-seal-check"></i></span>
-                        <span class="kp-head-txt"><b>Keuntungan Pesan di PROJEKGO</b><small>Ketuk tiap poin untuk penjelasannya</small></span>
-                    </div>
+                        <span class="kp-head-txt">
+                            <b>Keuntungan Pesan di PROJEKGO</b>
+                            <span class="kp-ringkas"><span class="kp-chip kp-chip-hijau">Harga asli</span><span class="kp-chip">Antar express</span><span class="kp-chip kp-chip-hijau">Tanpa biaya layanan</span></span>
+                            <small class="kp-sub-buka">Ketuk tiap poin untuk penjelasannya</small>
+                        </span>
+                        <span class="kp-head-chev"><i class="ph-bold ph-caret-down"></i></span>
+                    </button>
+
+                    <div class="kp-lipat" id="kp-isi-kartu"><div>
 
                     <button type="button" class="kp-item" data-kp>
                         <span class="kp-ic kp-hijau"><i class="ph-fill ph-tag"></i></span>
@@ -12102,6 +12305,7 @@
                     </button>
 
                     <p class="kp-petunjuk">Harga jujur, antar cepat, tanpa biaya siluman 🧡</p>
+                    </div></div>
                 </div>
                 <div id="umkm-daftar-warung"></div>
             `;
