@@ -950,6 +950,59 @@
         .um-kosong { margin: 20px 16px; background: #FFF6EC; border-radius: 16px; padding: 18px; text-align: center; font-size: 13px; font-weight: 700; color: #6B6B70; }
         .um-kaki { padding: 22px 20px 0; text-align: center; font-size: 12px; font-weight: 700; color: #4A2A08; line-height: 1.6; }
 
+        /* --- Buku Menu UMKM: jam buka, info tutup, tombol "Cara pesan" --- */
+        .um-cover-kanan { position: absolute; top: calc(16px + env(safe-area-inset-top, 0px)); right: 14px; z-index: 2; display: flex; align-items: center; gap: 8px; }
+        .um-cover-kanan .um-chip { position: static; }
+        .um-bantu { min-height: 36px; border: 0; border-radius: 99px; background: rgba(255,255,255,0.92); color: #1C1C1E; font-size: 12px; font-weight: 800; font-family: inherit; padding: 0 12px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+        .um-jam { margin-top: 6px; display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 700; color: #FFD08A; }
+        .um-tutup-info { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; }
+        .um-tutup-judul { font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 6px; }
+        .um-tutup-teks { font-size: 12.5px; font-weight: 600; color: #E8E2DC; line-height: 1.55; }
+        .um-tutup-btn { align-self: flex-start; margin-top: 6px; min-height: 44px; border: 0; border-radius: 12px; background: #fff; color: #1C1C1E; font-weight: 800; font-size: 13px; padding: 0 14px; font-family: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+
+        /* --- Animasi arahan "Cara pesan dari buku menu" (kelas "ut-") --- */
+        .ut { position: fixed; inset: 0; z-index: 3500; display: none; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; background: rgba(28,14,4,0.72); font-family: 'Plus Jakarta Sans', sans-serif; }
+        .ut.show { display: flex; }
+        .ut-kartu { width: 100%; max-width: 340px; background: #FFF6EC; border-radius: 24px; padding: 20px 18px 18px; box-sizing: border-box; box-shadow: 0 20px 50px rgba(0,0,0,0.35); color: #1C1C1E; animation: utMuncul 0.3s ease-out; }
+        @keyframes utMuncul { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: none; } }
+        .ut-kicker { font-size: 11px; font-weight: 800; letter-spacing: 0.16em; color: #C44700; }
+        .ut-judul { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 24px; font-weight: 700; line-height: 1.1; margin: 4px 0 12px; }
+        .ut-demo { position: relative; height: 236px; border-radius: 18px; background: #F4B04A; overflow: hidden; }
+        .ut-row { position: absolute; left: 12px; right: 12px; height: 40px; display: flex; align-items: baseline; gap: 7px; padding: 10px; box-sizing: border-box; border-radius: 12px; font-size: 14px; font-weight: 800; transition: background 0.25s; }
+        .ut-row.r1 { top: 14px; }
+        .ut-row.r2 { top: 56px; opacity: 0.55; }
+        .ut-row.r3 { top: 98px; opacity: 0.35; }
+        .ut-demo.pilih .ut-row.r1 { background: rgba(255,255,255,0.65); }
+        .ut-dot { width: 7px; height: 7px; border-radius: 50%; background: #1C1C1E; flex-shrink: 0; transform: translateY(-2px); }
+        .ut-qty { display: none; font-size: 11.5px; color: #fff; background: #1C1C1E; border-radius: 99px; padding: 1px 6px; flex-shrink: 0; }
+        .ut-demo.hasil .r1 .ut-dot { display: none; }
+        .ut-demo.hasil .r1 .ut-qty { display: inline-block; animation: utPop 0.35s ease-out; }
+        @keyframes utPop { 0% { transform: scale(0.4); } 70% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        .ut-titik { flex: 1; min-width: 8px; border-bottom: 2px dotted #6E4312; transform: translateY(-4px); }
+        .ut-sheet { position: absolute; left: 0; right: 0; bottom: 0; height: 134px; background: #FFF6EC; border-radius: 18px 18px 0 0; padding: 10px 14px; box-sizing: border-box; transform: translateY(105%); transition: transform 0.35s cubic-bezier(.2,.9,.3,1); box-shadow: 0 -6px 16px rgba(0,0,0,0.15); }
+        .ut-demo.sheet .ut-sheet { transform: none; }
+        .ut-sh-nama { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 16px; font-weight: 700; }
+        .ut-step { display: flex; justify-content: center; align-items: center; gap: 26px; margin: 6px 0 8px; }
+        .ut-min, .ut-plus { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 18px; box-sizing: border-box; }
+        .ut-min { border: 2px solid #1C1C1E; background: #fff; }
+        .ut-plus { background: #1C1C1E; color: #fff; }
+        .ut-angka { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 26px; min-width: 20px; text-align: center; }
+        .ut-cta { background: #C44700; color: #fff; border-radius: 12px; text-align: center; font-size: 12.5px; font-weight: 800; padding: 9px; }
+        .ut-jari { position: absolute; left: 0; top: 0; width: 34px; height: 34px; color: #fff; font-size: 32px; line-height: 1; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.45)); transition: transform 0.6s cubic-bezier(.4,.1,.2,1); pointer-events: none; z-index: 3; }
+        .ut-jari i { display: block; transition: transform 0.15s; transform-origin: 50% 0; }
+        .ut-jari.tekan i { transform: scale(0.82); }
+        .ut-jari::after { content: ''; position: absolute; left: 3px; top: -8px; width: 24px; height: 24px; border-radius: 50%; background: rgba(255,255,255,0.75); transform: scale(0); opacity: 0; }
+        .ut-jari.riak::after { animation: utRiak 0.45s ease-out; }
+        @keyframes utRiak { from { transform: scale(0.3); opacity: 0.9; } to { transform: scale(1.8); opacity: 0; } }
+        .ut-teks { min-height: 42px; margin: 12px 2px 0; font-size: 13.5px; font-weight: 700; line-height: 1.5; text-align: center; }
+        .ut-teks b { color: #C44700; }
+        .ut-ok { width: 100%; min-height: 50px; margin-top: 12px; border: 0; border-radius: 16px; background: #1C1C1E; color: #fff; font-size: 15px; font-weight: 800; font-family: inherit; cursor: pointer; visibility: hidden; opacity: 0; transition: opacity 0.3s; }
+        .ut-kartu.siap .ut-ok { visibility: visible; opacity: 1; }
+        @media (prefers-reduced-motion: reduce) {
+            .ut-kartu, .ut-demo.hasil .r1 .ut-qty { animation: none; }
+            .ut-jari, .ut-sheet, .ut-ok { transition: none; }
+        }
+
         .um-cartbar { position: fixed; left: 14px; right: 14px; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); max-width: calc(var(--max-width) - 28px); margin: 0 auto; z-index: 999; display: none; }
         .um-cartbar button { width: 100%; min-height: 60px; border: 0; border-radius: 20px; background: #1C1C1E; color: #fff; display: flex; align-items: center; gap: 12px; padding: 10px 14px 10px 12px; cursor: pointer; box-shadow: 0 12px 26px rgba(0,0,0,0.28); font-family: 'Plus Jakarta Sans', sans-serif; }
         .um-cb-ic { width: 40px; height: 40px; flex: 0 0 40px; border-radius: 12px; background: #C44700; display: grid; place-items: center; font-size: 20px; }
@@ -3578,6 +3631,27 @@
         </div>
     </div>
 
+    <!-- BUKU MENU UMKM: animasi arahan cara pesan -->
+    <div id="umkm-tutor" class="ut" aria-hidden="true">
+        <div class="ut-kartu" id="ut-kartu" role="dialog" aria-modal="true" aria-labelledby="ut-judul">
+            <div class="ut-kicker">CARA PESAN</div>
+            <div class="ut-judul" id="ut-judul">Pesan dari buku menu</div>
+            <div class="ut-demo" id="ut-demo" aria-hidden="true">
+                <div class="ut-row r1"><span class="ut-dot"></span><span class="ut-qty">2×</span><span class="ut-nama">Nasi Goreng</span><span class="ut-titik"></span><span>15 K</span></div>
+                <div class="ut-row r2"><span class="ut-dot"></span><span>Mie Ayam</span><span class="ut-titik"></span><span>12 K</span></div>
+                <div class="ut-row r3"><span class="ut-dot"></span><span>Es Teh</span><span class="ut-titik"></span><span>5 K</span></div>
+                <div class="ut-sheet">
+                    <div class="ut-sh-nama">NASI GORENG</div>
+                    <div class="ut-step"><span class="ut-min">−</span><span class="ut-angka" id="ut-angka">1</span><span class="ut-plus">+</span></div>
+                    <div class="ut-cta">Tambah ke keranjang</div>
+                </div>
+                <div class="ut-jari" id="ut-jari"><i class="ph-fill ph-hand-pointing"></i></div>
+            </div>
+            <div class="ut-teks" id="ut-teks" aria-live="polite"></div>
+            <button type="button" class="ut-ok" onclick="window.umkmTutorSelesai()">Mengerti</button>
+        </div>
+    </div>
+
     <!-- BUKU MENU UMKM: bar keranjang + pop-up jumlah (tambah / kurang) -->
     <div id="umkm-cart-bar" class="um-cartbar">
         <button type="button" onclick="window.umkmBukaKeranjang()">
@@ -4974,6 +5048,13 @@
                 return;
             }
 
+            // 2.78 Tombol Back HP saat animasi arahan Buku Menu UMKM terbuka
+            const umkmTutor = document.getElementById('umkm-tutor');
+            if (umkmTutor && umkmTutor.classList.contains('show')) {
+                window.umkmTutorSelesai(true);
+                return;
+            }
+
             // 2.8 Tombol Back HP saat pop-up jumlah Buku Menu UMKM terbuka
             const umkmSheet = document.getElementById('umkm-sheet');
             if (umkmSheet && umkmSheet.classList.contains('show')) {
@@ -5847,6 +5928,9 @@
         // ==================================================================================
 
         window.openVendorPage = (vendorId) => {
+            // Warung UMKM kelolaan admin selalu dibuka sebagai Buku Menu, dari mana pun diklik
+            const vUmkm = allVendors.find(v => v.id === vendorId);
+            if (vUmkm && vUmkm.is_admin_managed === true && typeof window.openUmkmMenu === 'function') { window.openUmkmMenu(vUmkm.id); return; }
             let vendor = allVendors.find(v => v.id === vendorId);
             if (!vendor) { const prod = rawProducts.find(p => p.vendor_id === vendorId); if (prod) vendor = {id: vendorId, nama_warung: prod.vendor_name, shop_photo: null}; else { const vByName = allVendors.find(v => v.nama_warung === vendorId); if (vByName) vendor = vByName; else vendor = {id: 'temp', nama_warung: 'Detail Warung', shop_photo: null}; } }
             
@@ -7117,6 +7201,145 @@
         let umkmVendorAktif = null;
         let umkmPilihan = null; // { id, draft, punya }
 
+        // ---------- 5. JAM BUKA WARUNG UMKM ----------
+        const UMKM_HARI = ['minggu', 'senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
+        const umkmJamTampil = (s) => /^([01]?\d|2[0-3]):[0-5]\d$/.test(String(s || '')) ? String(s).padStart(5, '0').replace(':', '.') : '';
+        const umkmMenitDari = (s) => { const [h, m] = String(s).split('.').map(Number); return h * 60 + m; };
+        const umkmWib = () => { const n = new Date(); return new Date(n.getTime() + n.getTimezoneOffset() * 60000 + 7 * 3600000); };
+        const umkmJadwalHari = (v, idx) => {
+            const j = v && v.jadwal_mingguan;
+            if (!j || typeof j !== 'object') return null;
+            const d = j[UMKM_HARI[idx]];
+            if (!d || typeof d !== 'object') return null;
+            if (d.libur === true) return { libur: true };
+            const buka = umkmJamTampil(d.buka), tutup = umkmJamTampil(d.tutup);
+            return (buka && tutup) ? { buka, tutup } : null;
+        };
+        // Jadwal hari ini + hari buka berikutnya (untuk keterangan warung tutup)
+        const umkmInfoJam = (v) => {
+            const now = umkmWib();
+            const hariIni = now.getDay();
+            const menitIni = now.getHours() * 60 + now.getMinutes();
+            const today = umkmJadwalHari(v, hariIni);
+            let berikut = null;
+            for (let i = 1; i <= 7; i++) {
+                const idx = (hariIni + i) % 7;
+                const d = umkmJadwalHari(v, idx);
+                if (d && !d.libur) {
+                    const nama = UMKM_HARI[idx].charAt(0).toUpperCase() + UMKM_HARI[idx].slice(1);
+                    berikut = { hari: i === 1 ? 'besok' : 'hari ' + nama, ...d };
+                    break;
+                }
+            }
+            let sudahLewat = false;
+            if (today && !today.libur) {
+                const b = umkmMenitDari(today.buka), t = umkmMenitDari(today.tutup);
+                sudahLewat = t > b && menitIni > t; // lewat jam tutup (bukan warung buka lewat tengah malam)
+            }
+            return { today, berikut, sudahLewat };
+        };
+        const umkmTeksJam = (v) => {
+            const { today, berikut, sudahLewat } = umkmInfoJam(v);
+            const lagi = berikut ? ` Buka lagi ${berikut.hari} pukul ${berikut.buka} WIB.` : '';
+            if (today && today.libur) return { cover: 'Hari ini libur', daftar: 'Libur hari ini', tutup: 'Hari ini warung libur.' + lagi };
+            if (today) {
+                const rentang = `${today.buka} – ${today.tutup}`;
+                return {
+                    cover: `Buka hari ini ${rentang} WIB`,
+                    daftar: rentang,
+                    tutup: `Warung ini buka dari jam ${today.buka} sampai ${today.tutup} WIB.` + (sudahLewat ? lagi : '')
+                };
+            }
+            return { cover: '', daftar: '', tutup: 'Menu tetap bisa dilihat, tapi belum bisa dipesan.' };
+        };
+        window.umkmPilihLain = () => {
+            openPage('food');
+            setTimeout(() => {
+                const t = document.getElementById('umkm-daftar-warung');
+                if (t) window.scrollTo({ top: t.getBoundingClientRect().top + window.pageYOffset - 80, behavior: 'smooth' });
+            }, 150);
+        };
+
+        // ---------- 6. ANIMASI ARAHAN "CARA PESAN" ----------
+        const UMKM_TUTOR_KEY = 'umkm_tutor_selesai';
+        let utTimer = [];
+        const utJadwal = (ms, fn) => { utTimer.push(setTimeout(fn, ms)); };
+        const utHentikan = () => { utTimer.forEach(clearTimeout); utTimer = []; };
+        const utKurangiGerak = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        // Teks arahan hanya dari string tetap di bawah (bukan data pengguna)
+        const utTeks = (html) => { const el = document.getElementById('ut-teks'); if (el) el.innerHTML = html; };
+        function utTitik(sel, fx = 0.5, fy = 0.5) {
+            const demo = document.getElementById('ut-demo');
+            const el = demo && demo.querySelector(sel);
+            if (!el) return { x: 0, y: 0 };
+            const a = demo.getBoundingClientRect(), b = el.getBoundingClientRect();
+            return { x: b.left - a.left + b.width * fx, y: b.top - a.top + b.height * fy };
+        }
+        function utGeser(p) { const j = document.getElementById('ut-jari'); if (j) j.style.transform = `translate(${Math.round(p.x - 14)}px, ${Math.round(p.y - 3)}px)`; }
+        function utTekan() {
+            const j = document.getElementById('ut-jari');
+            if (!j) return;
+            j.classList.remove('tekan', 'riak'); void j.offsetWidth;
+            j.classList.add('tekan', 'riak');
+            utJadwal(200, () => j.classList.remove('tekan'));
+            utJadwal(500, () => j.classList.remove('riak'));
+        }
+        function utPutar() {
+            utHentikan();
+            const demo = document.getElementById('ut-demo');
+            if (!demo) return;
+            const istirahat = () => ({ x: demo.clientWidth - 36, y: 200 });
+            demo.className = 'ut-demo';
+            document.getElementById('ut-angka').textContent = '1';
+            utGeser(istirahat());
+            utTeks('<b>1.</b> Ketuk nama menu yang kamu mau');
+            utJadwal(500, () => utGeser(utTitik('.r1 .ut-nama', 0.55, 0.6)));
+            utJadwal(1200, () => { utTekan(); demo.classList.add('pilih'); });
+            utJadwal(1600, () => { demo.classList.add('sheet'); utTeks('<b>2.</b> Atur jumlah porsinya dengan tombol <b>+</b> / <b>−</b>'); });
+            utJadwal(2200, () => utGeser(utTitik('.ut-plus')));
+            utJadwal(2900, () => { utTekan(); document.getElementById('ut-angka').textContent = '2'; });
+            utJadwal(3400, () => { utGeser(utTitik('.ut-cta')); utTeks('<b>3.</b> Tekan <b>Tambah ke keranjang</b>'); });
+            utJadwal(4100, () => utTekan());
+            utJadwal(4400, () => { demo.classList.remove('sheet'); demo.classList.add('hasil'); utGeser(istirahat()); utTeks('Selesai! Jumlah pesanan muncul di depan nama menu.'); });
+            utJadwal(4900, () => { const k = document.getElementById('ut-kartu'); if (k) k.classList.add('siap'); });
+            utJadwal(7600, utPutar); // diulang terus sampai pelanggan menekan "Mengerti"
+        }
+
+        window.umkmTutorBuka = () => {
+            const el = document.getElementById('umkm-tutor');
+            if (!el || el.classList.contains('show')) return;
+            window.umkmTutupSheet(true);
+            const kartu = document.getElementById('ut-kartu');
+            kartu.classList.remove('siap');
+            el.classList.add('show');
+            el.setAttribute('aria-hidden', 'false');
+            window.history.pushState({ isUmkmTutor: true, name: 'umkm-tutor' }, '', '');
+            if (utKurangiGerak()) {
+                // Tanpa gerakan: langsung tampilkan hasil akhir + semua langkah
+                const demo = document.getElementById('ut-demo');
+                demo.className = 'ut-demo pilih hasil';
+                utGeser({ x: -60, y: -60 });
+                utTeks('<b>1.</b> Ketuk nama menu &nbsp;<b>2.</b> Atur jumlah &nbsp;<b>3.</b> Tekan <b>Tambah ke keranjang</b>');
+                kartu.classList.add('siap');
+            } else {
+                requestAnimationFrame(utPutar);
+            }
+        };
+
+        // dariTombolBack = true bila ditutup oleh tombol Back HP (history sudah mundur sendiri)
+        window.umkmTutorSelesai = (dariTombolBack) => {
+            const el = document.getElementById('umkm-tutor');
+            if (!el || !el.classList.contains('show')) return;
+            utHentikan();
+            el.classList.remove('show');
+            el.setAttribute('aria-hidden', 'true');
+            try { localStorage.setItem(UMKM_TUTOR_KEY, '1'); } catch (e) {}
+            if (dariTombolBack !== true && window.history.state && window.history.state.isUmkmTutor) {
+                window.isClosingPopup = true;
+                window.history.back();
+            }
+        };
+
         // ---------- 1. DAFTAR ISI DI HALAMAN FOOD ----------
         window.renderUmkmDaftar = () => {
             let wadah = document.getElementById('umkm-daftar-warung');
@@ -7138,7 +7361,7 @@
             const baris = daftar.map((x, i) => {
                 const v = x.v;
                 const kat = extractCategories(v.kategori_utama)[0] || '';
-                const sub = [kat, v.alamat_warung || v.alamat || ''].filter(Boolean).join(' · ');
+                const sub = [umkmTeksJam(v).daftar, kat, v.alamat_warung || v.alamat || ''].filter(Boolean).join(' · ');
                 return `
                 <button type="button" class="um-row" onclick="window.openUmkmMenu(uiVal(${uiRef(v.id)}))">
                     <span class="um-no">${String(i + 1).padStart(2, '0')}</span>
@@ -7171,6 +7394,12 @@
             umkmVendorAktif = v.id;
             window.renderUmkmMenu();
             openPage('umkm-menu');
+            // Arahan cara pesan muncul otomatis sekali saja (bisa diputar lagi lewat tombol "Cara pesan")
+            let sudahLihat = false;
+            try { sudahLihat = localStorage.getItem(UMKM_TUTOR_KEY) === '1'; } catch (e) {}
+            if (!sudahLihat && umkmBuka(v) && umkmMenuDari(v.id).length > 0) {
+                setTimeout(() => { if (currentPage === 'umkm-menu' && umkmVendorAktif === v.id) window.umkmTutorBuka(); }, 500);
+            }
         };
 
         window.renderUmkmMenu = () => {
@@ -7183,6 +7412,7 @@
                 return;
             }
             const buka = umkmBuka(v);
+            const jam = umkmTeksJam(v);
             const menu = umkmMenuDari(v.id);
 
             // Kelompokkan per etalase, urutan etalase ikut pengaturan warung bila ada
@@ -7229,16 +7459,26 @@
                     ${sampul ? `<img src="${esc(sampul)}" alt="" onerror="this.remove()">` : ''}
                     <div class="um-cover-tint"></div>
                     <button type="button" class="um-back" onclick="goBack()" aria-label="Kembali"><i class="ph-bold ph-arrow-left"></i></button>
-                    <span class="um-chip ${buka ? 'buka' : 'tutup'}">${buka ? 'BUKA' : 'TUTUP'}</span>
+                    <div class="um-cover-kanan">
+                        <button type="button" class="um-bantu" onclick="window.umkmTutorBuka()"><i class="ph-bold ph-question"></i> Cara pesan</button>
+                        <span class="um-chip ${buka ? 'buka' : 'tutup'}">${buka ? 'BUKA' : 'TUTUP'}</span>
+                    </div>
                     <div class="um-cover-txt">
                         ${logo ? `<div class="um-logo"><img src="${esc(logo)}" alt="" onerror="this.parentElement.remove()"></div>` : ''}
                         <div style="min-width:0;">
                             <div class="um-nama">${esc(v.nama_warung || 'Warung UMKM')}</div>
                             <div class="um-alamat">${esc(v.alamat_warung || v.alamat || '')}</div>
+                            ${jam.cover ? `<div class="um-jam"><i class="ph-bold ph-clock"></i> ${esc(jam.cover)}</div>` : ''}
                         </div>
                     </div>
                 </div>
-                ${buka ? '' : '<div class="um-tutup-info"><i class="ph-fill ph-moon"></i> Warung sedang tutup. Menu tetap bisa dilihat, tapi belum bisa dipesan.</div>'}
+                ${buka ? '' : `
+                <div class="um-tutup-info" role="status">
+                    <div class="um-tutup-judul"><i class="ph-fill ph-moon"></i> Warung sedang tutup</div>
+                    <div class="um-tutup-teks">${esc(jam.tutup)}</div>
+                    <div class="um-tutup-teks">Kamu bisa pilih warung yang lain.</div>
+                    <button type="button" class="um-tutup-btn" onclick="window.umkmPilihLain()">Pilih warung lain <i class="ph-bold ph-caret-right"></i></button>
+                </div>`}
                 ${seksi || '<div class="um-kosong">Menu warung ini belum diisi.</div>'}
                 <div class="um-kaki">Ketuk nama menu untuk menambah ke keranjang.<br>Harga sama dengan beli langsung di warungnya.</div>`;
 
@@ -7252,7 +7492,7 @@
             const hal = halaman || currentPage;
             if (hal !== 'umkm-menu' || !umkmVendorAktif) {
                 bar.style.display = 'none';
-                if (hal !== 'umkm-menu') window.umkmTutupSheet(true);
+                if (hal !== 'umkm-menu') { window.umkmTutupSheet(true); window.umkmTutorSelesai(true); }
                 return;
             }
             const ids = new Set(umkmMenuDari(umkmVendorAktif).map(p => p.id));
@@ -11576,24 +11816,15 @@
                 return (v.status || 'BUKA').toUpperCase() === 'BUKA';
             };
 
+            // Hanya resto yang sedang buka & punya menu, diurutkan dari yang paling baru gabung
             const restoBaru = currentDisplayVendors
-                .filter(v => (menuPer[v.id] || []).length > 0)
-                .map(v => ({ v, tgl: tglGabung(v), buka: bukaSekarang(v) }))
-                .sort((a, b) => (b.tgl - a.tgl) || (Number(b.buka) - Number(a.buka)))
+                .filter(v => (menuPer[v.id] || []).length > 0 && bukaSekarang(v))
+                .map(v => ({ v, tgl: tglGabung(v) }))
+                .sort((a, b) => b.tgl - a.tgl)
                 .slice(0, 10);
 
             if (restoBaru.length === 0) { wrapper.style.display = 'none'; return; }
             wrapper.style.display = 'block';
-
-            const kapanGabung = (t) => {
-                if (!t) return '';
-                const hari = Math.floor((Date.now() - t) / 86400000);
-                if (hari < 0 || hari > 90) return '';
-                if (hari === 0) return 'Gabung hari ini';
-                if (hari === 1) return 'Gabung kemarin';
-                if (hari < 14) return `Gabung ${hari} hari lalu`;
-                return `Gabung ${Math.floor(hari / 7)} minggu lalu`;
-            };
 
             const box = document.createElement('div');
             box.style.cssText = "background: white; padding-bottom: 20px; border-radius: 16px; margin: 0 8px 20px 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden;";
@@ -11607,14 +11838,13 @@
                 </div>`;
 
             let cardsHtml = '<div class="scroll-container" style="padding: 0 15px; gap: 12px;">';
-            restoBaru.forEach(({ v, tgl, buka }) => {
+            restoBaru.forEach(({ v }) => {
                 const menu = menuPer[v.id] || [];
                 const img = urlAman(v.cover_photo) || urlAman(v.shop_photo) || menu.map(p => urlAman(p.foto_url)).find(Boolean) || FALLBACK_VENDOR_IMG;
                 const hargaAda = menu.filter(p => p.is_available !== false && p.is_sold_out !== true).map(p => parseInt(p.harga, 10)).filter(n => n > 0);
                 const mulai = hargaAda.length ? Math.min(...hargaAda) : 0;
                 const kat = extractCategories(v.kategori_utama).slice(0, 2).join(', ') || 'Aneka makanan';
                 const area = v.area || v.alamat_warung || v.lokasi || '';
-                const gabung = kapanGabung(tgl);
                 // UMKM kelolaan admin dibuka sebagai Buku Menu, mitra biasa ke halaman warung
                 const aksi = (v.is_admin_managed === true && typeof window.openUmkmMenu === 'function')
                     ? `window.openUmkmMenu(uiVal(${uiRef(v.id)}))`
@@ -11623,15 +11853,14 @@
                 cardsHtml += `
                     <div role="button" tabindex="0" style="width: 220px; flex-shrink: 0; cursor: pointer; background: white; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.03); display: flex; flex-direction: column; overflow: hidden;" onclick="${aksi}" onkeydown="if(event.key==='Enter'){${aksi}}">
                         <div style="position:relative; width:100%; height:160px; overflow:hidden; background:#f5f5f5;">
-                            <img src="${esc(img)}" alt="" loading="lazy" style="width:100%; height:100%; object-fit:cover;${buka ? '' : ' filter:grayscale(100%);'}" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
+                            <img src="${esc(img)}" alt="" loading="lazy" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
                             <div class="watermark-projekgo">PROJEKGO</div>
                             <div style="position:absolute; top:0; left:0; background: #C44700; color: white; font-size:10px; padding:4px 8px; border-bottom-right-radius:8px; font-weight:800; z-index:2;">Baru</div>
-                            ${buka ? '' : '<div style="position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.72); color:#fff; font-size:10px; padding:3px 8px; border-radius:99px; font-weight:800; z-index:2;">TUTUP</div>'}
                         </div>
                         <div style="padding: 12px; display:flex; flex-direction:column; flex-grow:1;">
                             <div style="font-size: 14px; font-weight: 700; color: var(--dark); margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3;">${esc(v.nama_warung || 'Warung Projekgo')}</div>
                             <div style="font-size: 11px; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
-                                ${gabung ? `<span style="color: #C44700; font-weight: 700;">${gabung}</span><span style="color: #888;">•</span>` : ''}
+                                <span style="background: #FFF0E5; color: #C44700; font-weight: 800; padding: 2px 8px; border-radius: 99px;"><i class="ph-fill ph-sparkle" style="margin-right: 2px;"></i>Resto Baru</span><span style="color: #888;">•</span>
                                 <span style="color: #888;">${menu.length} menu</span>
                             </div>
                             <div style="font-size: 11px; color: #888; margin-bottom: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
