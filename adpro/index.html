@@ -319,6 +319,38 @@
         .uk-toast.gagal { background: #b91c1c; }
         @media (max-width: 380px) { .uk-hari { grid-template-columns: 56px 1fr 1fr; } .uk-hari .uk-libur { grid-column: 2 / 4; } }
 
+        /* =========================================================
+           PILIH TITIK LOKASI DI PETA (warung UMKM) — kelas "pl-"
+           Peta digeser, pin tetap di tengah (seperti aplikasi ojek online).
+           ========================================================= */
+        .pl { position: fixed; inset: 0; z-index: 150000; display: none; background: #e5e3df; }
+        .pl.show { display: block; }
+        .pl-peta { position: absolute; inset: 0; }
+        .pl-atas { position: absolute; top: 0; left: 0; right: 0; z-index: 2; display: flex; gap: 8px; padding: calc(12px + env(safe-area-inset-top, 0px)) 12px 12px; box-sizing: border-box; }
+        .pl-x { width: 46px; height: 46px; flex: 0 0 46px; border: 0; border-radius: 50%; background: #fff; color: #1A1A1A; box-shadow: 0 3px 10px rgba(0,0,0,0.2); font-size: 20px; display: grid; place-items: center; cursor: pointer; }
+        .pl-cari { flex: 1; min-width: 0; min-height: 46px; display: flex; align-items: center; gap: 8px; background: #fff; border-radius: 14px; padding: 0 14px; box-shadow: 0 3px 10px rgba(0,0,0,0.2); color: var(--gray); }
+        .pl-cari input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; font-size: 15px; font-family: inherit; color: #1A1A1A; }
+        .pl-pin { position: absolute; left: 50%; top: 50%; z-index: 2; transform: translate(-50%, -100%); font-size: 46px; line-height: 1; color: #E53935; pointer-events: none; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.35)); transition: transform 0.15s; }
+        .pl.geser .pl-pin { transform: translate(-50%, calc(-100% - 12px)); }
+        .pl-bayang { position: absolute; left: 50%; top: 50%; z-index: 1; width: 12px; height: 5px; margin: -2px 0 0 -6px; border-radius: 50%; background: rgba(0,0,0,0.35); pointer-events: none; }
+        .pl-gps { position: absolute; right: 14px; bottom: calc(160px + env(safe-area-inset-bottom, 0px)); z-index: 2; width: 50px; height: 50px; border: 0; border-radius: 50%; background: #fff; color: #1a73e8; box-shadow: 0 3px 10px rgba(0,0,0,0.2); font-size: 24px; display: grid; place-items: center; cursor: pointer; }
+        .pl-bawah { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; max-width: 600px; margin: 0 auto; background: #fff; border-radius: 22px 22px 0 0; padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px)); box-sizing: border-box; box-shadow: 0 -6px 20px rgba(0,0,0,0.15); }
+        .pl-info b { display: block; font-size: 14px; color: #1A1A1A; }
+        .pl-info span { display: block; margin-top: 3px; font-size: 12px; color: var(--gray); font-variant-numeric: tabular-nums; }
+        .pl-ok { width: 100%; min-height: 50px; margin-top: 12px; border: 0; border-radius: 14px; background: var(--primary); color: #fff; font-size: 15px; font-weight: 800; font-family: inherit; cursor: pointer; }
+        .pl-ok:disabled { opacity: 0.5; cursor: default; }
+        .pl-muat { position: absolute; inset: 0; z-index: 3; display: none; place-items: center; padding: 30px; text-align: center; background: rgba(255,255,255,0.9); font-weight: 700; color: #475569; line-height: 1.6; }
+        .pl.memuat .pl-muat { display: grid; }
+        .pac-container { z-index: 160000 !important; border-radius: 12px; margin-top: 4px; }
+        .pl-kotak { display: flex; align-items: center; gap: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 12px; }
+        .pl-kotak-info { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #334155; }
+        .pl-kotak-info > i { color: #E53935; font-size: 20px; flex-shrink: 0; }
+        .pl-kotak-info a { color: var(--info); font-size: 12px; }
+        .pl-kotak-btn { min-height: 42px; border: 0; border-radius: 10px; background: var(--dark); color: #fff; font-weight: 800; font-size: 12.5px; padding: 0 12px; cursor: pointer; font-family: inherit; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; }
+        .pl-manual { margin-top: 8px; }
+        .pl-manual summary { font-size: 12px; color: var(--gray); font-weight: 700; cursor: pointer; padding: 6px 0; }
+        @media (prefers-reduced-motion: reduce) { .pl-pin { transition: none; } }
+
     </style>
 </head>
 <body>
@@ -803,9 +835,19 @@
                     <div class="uk-field"><label class="form-label" for="uk-prof-nama">Nama Warung *</label><input type="text" id="uk-prof-nama" class="form-input" maxlength="60"></div>
                     <div class="uk-field"><label class="form-label" for="uk-prof-alamat">Alamat / Lokasi</label><input type="text" id="uk-prof-alamat" class="form-input" maxlength="120" placeholder="Contoh: Jl. Kartini no. 7, Gombong"></div>
                     <div class="uk-field"><label class="form-label" for="uk-prof-kategori">Kategori Utama</label><select id="uk-prof-kategori" class="form-input"></select></div>
-                    <div class="uk-2kol">
-                        <div class="uk-field"><label class="form-label" for="uk-prof-lat">Latitude</label><input type="number" step="any" id="uk-prof-lat" class="form-input" placeholder="-7.xxx"></div>
-                        <div class="uk-field"><label class="form-label" for="uk-prof-lng">Longitude</label><input type="number" step="any" id="uk-prof-lng" class="form-input" placeholder="109.xxx"></div>
+                    <div class="uk-field">
+                        <label class="form-label">Titik Lokasi Warung</label>
+                        <div class="pl-kotak">
+                            <div class="pl-kotak-info"><i class="ph-fill ph-map-pin"></i><span id="uk-titik-teks">Belum dipilih</span></div>
+                            <button type="button" class="pl-kotak-btn" onclick="window.pilihTitikWarung('uk')"><i class="ph-bold ph-map-trifold"></i> Pilih di Peta</button>
+                        </div>
+                        <details class="pl-manual">
+                            <summary>Isi koordinat manual</summary>
+                            <div class="uk-2kol" style="margin-top: 6px;">
+                                <input type="number" step="any" id="uk-prof-lat" class="form-input" placeholder="Latitude -7.xxx" aria-label="Latitude" oninput="window.segarkanTitik('uk')">
+                                <input type="number" step="any" id="uk-prof-lng" class="form-input" placeholder="Longitude 109.xxx" aria-label="Longitude" oninput="window.segarkanTitik('uk')">
+                            </div>
+                        </details>
                     </div>
                     <div class="uk-field"><label class="form-label" for="uk-prof-catatan">Catatan Toko</label><textarea id="uk-prof-catatan" rows="2" maxlength="200" placeholder="Opsional. Contoh: Pesanan di atas 10 porsi harap H-1."></textarea></div>
                 </div>
@@ -1137,15 +1179,19 @@
                 <label class="form-label">Kategori Utama</label>
                 <select id="wa-category" class="form-input"></select>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div class="form-group">
-                    <label class="form-label">Latitude</label>
-                    <input type="number" step="any" id="wa-lat" class="form-input" placeholder="-7.xxx">
+            <div class="form-group">
+                <label class="form-label">Titik Lokasi Warung</label>
+                <div class="pl-kotak">
+                    <div class="pl-kotak-info"><i class="ph-fill ph-map-pin"></i><span id="wa-titik-teks">Belum dipilih</span></div>
+                    <button type="button" class="pl-kotak-btn" onclick="window.pilihTitikWarung('wa')"><i class="ph-bold ph-map-trifold"></i> Pilih di Peta</button>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Longitude</label>
-                    <input type="number" step="any" id="wa-lng" class="form-input" placeholder="109.xxx">
-                </div>
+                <details class="pl-manual">
+                    <summary>Isi koordinat manual</summary>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px;">
+                        <input type="number" step="any" id="wa-lat" class="form-input" placeholder="Latitude -7.xxx" aria-label="Latitude" oninput="window.segarkanTitik('wa')">
+                        <input type="number" step="any" id="wa-lng" class="form-input" placeholder="Longitude 109.xxx" aria-label="Longitude" oninput="window.segarkanTitik('wa')">
+                    </div>
+                </details>
             </div>
             <div class="form-group">
                 <label class="form-label">Jam Operasional (Senin - Minggu)</label>
@@ -3163,6 +3209,155 @@
             }
         };
 
+        /* ==========================================================
+           PILIH TITIK LOKASI DI PETA (warung UMKM)
+           Google Maps dimuat hanya saat peta dibuka. Kunci API sama dengan
+           aplikasi katalog (katalog.projekgo.id).
+           ========================================================== */
+        const PETA_KEY = 'AIzaSyAAgPz5iVt7kEcd_gH2hmtHfHg2s8gJMZY';
+        const PETA_AWAL = { lat: -7.6076, lng: 109.5136 }; // Gombong
+        let petaMuat = null, plPeta = null, plAuto = null, plCallback = null, plSaranAlamat = '';
+        const plKoordValid = (lat, lng) => Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180 && !(lat === 0 && lng === 0);
+
+        const muatGoogleMaps = () => {
+            if (window.google && window.google.maps && window.google.maps.places) return Promise.resolve();
+            if (petaMuat) return petaMuat;
+            petaMuat = new Promise((resolve, reject) => {
+                window.__petaSiap = () => resolve();
+                const s = document.createElement('script');
+                s.src = `https://maps.googleapis.com/maps/api/js?key=${PETA_KEY}&libraries=places&callback=__petaSiap&loading=async`;
+                s.async = true;
+                s.onerror = () => { petaMuat = null; s.remove(); reject(new Error('Peta gagal dimuat')); };
+                document.head.appendChild(s);
+            });
+            return petaMuat;
+        };
+
+        function plTulisKoord() {
+            const c = plPeta && plPeta.getCenter();
+            if (c) document.getElementById('pl-koordinat').textContent = `Titik: ${c.lat().toFixed(6)}, ${c.lng().toFixed(6)}`;
+        }
+
+        window.bukaPetaLokasi = async (awal, callback) => {
+            const el = document.getElementById('peta-lokasi');
+            const ok = document.getElementById('pl-ok');
+            const muat = document.getElementById('pl-muat');
+            plCallback = typeof callback === 'function' ? callback : null;
+            plSaranAlamat = '';
+            document.getElementById('pl-cari').value = '';
+            ok.disabled = true;
+            muat.textContent = 'Memuat peta...';
+            el.classList.add('show', 'memuat');
+            el.setAttribute('aria-hidden', 'false');
+            try {
+                await muatGoogleMaps();
+            } catch (e) {
+                muat.textContent = 'Peta gagal dimuat. Cek koneksi internet lalu coba lagi, atau isi koordinat manual.';
+                return;
+            }
+            if (!el.classList.contains('show')) return; // sudah ditutup saat masih memuat
+            const adaAwal = awal && plKoordValid(awal.lat, awal.lng);
+            const pusat = adaAwal ? { lat: awal.lat, lng: awal.lng } : PETA_AWAL;
+            if (!plPeta) {
+                plPeta = new google.maps.Map(document.getElementById('pl-peta'), {
+                    center: pusat, zoom: adaAwal ? 18 : 15,
+                    disableDefaultUI: true, zoomControl: true, gestureHandling: 'greedy', clickableIcons: false
+                });
+                plPeta.addListener('dragstart', () => el.classList.add('geser'));
+                plPeta.addListener('idle', () => { el.classList.remove('geser'); plTulisKoord(); });
+                plAuto = new google.maps.places.Autocomplete(document.getElementById('pl-cari'), {
+                    componentRestrictions: { country: 'id' },
+                    fields: ['geometry', 'name', 'formatted_address']
+                });
+                plAuto.bindTo('bounds', plPeta);
+                plAuto.addListener('place_changed', () => {
+                    const p = plAuto.getPlace();
+                    if (!p || !p.geometry || !p.geometry.location) { ukToast('Tempat tidak ditemukan, coba kata lain', false); return; }
+                    plPeta.panTo(p.geometry.location);
+                    plPeta.setZoom(18);
+                    plSaranAlamat = String(p.formatted_address || p.name || '').slice(0, 120);
+                });
+            } else {
+                plPeta.setCenter(pusat);
+                plPeta.setZoom(adaAwal ? 18 : 15);
+            }
+            el.classList.remove('memuat');
+            ok.disabled = false;
+            plTulisKoord();
+        };
+
+        window.tutupPetaLokasi = () => {
+            const el = document.getElementById('peta-lokasi');
+            el.classList.remove('show', 'memuat', 'geser');
+            el.setAttribute('aria-hidden', 'true');
+            plCallback = null;
+        };
+
+        window.petaLokasiSaya = () => {
+            if (!plPeta) return;
+            if (!navigator.geolocation) { ukToast('Perangkat ini tidak mendukung GPS', false); return; }
+            ukToast('Mencari lokasimu...');
+            navigator.geolocation.getCurrentPosition(
+                (pos) => { plPeta.panTo({ lat: pos.coords.latitude, lng: pos.coords.longitude }); plPeta.setZoom(18); },
+                () => ukToast('Lokasi tidak bisa diambil. Izinkan akses lokasi dulu.', false),
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        };
+
+        window.pakaiTitikPeta = () => {
+            if (!plPeta || !plCallback) return;
+            const c = plPeta.getCenter();
+            const lat = Number(c.lat().toFixed(6)), lng = Number(c.lng().toFixed(6));
+            const cb = plCallback, saran = plSaranAlamat;
+            window.tutupPetaLokasi();
+            cb(lat, lng, saran);
+        };
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.getElementById('peta-lokasi')?.classList.contains('show')) window.tutupPetaLokasi();
+        });
+
+        // Kolom yang diisi peta: "wa" = pop-up Buat Warung, "uk" = tab Profil halaman Kelola UMKM
+        const PL_KOLOM = {
+            wa: { lat: 'wa-lat', lng: 'wa-lng', alamat: 'wa-location', teks: 'wa-titik-teks' },
+            uk: { lat: 'uk-prof-lat', lng: 'uk-prof-lng', alamat: 'uk-prof-alamat', teks: 'uk-titik-teks' }
+        };
+
+        window.segarkanTitik = (k) => {
+            const f = PL_KOLOM[k];
+            const el = f && document.getElementById(f.teks);
+            if (!el) return;
+            const lat = parseFloat(document.getElementById(f.lat).value);
+            const lng = parseFloat(document.getElementById(f.lng).value);
+            el.textContent = '';
+            if (plKoordValid(lat, lng)) {
+                const s = document.createElement('span');
+                s.textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)} · `;
+                const a = document.createElement('a');
+                a.href = `https://www.google.com/maps?q=${lat},${lng}`; // hanya angka yang sudah dicek
+                a.target = '_blank'; a.rel = 'noopener noreferrer';
+                a.textContent = 'Cek di Maps';
+                el.appendChild(s); el.appendChild(a);
+            } else {
+                el.textContent = 'Belum dipilih';
+            }
+        };
+
+        window.pilihTitikWarung = (k) => {
+            const f = PL_KOLOM[k];
+            if (!f) return;
+            const lat = parseFloat(document.getElementById(f.lat).value);
+            const lng = parseFloat(document.getElementById(f.lng).value);
+            window.bukaPetaLokasi({ lat, lng }, (la, ln, saran) => {
+                document.getElementById(f.lat).value = la;
+                document.getElementById(f.lng).value = ln;
+                const alamat = document.getElementById(f.alamat);
+                if (alamat && !alamat.value.trim() && saran) alamat.value = saran; // isi alamat hanya bila masih kosong
+                window.segarkanTitik(k);
+                ukToast(k === 'uk' ? 'Titik dipilih. Jangan lupa tekan Simpan.' : 'Titik lokasi dipilih');
+            });
+        };
+
         // ===== FOTO HIASAN BUKU MENU UMKM (vendors.menu_hiasan) =====
         // Daftar URL yang dipertahankan saat edit. Digambar lewat DOM (bukan innerHTML)
         // dan hanya URL https:// yang diterima.
@@ -3200,6 +3395,7 @@
             document.getElementById('wa-location').value = '';
             document.getElementById('wa-lat').value = '';
             document.getElementById('wa-lng').value = '';
+            window.segarkanTitik('wa');
             window.isiSelectKategori(document.getElementById('wa-category'), null, '');
             document.getElementById('wa-photo').value = ''; // Reset Foto
             window.__waHiasan = [];
@@ -3243,6 +3439,7 @@
             document.getElementById('wa-location').value = v.alamat_warung || '';
             document.getElementById('wa-lat').value = v.latitude || '';
             document.getElementById('wa-lng').value = v.longitude || '';
+            window.segarkanTitik('wa');
             window.isiSelectKategori(document.getElementById('wa-category'), null, (v.kategori_utama && v.kategori_utama.length > 0) ? v.kategori_utama[0] : '');
             document.getElementById('wa-photo').value = ''; // Reset file input karena file tidak bisa di-set otomatis via JS
             window.__waHiasan = (Array.isArray(v.menu_hiasan) ? v.menu_hiasan : []).filter(hiasanUrlAman).slice(0, HIASAN_MAKS);
@@ -4203,6 +4400,7 @@
             document.getElementById('uk-prof-alamat').value = v.alamat_warung || '';
             document.getElementById('uk-prof-lat').value = v.latitude || '';
             document.getElementById('uk-prof-lng').value = v.longitude || '';
+            window.segarkanTitik('uk');
             document.getElementById('uk-prof-catatan').value = v.catatan || v.catatan_toko || '';
             const kat = Array.isArray(v.kategori_utama) ? (v.kategori_utama[0] || '') : (v.kategori_utama || '');
             if (typeof window.isiSelectKategori === 'function') window.isiSelectKategori(document.getElementById('uk-prof-kategori'), null, kat);
@@ -5098,5 +5296,22 @@
             }
         }
     </script>
+        <!-- PILIH TITIK LOKASI DI PETA (dipakai form UMKM) -->
+        <div id="peta-lokasi" class="pl" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Pilih titik lokasi warung">
+            <div class="pl-peta" id="pl-peta"></div>
+            <div class="pl-bayang" aria-hidden="true"></div>
+            <div class="pl-pin" aria-hidden="true"><i class="ph-fill ph-map-pin"></i></div>
+            <div class="pl-atas">
+                <button type="button" class="pl-x" aria-label="Tutup peta" onclick="window.tutupPetaLokasi()"><i class="ph-bold ph-x"></i></button>
+                <label class="pl-cari"><i class="ph ph-magnifying-glass"></i><input type="text" id="pl-cari" placeholder="Cari nama tempat / jalan..." autocomplete="off" aria-label="Cari lokasi"></label>
+            </div>
+            <button type="button" class="pl-gps" aria-label="Pakai lokasi saya sekarang" onclick="window.petaLokasiSaya()"><i class="ph-bold ph-crosshair"></i></button>
+            <div class="pl-bawah">
+                <div class="pl-info"><b>Geser peta sampai pin tepat di warung</b><span id="pl-koordinat">-</span></div>
+                <button type="button" class="pl-ok" id="pl-ok" onclick="window.pakaiTitikPeta()" disabled>Pakai Titik Ini</button>
+            </div>
+            <div class="pl-muat" id="pl-muat">Memuat peta...</div>
+        </div>
+
 </body>
 </html>
