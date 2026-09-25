@@ -951,9 +951,18 @@
         .um-kaki { padding: 22px 20px 0; text-align: center; font-size: 12px; font-weight: 700; color: #4A2A08; line-height: 1.6; }
 
         /* --- Buku Menu UMKM: jam buka, info tutup, tombol "Cara pesan" --- */
-        .um-cover-kanan { position: absolute; top: calc(16px + env(safe-area-inset-top, 0px)); right: 14px; z-index: 2; display: flex; align-items: center; gap: 8px; }
+        .um-cover-kanan { position: absolute; top: calc(16px + env(safe-area-inset-top, 0px)); right: 14px; left: 70px; z-index: 2; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
         .um-cover-kanan .um-chip { position: static; }
-        .um-bantu { min-height: 36px; border: 0; border-radius: 99px; background: rgba(255,255,255,0.92); color: #1C1C1E; font-size: 12px; font-weight: 800; font-family: inherit; padding: 0 12px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+        /* Badge "Cara pesan di warung ini": berkedip lembut supaya terlihat, tetap bisa diketuk */
+        .um-cover .um-bantu { position: absolute; right: 14px; bottom: 14px; z-index: 2; max-width: calc(100% - 28px); }
+        .um-cover .um-cover-txt { bottom: 58px; }
+        .um-bantu { position: relative; min-height: 32px; max-width: 100%; border: 1.5px solid #FFD08A; border-radius: 99px; background: #C44700; color: #fff; font-size: 11.5px; font-weight: 800; font-family: inherit; padding: 5px 12px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; text-align: left; line-height: 1.3; animation: umKedip 1.6s ease-in-out infinite; }
+        .um-bantu i { font-size: 14px; flex-shrink: 0; }
+        .um-bantu::after { content: ''; position: absolute; inset: -2px; border-radius: 99px; box-shadow: 0 0 0 0 rgba(255,208,138,0.8); animation: umRiakBadge 1.6s ease-out infinite; pointer-events: none; }
+        .um-bantu:active { transform: scale(0.96); }
+        @keyframes umKedip { 0%, 100% { opacity: 1; } 50% { opacity: 0.72; } }
+        @keyframes umRiakBadge { 0% { box-shadow: 0 0 0 0 rgba(255,208,138,0.8); } 100% { box-shadow: 0 0 0 10px rgba(255,208,138,0); } }
+        @media (prefers-reduced-motion: reduce) { .um-bantu, .um-bantu::after { animation: none; } }
         .um-jam { margin-top: 6px; display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 700; color: #FFD08A; }
         .um-tutup-info { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; }
         .um-tutup-judul { font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 6px; }
@@ -4450,6 +4459,26 @@
         
         const FALLBACK_VENDOR_IMG = "https://i.ibb.co.com/Z1BCmTTp/Gambar-ilustrasi-dari-PROJEKGO.png";
 
+        // Gambar "Buku Menu" untuk warung UMKM kelolaan admin (SVG bawaan, tanpa file luar).
+        // Menu warung UMKM tidak tampil sebagai kartu menu di mana pun; yang tampil restonya.
+        const UMKM_BUKU_IMG = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">'
+            + '<rect width="200" height="200" fill="#F4B04A"/>'
+            + '<circle cx="168" cy="36" r="44" fill="#FFE3B0" opacity="0.55"/>'
+            + '<g transform="rotate(-6 100 104)">'
+            + '<rect x="50" y="30" width="104" height="142" rx="8" fill="#000" opacity="0.18" transform="translate(6 6)"/>'
+            + '<rect x="50" y="30" width="104" height="142" rx="8" fill="#1C1C1E"/>'
+            + '<rect x="50" y="30" width="16" height="142" rx="6" fill="#C44700"/>'
+            + '<rect x="76" y="48" width="66" height="58" rx="4" fill="#FFF6EC"/>'
+            + '<text x="109" y="72" text-anchor="middle" font-family="Arial Narrow, Arial, sans-serif" font-weight="700" font-size="17" fill="#1C1C1E">BUKU</text>'
+            + '<text x="109" y="94" text-anchor="middle" font-family="Arial Narrow, Arial, sans-serif" font-weight="700" font-size="17" fill="#1C1C1E">MENU</text>'
+            + '<g stroke="#FFB27A" stroke-width="3" stroke-dasharray="2 5" stroke-linecap="round"><line x1="78" y1="124" x2="140" y2="124"/><line x1="78" y1="138" x2="140" y2="138"/><line x1="78" y1="152" x2="124" y2="152"/></g>'
+            + '</g>'
+            + '<text x="100" y="192" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="11" letter-spacing="2" fill="#4A2A08">PROJEKGO</text>'
+            + '</svg>');
+        const isWarungUmkm = (v) => !!v && v.is_admin_managed === true;
+        const gambarResto = (v) => isWarungUmkm(v) ? UMKM_BUKU_IMG : ((v && v.shop_photo) || FALLBACK_VENDOR_IMG);
+
         // Inisialisasi Teks Navigasi Atas Sesuai Pilihan Lokasi Terakhir (Dipersingkat)
         document.getElementById('loc-text').innerText = currentArea === 'Gombong' ? 'Gombong' : 'Kebumen';
 
@@ -7460,9 +7489,9 @@
                     <div class="um-cover-tint"></div>
                     <button type="button" class="um-back" onclick="goBack()" aria-label="Kembali"><i class="ph-bold ph-arrow-left"></i></button>
                     <div class="um-cover-kanan">
-                        <button type="button" class="um-bantu" onclick="window.umkmTutorBuka()"><i class="ph-bold ph-question"></i> Cara pesan</button>
                         <span class="um-chip ${buka ? 'buka' : 'tutup'}">${buka ? 'BUKA' : 'TUTUP'}</span>
                     </div>
+                    <button type="button" class="um-bantu" onclick="window.umkmTutorBuka()"><i class="ph-fill ph-hand-tap"></i> Cara pesan di warung ini</button>
                     <div class="um-cover-txt">
                         ${logo ? `<div class="um-logo"><img src="${esc(logo)}" alt="" onerror="this.parentElement.remove()"></div>` : ''}
                         <div style="min-width:0;">
@@ -7587,7 +7616,7 @@
         window.toggleFavorite = (e, id) => { e.stopPropagation(); if(favorites.includes(id)) { favorites = favorites.filter(fav => fav !== id); e.currentTarget.classList.remove('active'); } else { favorites.push(id); e.currentTarget.classList.add('active'); showToast("Disimpan ke Favorit ❤️"); } localStorage.setItem('favs', JSON.stringify(favorites)); }
         
         // NOTE: Render favorit menggunakan rawProducts agar tetap terlihat walaupun lokasi diubah
-        window.renderFavoritesPage = () => { const container = document.getElementById('fav-list-content'); container.innerHTML = ''; const favItems = rawProducts.filter(p => favorites.includes(p.id)); if(favItems.length === 0) { container.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:#999;">Belum ada menu favorit.</div>'; return; } favItems.forEach(item => { renderPcard(container, item); }); }
+        window.renderFavoritesPage = () => { const container = document.getElementById('fav-list-content'); container.innerHTML = ''; const idUmkmFav = new Set(allVendors.filter(isWarungUmkm).map(v => v.id)); const favItems = rawProducts.filter(p => favorites.includes(p.id) && !idUmkmFav.has(p.vendor_id)); if(favItems.length === 0) { container.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:#999;">Belum ada menu favorit.</div>'; return; } favItems.forEach(item => { renderPcard(container, item); }); }
         
         function renderPcard(container, item) {
             const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG; const realPrice = parseInt(item.harga); const fakePrice = Math.ceil(realPrice * 1.2); const vendorName = item.vendor_name || "Warung Projekgo"; const isFav = favorites.includes(item.id) ? 'active' : ''; const exclusiveBadge = item.is_exclusive ? '<div class="badge-exclusive" style="font-size:8px;">Exclusive</div>' : ''; const priorityBadge = '<div class="badge-priority"><i class="ph-fill ph-lightning"></i> Prioritas</div>'; const rating = (4.0 + Math.random()).toFixed(1); const sold = Math.floor(Math.random() * 500) + 50;
@@ -10089,7 +10118,36 @@
                 const c = document.getElementById('list-content'); 
                 c.innerHTML = ''; 
                 c.classList.add('product-list-grid'); 
-                if (filtered.length === 0) { 
+
+                // Warung UMKM (Buku Menu): menunya tidak tampil sebagai kartu, jadi yang
+                // muncul di hasil pencarian adalah restonya, beserta nama menu yang cocok.
+                const kataUmkm = keyword.trim();
+                const umkmCocok = !kataUmkm ? [] : currentDisplayVendors.filter(isWarungUmkm).map(v => {
+                    const cocokMenu = rawProducts.filter(p => p.vendor_id === v.id && typeof p.nama_menu === 'string' && p.nama_menu.toLowerCase().includes(kataUmkm)).map(p => p.nama_menu);
+                    const cocokNama = String(v.nama_warung || '').toLowerCase().includes(kataUmkm);
+                    return (cocokNama || cocokMenu.length) ? { v, cocokMenu } : null;
+                }).filter(Boolean).slice(0, 5);
+                umkmCocok.forEach(({ v, cocokMenu }) => {
+                    const kartu = document.createElement('div');
+                    kartu.style.cssText = 'grid-column:1/-1; display:flex; gap:12px; align-items:center; background:#FFF6EC; border:1px solid #F6DCC2; border-radius:16px; padding:10px; cursor:pointer;';
+                    kartu.setAttribute('role', 'button');
+                    kartu.tabIndex = 0;
+                    const buka = () => window.openUmkmMenu(v.id);
+                    kartu.addEventListener('click', buka);
+                    kartu.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') buka(); });
+                    const daftarMenu = cocokMenu.slice(0, 3).join(', ') + (cocokMenu.length > 3 ? ', …' : '');
+                    kartu.innerHTML = `
+                        <img src="${UMKM_BUKU_IMG}" alt="" style="width:64px; height:64px; border-radius:14px; flex-shrink:0;">
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-size:10px; font-weight:800; letter-spacing:.08em; color:#C44700;">SPESIAL DARI PROJEKGO</div>
+                            <div style="font-size:15px; font-weight:800; color:#1C1C1E; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(v.nama_warung || 'Warung UMKM')}</div>
+                            <div style="font-size:12px; color:#6B6B70; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${daftarMenu ? 'Ada di buku menu: ' + esc(daftarMenu) : 'Buka buku menunya'}</div>
+                        </div>
+                        <i class="ph-bold ph-caret-right" style="color:#C44700; font-size:18px;"></i>`;
+                    c.appendChild(kartu);
+                });
+
+                if (filtered.length === 0 && umkmCocok.length === 0) { 
                     c.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:#999;">Tidak ada hasil di lokasi ini.</div>'; 
                 } else { 
                     // TAHAP 3: Batasi hasil pencarian maksimal 30 teratas agar tidak lag
@@ -11718,8 +11776,11 @@
                 .map(v => v.id);
             
             // 2. Tampilkan HANYA produk dari warung yang BUKA dan sesuai lokasi (Beranda, Flash Sale, Kategori, Promo)
+            // Menu warung UMKM kelolaan admin tidak ikut di kontainer menu mana pun
+            // (Flash Sale, Promo, Kategori, Paling Laris, pencarian, dst). Warungnya tetap tampil.
+            const idWarungUmkm = new Set(allVendors.filter(isWarungUmkm).map(v => v.id));
             allProducts = rawProducts.filter(p => { 
-                return p.vendor_id && openVendorIds.includes(p.vendor_id); 
+                return p.vendor_id && openVendorIds.includes(p.vendor_id) && !idWarungUmkm.has(p.vendor_id); 
             });
             /* ----------------------------------------------------------------- */
             
@@ -11840,7 +11901,7 @@
             let cardsHtml = '<div class="scroll-container" style="padding: 0 15px; gap: 12px;">';
             restoBaru.forEach(({ v }) => {
                 const menu = menuPer[v.id] || [];
-                const img = urlAman(v.cover_photo) || urlAman(v.shop_photo) || menu.map(p => urlAman(p.foto_url)).find(Boolean) || FALLBACK_VENDOR_IMG;
+                const img = isWarungUmkm(v) ? UMKM_BUKU_IMG : (urlAman(v.cover_photo) || urlAman(v.shop_photo) || menu.map(p => urlAman(p.foto_url)).find(Boolean) || FALLBACK_VENDOR_IMG);
                 const hargaAda = menu.filter(p => p.is_available !== false && p.is_sold_out !== true).map(p => parseInt(p.harga, 10)).filter(n => n > 0);
                 const mulai = hargaAda.length ? Math.min(...hargaAda) : 0;
                 const kat = extractCategories(v.kategori_utama).slice(0, 2).join(', ') || 'Aneka makanan';
@@ -11853,7 +11914,7 @@
                 cardsHtml += `
                     <div role="button" tabindex="0" style="width: 220px; flex-shrink: 0; cursor: pointer; background: white; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.03); display: flex; flex-direction: column; overflow: hidden;" onclick="${aksi}" onkeydown="if(event.key==='Enter'){${aksi}}">
                         <div style="position:relative; width:100%; height:160px; overflow:hidden; background:#f5f5f5;">
-                            <img src="${esc(img)}" alt="" loading="lazy" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
+                            <img src="${esc(img)}" alt="" loading="lazy" style="width:100%; height:100%; ${isWarungUmkm(v) ? 'object-fit:contain; background:#F4B04A;' : 'object-fit:cover;'}" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
                             <div class="watermark-projekgo">PROJEKGO</div>
                             <div style="position:absolute; top:0; left:0; background: #C44700; color: white; font-size:10px; padding:4px 8px; border-bottom-right-radius:8px; font-weight:800; z-index:2;">Baru</div>
                         </div>
@@ -11943,7 +12004,7 @@
             let cardsHtml = '';
             
             openVendors.forEach(vendor => {
-                const imgVendor = vendor.shop_photo || FALLBACK_VENDOR_IMG;
+                const imgVendor = gambarResto(vendor);
                 const rating = vendor.rating || (4.5 + Math.random() * 0.4).toFixed(1);
                 // Jarak random untuk dummy
                 const dist = (0.5 + Math.random() * 20).toFixed(1);
@@ -12692,7 +12753,7 @@
             `;
             let cards = `<div class="scroll-container" style="padding: 0 15px 5px 15px; gap: 12px;">`;
             vendors.forEach(v => {
-                const img = v.shop_photo || FALLBACK_VENDOR_IMG;
+                const img = gambarResto(v);
                 cards += `
                     <div style="width: 120px; flex-shrink: 0; cursor: pointer;" onclick="openVendorPage('${v.id}')">
                         <img src="${img}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px;">
@@ -12745,7 +12806,9 @@
                 renderExclusiveStyle();
             }
 
-            const vendorProds = allProducts.filter(p => p.vendor_id === v.id && p.is_available !== false);
+            const umkm = isWarungUmkm(v);
+            // Menu UMKM sengaja tidak ada di allProducts, jadi harga & jumlah menunya diambil dari rawProducts
+            const vendorProds = (umkm ? rawProducts : allProducts).filter(p => p.vendor_id === v.id && p.is_available !== false);
 
             // Cek kosong pakai rawProducts, bukan allProducts: allProducts sudah disaring
             // hanya untuk warung yang BUKA, jadi warung tutup akan selalu terlihat "kosong"
@@ -12753,7 +12816,7 @@
             const menuWarungAda = rawProducts.some(p => p.vendor_id === v.id);
             const belumAdaMenu = !menuWarungAda;
             const s = (v.status||'BUKA').toUpperCase()==='BUKA'; 
-            const img = v.shop_photo || FALLBACK_VENDOR_IMG; 
+            const img = gambarResto(v); 
             const prices = vendorProds.map(p => parseInt(p.harga)); 
             const minPrice = prices.length ? Math.min(...prices) : 10000; 
             const formattedPrice = (minPrice/1000).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 1 });
@@ -12809,7 +12872,14 @@
 
             // Warung yang belum punya menu: baris rating & harga diganti keterangan,
             // karena angkanya cuma nilai bawaan dan malah menyesatkan pelanggan.
-            const barisInfoHtml = belumAdaMenu
+            const barisInfoHtml = (umkm && !belumAdaMenu)
+                ? `<div style="font-size: 11px; color: #666; display: flex; align-items: center; gap: 4px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            <span style="display:inline-flex; align-items:center; gap:3px; background:#FFF0E5; color:#C44700; font-weight:800; padding:2px 7px; border-radius:99px; flex-shrink:0;"><i class="ph-fill ph-book-open-text"></i> Buku Menu</span>
+                            <span>${vendorProds.length} menu</span>
+                            <span style="color: #ccc;">•</span>
+                            <span>${prices.some(n => n > 0) ? 'mulai Rp' + Math.min(...prices.filter(n => n > 0)).toLocaleString('id-ID') : 'lihat menunya'}</span>
+                        </div>`
+                : belumAdaMenu
                 ? `<div style="font-size:11px; color:#8a6d3b; background:#fff8e1; border:1px solid #ffe0a3; border-radius:8px; padding:5px 8px; margin-bottom:6px; display:inline-flex; align-items:center; gap:5px; font-weight:700;"><i class="ph-fill ph-clock-countdown" style="font-size:13px;"></i> Penjual sedang mengupdate menu</div>`
                 : `<div style="font-size: 11px; color: #666; display: flex; align-items: center; gap: 4px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                             <i class="ph-fill ph-star" style="color: #FF7300; font-size: 13px;"></i>
@@ -12826,9 +12896,11 @@
                     <div style="position: relative; width: 95px; height: 95px; flex-shrink: 0;">
                         <img src="${img}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; border-radius: 20px; border: 1px solid #eee;" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
                         
-                        <div style="position: absolute; top: 0; left: 0; background: linear-gradient(135deg, #d32f2f, #b71c1c); color: white; font-size: 8px; font-weight: 800; padding: 3px 8px; border-radius: 20px 0 10px 0; z-index: 2; box-shadow: 2px 2px 6px rgba(0,0,0,0.2);">
+                        ${umkm
+                            ? `<div style="position: absolute; top: 0; left: 0; background: #1C1C1E; color: #FFB27A; font-size: 8px; font-weight: 800; padding: 3px 8px; border-radius: 20px 0 10px 0; z-index: 2; box-shadow: 2px 2px 6px rgba(0,0,0,0.2);">Spesial PROJEKGO</div>`
+                            : `<div style="position: absolute; top: 0; left: 0; background: linear-gradient(135deg, #d32f2f, #b71c1c); color: white; font-size: 8px; font-weight: 800; padding: 3px 8px; border-radius: 20px 0 10px 0; z-index: 2; box-shadow: 2px 2px 6px rgba(0,0,0,0.2);">
                             Hemat 25%
-                        </div>
+                        </div>`}
 
                         ${imgOverlay}
                     </div>
