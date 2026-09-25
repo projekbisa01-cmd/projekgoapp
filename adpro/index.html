@@ -999,6 +999,52 @@
     </div>
 
     <!-- MODAL GANTI PIN -->
+    <!-- MODAL EDIT INFO MITRA (tombol pensil di kartu mitra) -->
+    <div id="edit-vendor-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title">Edit Info Mitra</div>
+            <input type="hidden" id="ev-id">
+            <div class="form-group">
+                <label class="form-label" for="ev-nama">Nama Warung *</label>
+                <input type="text" id="ev-nama" class="form-input" maxlength="60">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="ev-alamat">Alamat / Lokasi</label>
+                <input type="text" id="ev-alamat" class="form-input" maxlength="120" placeholder="Contoh: Depan Stasiun Gombong">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="ev-kategori">Kategori Utama</label>
+                <select id="ev-kategori" class="form-input"></select>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="ev-wa">No. WhatsApp Mitra</label>
+                <input type="tel" id="ev-wa" class="form-input" inputmode="tel" maxlength="16" placeholder="08xxxxxxxxxx">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Titik Lokasi Warung</label>
+                <div class="pl-kotak">
+                    <div class="pl-kotak-info"><i class="ph-fill ph-map-pin"></i><span id="ev-titik-teks">Belum dipilih</span></div>
+                    <button type="button" class="pl-kotak-btn" onclick="window.pilihTitikWarung('ev')"><i class="ph-bold ph-map-trifold"></i> Pilih di Peta</button>
+                </div>
+                <details class="pl-manual">
+                    <summary>Isi koordinat manual</summary>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px;">
+                        <input type="number" step="any" id="ev-lat" class="form-input" placeholder="Latitude -7.xxx" aria-label="Latitude" oninput="window.segarkanTitik('ev')">
+                        <input type="number" step="any" id="ev-lng" class="form-input" placeholder="Longitude 109.xxx" aria-label="Longitude" oninput="window.segarkanTitik('ev')">
+                    </div>
+                </details>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="ev-catatan">Catatan Toko</label>
+                <textarea id="ev-catatan" class="form-input" rows="2" maxlength="200" placeholder="Opsional"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal" style="background:#f1f5f9;" onclick="closeModal('edit-vendor-modal')">Batal</button>
+                <button class="btn-modal" id="ev-simpan" style="background:var(--primary); color:white;" onclick="window.simpanEditVendorInfo()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
     <div id="edit-pin-modal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-title">Ganti PIN Mitra</div>
@@ -1745,6 +1791,115 @@
             document.getElementById('ep-new-pin').value = window.buatPinAcak();
         };
 
+        /* ==========================================================
+           AKSI KARTU MITRA: Bintang (Andalan), BUKA/TUTUP, Edit Info
+           Tombolnya sudah ada di kartu, tapi fungsinya belum pernah dibuat,
+           sehingga klik tidak melakukan apa-apa (error di console).
+           ========================================================== */
+        const cariVendor = (id) => adminAllVendors.find(v => v.id === id);
+
+        window.toggleFeatured = async (vendorId, btn) => {
+            const v = cariVendor(vendorId);
+            if (!v) return;
+            const baru = v.is_andalan !== true;
+            if (btn && btn.nodeType === 1) btn.disabled = true;
+            try {
+                await updateDoc(doc(db, 'vendors', v.id), { is_andalan: baru });
+                v.is_andalan = baru;
+                ukToast(baru ? `${v.nama_warung || 'Mitra'} jadi Andalan ⭐` : 'Status Andalan dilepas');
+            } catch (e) {
+                console.error('Gagal ubah andalan:', e);
+                ukToast('Gagal mengubah status Andalan', false);
+            } finally {
+                window.renderVendorsList();
+            }
+        };
+
+        window.toggleStatus = async (vendorId, btn) => {
+            const v = cariVendor(vendorId);
+            if (!v) return;
+            const baru = (v.status || 'BUKA').toUpperCase() === 'BUKA' ? 'TUTUP' : 'BUKA';
+            if (btn && btn.nodeType === 1) btn.disabled = true;
+            try {
+                await updateDoc(doc(db, 'vendors', v.id), { status: baru });
+                v.status = baru;
+                ukToast(`Status ${v.nama_warung || 'mitra'}: ${baru}`);
+            } catch (e) {
+                console.error('Gagal ubah status:', e);
+                ukToast('Gagal mengubah status warung', false);
+            } finally {
+                window.renderVendorsList();
+                if (typeof window.renderWarungAdminList === 'function') window.renderWarungAdminList();
+            }
+        };
+
+        window.openEditVendorInfo = (vendorId) => {
+            const v = cariVendor(vendorId);
+            if (!v) { alert('Data mitra tidak ditemukan.'); return; }
+            document.getElementById('ev-id').value = v.id;
+            document.getElementById('ev-nama').value = v.nama_warung || '';
+            document.getElementById('ev-alamat').value = v.alamat_warung || v.lokasi || '';
+            document.getElementById('ev-wa').value = v.no_wa || '';
+            document.getElementById('ev-lat').value = v.latitude || '';
+            document.getElementById('ev-lng').value = v.longitude || '';
+            document.getElementById('ev-catatan').value = v.catatan_toko || v.catatan || '';
+            const kat = Array.isArray(v.kategori_utama) ? (v.kategori_utama[0] || '') : (v.kategori_utama || '');
+            if (typeof window.isiSelectKategori === 'function') window.isiSelectKategori(document.getElementById('ev-kategori'), null, kat);
+            window.segarkanTitik('ev');
+            document.getElementById('edit-vendor-modal').style.display = 'flex';
+        };
+
+        window.simpanEditVendorInfo = async () => {
+            const v = cariVendor(document.getElementById('ev-id').value);
+            if (!v) return;
+            const nama = document.getElementById('ev-nama').value.trim().slice(0, 60);
+            if (!nama) { alert('Nama warung wajib diisi.'); return; }
+            const waMentah = document.getElementById('ev-wa').value.trim();
+            const waAngka = waMentah.replace(/\D/g, '');
+            if (waMentah && (waAngka.length < 9 || waAngka.length > 15)) { alert('Nomor WhatsApp tidak valid (9–15 angka).'); return; }
+            const latStr = document.getElementById('ev-lat').value.trim();
+            const lngStr = document.getElementById('ev-lng').value.trim();
+            const lat = latStr ? parseFloat(latStr) : 0;
+            const lng = lngStr ? parseFloat(lngStr) : 0;
+            if (!Number.isFinite(lat) || Math.abs(lat) > 90 || !Number.isFinite(lng) || Math.abs(lng) > 180) { alert('Titik lokasi tidak valid.'); return; }
+            const kat = document.getElementById('ev-kategori').value.trim();
+
+            const data = {
+                nama_warung: nama,
+                alamat_warung: document.getElementById('ev-alamat').value.trim().slice(0, 120),
+                no_wa: waAngka,
+                kategori_utama: kat ? [kat] : [],
+                catatan_toko: document.getElementById('ev-catatan').value.trim().slice(0, 200)
+            };
+            // Koordinat hanya ditulis bila diisi, supaya mitra tanpa titik tidak jadi berlokasi 0,0
+            if (latStr && lngStr) { data.latitude = lat; data.longitude = lng; }
+            const btn = document.getElementById('ev-simpan');
+            btn.disabled = true; btn.textContent = 'Menyimpan...';
+            try {
+                await updateDoc(doc(db, 'vendors', v.id), data);
+                const namaLama = v.nama_warung;
+                Object.assign(v, data);
+                // Nama warung juga tersimpan di tiap menu (vendor_name), dipakai keranjang pelanggan
+                if (namaLama !== nama) {
+                    const menu = adminAllProducts.filter(p => p.vendor_id === v.id);
+                    for (let i = 0; i < menu.length; i += 400) {
+                        const b = writeBatch(db);
+                        menu.slice(i, i + 400).forEach(p => b.update(doc(db, 'products', p.id), { vendor_name: nama }));
+                        await b.commit();
+                    }
+                    menu.forEach(p => { p.vendor_name = nama; });
+                }
+                closeModal('edit-vendor-modal');
+                ukToast('Info mitra disimpan');
+                window.renderVendorsList();
+            } catch (e) {
+                console.error('Gagal simpan info mitra:', e);
+                alert('Gagal menyimpan info mitra. Coba lagi.');
+            } finally {
+                btn.disabled = false; btn.textContent = 'Simpan';
+            }
+        };
+
         window.openEditPin = (vendorId, vendorName) => {
             document.getElementById('ep-id').value = vendorId;
             document.getElementById('ep-name').innerText = vendorName;
@@ -2382,8 +2537,11 @@
                 return;
             }
 
-            filteredVendors.forEach(v => {
-                const isOpen = v.status === 'BUKA';
+            // Tombol kartu memakai nomor urut, bukan ID mentah di dalam onclick
+            window.__vendorIds = filteredVendors.map(v => v.id);
+            filteredVendors.forEach((v, urutV) => {
+                const statusV = (v.status || 'BUKA').toUpperCase() === 'TUTUP' ? 'TUTUP' : 'BUKA';
+                const isOpen = statusV === 'BUKA';
                 const isFeatured = v.is_andalan === true;
                 const safeName = (v.nama_warung || '').replace(/'/g, "\\'");
                 const addressData = v.alamat_warung || v.lokasi || '-';
@@ -2437,17 +2595,17 @@
                                     </div>
 
                                     <!-- event.stopPropagation() agar saat klik bintang, kartu tidak ikut tertutup/terbuka -->
-                                    <button class="action-btn btn-feature ${isFeatured ? 'active' : ''}" title="Jadikan Andalan" onclick="event.stopPropagation(); window.toggleFeatured('${v.id}', ${isFeatured})" style="width: 36px; height: 36px; flex-shrink: 0; border-radius: 10px;">
+                                    <button class="action-btn btn-feature ${isFeatured ? 'active' : ''}" title="Jadikan Andalan" aria-pressed="${isFeatured}" onclick="event.stopPropagation(); window.toggleFeatured(window.__vendorIds[${urutV}], this)" style="width: 36px; height: 36px; flex-shrink: 0; border-radius: 10px;">
                                         <i class="${isFeatured ? 'ph-fill' : 'ph-bold'} ph-star" style="font-size:18px;"></i>
                                     </button>
                                     <div>
                                         <div style="font-weight: 800; font-size: 16px; color: var(--dark); line-height: 1.2; margin-bottom: 4px;">${esc(v.nama_warung)}</div>
-                                        <div style="font-size: 11px; font-weight: 600; color: #64748b; background: #f1f5f9; padding: 3px 8px; border-radius: 6px; display: inline-block;">ID: ${v.id}</div>
+                                        <div style="font-size: 11px; font-weight: 600; color: #64748b; background: #f1f5f9; padding: 3px 8px; border-radius: 6px; display: inline-block;">ID: ${esc(v.id)}</div>
                                     </div>
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 8px;">
-                                    <button class="btn-status ${isOpen ? 'open' : 'closed'}" onclick="event.stopPropagation(); window.toggleStatus('${v.id}', '${v.status}')" style="flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); padding: 6px 14px; border-radius: 10px;">
-                                        ${v.status}
+                                    <button class="btn-status ${isOpen ? 'open' : 'closed'}" onclick="event.stopPropagation(); window.toggleStatus(window.__vendorIds[${urutV}], this)" style="flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); padding: 6px 14px; border-radius: 10px;">
+                                        ${statusV}
                                     </button>
                                     <!-- Ikon Panah penanda Minimize -->
                                     <i id="icon-caret-${v.id}" class="ph-bold ph-caret-down" style="color: var(--gray); font-size: 18px; transition: transform 0.3s ease;"></i>
@@ -2460,13 +2618,13 @@
                                     <div style="display: flex; gap: 10px; align-items: start;">
                                         <i class="ph-fill ph-tag" style="color: var(--info); font-size: 16px; margin-top: 1px;"></i>
                                         <div style="font-size: 13px; font-weight: 700; color: var(--dark);">
-                                            ${kategoriStr || 'Belum ada kategori'}
+                                            ${esc(kategoriStr || 'Belum ada kategori')}
                                         </div>
                                     </div>
                                     <div style="display: flex; gap: 10px; align-items: start;">
                                         <i class="ph-fill ph-map-pin" style="color: var(--danger); font-size: 16px; margin-top: 1px;"></i>
                                         <div style="font-size: 13px; color: var(--gray); line-height: 1.4;">
-                                            ${addressData}
+                                            ${esc(addressData)}
                                         </div>
                                     </div>
                                 </div>
@@ -2477,7 +2635,7 @@
                                 </div>
 
                                 <div style="display: flex; gap: 8px; justify-content: flex-end; padding-top: 12px; border-top: 1px dashed #e2e8f0;">
-                                    <button class="action-btn btn-edit-info" onclick="window.openEditVendorInfo('${v.id}')" title="Edit Info">
+                                    <button class="action-btn btn-edit-info" onclick="window.openEditVendorInfo(window.__vendorIds[${urutV}])" title="Edit Info" aria-label="Edit info mitra">
                                         <i class="ph-bold ph-pencil-simple"></i>
                                     </button>
                                     <button class="action-btn btn-edit-pin" onclick="window.openEditPin('${v.id}', '${safeName}')" title="Ganti PIN">
@@ -3320,7 +3478,8 @@
         // Kolom yang diisi peta: "wa" = pop-up Buat Warung, "uk" = tab Profil halaman Kelola UMKM
         const PL_KOLOM = {
             wa: { lat: 'wa-lat', lng: 'wa-lng', alamat: 'wa-location', teks: 'wa-titik-teks' },
-            uk: { lat: 'uk-prof-lat', lng: 'uk-prof-lng', alamat: 'uk-prof-alamat', teks: 'uk-titik-teks' }
+            uk: { lat: 'uk-prof-lat', lng: 'uk-prof-lng', alamat: 'uk-prof-alamat', teks: 'uk-titik-teks' },
+            ev: { lat: 'ev-lat', lng: 'ev-lng', alamat: 'ev-alamat', teks: 'ev-titik-teks' }
         };
 
         window.segarkanTitik = (k) => {
