@@ -4483,9 +4483,39 @@
             });
         }
 
-        const FALLBACK_MENU_IMG = "https://i.ibb.co.com/Z1BCmTTp/Gambar-ilustrasi-dari-PROJEKGO.png"; 
-        
-        const FALLBACK_VENDOR_IMG = "https://i.ibb.co.com/Z1BCmTTp/Gambar-ilustrasi-dari-PROJEKGO.png";
+        // GAMBAR DEFAULT (SVG bawaan, ringan, tanpa file luar) saat penjual belum upload foto atau foto gagal dimuat.
+        // Catatan: isi SVG tidak boleh memakai tanda petik satu ('), karena konstanta ini juga dipakai di dalam onerror="this.src='...'".
+        const gambarDefault = (ikon, baris2) => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">'
+            + '<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF7EE"/><stop offset="1" stop-color="#FFE6CF"/></linearGradient></defs>'
+            + '<rect width="400" height="400" fill="url(#g)"/>'
+            + '<circle cx="352" cy="58" r="92" fill="#FFD9B8" opacity="0.45"/>'
+            + '<circle cx="40" cy="356" r="110" fill="#FFD9B8" opacity="0.35"/>'
+            + '<circle cx="200" cy="162" r="62" fill="#E85300" opacity="0.10"/>'
+            + '<circle cx="200" cy="158" r="56" fill="#FFFFFF"/>'
+            + '<g transform="translate(200 158) scale(0.9)">'
+            + ikon
+            + '</g>'
+            + '<g font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle" font-size="24">'
+            + '<text x="200" y="254" fill="#8A4B1C">Penjual belum upload</text>'
+            + '<text x="200" y="283" fill="#E85300">' + baris2 + '</text></g>'
+            + '</svg>');
+        const FALLBACK_MENU_IMG = gambarDefault(
+            '<rect x="-46" y="22" width="92" height="9" rx="4.5" fill="#E85300"/>'
+            + '<path d="M-38 18 A38 38 0 0 1 38 18 Z" fill="#FF7A1A"/>'
+            + '<path d="M-26 6 A27 27 0 0 1 -6 -15" fill="none" stroke="#FFD2B0" stroke-width="5" stroke-linecap="round"/>'
+            + '<circle cx="0" cy="-25" r="6.5" fill="#E85300"/>',
+            'gambar menu');
+        const FALLBACK_VENDOR_IMG = gambarDefault(
+            '<rect x="-36" y="-10" width="72" height="44" fill="#FFE9D6"/>'
+            + '<rect x="-44" y="30" width="88" height="7" rx="3.5" fill="#E85300"/>'
+            + '<rect x="8" y="4" width="20" height="26" rx="2" fill="#E85300"/>'
+            + '<rect x="-28" y="2" width="28" height="18" rx="3" fill="#FFFFFF" stroke="#FF7A1A" stroke-width="3"/>'
+            + '<path d="M-44 -34 H44 L48 -12 H-48 Z" fill="#FF7A1A"/>'
+            + '<path d="M-22 -34 H0 L0 -12 H-24 Z M22 -34 H44 L48 -12 H24 Z" fill="#FFD2B0"/>'
+            + '<g fill="#FF7A1A"><circle cx="-36" cy="-12" r="12"/><circle cx="12" cy="-12" r="12"/></g>'
+            + '<g fill="#FFD2B0"><circle cx="-12" cy="-12" r="12"/><circle cx="36" cy="-12" r="12"/></g>',
+            'gambar resto');
 
         // Gambar "Buku Menu" untuk warung UMKM kelolaan admin (SVG bawaan, tanpa file luar).
         // Menu warung UMKM tidak tampil sebagai kartu menu di mana pun; yang tampil restonya.
