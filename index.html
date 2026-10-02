@@ -783,6 +783,8 @@
         /* DIPERBARUI: Background navbar bawah menjadi putih murni tanpa efek blur */
         /* NAVBAR BAWAH BARU: dock mengambang + blok oranye penanda menu aktif */
         .bottom-nav-container { padding: 0 12px calc(12px + env(safe-area-inset-bottom, 0px)); transition: transform 0.3s ease; }
+        /* Navbar bawah disembunyikan penuh di halaman Konfirmasi Pesanan */
+        body.nav-sembunyi .bottom-nav-container { display: none !important; }
         .bottom-nav { pointer-events: auto; position: relative; max-width: calc(var(--max-width) - 24px); margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); padding: 7px; background: #ffffff; border-radius: 26px; box-shadow: 0 14px 34px rgba(28,28,30,0.16), 0 2px 6px rgba(28,28,30,0.06), 0 0 0 1px rgba(28,28,30,0.05); overflow: visible; }
         .nav-blob { position: absolute; top: 7px; bottom: 7px; left: 7px; width: calc((100% - 14px) / 4); border-radius: 20px; background: linear-gradient(160deg, #FF7A1A, #E85300); box-shadow: 0 6px 14px rgba(232,83,0,0.38); transform: translateX(calc(100% * var(--i, 0))); transition: transform 0.45s cubic-bezier(.3,1.35,.45,1), opacity 0.25s; pointer-events: none; }
         .nav-item { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 0 7px; color: #56565B; cursor: pointer; font-size: 11px; font-weight: 700; -webkit-tap-highlight-color: transparent; transition: color 0.3s; }
@@ -913,6 +915,25 @@
         .um-row-alamat { font-size: 12px; font-weight: 600; color: #6B6B70; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
         .um-chev { color: #C44700; font-size: 18px; flex-shrink: 0; }
         .um-daftar-kaki { text-align: center; font-size: 11.5px; font-weight: 700; color: #8A7B6C; padding-top: 12px; }
+        /* Daftar isi: badge "Hanya di ProjekGo" + tombol Lihat semua */
+        .um-daftar { scroll-margin-top: 90px; }
+        .um-khas { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; margin-top: 12px; }
+        .um-khas-pil { display: inline-flex; align-items: center; gap: 5px; background: linear-gradient(160deg, #FF7A1A, #E85300); color: #fff; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; padding: 5px 10px; border-radius: 99px; white-space: nowrap; box-shadow: 0 4px 10px rgba(232,83,0,0.35); }
+        .um-khas-pil i { font-size: 14px; }
+        .um-khas-teks { font-size: 12px; font-weight: 700; color: #FFD9BD; line-height: 1.4; }
+        /* Badge keterangan harga: menu diinput ProjekGo, harga bisa sedikit beda */
+        .um-harga-info { display: flex; align-items: flex-start; gap: 8px; margin-top: 12px; padding: 10px 12px; border-radius: 14px; background: #FFF1C9; border: 1px solid #F0D58A; color: #5C4300; font-size: 11.5px; font-weight: 700; line-height: 1.5; text-align: left; }
+        .um-harga-info i { font-size: 17px; color: #B37A00; flex-shrink: 0; margin-top: 1px; }
+        .um-harga-info.di-menu { margin: 14px 16px 0; background: #FFF6DC; }
+        .um-daftar:not(.um-semua) .um-row-lebih { display: none; }
+        /* Warung tutup di daftar isi: abu-abu, tidak membuka buku menu (hanya pop-up info jam) */
+        .um-row.um-row-tutup { color: #9A9AA0; filter: grayscale(1); opacity: 0.6; }
+        .um-row.um-row-tutup .um-no, .um-row.um-row-tutup .um-chev { color: #9A9AA0; }
+        .um-row.um-row-tutup:active { background: #EFEBE7; }
+        .um-lihat { width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 12px; padding: 12px 10px; min-height: 44px; border: 1.5px solid #F0C9A4; border-radius: 14px; background: #fff; color: #C44700; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+        .um-lihat:active { background: #FFEBD6; }
+        .um-lihat i { font-size: 16px; transition: transform 0.25s ease; }
+        .um-daftar.um-semua .um-lihat i { transform: rotate(180deg); }
 
         #page-umkm-menu { background: #F4B04A; min-height: 100vh; padding-bottom: 190px !important; font-family: 'Plus Jakarta Sans', sans-serif; color: #1C1C1E; }
         .um-cover { position: relative; height: 250px; overflow: hidden; background: #3B2410; color: #fff; }
@@ -5116,6 +5137,9 @@
             if(name === 'cart') { document.getElementById('nav-cart')?.classList.add('active'); renderCartPage(); }
             if(name === 'favorites') renderFavoritesPage();
             
+            // Sembunyikan navbar bawah khusus di halaman Konfirmasi Pesanan
+            document.body.classList.toggle('nav-sembunyi', name === 'cart');
+
             if (typeof window.geserNavBlob === 'function') window.geserNavBlob();
             updateCartBadge(name);
             if (typeof window.umkmSyncBar === 'function') window.umkmSyncBar(name);
@@ -7370,6 +7394,43 @@
         };
 
         // ---------- 1. DAFTAR ISI DI HALAMAN FOOD ----------
+        // Daftar isi hanya menampilkan beberapa warung dulu; sisanya lewat tombol "Lihat semua".
+        const UMKM_DAFTAR_AWAL = 4;
+        window.umkmDaftarSemua = false; // diingat selama aplikasi terbuka, tahan terhadap render ulang realtime
+        window.umkmToggleDaftar = () => {
+            window.umkmDaftarSemua = !window.umkmDaftarSemua;
+            window.renderUmkmDaftar();
+            // Saat diringkas lagi, kembalikan layar ke awal kontainer agar pelanggan tidak tersesat
+            if (!window.umkmDaftarSemua) {
+                const kotak = document.querySelector('#umkm-daftar-warung .um-daftar');
+                if (kotak && kotak.getBoundingClientRect().top < 0) kotak.scrollIntoView({ block: 'start' });
+            }
+        };
+
+        // Warung tutup di daftar isi: tidak membuka buku menu, hanya pop-up info jam operasional.
+        // Isi pop-up dikirim sebagai teks biasa (bukan HTML), jadi nama warung tidak bisa menyisipkan kode.
+        window.umkmInfoTutup = (vendorId) => {
+            const v = allVendors.find(x => x.id === vendorId);
+            if (!v) { showToast('Warung tidak ditemukan'); return; }
+            // Jika ternyata sudah buka (daftar belum sempat diperbarui), langsung buka menunya
+            if (umkmBuka(v)) { window.openUmkmMenu(vendorId); return; }
+            const { today, berikut, sudahLewat } = umkmInfoJam(v);
+            const nama = String(v.nama_warung || 'Warung ini');
+            const lagi = berikut ? ` Buka lagi ${berikut.hari} pukul ${berikut.buka} WIB.` : '';
+            let jam;
+            if (today && today.libur) jam = `${nama} hari ini libur.` + lagi;
+            else if (today) jam = `Jam operasional ${nama} hari ini: ${today.buka} – ${today.tutup} WIB.` + (sudahLewat ? lagi : '');
+            else jam = `Jam operasional ${nama} belum tersedia.`;
+            Swal.fire({
+                title: 'Warung sekarang tutup',
+                text: jam,
+                icon: 'info',
+                confirmButtonColor: '#FF6600',
+                confirmButtonText: 'Mengerti',
+                customClass: { popup: 'swal-custom-popup', title: 'swal-custom-title' }
+            });
+        };
+
         window.renderUmkmDaftar = () => {
             let wadah = document.getElementById('umkm-daftar-warung');
             if (!wadah) {
@@ -7392,26 +7453,33 @@
                 const kat = extractCategories(v.kategori_utama)[0] || '';
                 const sub = [umkmTeksJam(v).daftar, kat, v.alamat_warung || v.alamat || ''].filter(Boolean).join(' · ');
                 return `
-                <button type="button" class="um-row" onclick="window.openUmkmMenu(uiVal(${uiRef(v.id)}))">
+                <button type="button" class="um-row${i >= UMKM_DAFTAR_AWAL ? ' um-row-lebih' : ''}${x.buka ? '' : ' um-row-tutup'}" onclick="window.${x.buka ? 'openUmkmMenu' : 'umkmInfoTutup'}(uiVal(${uiRef(v.id)}))">
                     <span class="um-no">${String(i + 1).padStart(2, '0')}</span>
                     <span class="um-row-body">
                         <span class="um-row-top"><b class="um-row-nama">${esc(v.nama_warung || 'Warung UMKM')}</b><span class="um-titik"></span><span class="um-row-jml">${x.jml} menu</span></span>
                         <span class="um-row-bawah"><span class="um-chip ${x.buka ? 'buka' : 'tutup'}">${x.buka ? 'BUKA' : 'TUTUP'}</span><span class="um-row-alamat">${esc(sub)}</span></span>
                     </span>
-                    <i class="ph-bold ph-caret-right um-chev"></i>
+                    <i class="ph-bold ${x.buka ? 'ph-caret-right' : 'ph-lock-simple'} um-chev"></i>
                 </button>`;
             }).join('');
 
+            const sisa = daftar.length - UMKM_DAFTAR_AWAL;
+            const tombolLihat = sisa > 0
+                ? `<button type="button" class="um-lihat" onclick="window.umkmToggleDaftar()" aria-expanded="${window.umkmDaftarSemua ? 'true' : 'false'}"><span>${window.umkmDaftarSemua ? 'Tampilkan lebih sedikit' : 'Lihat semua (' + daftar.length + ' warung)'}</span><i class="ph-bold ph-caret-down"></i></button>`
+                : '';
+
             wadah.innerHTML = `
-                <div class="um-daftar">
+                <div class="um-daftar${window.umkmDaftarSemua ? ' um-semua' : ''}">
                     <div class="um-daftar-head">
                         <div class="um-kicker"><span>WARUNG UMKM · DI INPUT OLEH PROJEKGO</span><i class="ph ph-book-open-text"></i></div>
                         <div class="um-daftar-judul">DAFTAR ISI<br>BUKU MENU</div>
                         <div class="um-daftar-sub">Pilih warung, buka menunya, ketuk nama makanan untuk masuk keranjang.</div>
+                        <div class="um-khas"><span class="um-khas-pil"><i class="ph-fill ph-seal-check"></i>HANYA DI PROJEKGO</span><span class="um-khas-teks">Tampilan menu seperti buku menu di resto</span></div>
                     </div>
                     <div class="um-daftar-list">
                         ${baris}
-                        <div class="um-daftar-kaki">Harga sama dengan beli langsung di warungnya</div>
+                        ${tombolLihat}
+                        <div class="um-harga-info" role="note"><i class="ph-fill ph-info"></i><span>Menu warung di daftar ini <b>diinput oleh ProjekGo</b>, jadi harga makanan bisa sedikit berbeda. Jika ada perubahan harga di warung, mungkin belum kami perbarui.</span></div>
                     </div>
                 </div>`;
         };
@@ -7508,8 +7576,9 @@
                     <div class="um-tutup-teks">Kamu bisa pilih warung yang lain.</div>
                     <button type="button" class="um-tutup-btn" onclick="window.umkmPilihLain()">Pilih warung lain <i class="ph-bold ph-caret-right"></i></button>
                 </div>`}
+                <div class="um-harga-info di-menu" role="note"><i class="ph-fill ph-info"></i><span>Menu warung ini <b>diinput oleh ProjekGo</b>, jadi harga makanan bisa sedikit berbeda. Jika ada perubahan harga di warung, mungkin belum kami perbarui.</span></div>
                 ${seksi || '<div class="um-kosong">Menu warung ini belum diisi.</div>'}
-                <div class="um-kaki">Ketuk nama menu untuk menambah ke keranjang.<br>Harga sama dengan beli langsung di warungnya.</div>`;
+                <div class="um-kaki">Ketuk nama menu untuk menambah ke keranjang.</div>`;
 
             window.umkmSyncBar();
         };
