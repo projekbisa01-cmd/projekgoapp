@@ -4260,6 +4260,13 @@
         // --- HELPER UNTUK MEMBACA JAM BUKA OPERASIONAL WARUNG (LANGKAH 1) ---
         window.isVendorOpenNow = (vendor) => {
             if (!vendor) return null;
+
+            // Warung Buku Menu (diinput ProjekGo): tombol TUTUP dari admin selalu menang atas jam operasional.
+            // Tombol BUKA tidak memaksa buka; di luar jam operasional warung tetap tutup.
+            if (vendor.is_admin_managed === true) {
+                const manual = vendor.status_asli !== undefined ? vendor.status_asli : vendor.status;
+                if (String(manual || 'BUKA').toUpperCase() === 'TUTUP') return false;
+            }
             
             // Dapatkan jam pengguna saat ini dan sesuaikan ke WIB (UTC+7)
             const now = new Date();
@@ -11541,7 +11548,9 @@
                         d.order_index = (typeof d.order_index === 'number') ? d.order_index : 999;
                         // -------------------------------------------------
                         
-                        allVendors.push({id: doc.id, ...d});
+                        // status_asli = status dari tombol buka/tutup admin, disimpan terpisah karena
+                        // v.status ditimpa oleh jam operasional di renderWarungList
+                        allVendors.push({id: doc.id, ...d, status_asli: d.status || 'BUKA'});
                     });
                     
                     isVendorsReady = true;
