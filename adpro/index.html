@@ -3741,9 +3741,9 @@
                     jadwal_mingguan: jadwal_mingguan,   
                     is_admin_managed: true,             
                     menu_hiasan: hiasanUrl.slice(0, HIASAN_MAKS),
-                    status: 'BUKA',
                     role: 'vendor',
-                    ...(isEdit ? {} : { is_andalan: false, created_at: new Date().toISOString() })
+                    // status 'BUKA' hanya untuk warung baru; saat edit, tombol buka/tutup yang sudah diatur tidak ditimpa
+                    ...(isEdit ? {} : { status: 'BUKA', is_andalan: false, created_at: new Date().toISOString() })
                 };
 
                 // Jika berhasil upload foto, masukkan ke field shop_photo
