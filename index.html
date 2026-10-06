@@ -1857,11 +1857,15 @@
             z-index: 2;
         }
 
-        /* --- KATEGORI HALAMAN FOOD: SATU BARIS, BISA DIGESER, BERPUTAR TANPA UJUNG ---
+        /* --- KATEGORI HALAMAN FOOD: DUA BARIS, BISA DIGESER, BERHENTI DI UJUNG ---
            Pakai #id supaya grid di modal "Semua Pilihan Kuliner" tidak ikut berubah. */
         #dynamic-cat-grid {
-            display: flex;
-            gap: 12px;
+            display: grid;
+            grid-template-rows: repeat(2, auto);
+            grid-template-columns: none;
+            grid-auto-flow: column;
+            grid-auto-columns: 88px;
+            gap: 10px;
             overflow-x: auto;
             overflow-y: hidden;
             padding: 8px 20px 12px 20px;
@@ -1872,20 +1876,18 @@
         }
         #dynamic-cat-grid::-webkit-scrollbar { display: none; }
         #dynamic-cat-grid > .cat-item-box {
-            flex: 0 0 102px;
-            min-height: 128px;
-            padding: 12px 5px 12px 5px;
-            border-radius: 26px;
-            box-shadow: 0 7px 16px rgba(0,0,0,0.06);
+            min-height: 108px;
+            padding: 10px 4px 10px 4px;
+            border-radius: 22px;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.06);
         }
         #dynamic-cat-grid > .cat-item-box img {
-            width: 78px;
-            height: 78px;
+            width: 62px;
+            height: 62px;
             -webkit-user-drag: none;
         }
-        #dynamic-cat-grid > .cat-item-box .cat-box-text { font-size: 12.5px; font-weight: 700; }
-        #dynamic-cat-grid > .skel-cat-wrapper { flex: 0 0 102px; }
-        #dynamic-cat-grid > .skel-cat-wrapper .skel-cat-icon { width: 78px; height: 78px; border-radius: 26px; }
+        #dynamic-cat-grid > .cat-item-box .cat-box-text { font-size: 11.5px; font-weight: 700; }
+        #dynamic-cat-grid > .skel-cat-wrapper .skel-cat-icon { width: 62px; height: 62px; border-radius: 22px; }
 
         /* Hilangkan sisa CSS Kategori Lama yang bentrok */
         .menu-container, .menu-grid, .menu-item, .icon-container, .menu-text, .pagination, .dot { display: none !important; }
@@ -4261,9 +4263,10 @@
         window.isVendorOpenNow = (vendor) => {
             if (!vendor) return null;
 
-            // Warung Buku Menu (diinput ProjekGo): tombol TUTUP dari admin selalu menang atas jam operasional.
-            // Tombol BUKA tidak memaksa buka; di luar jam operasional warung tetap tutup.
-            if (vendor.is_admin_managed === true) {
+            // Berlaku untuk SEMUA warung (mitra maupun Buku Menu): tombol TUTUP selalu menang
+            // atas jam operasional. Tombol BUKA tidak memaksa buka; di luar jam operasional
+            // warung tetap tutup. status_asli = status asli dari database (tombol buka/tutup).
+            {
                 const manual = vendor.status_asli !== undefined ? vendor.status_asli : vendor.status;
                 if (String(manual || 'BUKA').toUpperCase() === 'TUTUP') return false;
             }
@@ -4517,25 +4520,44 @@
             + '<g fill="#FFD2B0"><circle cx="-12" cy="-12" r="12"/><circle cx="36" cy="-12" r="12"/></g>',
             'gambar resto');
 
-        // Gambar "Buku Menu" untuk warung UMKM kelolaan admin (SVG bawaan, tanpa file luar).
-        // Menu warung UMKM tidak tampil sebagai kartu menu di mana pun; yang tampil restonya.
-        const UMKM_BUKU_IMG = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
-            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">'
-            + '<rect width="200" height="200" fill="#F4B04A"/>'
-            + '<circle cx="168" cy="36" r="44" fill="#FFE3B0" opacity="0.55"/>'
-            + '<g transform="rotate(-6 100 104)">'
-            + '<rect x="50" y="30" width="104" height="142" rx="8" fill="#000" opacity="0.18" transform="translate(6 6)"/>'
-            + '<rect x="50" y="30" width="104" height="142" rx="8" fill="#1C1C1E"/>'
-            + '<rect x="50" y="30" width="16" height="142" rx="6" fill="#C44700"/>'
-            + '<rect x="76" y="48" width="66" height="58" rx="4" fill="#FFF6EC"/>'
-            + '<text x="109" y="72" text-anchor="middle" font-family="Arial Narrow, Arial, sans-serif" font-weight="700" font-size="17" fill="#1C1C1E">BUKU</text>'
-            + '<text x="109" y="94" text-anchor="middle" font-family="Arial Narrow, Arial, sans-serif" font-weight="700" font-size="17" fill="#1C1C1E">MENU</text>'
-            + '<g stroke="#FFB27A" stroke-width="3" stroke-dasharray="2 5" stroke-linecap="round"><line x1="78" y1="124" x2="140" y2="124"/><line x1="78" y1="138" x2="140" y2="138"/><line x1="78" y1="152" x2="124" y2="152"/></g>'
-            + '</g>'
-            + '<text x="100" y="192" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="11" letter-spacing="2" fill="#4A2A08">PROJEKGO</text>'
-            + '</svg>');
         const isWarungUmkm = (v) => !!v && v.is_admin_managed === true;
-        const gambarResto = (v) => isWarungUmkm(v) ? UMKM_BUKU_IMG : ((v && v.shop_photo) || FALLBACK_VENDOR_IMG);
+        // Warung UMKM (Buku Menu) tampil di daftar dengan FOTO WARUNGNYA sendiri:
+        // foto profil -> foto sampul -> gambar toko bawaan. Hanya alamat https:// yang dipakai.
+        const fotoUmkmAman = (u) => {
+            const x = window.fixImgUrl(u);
+            return (typeof x === 'string' && /^https:\/\/[^\s"'<>\\]+$/i.test(x)) ? x : '';
+        };
+        // "Pilihan Makan untuk Kamu": 1 menu acak per warung, hanya dari warung yang sedang
+        // BUKA dan hanya menu yang punya foto (https) serta tidak habis.
+        // Pilihan & urutannya diingat selama aplikasi terbuka, supaya kartu tidak berganti-ganti
+        // setiap kali data realtime masuk. Kalau menu terpilih habis/dihapus, dipilih ulang.
+        const __pilihanMakan = { pilih: {}, urut: {} };
+        function daftarPilihanMakan() {
+            const perWarung = new Map();
+            allProducts.forEach(p => {
+                if (!p || !p.vendor_id || p.is_available === false || p.is_sold_out === true) return;
+                if (!fotoUmkmAman(p.foto_url) || !(parseInt(p.harga, 10) > 0)) return;
+                if (!perWarung.has(p.vendor_id)) perWarung.set(p.vendor_id, []);
+                perWarung.get(p.vendor_id).push(p);
+            });
+            const hasil = [];
+            perWarung.forEach((menus, vid) => {
+                const v = currentDisplayVendors.find(x => x.id === vid);
+                if (!v) return;
+                const rt = window.isVendorOpenNow(v);
+                const buka = rt === false ? false : (rt === true ? true : (v.status || 'BUKA').toUpperCase() === 'BUKA');
+                if (!buka) return;
+                let p = menus.find(m => m.id === __pilihanMakan.pilih[vid]);
+                if (!p) { p = menus[Math.floor(Math.random() * menus.length)]; __pilihanMakan.pilih[vid] = p.id; }
+                if (typeof __pilihanMakan.urut[vid] !== 'number') __pilihanMakan.urut[vid] = Math.random();
+                hasil.push({ p, v, r: __pilihanMakan.urut[vid] });
+            });
+            return hasil.sort((a, b) => a.r - b.r);
+        }
+
+        const gambarResto = (v) => isWarungUmkm(v)
+            ? (fotoUmkmAman(v.shop_photo) || fotoUmkmAman(v.cover_photo) || FALLBACK_VENDOR_IMG)
+            : ((v && v.shop_photo) || FALLBACK_VENDOR_IMG);
 
         // Inisialisasi Teks Navigasi Atas Sesuai Pilihan Lokasi Terakhir (Dipersingkat)
         document.getElementById('loc-text').innerText = currentArea === 'Gombong' ? 'Gombong' : 'Kebumen';
@@ -6588,6 +6610,8 @@
                 filteredItems = allProducts.filter(p => p.is_available !== false && (p.is_promo === true || parseInt(p.harga_coret) > parseInt(p.harga))).sort(bandingUrutanMitra).slice(0, 30);
             } else if (cat === 'Flash Sale') {
                 filteredItems = allProducts.filter(p => p.is_available !== false && p.is_flash_sale === true).sort(bandingUrutanMitra).slice(0, 30);
+            } else if (cat === 'Pilihan Makan') {
+                filteredItems = daftarPilihanMakan().map(x => x.p);
             } else if (cat === 'Top Rating') {
                 const topVendorsIds = currentDisplayVendors.slice(0, 10).map(v => v.id);
                 filteredItems = allProducts.filter(p => topVendorsIds.includes(p.vendor_id));
@@ -6634,7 +6658,7 @@
                     c.parentNode.insertBefore(bannerWrapper, c); // Menyelipkan banner tepat di atas grid produk
                 }
 
-                if (cat === 'Flash Sale' || cat === 'Exclusive' || cat === 'Sedang Promo') {
+                if (cat === 'Flash Sale' || cat === 'Exclusive' || cat === 'Sedang Promo' || cat === 'Pilihan Makan') {
                     // Khusus Flash Sale, Exclusive, dan Sedang Promo: Tampilkan langsung kartu produknya tanpa di grup per warung
                     c.classList.add('product-list-grid');
                     filteredItems.forEach(item => {
@@ -7258,7 +7282,7 @@
 
         /* ==========================================================
            BUKU MENU WARUNG UMKM (vendors.is_admin_managed === true)
-           - Daftar isi warung di halaman Food (di bawah kartu Keuntungan)
+           - Warungnya tampil di daftar "Warung di Sekitar" (tidak ada lagi kontainer daftar isi)
            - Halaman menu 1 lembar: daftar tulisan, foto hanya hiasan
            - Ketuk nama menu -> pop-up jumlah (+ / -) -> masuk keranjang biasa
            KEAMANAN: semua teks dari database lewat esc() / textContent,
@@ -7345,7 +7369,7 @@
         window.umkmPilihLain = () => {
             openPage('food');
             setTimeout(() => {
-                const t = document.getElementById('umkm-daftar-warung');
+                const t = document.getElementById('warung-sticky-header');
                 if (t) window.scrollTo({ top: t.getBoundingClientRect().top + window.pageYOffset - 80, behavior: 'smooth' });
             }, 150);
         };
@@ -7428,97 +7452,6 @@
                 window.isClosingPopup = true;
                 window.history.back();
             }
-        };
-
-        // ---------- 1. DAFTAR ISI DI HALAMAN FOOD ----------
-        // Daftar isi hanya menampilkan beberapa warung dulu; sisanya lewat tombol "Lihat semua".
-        const UMKM_DAFTAR_AWAL = 4;
-        window.umkmDaftarSemua = false; // diingat selama aplikasi terbuka, tahan terhadap render ulang realtime
-        window.umkmToggleDaftar = () => {
-            window.umkmDaftarSemua = !window.umkmDaftarSemua;
-            window.renderUmkmDaftar();
-            // Saat diringkas lagi, kembalikan layar ke awal kontainer agar pelanggan tidak tersesat
-            if (!window.umkmDaftarSemua) {
-                const kotak = document.querySelector('#umkm-daftar-warung .um-daftar');
-                if (kotak && kotak.getBoundingClientRect().top < 0) kotak.scrollIntoView({ block: 'start' });
-            }
-        };
-
-        // Warung tutup di daftar isi: tidak membuka buku menu, hanya pop-up info jam operasional.
-        // Isi pop-up dikirim sebagai teks biasa (bukan HTML), jadi nama warung tidak bisa menyisipkan kode.
-        window.umkmInfoTutup = (vendorId) => {
-            const v = allVendors.find(x => x.id === vendorId);
-            if (!v) { showToast('Warung tidak ditemukan'); return; }
-            // Jika ternyata sudah buka (daftar belum sempat diperbarui), langsung buka menunya
-            if (umkmBuka(v)) { window.openUmkmMenu(vendorId); return; }
-            const { today, berikut, sudahLewat } = umkmInfoJam(v);
-            const nama = String(v.nama_warung || 'Warung ini');
-            const lagi = berikut ? ` Buka lagi ${berikut.hari} pukul ${berikut.buka} WIB.` : '';
-            let jam;
-            if (today && today.libur) jam = `${nama} hari ini libur.` + lagi;
-            else if (today) jam = `Jam operasional ${nama} hari ini: ${today.buka} – ${today.tutup} WIB.` + (sudahLewat ? lagi : '');
-            else jam = `Jam operasional ${nama} belum tersedia.`;
-            Swal.fire({
-                title: 'Warung sekarang tutup',
-                text: jam,
-                icon: 'info',
-                confirmButtonColor: '#FF6600',
-                confirmButtonText: 'Mengerti',
-                customClass: { popup: 'swal-custom-popup', title: 'swal-custom-title' }
-            });
-        };
-
-        window.renderUmkmDaftar = () => {
-            let wadah = document.getElementById('umkm-daftar-warung');
-            if (!wadah) {
-                const top = document.getElementById('container-top-rated');
-                if (!top) return;
-                wadah = document.createElement('div');
-                wadah.id = 'umkm-daftar-warung';
-                top.prepend(wadah);
-            }
-            const daftar = currentDisplayVendors
-                .filter(v => v.is_admin_managed === true)
-                .map(v => ({ v, jml: umkmMenuDari(v.id).length, buka: umkmBuka(v) }))
-                // Hanya warung yang sedang BUKA dan punya menu; warung tutup tidak ditampilkan di daftar isi
-                .filter(x => x.jml > 0 && x.buka)
-                .sort((a, b) => (Number(b.buka) - Number(a.buka)) || (a.v.order_index - b.v.order_index) || String(a.v.nama_warung || '').localeCompare(String(b.v.nama_warung || ''), 'id'));
-
-            if (daftar.length === 0) { wadah.innerHTML = ''; return; }
-
-            const baris = daftar.map((x, i) => {
-                const v = x.v;
-                const kat = extractCategories(v.kategori_utama)[0] || '';
-                const sub = [umkmTeksJam(v).daftar, kat, v.alamat_warung || v.alamat || ''].filter(Boolean).join(' · ');
-                return `
-                <button type="button" class="um-row${i >= UMKM_DAFTAR_AWAL ? ' um-row-lebih' : ''}${x.buka ? '' : ' um-row-tutup'}" onclick="window.${x.buka ? 'openUmkmMenu' : 'umkmInfoTutup'}(uiVal(${uiRef(v.id)}))">
-                    <span class="um-no">${String(i + 1).padStart(2, '0')}</span>
-                    <span class="um-row-body">
-                        <span class="um-row-top"><b class="um-row-nama">${esc(v.nama_warung || 'Warung UMKM')}</b><span class="um-titik"></span><span class="um-row-jml">${x.jml} menu</span></span>
-                        <span class="um-row-bawah"><span class="um-chip ${x.buka ? 'buka' : 'tutup'}">${x.buka ? 'BUKA' : 'TUTUP'}</span><span class="um-row-alamat">${esc(sub)}</span></span>
-                    </span>
-                    <i class="ph-bold ${x.buka ? 'ph-caret-right' : 'ph-lock-simple'} um-chev"></i>
-                </button>`;
-            }).join('');
-
-            const sisa = daftar.length - UMKM_DAFTAR_AWAL;
-            const tombolLihat = sisa > 0
-                ? `<button type="button" class="um-lihat" onclick="window.umkmToggleDaftar()" aria-expanded="${window.umkmDaftarSemua ? 'true' : 'false'}"><span>${window.umkmDaftarSemua ? 'Tampilkan lebih sedikit' : 'Lihat semua (' + daftar.length + ' warung)'}</span><i class="ph-bold ph-caret-down"></i></button>`
-                : '';
-
-            wadah.innerHTML = `
-                <div class="um-daftar${window.umkmDaftarSemua ? ' um-semua' : ''}">
-                    <div class="um-daftar-head">
-                        <div class="um-kicker"><span>WARUNG UMKM · DI INPUT OLEH PROJEKGO</span><i class="ph ph-book-open-text"></i></div>
-                        <div class="um-daftar-judul">DAFTAR ISI<br>BUKU MENU</div>
-                        <div class="um-daftar-sub">Pilih warung, buka menunya, ketuk nama makanan untuk masuk keranjang.</div>
-                        <div class="um-khas"><span class="um-khas-pil"><i class="ph-fill ph-seal-check"></i>HANYA DI PROJEKGO</span><span class="um-khas-teks">Tampilan menu seperti buku menu di resto</span></div>
-                    </div>
-                    <div class="um-daftar-list">
-                        ${baris}
-                        ${tombolLihat}
-                    </div>
-                </div>`;
         };
 
         // ---------- 2. HALAMAN BUKU MENU 1 LEMBAR ----------
@@ -10243,7 +10176,7 @@
                     kartu.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') buka(); });
                     const daftarMenu = cocokMenu.slice(0, 3).join(', ') + (cocokMenu.length > 3 ? ', …' : '');
                     kartu.innerHTML = `
-                        <img src="${UMKM_BUKU_IMG}" alt="" style="width:64px; height:64px; border-radius:14px; flex-shrink:0;">
+                        <img src="${esc(gambarResto(v))}" alt="" style="width:64px; height:64px; border-radius:14px; flex-shrink:0; object-fit:cover;" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
                         <div style="flex:1; min-width:0;">
                             <div style="font-size:10px; font-weight:800; letter-spacing:.08em; color:#C44700;">SPESIAL DARI PROJEKGO</div>
                             <div style="font-size:15px; font-weight:800; color:#1C1C1E; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(v.nama_warung || 'Warung UMKM')}</div>
@@ -12009,7 +11942,7 @@
             let cardsHtml = '<div class="scroll-container" style="padding: 0 15px; gap: 12px;">';
             restoBaru.forEach(({ v }) => {
                 const menu = menuPer[v.id] || [];
-                const img = isWarungUmkm(v) ? UMKM_BUKU_IMG : (urlAman(v.cover_photo) || urlAman(v.shop_photo) || menu.map(p => urlAman(p.foto_url)).find(Boolean) || FALLBACK_VENDOR_IMG);
+                const img = urlAman(v.cover_photo) || urlAman(v.shop_photo) || menu.map(p => urlAman(p.foto_url)).find(Boolean) || FALLBACK_VENDOR_IMG;
                 const hargaAda = menu.filter(p => p.is_available !== false && p.is_sold_out !== true).map(p => parseInt(p.harga, 10)).filter(n => n > 0);
                 const mulai = hargaAda.length ? Math.min(...hargaAda) : 0;
                 const kat = extractCategories(v.kategori_utama).slice(0, 2).join(', ') || 'Aneka makanan';
@@ -12022,7 +11955,7 @@
                 cardsHtml += `
                     <div role="button" tabindex="0" style="width: 220px; flex-shrink: 0; cursor: pointer; background: white; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.03); display: flex; flex-direction: column; overflow: hidden;" onclick="${aksi}" onkeydown="if(event.key==='Enter'){${aksi}}">
                         <div style="position:relative; width:100%; height:160px; overflow:hidden; background:#f5f5f5;">
-                            <img src="${esc(img)}" alt="" loading="lazy" style="width:100%; height:100%; ${isWarungUmkm(v) ? 'object-fit:contain; background:#F4B04A;' : 'object-fit:cover;'}" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
+                            <img src="${esc(img)}" alt="" loading="lazy" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
                             <div class="watermark-projekgo">PROJEKGO</div>
                             <div style="position:absolute; top:0; left:0; background: #C44700; color: white; font-size:10px; padding:4px 8px; border-bottom-right-radius:8px; font-weight:800; z-index:2;">Baru</div>
                         </div>
@@ -12333,82 +12266,57 @@
                 }
             });
 
-            // 2. Render untuk Beranda: SEMUA kategori dalam SATU BARIS geser.
-            //    Isinya dibuat 3 salinan (kiri - tengah - kanan). Pengguna selalu berada
-            //    di salinan tengah; begitu mendekati ujung, posisi diam-diam dilompatkan
-            //    satu salinan, jadi terasa tidak ada ujungnya.
-            const satuPutaran = finalCategories
-                .map(cat => ({ name: cat.name, bgClass: cat.bgClass, icon: cat.icon, aksi: () => openCategoryPage(cat.name) }));
-
-            // Tanpa kategori sama sekali: jangan jalankan loop di bawah (bisa macet tanpa henti).
-            if (satuPutaran.length === 0) { catGrid.innerHTML = ''; delete catGrid.dataset.sidik; return; }
+            // 2. Render untuk halaman Food: SEMUA kategori dalam DUA BARIS geser.
+            //    Baris atas = separuh pertama (urutan dari admin), baris bawah = sisanya.
+            //    Tidak ada salinan / putaran: geser berhenti di kategori terakhir.
+            if (finalCategories.length === 0) { catGrid.innerHTML = ''; delete catGrid.dataset.sidik; return; }
 
             // Data realtime (warung/menu/promo) memanggil fungsi ini berkali-kali. Kalau daftar
             // kategorinya sama persis, jangan bangun ulang supaya posisi geser pengguna tidak reset.
-            const sidikKategori = JSON.stringify(satuPutaran.map(c => [c.name, c.icon, c.bgClass]));
-            if (catGrid.dataset.sidik === sidikKategori && catGrid.querySelector('[data-loop-start]')) return;
+            const sidikKategori = JSON.stringify(finalCategories.map(c => [c.name, c.icon, c.bgClass]));
+            if (catGrid.dataset.sidik === sidikKategori && catGrid.querySelector('.cat-item-box')) return;
 
-            // Kalau kategorinya sedikit, ulangi dulu supaya satu set lebih lebar dari layar
-            // (kalau tidak, lompatannya kelihatan).
-            let satuSet = satuPutaran.slice();
-            while (satuSet.length < 10) satuSet = satuSet.concat(satuPutaran);
+            // Grid diisi per kolom (atas lalu bawah), jadi urutannya diselang-seling
+            // supaya baris atas terbaca urut dari kiri ke kanan, lalu lanjut ke baris bawah.
+            const jmlAtas = Math.ceil(finalCategories.length / 2);
+            const urutTampil = [];
+            for (let i = 0; i < jmlAtas; i++) {
+                urutTampil.push(finalCategories[i]);
+                if (finalCategories[jmlAtas + i]) urutTampil.push(finalCategories[jmlAtas + i]);
+            }
 
             const frag = document.createDocumentFragment();
-            for (let salinan = 0; salinan < 3; salinan++) {
-                satuSet.forEach((cat, idx) => {
-                    const div = document.createElement('div');
-                    div.className = `cat-item-box ${cat.bgClass}`;
-                    if (salinan === 1 && idx === 0) div.dataset.loopStart = '1';
-                    if (salinan !== 1) div.setAttribute('aria-hidden', 'true'); // salinan kiri/kanan cuma pemanis
-                    div.onclick = cat.aksi;
-                    div.innerHTML = `<img src="${esc(cat.icon)}" alt="" draggable="false"><div class="cat-box-text">${esc(cat.name)}</div>`;
-                    frag.appendChild(div);
-                });
-            }
+            urutTampil.forEach(cat => {
+                const div = document.createElement('div');
+                div.className = `cat-item-box ${cat.bgClass}`;
+                div.setAttribute('role', 'button');
+                div.onclick = () => openCategoryPage(cat.name);
+                div.innerHTML = `<img src="${esc(cat.icon)}" alt="" draggable="false"><div class="cat-box-text">${esc(cat.name)}</div>`;
+                frag.appendChild(div);
+            });
             catGrid.innerHTML = '';
             catGrid.appendChild(frag);
             catGrid.dataset.sidik = sidikKategori;
-            pasangGeserTanpaUjung(catGrid);
+            pasangIngatGeser(catGrid);
         }
 
-        // Geser berputar untuk baris kategori. Listener dipasang SEKALI saja per elemen,
-        // walaupun renderCategories() dipanggil berulang (tidak menumpuk / bocor).
-        function pasangGeserTanpaUjung(grid) {
-            const lebarSatuSet = () => {
-                const awalTengah = grid.querySelector('[data-loop-start]');
-                const pertama = grid.firstElementChild;
-                return (awalTengah && pertama) ? (awalTengah.offsetLeft - pertama.offsetLeft) : 0;
-            };
-            // Posisi disimpan sebagai pecahan (0..1) di dalam satu set, jadi tetap benar
-            // walaupun baris dibangun ulang atau lebarnya berubah.
-            const simpanPosisi = () => {
-                const w = lebarSatuSet();
-                if (w > 0 && grid.clientWidth > 0) grid._posisiGeser = (((grid.scrollLeft - w) % w) + w) % w / w;
-            };
-            const keTengah = () => {
-                const w = lebarSatuSet();
-                if (w > 0) grid.scrollLeft = w + (grid._posisiGeser || 0) * w;
-            };
-            keTengah();
-
-            if (grid.dataset.loopSiap === '1') return;
-            grid.dataset.loopSiap = '1';
+        // Baris kategori: geser biasa yang berhenti di ujung kiri/kanan (tidak berputar).
+        // Posisi geser terakhir diingat, karena saat halaman Food disembunyikan (display:none)
+        // browser membuangnya. Listener dipasang SEKALI saja per elemen.
+        function pasangIngatGeser(grid) {
+            if (typeof grid._posisiGeser === 'number') grid.scrollLeft = grid._posisiGeser;
+            if (grid.dataset.geserSiap === '1') return;
+            grid.dataset.geserSiap = '1';
 
             grid.addEventListener('scroll', () => {
-                const w = lebarSatuSet();
-                if (w <= 0) return;
-                if (grid.scrollLeft < w * 0.5) grid.scrollLeft += w;
-                else if (grid.scrollLeft > w * 1.5) grid.scrollLeft -= w;
-                simpanPosisi();
+                if (grid.clientWidth > 0) grid._posisiGeser = grid.scrollLeft;
             }, { passive: true });
 
-            // Saat halaman food disembunyikan (display:none) browser membuang posisi geser.
-            // Begitu tampil lagi, kembalikan ke posisi terakhir yang tersimpan.
             if ('ResizeObserver' in window) {
                 let lebarLama = grid.clientWidth;
                 new ResizeObserver(() => {
                     const lebar = grid.clientWidth;
-                    if (lebarLama === 0 && lebar > 0) keTengah();
+                    if (lebarLama === 0 && lebar > 0 && typeof grid._posisiGeser === 'number') grid.scrollLeft = grid._posisiGeser;
                     lebarLama = lebar;
                 }).observe(grid);
             }
@@ -12710,7 +12618,6 @@
                     <p class="kp-petunjuk">Harga jujur, antar cepat, tanpa biaya siluman 🧡</p>
                     </div></div>
                 </div>
-                <div id="umkm-daftar-warung"></div>
             `;
 
             let header = `
@@ -12868,9 +12775,9 @@
             vendors.forEach(v => {
                 const img = gambarResto(v);
                 cards += `
-                    <div style="width: 120px; flex-shrink: 0; cursor: pointer;" onclick="openVendorPage('${v.id}')">
-                        <img src="${img}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px;">
-                        <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; margin-top: 8px; line-height: 1.3; color: var(--dark); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${v.nama_warung || 'Warung'}</div>
+                    <div style="width: 120px; flex-shrink: 0; cursor: pointer;" onclick="openVendorPage(uiVal(${uiRef(v.id)}))">
+                        <img src="${esc(img)}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px;" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
+                        <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; margin-top: 8px; line-height: 1.3; color: var(--dark); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${esc(v.nama_warung || 'Warung')}</div>
                         <div style="display: flex; gap: 4px; margin-top: 6px; overflow: hidden;">
                             <span style="border: 1px solid #ffcdd2; color: #d32f2f; font-size: 9px; padding: 2px 4px; border-radius: 4px; white-space: nowrap;">Diskon 50%</span>
                             <span style="border: 1px solid #ffcdd2; color: #d32f2f; font-size: 9px; padding: 2px 4px; border-radius: 4px; white-space: nowrap;">Diskon O...</span>
@@ -12882,6 +12789,80 @@
             promoDiv.innerHTML = header + cards;
             c.appendChild(promoDiv);
             topRatingImgInserted = true;
+        };
+
+        // Kontainer oranye "Pilihan Makan untuk Kamu" — disisipkan 5 baris warung di bawah
+        // "Resto Top Rating". Dibangun lewat DOM: teks lewat textContent, foto hanya https.
+        let pilihanMakanInserted = false;
+        const renderPilihanMakan = () => {
+            if (pilihanMakanInserted) return;
+            pilihanMakanInserted = true;
+            const semua = daftarPilihanMakan();
+            if (semua.length === 0) return;
+
+            const box = document.createElement('div');
+            box.style.cssText = "background: linear-gradient(160deg, #FF8A1F 0%, #F26A00 55%, #E85300 100%); padding: 18px 0 20px 0; border-top: 8px solid var(--bg); border-bottom: 8px solid var(--bg); overflow: hidden;";
+
+            const head = document.createElement('div');
+            head.style.cssText = "display:flex; justify-content:space-between; align-items:center; gap:12px; padding: 0 16px 14px 16px;";
+            const judul = document.createElement('div');
+            judul.style.cssText = "font-size: 22px; font-weight: 800; color: #fff; line-height: 1.2; letter-spacing: 0.2px; text-shadow: 0 2px 6px rgba(120,40,0,0.25);";
+            judul.innerHTML = 'Pilihan Makan<br>untuk Kamu';
+            const semuaBtn = document.createElement('button');
+            semuaBtn.type = 'button';
+            semuaBtn.style.cssText = "flex-shrink:0; background:#FFF3E6; color:#C44700; border:none; border-radius:99px; padding:10px 16px; font-family:inherit; font-size:13px; font-weight:800; cursor:pointer; min-height:40px;";
+            semuaBtn.textContent = 'Lihat Semua';
+            semuaBtn.addEventListener('click', () => openCategoryPage('Pilihan Makan'));
+            head.appendChild(judul); head.appendChild(semuaBtn);
+            box.appendChild(head);
+
+            const baris = document.createElement('div');
+            baris.className = 'scroll-container';
+            baris.style.cssText = "padding: 0 16px; gap: 12px; overscroll-behavior-x: contain;";
+
+            semua.slice(0, 12).forEach(({ p, v }) => {
+                const kartu = document.createElement('div');
+                kartu.setAttribute('role', 'button');
+                kartu.tabIndex = 0;
+                kartu.style.cssText = "position:relative; width:240px; height:250px; flex-shrink:0; border-radius:22px; overflow:hidden; cursor:pointer; background:#7a3300; box-shadow:0 8px 18px rgba(120,40,0,0.30);";
+                const buka = () => openProductDetail(p.id);
+                kartu.addEventListener('click', buka);
+                kartu.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') buka(); });
+
+                const img = document.createElement('img');
+                img.src = fotoUmkmAman(p.foto_url);
+                img.alt = '';
+                img.loading = 'lazy';
+                img.style.cssText = "width:100%; height:100%; object-fit:cover; display:block;";
+                // Fotonya gagal dimuat: kartunya dibuang, karena kontainer ini khusus menu berfoto
+                img.onerror = function () { kartu.remove(); if (!baris.children.length) box.remove(); };
+                kartu.appendChild(img);
+
+                const gelap = document.createElement('div');
+                gelap.style.cssText = "position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.35) 38%, rgba(0,0,0,0) 62%); pointer-events:none;";
+                kartu.appendChild(gelap);
+
+                const info = document.createElement('div');
+                info.style.cssText = "position:absolute; left:14px; right:14px; bottom:14px; color:#fff; pointer-events:none;";
+                const harga = document.createElement('span');
+                harga.style.cssText = "display:inline-block; background:#1E9E45; color:#fff; font-size:13px; font-weight:800; padding:5px 11px; border-radius:99px; margin-bottom:8px; box-shadow:0 2px 6px rgba(0,0,0,0.25);";
+                harga.textContent = 'Rp' + (parseInt(p.harga, 10) || 0).toLocaleString('id-ID');
+                const nama = document.createElement('div');
+                nama.style.cssText = "font-size:16px; font-weight:800; line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 1px 4px rgba(0,0,0,0.5);";
+                nama.textContent = p.nama_menu || 'Menu';
+                const sub = document.createElement('div');
+                sub.style.cssText = "font-size:12px; font-weight:600; opacity:0.92; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;";
+                let jarak = '';
+                if (typeof v.tempDistance === 'number' && v.tempDistance !== 999) {
+                    jarak = ' · ' + (v.tempDistance < 1 ? (v.tempDistance * 1000).toFixed(0) + ' m' : v.tempDistance.toFixed(1) + ' km');
+                }
+                sub.textContent = (v.nama_warung || p.vendor_name || 'Warung Projekgo') + jarak;
+                info.appendChild(harga); info.appendChild(nama); info.appendChild(sub);
+                kartu.appendChild(info);
+                baris.appendChild(kartu);
+            });
+            box.appendChild(baris);
+            c.appendChild(box);
         };
 
         let exclusiveImgInserted = false;
@@ -12898,8 +12879,6 @@
         const topRatedContainer = document.getElementById('container-top-rated');
         if (topRatedContainer) topRatedContainer.innerHTML = '';
         renderTopRatedResto();
-        // Daftar isi Buku Menu Warung UMKM (di bawah kartu Keuntungan)
-        if (typeof window.renderUmkmDaftar === 'function') window.renderUmkmDaftar();
 
         // Semua warung langsung ditampilkan (tidak ada lagi tombol "Tampilkan Lebih Banyak").
         // Ini tidak menambah pembacaan Firebase sama sekali: data warung dan menu sudah
@@ -12918,6 +12897,9 @@
                 renderRestoTopRatingImageStyle();
                 renderExclusiveStyle();
             }
+
+            // 5 baris warung setelah "Resto Top Rating"
+            if (index === 15) renderPilihanMakan();
 
             const umkm = isWarungUmkm(v);
             // Menu UMKM sengaja tidak ada di allProducts, jadi harga & jumlah menunya diambil dari rawProducts
@@ -12987,8 +12969,7 @@
             // karena angkanya cuma nilai bawaan dan malah menyesatkan pelanggan.
             const barisInfoHtml = (umkm && !belumAdaMenu)
                 ? `<div style="font-size: 11px; color: #666; display: flex; align-items: center; gap: 4px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            <span style="display:inline-flex; align-items:center; gap:3px; background:#FFF0E5; color:#C44700; font-weight:800; padding:2px 7px; border-radius:99px; flex-shrink:0;"><i class="ph-fill ph-book-open-text"></i> Buku Menu</span>
-                            <span>${vendorProds.length} menu</span>
+                            <span style="font-weight:700; color:#333;">${vendorProds.length} menu</span>
                             <span style="color: #ccc;">•</span>
                             <span>${prices.some(n => n > 0) ? 'mulai Rp' + Math.min(...prices.filter(n => n > 0)).toLocaleString('id-ID') : 'lihat menunya'}</span>
                         </div>`
@@ -13022,6 +13003,8 @@
                         <div style="font-size: 15px; font-weight: 600; color: #111; line-height: 1.2; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                             ${esc(v.nama_warung || 'Warung Projekgo')}
                         </div>
+
+                        ${umkm ? `<div style="font-size: 11px; font-weight: 700; color: #C44700; display: flex; align-items: center; gap: 4px; margin-bottom: 4px; line-height: 1.3;"><i class="ph-fill ph-book-open-text" style="font-size: 13px; flex-shrink: 0;"></i><span>Tampilan warung menggunakan Buku menu</span></div>` : ''}
 
                         ${halalBadgeHtml ? `<div style="margin-bottom: 3px;">${halalBadgeHtml}</div>` : ''}
 
@@ -13061,6 +13044,7 @@
         if (foodVendors.length > 0 && vendorsToRender.length === foodVendors.length) {
             renderRestoTopRatingImageStyle();
             renderExclusiveStyle();
+            renderPilihanMakan(); // warungnya kurang dari 15: tetap tampil, di ujung daftar
         }
 
         if (!bestSellerInserted) renderBestSeller();
