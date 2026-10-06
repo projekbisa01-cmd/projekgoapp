@@ -92,6 +92,13 @@
         .kat-name { flex:1; font-size:14px; font-weight:700; color:var(--dark); word-break:break-word; line-height:1.3; }
         .kat-meta { font-size:11px; font-weight:600; color:#94a3b8; margin-top:3px; }
         .kat-act { background:none; border:none; padding:5px; cursor:pointer; font-size:20px; flex-shrink:0; }
+        .kat-liar-box { background:#fff7ed; border:1px solid #fed7aa; border-radius:14px; padding:14px; margin-top:18px; }
+        .kat-liar-judul { font-size:14px; font-weight:800; color:#9a3412; }
+        .kat-liar-ket { font-size:11.5px; color:#9a3412; line-height:1.6; margin:4px 0 10px; }
+        .kat-liar-row { background:#fff; border:1px solid #fde4c8; border-radius:12px; padding:12px; margin-top:8px; }
+        .kat-liar-aksi { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+        .kat-liar-aksi select { flex:1 1 140px; min-width:0; padding:9px; font-size:13px; }
+        .kat-liar-btn { border:none; border-radius:10px; padding:9px 12px; font-size:12px; font-weight:800; cursor:pointer; font-family:inherit; min-height:38px; }
         .kat-chip { display:inline-flex; align-items:center; gap:5px; background:#f1f5f9; border-radius:8px; padding:6px 10px; font-size:12px; margin:3px; }
         body.kat-dragging-active { -webkit-user-select:none; user-select:none; }
 
@@ -308,6 +315,20 @@
         .uk-varian { border: 1px solid #fde68a; background: #fffbeb; border-radius: 14px; padding: 12px; margin-bottom: 10px; }
         .uk-varian-head { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
         .uk-opsi { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
+        #jm-list .uk-hari { grid-template-columns: 56px minmax(0, 1fr) minmax(0, 1fr); }
+        #jm-list .uk-hari input[type="time"] { min-width: 0; width: 100%; }
+        #jm-list .uk-hari .uk-libur { grid-column: 2 / 4; }
+        .uk-vs { border: 1px dashed #cbd5e1; background: #f8fafc; border-radius: 14px; padding: 10px 12px; margin-bottom: 10px; }
+        .uk-vs-judul { font-size: 12px; font-weight: 800; color: var(--dark); margin-bottom: 2px; }
+        .uk-vs-sub { font-size: 11px; font-weight: 700; color: var(--gray); margin: 10px 0 2px; }
+        .uk-vs-list { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+        .uk-vs-item { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 9px 10px; cursor: pointer; font-family: inherit; min-height: 44px; }
+        .uk-vs-item:active { background: #fff7ed; border-color: #fdba74; }
+        .uk-vs-item i { font-size: 18px; color: var(--primary); flex-shrink: 0; }
+        .uk-vs-teks { flex: 1; min-width: 0; }
+        .uk-vs-nama { display: block; font-size: 13px; font-weight: 800; color: var(--dark); }
+        .uk-vs-isi { display: block; font-size: 11px; color: var(--gray); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .uk-vs-lain { background: none; border: none; color: var(--info); font-size: 12px; font-weight: 700; cursor: pointer; padding: 8px 0 0; font-family: inherit; }
         .uk-sticky-aksi { position: sticky; bottom: calc(var(--nav-height) + 8px); display: flex; gap: 8px; background: rgba(248,249,251,0.95); padding: 10px 0; z-index: 5; }
         .uk-hiasan { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
         .uk-hiasan-item { position: relative; width: 72px; height: 72px; border-radius: 12px; overflow: hidden; border: 1px solid #eee; }
@@ -799,8 +820,9 @@
                         </div>
                         <div class="uk-field">
                             <label class="form-label">Varian / Pilihan</label>
+                            <div id="uk-varian-simpanan"></div>
                             <div id="uk-varian-wadah"></div>
-                            <button type="button" class="uk-btn garis" style="width: 100%;" onclick="window.ukTambahGrupVarian()"><i class="ph-bold ph-plus"></i> Tambah Grup Varian</button>
+                            <button type="button" class="uk-btn garis" style="width: 100%;" onclick="window.ukTambahGrupVarian()"><i class="ph-bold ph-plus"></i> Tambah Grup Varian Baru</button>
                             <div class="uk-help">Contoh: Level Pedas, Ukuran Porsi, Topping. Menu bervarian akan membuka pilihan varian di aplikasi pelanggan.</div>
                         </div>
                         <label class="uk-libur" style="font-size: 14px;"><input type="checkbox" id="uk-menu-tersedia" checked> Menu tersedia (tidak habis)</label>
@@ -902,6 +924,7 @@
             </div>
 
             <div id="kat-list"></div>
+            <div id="kat-liar"></div>
             <div style="height:90px;"></div>
         </div>
 
@@ -1041,6 +1064,21 @@
             <div class="modal-actions">
                 <button class="btn-modal" style="background:#f1f5f9;" onclick="closeModal('edit-vendor-modal')">Batal</button>
                 <button class="btn-modal" id="ev-simpan" style="background:var(--primary); color:white;" onclick="window.simpanEditVendorInfo()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL JAM BUKA & TUTUP MITRA (tombol jam di kartu mitra) -->
+    <div id="jam-mitra-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title">Jam Buka &amp; Tutup</div>
+            <p style="color:var(--gray); font-size:13px; margin-bottom:10px;">Jam operasional warung <b id="jm-nama">...</b> (WIB)</p>
+            <div id="jm-info" style="display:none; background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; border-radius:10px; padding:10px; font-size:12px; line-height:1.5; margin-bottom:10px;"></div>
+            <button type="button" class="uk-btn garis" style="width:100%; padding:9px 12px; margin-bottom:4px;" onclick="window.jmSalinSenin()">Salin Senin ke semua hari</button>
+            <div id="jm-list"></div>
+            <div class="modal-actions">
+                <button class="btn-modal" style="background:#f1f5f9;" onclick="closeModal('jam-mitra-modal')">Batal</button>
+                <button class="btn-modal" id="jm-simpan" style="background:var(--primary); color:white;" onclick="window.simpanJamMitra()">Simpan</button>
             </div>
         </div>
     </div>
@@ -1740,6 +1778,8 @@
         // ada yang membukanya dan confirmMigration() tidak pernah didefinisikan,
         // jadi fiturnya tidak pernah bisa dipakai.
         window.openMigrateModal = (vendorId, vendorName) => {
+            // Nama diambil dari data, tidak lagi dititipkan lewat onclick di kartu
+            if (vendorName === undefined) { const vv = adminAllVendors.find(x => x.id === vendorId); vendorName = vv ? (vv.nama_warung || '') : ''; }
             document.getElementById('mig-id').value = vendorId;
             document.getElementById('mig-name').innerText = vendorName;
             document.getElementById('mig-email').value = '';
@@ -1901,6 +1941,7 @@
         };
 
         window.openEditPin = (vendorId, vendorName) => {
+            if (vendorName === undefined) { const vv = adminAllVendors.find(x => x.id === vendorId); vendorName = vv ? (vv.nama_warung || '') : ''; }
             document.getElementById('ep-id').value = vendorId;
             document.getElementById('ep-name').innerText = vendorName;
             document.getElementById('ep-new-pin').value = '';
@@ -2543,8 +2584,8 @@
                 const statusV = (v.status || 'BUKA').toUpperCase() === 'TUTUP' ? 'TUTUP' : 'BUKA';
                 const isOpen = statusV === 'BUKA';
                 const isFeatured = v.is_andalan === true;
-                const safeName = (v.nama_warung || '').replace(/'/g, "\\'");
                 const addressData = v.alamat_warung || v.lokasi || '-';
+                const jamHariIni = jmTeksHariIni(v);
                 
                 let kategoriDataRaw = v.kategori_utama || [];
                 let kategoriStr = Array.isArray(kategoriDataRaw) ? kategoriDataRaw.join(', ') : kategoriDataRaw;
@@ -2560,11 +2601,11 @@
                     accessInfo = `<div style="display:flex; align-items:center; gap:6px; color:#7c3aed; font-weight:700;"><i class="ph-fill ph-shield-star" style="font-size:16px;"></i> Dikelola Admin</div>`;
                 } else if (isMigrated) {
                     accessInfo = `
-                        <div style="display:flex; align-items:center; gap:6px; color:#10b981; margin-bottom: 6px; font-weight:600;"><i class="ph-fill ph-envelope-simple" style="font-size:16px;"></i> ${emailTampil}</div>
+                        <div style="display:flex; align-items:center; gap:6px; color:#10b981; margin-bottom: 6px; font-weight:600;"><i class="ph-fill ph-envelope-simple" style="font-size:16px;"></i> ${esc(emailTampil)}</div>
                         <div style="display:flex; align-items:center; gap:6px; color:#ef4444; font-weight:600;"><i class="ph-fill ph-key" style="font-size:16px;"></i> PIN: <span id="pin-${v.id}">${pinTampil}</span> <button type="button" onclick="window.lihatPin('${v.id}')" style="background:#fee2e2; color:#b91c1c; border:none; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Lihat</button></div>
                     `;
                 } else {
-                    accessInfo = `<div style="display:flex; align-items:center; gap:6px; color:#ef4444; font-weight:600;"><i class="ph-fill ph-warning-circle" style="font-size:16px;"></i> Belum punya akun email <button type="button" onclick="window.openMigrateModal('${v.id}', '${safeName}')" style="background:#f3e8ff; color:#7e22ce; border:none; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Buatkan Akun</button> | PIN: <span id="pin-${v.id}">${pinTampil}</span> <button type="button" onclick="window.lihatPin('${v.id}')" style="background:#fee2e2; color:#b91c1c; border:none; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Lihat</button></div>`;
+                    accessInfo = `<div style="display:flex; align-items:center; gap:6px; color:#ef4444; font-weight:600;"><i class="ph-fill ph-warning-circle" style="font-size:16px;"></i> Belum punya akun email <button type="button" onclick="window.openMigrateModal(window.__vendorIds[${urutV}])" style="background:#f3e8ff; color:#7e22ce; border:none; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Buatkan Akun</button> | PIN: <span id="pin-${v.id}">${pinTampil}</span> <button type="button" onclick="window.lihatPin('${v.id}')" style="background:#fee2e2; color:#b91c1c; border:none; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Lihat</button></div>`;
                 }
 
                 /* LOGIKA TOMBOL WA DINAMIS */
@@ -2627,6 +2668,12 @@
                                             ${esc(addressData)}
                                         </div>
                                     </div>
+                                    <div style="display: flex; gap: 10px; align-items: start;">
+                                        <i class="ph-fill ph-clock" style="color: var(--warning); font-size: 16px; margin-top: 1px;"></i>
+                                        <div style="font-size: 13px; color: var(--gray); line-height: 1.4;">
+                                            ${esc(jamHariIni)}
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div style="background: #f8fafc; padding: 12px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #f1f5f9; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 10px;">
@@ -2635,10 +2682,13 @@
                                 </div>
 
                                 <div style="display: flex; gap: 8px; justify-content: flex-end; padding-top: 12px; border-top: 1px dashed #e2e8f0;">
+                                    <button class="action-btn btn-view" onclick="window.bukaJamMitra(window.__vendorIds[${urutV}])" title="Jam Buka & Tutup" aria-label="Atur jam buka dan tutup">
+                                        <i class="ph-bold ph-clock"></i>
+                                    </button>
                                     <button class="action-btn btn-edit-info" onclick="window.openEditVendorInfo(window.__vendorIds[${urutV}])" title="Edit Info" aria-label="Edit info mitra">
                                         <i class="ph-bold ph-pencil-simple"></i>
                                     </button>
-                                    <button class="action-btn btn-edit-pin" onclick="window.openEditPin('${v.id}', '${safeName}')" title="Ganti PIN">
+                                    <button class="action-btn btn-edit-pin" onclick="window.openEditPin(window.__vendorIds[${urutV}])" title="Ganti PIN" aria-label="Ganti PIN mitra">
                                         <i class="ph-bold ph-lock-key"></i>
                                     </button>
                                     <button class="action-btn btn-delete" onclick="window.askDelete('vendors', '${v.id}')" title="Hapus Mitra">
@@ -4162,6 +4212,8 @@
 
             const wadah = document.getElementById('uk-varian-wadah');
             wadah.textContent = '';
+            ukVsTampilLain = false;
+            ukRenderVarianSimpanan();
             if (p && Array.isArray(p.varian_grup) && p.varian_grup.length) {
                 p.varian_grup.forEach(g => window.ukTambahGrupVarian(g.nama, g.tipe, Array.isArray(g.pilihan) ? g.pilihan : []));
             } else if (p && Array.isArray(p.varian) && p.varian.length) {
@@ -4205,6 +4257,122 @@
             ukSetPrev(document.getElementById('uk-menu-foto-prev'), '');
             document.getElementById('uk-menu-foto-hapus').style.display = 'none';
         };
+
+        /* ---------- VARIAN TERSIMPAN ----------
+           Setiap grup varian yang pernah disimpan di sebuah menu otomatis jadi "varian tersimpan".
+           Saat menginput menu baru, admin tinggal mengetuknya: grup + semua pilihannya langsung
+           terisi, tinggal menyesuaikan harga. Tidak ada koleksi/field baru di database —
+           daftarnya dibaca dari menu yang sudah ada (adminAllProducts).
+           Semua teks dipasang lewat textContent, bukan innerHTML. */
+        let ukVsTampilLain = false;
+        let ukVsData = [];
+
+        function ukKumpulkanVarian() {
+            const idUmkm = new Set(adminAllVendors.filter(x => x.is_admin_managed === true).map(x => x.id));
+            const sidik = new Set();
+            const sini = [], lain = [];
+            adminAllProducts.forEach(p => {
+                if (!p || !Array.isArray(p.varian_grup)) return;
+                const diSini = p.vendor_id === ukVendorId;
+                if (!diSini && !idUmkm.has(p.vendor_id)) return; // hanya warung kelolaan admin
+                p.varian_grup.forEach(g => {
+                    if (!g || typeof g !== 'object') return;
+                    const nama = String(g.nama || '').trim().slice(0, 40);
+                    const tipe = g.tipe === 'checkbox' ? 'checkbox' : 'radio';
+                    const pilihan = (Array.isArray(g.pilihan) ? g.pilihan : [])
+                        .map(o => ({ nama: String((o && o.nama) || '').trim().slice(0, 40), harga: Math.min(10000000, Math.max(0, parseInt(o && o.harga, 10) || 0)) }))
+                        .filter(o => o.nama).slice(0, 30);
+                    if (!nama || !pilihan.length) return;
+                    // Grup yang sama persis (nama, tipe, daftar pilihan) cukup tampil sekali
+                    const kunci = nama.toLowerCase() + '|' + tipe + '|' + pilihan.map(o => o.nama.toLowerCase()).join('~');
+                    if (sidik.has(kunci)) return;
+                    sidik.add(kunci);
+                    (diSini ? sini : lain).push({ nama, tipe, pilihan });
+                });
+            });
+            const urut = (a, b) => a.nama.localeCompare(b.nama, 'id');
+            return { sini: sini.sort(urut).slice(0, 40), lain: lain.sort(urut).slice(0, 40) };
+        }
+
+        function ukRenderVarianSimpanan() {
+            const wadah = document.getElementById('uk-varian-simpanan');
+            if (!wadah) return;
+            wadah.textContent = '';
+            const { sini, lain } = ukKumpulkanVarian();
+            ukVsData = [];
+            if (!sini.length && !lain.length) return;
+
+            const kotak = document.createElement('div');
+            kotak.className = 'uk-vs';
+            const judul = document.createElement('div');
+            judul.className = 'uk-vs-judul';
+            judul.textContent = 'Pakai varian tersimpan';
+            kotak.appendChild(judul);
+            const ket = document.createElement('div');
+            ket.className = 'uk-help';
+            ket.style.marginTop = '0';
+            ket.textContent = 'Ketuk untuk memasang grup varian yang sama, lalu sesuaikan harganya.';
+            kotak.appendChild(ket);
+
+            const buatDaftar = (items) => {
+                const list = document.createElement('div');
+                list.className = 'uk-vs-list';
+                items.forEach(g => {
+                    const idx = ukVsData.push(g) - 1;
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'uk-vs-item';
+                    const ikon = document.createElement('i');
+                    ikon.className = 'ph-bold ph-plus-circle';
+                    btn.appendChild(ikon);
+                    const teks = document.createElement('span');
+                    teks.className = 'uk-vs-teks';
+                    const nm = document.createElement('span');
+                    nm.className = 'uk-vs-nama';
+                    nm.textContent = `${g.nama} · ${g.pilihan.length} pilihan${g.tipe === 'checkbox' ? ' · boleh banyak' : ''}`;
+                    const isi = document.createElement('span');
+                    isi.className = 'uk-vs-isi';
+                    isi.textContent = g.pilihan.map(o => o.nama).join(', ');
+                    teks.appendChild(nm); teks.appendChild(isi);
+                    btn.appendChild(teks);
+                    btn.addEventListener('click', () => ukPakaiVarianSimpanan(idx));
+                    list.appendChild(btn);
+                });
+                return list;
+            };
+
+            if (sini.length) kotak.appendChild(buatDaftar(sini));
+            if (lain.length) {
+                if (ukVsTampilLain || !sini.length) {
+                    const sub = document.createElement('div');
+                    sub.className = 'uk-vs-sub';
+                    sub.textContent = 'Dari warung UMKM lain';
+                    kotak.appendChild(sub);
+                    kotak.appendChild(buatDaftar(lain));
+                } else {
+                    const b = document.createElement('button');
+                    b.type = 'button';
+                    b.className = 'uk-vs-lain';
+                    b.textContent = `Lihat juga varian dari warung UMKM lain (${lain.length})`;
+                    b.addEventListener('click', () => { ukVsTampilLain = true; ukRenderVarianSimpanan(); });
+                    kotak.appendChild(b);
+                }
+            }
+            wadah.appendChild(kotak);
+        }
+
+        function ukPakaiVarianSimpanan(idx) {
+            const g = ukVsData[idx];
+            if (!g) return;
+            const sudah = Array.from(document.querySelectorAll('#uk-varian-wadah .ukv-nama'))
+                .some(el => el.value.trim().toLowerCase() === g.nama.toLowerCase());
+            if (sudah) { ukToast(`Grup "${g.nama}" sudah ada di menu ini`, false); return; }
+            if (document.querySelectorAll('#uk-varian-wadah .uk-varian').length >= 10) { ukToast('Maksimal 10 grup varian per menu', false); return; }
+            window.ukTambahGrupVarian(g.nama, g.tipe, g.pilihan.map(o => ({ nama: o.nama, harga: o.harga })));
+            const box = document.querySelector('#uk-varian-wadah .uk-varian:last-child');
+            if (box) box.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            ukToast(`Varian "${g.nama}" dipasang — cek harganya`);
+        }
 
         // Grup varian dibangun lewat DOM; nilai dari database dipasang lewat .value
         window.ukTambahGrupVarian = (nama = '', tipe = 'radio', pilihan = []) => {
@@ -4544,6 +4712,102 @@
             }
         };
 
+        /* ==========================================================
+           JAM BUKA & TUTUP MITRA (tombol jam di kartu halaman Mitra)
+           Menulis field yang sama dengan warung UMKM: vendors.jadwal_mingguan
+           = { senin: { libur, buka: "HH:MM", tutup: "HH:MM" }, ... }
+           Semua isian dibuat lewat DOM + .value; jam divalidasi sebelum disimpan.
+           ========================================================== */
+        let jmVendorId = null;
+
+        function jmTeksHariIni(v) {
+            const j = (v && v.jadwal_mingguan && typeof v.jadwal_mingguan === 'object') ? v.jadwal_mingguan : null;
+            if (!j) return 'Jam buka belum diatur';
+            const wib = new Date(Date.now() + (new Date().getTimezoneOffset() + 420) * 60000);
+            const hari = ['minggu', 'senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'][wib.getDay()];
+            const d = j[hari];
+            if (!d || typeof d !== 'object') return 'Jam hari ini belum diatur';
+            if (d.libur === true) return 'Hari ini libur';
+            return (ukJamValid(d.buka) && ukJamValid(d.tutup)) ? `Hari ini ${d.buka} - ${d.tutup} WIB` : 'Jam hari ini belum diatur';
+        }
+
+        window.bukaJamMitra = (vendorId) => {
+            const v = cariVendor(vendorId);
+            if (!v) { alert('Data mitra tidak ditemukan.'); return; }
+            jmVendorId = v.id;
+            document.getElementById('jm-nama').textContent = v.nama_warung || v.id;
+            const punya = !!(v.jadwal_mingguan && typeof v.jadwal_mingguan === 'object' && Object.keys(v.jadwal_mingguan).length);
+            const j = punya ? v.jadwal_mingguan : {};
+            const info = document.getElementById('jm-info');
+            info.style.display = punya ? 'none' : 'block';
+            info.textContent = punya ? '' : 'Warung ini belum punya jam operasional. Jam di bawah baru contoh dan belum tersimpan sampai tombol Simpan ditekan.';
+            const wadah = document.getElementById('jm-list');
+            wadah.textContent = '';
+            UK_HARI.forEach(h => {
+                const d = (j[h] && typeof j[h] === 'object') ? j[h] : {};
+                const row = document.createElement('div');
+                row.className = 'uk-hari';
+                row.dataset.hari = h;
+                row.innerHTML = `<b></b><input type="time" class="form-input uk-j-buka" aria-label="Jam buka"><input type="time" class="form-input uk-j-tutup" aria-label="Jam tutup"><label class="uk-libur"><input type="checkbox" class="uk-j-libur"> Libur</label>`;
+                row.querySelector('b').textContent = h;
+                const b = row.querySelector('.uk-j-buka'), t = row.querySelector('.uk-j-tutup'), l = row.querySelector('.uk-j-libur');
+                l.checked = d.libur === true;
+                b.value = ukJamValid(d.buka) ? d.buka : '08:00';
+                t.value = ukJamValid(d.tutup) ? d.tutup : '21:00';
+                const sinkron = () => { b.disabled = l.checked; t.disabled = l.checked; };
+                l.addEventListener('change', sinkron);
+                sinkron();
+                wadah.appendChild(row);
+            });
+            document.getElementById('jam-mitra-modal').style.display = 'flex';
+        };
+
+        window.jmSalinSenin = () => {
+            const rows = Array.from(document.querySelectorAll('#jm-list .uk-hari'));
+            if (!rows.length) return;
+            const s = rows[0];
+            rows.slice(1).forEach(r => {
+                r.querySelector('.uk-j-buka').value = s.querySelector('.uk-j-buka').value;
+                r.querySelector('.uk-j-tutup').value = s.querySelector('.uk-j-tutup').value;
+                const l = r.querySelector('.uk-j-libur');
+                l.checked = s.querySelector('.uk-j-libur').checked;
+                l.dispatchEvent(new Event('change'));
+            });
+            ukToast('Jam Senin disalin ke semua hari (belum disimpan)');
+        };
+
+        window.simpanJamMitra = async () => {
+            const v = cariVendor(jmVendorId);
+            if (!v) return;
+            const jadwal = {};
+            for (const r of document.querySelectorAll('#jm-list .uk-hari')) {
+                const h = r.dataset.hari;
+                if (!UK_HARI.includes(h)) continue;
+                const libur = r.querySelector('.uk-j-libur').checked;
+                const buka = r.querySelector('.uk-j-buka').value;
+                const tutup = r.querySelector('.uk-j-tutup').value;
+                if (!libur && (!ukJamValid(buka) || !ukJamValid(tutup))) { ukToast(`Jam hari ${h} belum lengkap`, false); return; }
+                if (!libur && buka === tutup) { ukToast(`Jam buka dan tutup hari ${h} tidak boleh sama`, false); return; }
+                jadwal[h] = { libur, buka: libur ? '' : buka, tutup: libur ? '' : tutup };
+            }
+            if (Object.keys(jadwal).length !== UK_HARI.length) { ukToast('Jadwal tidak lengkap, buka ulang jendela ini', false); return; }
+            const btn = document.getElementById('jm-simpan');
+            btn.disabled = true; btn.textContent = 'Menyimpan...';
+            try {
+                await updateDoc(doc(db, 'vendors', v.id), { jadwal_mingguan: jadwal });
+                v.jadwal_mingguan = jadwal;
+                closeModal('jam-mitra-modal');
+                ukToast('Jam buka & tutup disimpan');
+                window.renderVendorsList();
+                window.renderWarungAdminList();
+            } catch (e) {
+                console.error('Gagal simpan jam mitra:', e);
+                ukToast('Gagal menyimpan jam. Coba lagi.', false);
+            } finally {
+                btn.disabled = false; btn.textContent = 'Simpan';
+            }
+        };
+
         // ---------- TAB PROFIL & FOTO ----------
         function ukBersihkanBlob() {
             ukHiasanBaru.forEach(h => URL.revokeObjectURL(h.url));
@@ -4879,6 +5143,7 @@
 
             const daftar = daftarKategoriTerurut();
             if (seedBox) seedBox.style.display = daftar.length === 0 ? 'block' : 'none';
+            renderKategoriLiar();
             const btnUrutan = document.getElementById('btn-simpan-urutan-kat');
             if (btnUrutan) btnUrutan.style.display = 'none';
 
@@ -4965,6 +5230,156 @@
                 if (btn) btn.style.display = 'block';
             });
         };
+
+        /* ---------- KATEGORI DI LUAR DAFTAR ----------
+           Kategori yang masih menempel di data warung tapi tidak terdaftar di koleksi
+           kategori_utama (ketikan lama, salah eja, sisa kategori yang sudah dihapus).
+           Bisa: dipindahkan ke kategori resmi, dihapus dari warung, atau didaftarkan.
+           Semua teks dipasang lewat textContent. */
+        function semuaKategoriWarung(v) {
+            const k = v && v.kategori_utama;
+            let arr = [];
+            if (Array.isArray(k)) arr = k;
+            else if (typeof k === 'string' && k.trim()) arr = k.replace(/^\[|\]$/g, '').replace(/["']/g, '').split(',');
+            return arr.filter(x => typeof x === 'string').map(x => x.trim()).filter(Boolean);
+        }
+
+        function kategoriDiLuarDaftar() {
+            const resmi = daftarKategoriTerurut().map(k => namaKategori(k).toLowerCase());
+            const peta = new Map(); // nama kecil -> { nama, warung[] }
+            adminAllVendors.forEach(v => {
+                const sudah = new Set();
+                semuaKategoriWarung(v).forEach(nm => {
+                    const kecil = nm.toLowerCase();
+                    if (resmi.includes(kecil) || sudah.has(kecil)) return;
+                    sudah.add(kecil);
+                    if (!peta.has(kecil)) peta.set(kecil, { nama: nm, warung: [] });
+                    peta.get(kecil).warung.push(v);
+                });
+            });
+            return [...peta.values()].sort((a, b) => a.nama.localeCompare(b.nama, 'id'));
+        }
+
+        // tujuan = '' berarti kategori itu dibuang dari warung; selain itu diganti ke kategori tujuan
+        async function gantiKategoriWarung(namaLama, tujuan) {
+            const terdampak = adminAllVendors.filter(v => semuaKategoriWarung(v).some(x => samaNama(x, namaLama)));
+            for (let i = 0; i < terdampak.length; i += 400) {
+                const batch = writeBatch(db);
+                terdampak.slice(i, i + 400).forEach(v => {
+                    const baru = [];
+                    semuaKategoriWarung(v).forEach(x => {
+                        // Kategori lain yang sudah resmi ikut dirapikan ejaannya (mis. "ayam" -> "Ayam")
+                        const resmi = daftarKategoriTerurut().map(k => namaKategori(k)).find(n => samaNama(n, x));
+                        const isi = samaNama(x, namaLama) ? tujuan : (resmi || x);
+                        if (isi && !baru.some(y => samaNama(y, isi))) baru.push(isi);
+                    });
+                    batch.update(doc(db, "vendors", v.id), { kategori_utama: baru });
+                });
+                await batch.commit();
+            }
+            return terdampak.length;
+        }
+
+        function renderKategoriLiar() {
+            const wadah = document.getElementById('kat-liar');
+            if (!wadah) return;
+            wadah.textContent = '';
+            if (daftarKategoriTerurut().length === 0) return; // daftar resmi belum diisi: belum ada pembanding
+            const liar = kategoriDiLuarDaftar();
+            if (liar.length === 0) return;
+
+            const box = document.createElement('div');
+            box.className = 'kat-liar-box';
+            const judul = document.createElement('div');
+            judul.className = 'kat-liar-judul';
+            judul.textContent = `Kategori di luar daftar (${liar.length})`;
+            box.appendChild(judul);
+            const ket = document.createElement('div');
+            ket.className = 'kat-liar-ket';
+            ket.textContent = 'Kategori ini masih menempel di data warung tetapi tidak ada di daftar di atas, jadi tidak punya tombol di aplikasi pelanggan. Pindahkan warungnya ke kategori yang benar, hapus, atau daftarkan sebagai kategori baru.';
+            box.appendChild(ket);
+
+            liar.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'kat-liar-row';
+                const nm = document.createElement('div');
+                nm.className = 'kat-name';
+                nm.textContent = item.nama;
+                const meta = document.createElement('div');
+                meta.className = 'kat-meta';
+                const namaWarung = item.warung.slice(0, 4).map(v => v.nama_warung || v.id).join(', ');
+                meta.textContent = `Dipakai ${item.warung.length} warung: ${namaWarung}${item.warung.length > 4 ? ', +' + (item.warung.length - 4) + ' lainnya' : ''}`;
+                nm.appendChild(meta);
+                row.appendChild(nm);
+
+                const aksi1 = document.createElement('div');
+                aksi1.className = 'kat-liar-aksi';
+                const sel = document.createElement('select');
+                sel.className = 'form-input';
+                sel.setAttribute('aria-label', 'Kategori tujuan');
+                isiSelectKategori(sel, null, '');
+                aksi1.appendChild(sel);
+                const bPindah = document.createElement('button');
+                bPindah.type = 'button';
+                bPindah.className = 'kat-liar-btn';
+                bPindah.style.cssText = 'background:#0284c7; color:#fff;';
+                bPindah.textContent = 'Pindahkan';
+                aksi1.appendChild(bPindah);
+                row.appendChild(aksi1);
+
+                const aksi2 = document.createElement('div');
+                aksi2.className = 'kat-liar-aksi';
+                const bHapus = document.createElement('button');
+                bHapus.type = 'button';
+                bHapus.className = 'kat-liar-btn';
+                bHapus.style.cssText = 'background:#fee2e2; color:#b91c1c; flex:1;';
+                bHapus.textContent = 'Hapus dari warung';
+                aksi2.appendChild(bHapus);
+                const bDaftar = document.createElement('button');
+                bDaftar.type = 'button';
+                bDaftar.className = 'kat-liar-btn';
+                bDaftar.style.cssText = 'background:#f1f5f9; color:var(--dark); flex:1;';
+                bDaftar.textContent = 'Daftarkan';
+                aksi2.appendChild(bDaftar);
+                row.appendChild(aksi2);
+
+                const semuaTombol = [bPindah, bHapus, bDaftar];
+                const jalankan = async (kerja, pesanSukses) => {
+                    semuaTombol.forEach(b => { b.disabled = true; });
+                    try {
+                        const hasil = await kerja();
+                        await window.fetchKategori();
+                        await window.fetchVendors();
+                        window.renderKategoriPage();
+                        ukToast(pesanSukses(hasil));
+                    } catch (e) {
+                        console.error('Gagal merapikan kategori:', e);
+                        alert('Gagal merapikan kategori: ' + e.message);
+                        semuaTombol.forEach(b => { b.disabled = false; });
+                    }
+                };
+
+                bPindah.addEventListener('click', () => {
+                    const tujuan = sel.value;
+                    if (!tujuan) return alert('Pilih dulu kategori tujuannya.');
+                    if (!confirm(`Pindahkan ${item.warung.length} warung dari "${item.nama}" ke "${tujuan}"?`)) return;
+                    jalankan(() => gantiKategoriWarung(item.nama, tujuan), n => `${n} warung dipindahkan ke "${tujuan}"`);
+                });
+                bHapus.addEventListener('click', () => {
+                    if (!confirm(`Hapus kategori "${item.nama}" dari ${item.warung.length} warung?\n\nWarung yang tidak punya kategori lain akan jadi tanpa kategori (masih tampil di daftar warung, tapi tidak muncul di tombol kategori mana pun).`)) return;
+                    jalankan(() => gantiKategoriWarung(item.nama, ''), n => `Kategori "${item.nama}" dihapus dari ${n} warung`);
+                });
+                bDaftar.addEventListener('click', () => {
+                    if (item.nama.length > 40) return alert('Nama kategori terlalu panjang (maksimal 40 huruf). Pindahkan atau hapus saja.');
+                    if (KAT_NAMA_TERLARANG.includes(item.nama)) return alert('Nama itu tidak boleh dipakai. Pindahkan atau hapus saja.');
+                    if (!confirm(`Daftarkan "${item.nama}" sebagai kategori baru? Kategori ini akan muncul di aplikasi pelanggan.`)) return;
+                    jalankan(() => addDoc(collection(db, "kategori_utama"), { nama: item.nama, icon_url: '', urutan: daftarKategoriTerurut().length }), () => `"${item.nama}" didaftarkan`);
+                });
+
+                box.appendChild(row);
+            });
+            wadah.appendChild(box);
+        }
 
         window.simpanUrutanKategori = async () => {
             const btn = document.getElementById('btn-simpan-urutan-kat');
