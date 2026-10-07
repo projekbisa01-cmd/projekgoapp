@@ -4532,6 +4532,18 @@
             'gambar resto');
 
         const isWarungUmkm = (v) => !!v && v.is_admin_managed === true;
+        // Satu-satunya penentu "warung sedang buka" untuk semua kontainer kartu menu:
+        // tombol TUTUP selalu menang, lalu jam operasional, baru status di database.
+        const warungSedangBuka = (v) => {
+            if (!v) return false;
+            const rt = window.isVendorOpenNow(v);
+            if (rt === false) return false;
+            if (rt === true) return true;
+            const manual = v.status_asli !== undefined ? v.status_asli : v.status;
+            return String(manual || 'BUKA').toUpperCase() === 'BUKA';
+        };
+        const sidikWarungBuka = () => allVendors.filter(warungSedangBuka).map(v => v.id).sort().join('|');
+        let __sidikWarungBuka = null;
         // Warung UMKM (Buku Menu) tampil di daftar dengan FOTO WARUNGNYA sendiri:
         // foto profil -> foto sampul -> gambar toko bawaan. Hanya alamat https:// yang dipakai.
         const fotoUmkmAman = (u) => {
@@ -11619,6 +11631,19 @@
             }
         }
 
+        // Jam berjalan: kalau ada warung yang baru masuk jam tutup (atau jam buka) saat aplikasi
+        // sedang terbuka, kontainer kartu menu digambar ulang. Dicek tiap 1 menit dari data yang
+        // sudah ada di HP — tidak menambah pembacaan Firebase sama sekali.
+        setInterval(() => {
+            if (!(isVendorsReady && isProductsReady && isCategoriesReady) || __sidikWarungBuka === null) return;
+            if (document.hidden) return;
+            if (sidikWarungBuka() !== __sidikWarungBuka) checkAndRenderAll();
+        }, 60000);
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden || __sidikWarungBuka === null) return;
+            if (isVendorsReady && isProductsReady && isCategoriesReady && sidikWarungBuka() !== __sidikWarungBuka) checkAndRenderAll();
+        });
+
         // 3. GANTI KESELURUHAN FUNGSI loadData() LAMA DENGAN METODE REALTIME (ONSNAPSHOT)
         // --- OPTIMASI HEMAT KUOTA FIREBASE + UPDATE REALTIME ---
         function loadData() {
@@ -11871,9 +11896,12 @@
             });
 
             /* --- MODIFIKASI: HANYA AMBIL ID WARUNG YANG BUKA UNTUK BERANDA --- */
+            // Warung dianggap buka hanya kalau tombolnya BUKA DAN sedang dalam jam operasionalnya,
+            // jadi menu dari warung yang tutup tidak muncul di kontainer kartu menu mana pun.
             const openVendorIds = currentDisplayVendors
-                .filter(v => (v.status || 'BUKA').toUpperCase() === 'BUKA')
+                .filter(warungSedangBuka)
                 .map(v => v.id);
+            __sidikWarungBuka = sidikWarungBuka();
             
             // 2. Tampilkan HANYA produk dari warung yang BUKA dan sesuai lokasi (Beranda, Flash Sale, Kategori, Promo)
             // Menu warung UMKM kelolaan admin tidak ikut di kontainer menu mana pun
