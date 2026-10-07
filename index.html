@@ -975,6 +975,11 @@
         .um-galeri-baris { padding: 0 16px; gap: 12px; overscroll-behavior-x: contain; }
         .um-galeri-kartu { position: relative; width: 240px; height: 250px; flex-shrink: 0; padding: 0; border: 0; border-radius: 22px; overflow: hidden; cursor: zoom-in; background: #7a3300; box-shadow: 0 8px 18px rgba(120,40,0,0.30); }
         .um-galeri-kartu img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        /* --- "Penjual disekitar kamu": kartu yang berada di tengah membesar --- */
+        .ps-kartu { transform: scale(0.9); transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .ps-kartu.pusat { transform: scale(1.04); }
+        .ps-diam .ps-kartu { transition: none; }
+        @media (prefers-reduced-motion: reduce) { .ps-kartu { transition: none; } }
         .um-kaki { padding: 22px 20px 0; text-align: center; font-size: 12px; font-weight: 700; color: #4A2A08; line-height: 1.6; }
 
         /* --- Buku Menu UMKM: jam buka, info tutup, tombol "Cara pesan" --- */
@@ -2590,7 +2595,7 @@
             </div>
             
             <div id="dynamic-bg-penjual" style="background: linear-gradient(180deg, #FFF0E5 0%, #FFD1B3 100%); padding: 15px 0 20px 0; position: relative; transition: background 0.5s ease;">
-                <div id="penjual-sekitar-scroll" style="display: flex; overflow-x: auto; gap: 15px; padding: 0 15px; scrollbar-width: none; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory;">
+                <div id="penjual-sekitar-scroll" style="display: flex; overflow-x: auto; gap: 4px; padding: 14px max(15px, calc(50% - 160px)); scrollbar-width: none; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory;">
                     <!-- Card Penjual Akan Otomatis Muncul Disini via JS -->
                 </div>
                 
@@ -4560,6 +4565,74 @@
             });
             return hasil.sort((a, b) => a.r - b.r);
         }
+
+        // Kartu foto besar 240x250 seperti di "Pilihan Makan untuk Kamu", dipakai juga oleh
+        // "Makanan Favorite", "Flash Sale" dan "Sedang Promo".
+        // KEAMANAN: dibangun lewat DOM — semua teks dari database lewat textContent,
+        // foto hanya alamat https:// (selain itu pakai gambar bawaan), klik lewat addEventListener.
+        function kartuFotoMenu(p, o = {}) {
+            const kartu = document.createElement('div');
+            kartu.setAttribute('role', 'button');
+            kartu.tabIndex = 0;
+            kartu.style.cssText = "position:relative; width:240px; height:250px; flex-shrink:0; border-radius:22px; overflow:hidden; cursor:pointer; background:#7a3300; box-shadow:0 8px 18px rgba(0,0,0,0.22);";
+            const buka = () => openProductDetail(p.id);
+            kartu.addEventListener('click', buka);
+            kartu.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') buka(); });
+
+            const img = document.createElement('img');
+            img.src = fotoUmkmAman(p.foto_url) || FALLBACK_MENU_IMG;
+            img.alt = '';
+            img.loading = 'lazy';
+            img.style.cssText = "width:100%; height:100%; object-fit:cover; display:block;";
+            img.onerror = function () { this.onerror = null; this.src = FALLBACK_MENU_IMG; };
+            kartu.appendChild(img);
+
+            const gelap = document.createElement('div');
+            gelap.style.cssText = "position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.35) 38%, rgba(0,0,0,0) 62%); pointer-events:none;";
+            kartu.appendChild(gelap);
+
+            if (o.pita) {
+                const pita = document.createElement('div');
+                pita.style.cssText = "position:absolute; top:12px; left:12px; font-size:12px; font-weight:800; padding:5px 11px; border-radius:99px; box-shadow:0 2px 6px rgba(0,0,0,0.25); pointer-events:none;";
+                pita.style.background = o.pitaBg || '#fff';
+                pita.style.color = o.pitaWarna || '#D32F2F';
+                pita.textContent = o.pita;
+                kartu.appendChild(pita);
+            }
+
+            const info = document.createElement('div');
+            info.style.cssText = "position:absolute; left:14px; right:14px; bottom:14px; color:#fff; pointer-events:none;";
+            const barisHarga = document.createElement('div');
+            barisHarga.style.cssText = "display:flex; align-items:center; gap:8px; margin-bottom:8px;";
+            const harga = document.createElement('span');
+            harga.style.cssText = "display:inline-block; color:#fff; font-size:13px; font-weight:800; padding:5px 11px; border-radius:99px; box-shadow:0 2px 6px rgba(0,0,0,0.25);";
+            harga.style.background = o.warnaHarga || '#1E9E45';
+            const hargaAsli = parseInt(p.harga, 10) || 0;
+            harga.textContent = 'Rp' + hargaAsli.toLocaleString('id-ID');
+            barisHarga.appendChild(harga);
+            const coretAngka = parseInt(o.coret, 10) || 0;
+            if (coretAngka > hargaAsli) {
+                const coret = document.createElement('span');
+                coret.style.cssText = "font-size:12px; font-weight:600; text-decoration:line-through; opacity:0.85; text-shadow:0 1px 3px rgba(0,0,0,0.5);";
+                coret.textContent = 'Rp' + coretAngka.toLocaleString('id-ID');
+                barisHarga.appendChild(coret);
+            }
+            const nama = document.createElement('div');
+            nama.style.cssText = "font-size:16px; font-weight:800; line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 1px 4px rgba(0,0,0,0.5);";
+            nama.textContent = p.nama_menu || 'Menu';
+            const sub = document.createElement('div');
+            sub.style.cssText = "font-size:12px; font-weight:600; opacity:0.92; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;";
+            sub.textContent = p.vendor_name || 'Warung Projekgo';
+            info.appendChild(barisHarga); info.appendChild(nama); info.appendChild(sub);
+            kartu.appendChild(info);
+            return kartu;
+        }
+        const barisKartuFoto = () => {
+            const baris = document.createElement('div');
+            baris.className = 'scroll-container';
+            baris.style.cssText = "padding: 0 16px; gap: 12px; overscroll-behavior-x: contain;";
+            return baris;
+        };
 
         const gambarResto = (v) => isWarungUmkm(v)
             ? (fotoUmkmAman(v.shop_photo) || fotoUmkmAman(v.cover_photo) || FALLBACK_VENDOR_IMG)
@@ -11689,51 +11762,15 @@
                 </div>
             `;
             
-            // PERBAIKAN 2: Menggunakan CSS Grid untuk membentuk layout 2 baris horizontal
-            let cards = `<div style="display: grid; grid-template-rows: repeat(2, auto); grid-auto-flow: column; gap: 12px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;">`;
-            
+            // Kartu berukuran sama dengan "Pilihan Makan untuk Kamu" (240x250), satu baris geser
+            const baris = barisKartuFoto();
             products.forEach(item => {
-                const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG;
-                const realPrice = parseInt(item.harga);
-                const fakePrice = item.harga_coret ? parseInt(item.harga_coret) : Math.ceil(realPrice * 1.3);
-                
-                cards += `
-                    <div style="width: 150px; cursor: pointer; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative;" onclick="openProductDetail('${item.id}')">
-                        <!-- Area Gambar -->
-                        <div style="position: relative; width: 100%; height: 130px; background: #f9f9f9;">
-                            <img src="${img}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='${FALLBACK_MENU_IMG}'">
-                            <div class="watermark-projekgo">PROJEKGO</div>
-                            <!-- Badge Label Kiri Atas -->
-                            <div style="position: absolute; top: 6px; left: 6px; background: rgba(255,255,255,0.9); color: #333; font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 12px; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                <i class="ph-fill ph-storefront" style="color: #FF4B6A;"></i> <span style="white-space: nowrap; max-width: 80px; overflow: hidden; text-overflow: ellipsis;">${esc(item.vendor_name || 'Warung')}</span>
-                            </div>
-                        </div>
-
-                        <!-- Garis Putus-putus Pemisah -->
-                        <div style="border-top: 2px dotted #ffcdd2; margin: 0 10px;"></div>
-
-                        <!-- Area Teks Info -->
-                        <div style="padding: 10px 10px 16px 10px; position: relative;">
-                            <div style="font-size: 12px; font-weight: 700; color: #333; line-height: 1.3; height: 31px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                                <span style="color: #FF4B6A; font-weight: 800; margin-right: 4px;">Diskon</span>${esc(item.nama_menu)}
-                            </div>
-
-                            <div style="display: flex; align-items: baseline; margin-top: 8px;">
-                                <span style="color: #E53935; font-size: 10px; font-weight: 800;">Rp</span>
-                                <span style="color: #E53935; font-size: 16px; font-weight: 800; margin-right: 4px;">${realPrice.toLocaleString('id-ID')}</span>
-                                <span style="color: #aaa; font-size: 10px; text-decoration: line-through;">Rp${fakePrice.toLocaleString('id-ID')}</span>
-                            </div>
-
-                            <!-- Tombol Pesan Kanan Bawah Sesuai Gambar -->
-                            <div style="position: absolute; bottom: 0; right: 0; background: #FF4B6A; color: white; font-size: 12px; font-weight: 800; padding: 6px 14px; border-radius: 16px 0 12px 0; box-shadow: -2px -2px 5px rgba(255, 75, 106, 0.2);">
-                                Pesan
-                            </div>
-                        </div>
-                    </div>
-                `;
+                const realPrice = parseInt(item.harga, 10) || 0;
+                const fakePrice = item.harga_coret ? parseInt(item.harga_coret, 10) : Math.ceil(realPrice * 1.3);
+                baris.appendChild(kartuFotoMenu(item, { coret: fakePrice, pita: 'Diskon', pitaWarna: '#FF4B6A', warnaHarga: '#FF4B6A' }));
             });
-            cards += `</div>`;
-            promoDiv.innerHTML = header + cards;
+            promoDiv.innerHTML = header; // header hanya berisi teks tetap, tanpa data dari database
+            promoDiv.appendChild(baris);
             container.appendChild(promoDiv);
 
             if(!window.fsTimerRunningTop) {
@@ -11772,62 +11809,26 @@
             // PERBAIKAN: Tampilkan kontainer yang tadinya "display: none" menjadi "display: block"
             wrapper.style.display = 'block';
 
+            // Tampilan disamakan dengan "Pilihan Makan untuk Kamu": kotak oranye + kartu foto besar
             const promoDiv = document.createElement('div');
-            promoDiv.style.cssText = "padding: 0 0 20px 0; background: var(--bg); display: block;";
-            
-            let headerHtml = `
-                <div style="padding: 0 20px; display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-                    <div>
-                        <div style="font-size: 19px; font-weight: 800; color: #111; margin-bottom: 4px;">makanan favorite</div>
-                        <div style="font-size: 14px; color: #555; font-weight: 400;">Enak dimakan bersama, banyak diskonnya.</div>
-                    </div>
-                    <div onclick="openCategoryPage('Sedang Promo')" style="background: #E8F5E9; color: #2E7D32; font-weight: 800; font-size: 14px; padding: 6px 14px; border-radius: 20px; cursor: pointer; flex-shrink: 0;">
-                        See all
-                    </div>
-                </div>
-            `;
+            promoDiv.style.cssText = "background: linear-gradient(160deg, #FF8A1F 0%, #F26A00 55%, #E85300 100%); padding: 18px 0 20px 0; overflow: hidden;";
 
-            let cardsHtml = '<div style="display: flex; overflow-x: auto; gap: 15px; padding: 5px 20px 20px 20px; scrollbar-width: none; -webkit-overflow-scrolling: touch;">';
-            
-            promoProducts.forEach(item => {
-                const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG;
-                const realPrice = parseInt(item.harga);
-                const fakePrice = item.harga_coret ? parseInt(item.harga_coret) : Math.ceil(realPrice * 1.25);
-                const discPercent = Math.round(((fakePrice - realPrice) / fakePrice) * 100);
-                const dist = (0.5 + Math.random() * 5).toFixed(2); 
+            const head = document.createElement('div');
+            head.style.cssText = "display:flex; justify-content:space-between; align-items:center; gap:12px; padding: 0 16px 14px 16px;";
+            const judul = document.createElement('div');
+            judul.style.cssText = "font-size: 22px; font-weight: 800; color: #fff; line-height: 1.2; letter-spacing: 0.2px; text-shadow: 0 2px 6px rgba(120,40,0,0.25);";
+            judul.innerHTML = 'Makanan<br>Favorite';
+            const semuaBtn = document.createElement('button');
+            semuaBtn.type = 'button';
+            semuaBtn.style.cssText = "flex-shrink:0; background:#FFF3E6; color:#C44700; border:none; border-radius:99px; padding:10px 16px; font-family:inherit; font-size:13px; font-weight:800; cursor:pointer; min-height:40px;";
+            semuaBtn.textContent = 'Lihat Semua';
+            semuaBtn.addEventListener('click', () => openCategoryPage('Sedang Promo'));
+            head.appendChild(judul); head.appendChild(semuaBtn);
+            promoDiv.appendChild(head);
 
-                cardsHtml += `
-                    <div style="min-width: 340px; max-width: 340px; background: white; border-radius: 18px; border: 1px solid #e0e0e0; box-shadow: 0 6px 20px rgba(0,0,0,0.04); display: flex; padding: 15px; gap: 16px; cursor: pointer; position: relative;" onclick="openProductDetail('${item.id}')">
-                        
-                        <div style="position: relative; width: 110px; height: 110px; border-radius: 14px; overflow: hidden; flex-shrink: 0; background: #f5f5f5;">
-                            <img src="${img}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='${FALLBACK_MENU_IMG}'">
-                            <div class="watermark-projekgo">PROJEKGO</div>
-                            <div style="position: absolute; top: 0; left: 0; background: #E53935; color: white; font-size: 13px; font-weight: 800; padding: 5px 10px; border-radius: 0 0 12px 0;">
-                                -${discPercent}%
-                            </div>
-                        </div>
-
-                        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; overflow: hidden;">
-                            <div style="font-size: 13px; color: #555; margin-bottom: 6px;">
-                                ${dist} km • 20-30 min
-                            </div>
-                            <div style="font-size: 17px; font-weight: 800; color: #111; line-height: 1.2; margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                                ${esc(item.nama_menu)}
-                            </div>
-                            <div style="font-size: 13px; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 10px;">
-                                ${item.vendor_name || 'Warung Projekgo'}
-                            </div>
-                            <div style="display: flex; align-items: baseline; gap: 8px;">
-                                <span style="font-size: 17px; font-weight: 800; color: #111;">${realPrice.toLocaleString('id-ID').replace(/,/g, '.')}</span>
-                                <span style="font-size: 14px; text-decoration: line-through; color: #999;">${fakePrice.toLocaleString('id-ID').replace(/,/g, '.')}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-
-            cardsHtml += '</div>';
-            promoDiv.innerHTML = headerHtml + cardsHtml;
+            const baris = barisKartuFoto();
+            promoProducts.forEach(item => baris.appendChild(kartuFotoMenu(item, { coret: item.harga_coret })));
+            promoDiv.appendChild(baris);
             wrapper.appendChild(promoDiv);
         }
 
@@ -12103,7 +12104,7 @@
 
                 // Header Card
                 let cardHtml = `
-                    <div style="min-width: 320px; max-width: 320px; background: white; border-radius: 20px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); scroll-snap-align: start; flex-shrink: 0; display: flex; flex-direction: column;">
+                    <div class="ps-kartu" style="min-width: 320px; max-width: 320px; background: white; border-radius: 20px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); scroll-snap-align: center; flex-shrink: 0; display: flex; flex-direction: column;">
                         
                         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; cursor: pointer;" onclick="openVendorPage(uiVal(${uiRef(vendor.id)}))">
                             <img src="${esc(imgVendor)}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid #eee;" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
@@ -12172,7 +12173,25 @@
             scrollContainer.innerHTML = cardsHtml;
             
             // --- LOGIKA EVENT LISTENER SCROLL (WARNA BACKGROUND DINAMIS) ---
+            // Kartu yang paling dekat ke tengah layar diberi kelas "pusat" (membesar) dan tetap
+            // begitu sampai kartu lain menggantikannya karena digeser.
+            let psTunggu = false;
+            const tandaiPusat = () => {
+                const kartu = scrollContainer.querySelectorAll('.ps-kartu');
+                if (!kartu.length) return;
+                const kotak = scrollContainer.getBoundingClientRect();
+                const tengah = kotak.left + kotak.width / 2;
+                let pilih = 0, jarak = Infinity;
+                if (kotak.width > 0) kartu.forEach((k, i) => {
+                    const r = k.getBoundingClientRect();
+                    const d = Math.abs(r.left + r.width / 2 - tengah);
+                    if (d < jarak) { jarak = d; pilih = i; }
+                });
+                kartu.forEach((k, i) => k.classList.toggle('pusat', i === pilih));
+            };
+
             scrollContainer.onscroll = () => {
+                if (!psTunggu) { psTunggu = true; requestAnimationFrame(() => { psTunggu = false; tandaiPusat(); }); }
                 const maxScrollLeft = scrollContainer.scrollWidth - scrollContainer.clientWidth;
                 // Jika tidak bisa di scroll, biarkan warna default
                 if (maxScrollLeft <= 0) return; 
@@ -12200,6 +12219,13 @@
             
             // Trigger / pancing satu kali di awal agar warna langsung ter-set ke Orange saat baru di-render
             scrollContainer.dispatchEvent(new Event('scroll'));
+
+            // Saat daftar baru digambar (termasuk tiap data realtime masuk), kartu tengah
+            // langsung tampil besar tanpa animasi, supaya tidak "berkedip" membesar ulang.
+            scrollContainer.classList.add('ps-diam');
+            tandaiPusat();
+            void scrollContainer.offsetWidth;
+            scrollContainer.classList.remove('ps-diam');
         }
 
         // --- FUNGSI RENDER KATEGORI (DIPERBARUI) ---
@@ -12738,52 +12764,17 @@
                 </div>
             `;
 
-            // Struktur 2 Baris menggunakan CSS Grid
-            let cardsHtml = '<div style="display: grid; grid-template-rows: repeat(2, auto); grid-auto-flow: column; gap: 12px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;">';
-            
+            // Kartu berukuran sama dengan "Pilihan Makan untuk Kamu" (240x250), satu baris geser
+            const baris = barisKartuFoto();
             promoItems.forEach(item => {
-                const img = item.foto_url && item.foto_url.length > 5 ? item.foto_url : FALLBACK_MENU_IMG;
-                const realPrice = parseInt(item.harga);
-                const tambahanCoret = Math.max(Math.ceil(realPrice * 0.3), 3000); 
-                const originalPrice = item.harga_coret ? parseInt(item.harga_coret) : realPrice + tambahanCoret;
-                const discountPercent = Math.round(((originalPrice - realPrice) / originalPrice) * 100);
-                
-                cardsHtml += `
-                    <div style="width: 150px; cursor: pointer; background: white; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 12px rgba(211, 47, 47, 0.15); position: relative; border: 1px solid #FFEBEE;" onclick="openProductDetail('${item.id}')">
-                        <div style="position: relative; width: 100%; height: 110px; background: #f9f9f9;">
-                            <img src="${img}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='${FALLBACK_MENU_IMG}'">
-                            <div class="watermark-projekgo">PROJEKGO</div>
-                            <div style="position: absolute; top: 6px; right: 6px; background: #FFD54F; color: #D32F2F; font-size: 10px; font-weight: 800; padding: 3px 6px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                -${discountPercent}%
-                            </div>
-                            <div style="position: absolute; top: 6px; left: 6px; background: rgba(255,255,255,0.95); color: #D32F2F; font-size: 9px; font-weight: 800; padding: 4px 8px; border-radius: 12px; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                <i class="ph-fill ph-storefront"></i> <span style="white-space: nowrap; max-width: 60px; overflow: hidden; text-overflow: ellipsis;">${esc(item.vendor_name || 'Warung')}</span>
-                            </div>
-                        </div>
-
-                        <div style="border-top: 2px dotted #FFCDD2; margin: 0 10px;"></div>
-
-                        <div style="padding: 10px 10px 16px 10px; position: relative;">
-                            <div style="font-size: 12px; font-weight: 700; color: #333; line-height: 1.3; height: 31px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                                ${esc(item.nama_menu)}
-                            </div>
-
-                            <div style="display: flex; align-items: baseline; margin-top: 8px;">
-                                <span style="color: #D32F2F; font-size: 10px; font-weight: 800;">Rp</span>
-                                <span style="color: #D32F2F; font-size: 15px; font-weight: 800; margin-right: 4px;">${realPrice.toLocaleString('id-ID')}</span>
-                                <span style="color: #aaa; font-size: 10px; text-decoration: line-through;">Rp${originalPrice.toLocaleString('id-ID')}</span>
-                            </div>
-
-                            <div style="position: absolute; bottom: 0; right: 0; background: #D32F2F; color: white; font-size: 12px; font-weight: 800; padding: 6px 14px; border-radius: 16px 0 12px 0; box-shadow: -2px -2px 5px rgba(211, 47, 47, 0.2);">
-                                Pesan
-                            </div>
-                        </div>
-                    </div>
-                `;
+                const realPrice = parseInt(item.harga, 10) || 0;
+                const tambahanCoret = Math.max(Math.ceil(realPrice * 0.3), 3000);
+                const originalPrice = item.harga_coret ? parseInt(item.harga_coret, 10) : realPrice + tambahanCoret;
+                const discountPercent = originalPrice > 0 ? Math.round(((originalPrice - realPrice) / originalPrice) * 100) : 0;
+                baris.appendChild(kartuFotoMenu(item, { coret: originalPrice, pita: discountPercent > 0 ? '-' + discountPercent + '%' : '', pitaBg: '#FFD54F', pitaWarna: '#D32F2F', warnaHarga: '#D32F2F' }));
             });
-
-            cardsHtml += '</div>';
-            sectionDiv.innerHTML = headerHtml + cardsHtml;
+            sectionDiv.innerHTML = headerHtml; // header hanya berisi teks tetap, tanpa data dari database
+            sectionDiv.appendChild(baris);
             c.appendChild(sectionDiv);
             customPromoInserted = true;
         };
