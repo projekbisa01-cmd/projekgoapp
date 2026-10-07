@@ -969,6 +969,12 @@
         .um-item.habis { opacity: 0.55; }
         .um-item.habis .um-item-nama { text-decoration: line-through; }
         .um-kosong { margin: 20px 16px; background: #FFF6EC; border-radius: 16px; padding: 18px; text-align: center; font-size: 13px; font-weight: 700; color: #6B6B70; }
+        /* --- Buku Menu UMKM: galeri "Intip Menu" di paling bawah (gaya sama dengan "Pilihan Makan untuk Kamu") --- */
+        .um-galeri { margin-top: 24px; background: linear-gradient(160deg, #FF8A1F 0%, #F26A00 55%, #E85300 100%); padding: 18px 0 20px 0; overflow: hidden; }
+        .um-galeri-judul { padding: 0 16px 14px 16px; font-size: 22px; font-weight: 800; color: #fff; line-height: 1.2; letter-spacing: 0.2px; text-shadow: 0 2px 6px rgba(120,40,0,0.25); }
+        .um-galeri-baris { padding: 0 16px; gap: 12px; overscroll-behavior-x: contain; }
+        .um-galeri-kartu { position: relative; width: 240px; height: 250px; flex-shrink: 0; padding: 0; border: 0; border-radius: 22px; overflow: hidden; cursor: zoom-in; background: #7a3300; box-shadow: 0 8px 18px rgba(120,40,0,0.30); }
+        .um-galeri-kartu img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .um-kaki { padding: 22px 20px 0; text-align: center; font-size: 12px; font-weight: 700; color: #4A2A08; line-height: 1.6; }
 
         /* --- Buku Menu UMKM: jam buka, info tutup, tombol "Cara pesan" --- */
@@ -7313,6 +7319,17 @@
         const UMKM_MAKS_PORSI = 50;
 
         let umkmVendorAktif = null;
+        let umkmGaleri = []; // URL foto galeri "Intip Menu" (sudah lolos umkmUrlAman)
+        window.umkmLihatFoto = (i) => {
+            const u = umkmGaleri[i];
+            if (typeof u === 'string' && u && typeof window.openImageViewer === 'function') window.openImageViewer(u);
+        };
+        // Foto gagal dimuat: kartunya dibuang; kalau semua gagal, kontainernya ikut hilang
+        window.umkmFotoGagal = (img) => {
+            const kartu = img.closest('.um-galeri-kartu'), box = img.closest('.um-galeri');
+            if (kartu) kartu.remove();
+            if (box && !box.querySelector('.um-galeri-kartu')) box.remove();
+        };
         let umkmPilihan = null; // { id, draft, punya }
 
         // ---------- 5. JAM BUKA WARUNG UMKM ----------
@@ -7489,7 +7506,7 @@
 
             // Foto hiasan: pilihan admin (menu_hiasan); kalau kosong pakai foto menu yang ada
             const hiasanAdmin = (Array.isArray(v.menu_hiasan) ? v.menu_hiasan : []).map(umkmUrlAman).filter(Boolean);
-            const hiasan = [...new Set(hiasanAdmin.length ? hiasanAdmin : menu.map(p => umkmUrlAman(p.foto_url)).filter(Boolean))].slice(0, 6);
+            const hiasan = [...new Set(hiasanAdmin.length ? hiasanAdmin : menu.map(p => umkmUrlAman(p.foto_url)).filter(Boolean))].slice(0, 8);
             const sampul = umkmUrlAman(v.cover_photo) || umkmUrlAman(v.shop_photo) || hiasan[0] || '';
             const logo = umkmUrlAman(v.shop_photo);
             let h = 0;
@@ -7521,6 +7538,21 @@
                 </section>`;
             }).join('');
 
+            // Galeri "Intip Menu" di paling bawah: isinya foto hiasan yang sama (maks. 8).
+            // URL sudah disaring https-only oleh umkmUrlAman dan ditulis lewat esc();
+            // onclick hanya berisi nomor urut, URL aslinya disimpan di umkmGaleri.
+            umkmGaleri = hiasan.slice();
+            const galeri = umkmGaleri.length ? `
+                <div class="um-galeri" data-warung="${esc(v.id)}">
+                    <div class="um-galeri-judul">Intip Menu<br>di Warung Ini</div>
+                    <div class="scroll-container um-galeri-baris">
+                        ${umkmGaleri.map((u, i) => `<button type="button" class="um-galeri-kartu" onclick="window.umkmLihatFoto(${i})" aria-label="Lihat foto ${i + 1}"><img src="${esc(u)}" alt="" loading="lazy" onerror="window.umkmFotoGagal(this)"></button>`).join('')}
+                    </div>
+                </div>` : '';
+            // Halaman ini digambar ulang tiap keranjang/data berubah: ingat posisi geser galeri
+            const galeriLama = wadah.querySelector('.um-galeri');
+            const geserLama = (galeriLama && galeriLama.dataset.warung === v.id) ? galeriLama.querySelector('.um-galeri-baris').scrollLeft : 0;
+
             wadah.innerHTML = `
                 <div class="um-cover">
                     ${sampul ? `<img src="${esc(sampul)}" alt="" onerror="this.remove()">` : ''}
@@ -7548,8 +7580,10 @@
                 </div>`}
                 <div class="um-harga-info di-menu" role="note"><i class="ph-fill ph-info"></i><span>Menu warung ini <b>diinput oleh ProjekGo</b>, jadi harga makanan bisa sedikit berbeda. Jika ada perubahan harga di warung, mungkin belum kami perbarui.</span></div>
                 ${seksi || '<div class="um-kosong">Menu warung ini belum diisi.</div>'}
-                <div class="um-kaki">Ketuk nama menu untuk menambah ke keranjang.</div>`;
+                <div class="um-kaki">Ketuk nama menu untuk menambah ke keranjang.</div>
+                ${galeri}`;
 
+            if (geserLama) { const b = wadah.querySelector('.um-galeri-baris'); if (b) b.scrollLeft = geserLama; }
             window.umkmSyncBar();
         };
 
