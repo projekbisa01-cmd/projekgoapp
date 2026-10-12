@@ -1900,7 +1900,7 @@
             grid-template-rows: repeat(2, auto);
             grid-template-columns: none;
             grid-auto-flow: column;
-            grid-auto-columns: 88px;
+            grid-auto-columns: 104px;
             gap: 10px;
             overflow-x: auto;
             overflow-y: hidden;
@@ -1912,18 +1912,18 @@
         }
         #dynamic-cat-grid::-webkit-scrollbar { display: none; }
         #dynamic-cat-grid > .cat-item-box {
-            min-height: 108px;
-            padding: 10px 4px 10px 4px;
-            border-radius: 22px;
+            min-height: 128px;
+            padding: 12px 4px 12px 4px;
+            border-radius: 24px;
             box-shadow: 0 6px 14px rgba(0,0,0,0.06);
         }
         #dynamic-cat-grid > .cat-item-box img {
-            width: 62px;
-            height: 62px;
+            width: 78px;
+            height: 78px;
             -webkit-user-drag: none;
         }
-        #dynamic-cat-grid > .cat-item-box .cat-box-text { font-size: 11.5px; font-weight: 700; }
-        #dynamic-cat-grid > .skel-cat-wrapper .skel-cat-icon { width: 62px; height: 62px; border-radius: 22px; }
+        #dynamic-cat-grid > .cat-item-box .cat-box-text { font-size: 12.5px; font-weight: 700; }
+        #dynamic-cat-grid > .skel-cat-wrapper .skel-cat-icon { width: 78px; height: 78px; border-radius: 24px; }
 
         /* Hilangkan sisa CSS Kategori Lama yang bentrok */
         .menu-container, .menu-grid, .menu-item, .icon-container, .menu-text, .pagination, .dot { display: none !important; }
@@ -5304,7 +5304,7 @@
         //  (2) deretan itu sudah tergulung sepenuhnya keluar layar.
         // Tidak berlaku untuk banner beranda, baris kategori, dan tombol filter.
         // Tidak membaca/menulis data apa pun — hanya mengatur posisi geser di layar.
-        const SEL_GESER_KARTU = '.scroll-container, .review-scroll-container, #penjual-sekitar-scroll, .geser-kartu';
+        const SEL_GESER_KARTU = '.scroll-container, .review-scroll-container, #penjual-sekitar-scroll, #fav-rail, .geser-kartu';
         window.resetGeserKartu = (akar, hanyaYangDiLuarLayar) => {
             (akar || document).querySelectorAll(SEL_GESER_KARTU).forEach(el => {
                 if (el.scrollLeft <= 0) return;
@@ -12156,7 +12156,7 @@
         const psFotoRusak = new Set();  // menu yang fotonya gagal dimuat
         let psTanda = '';               // jejak isi korsel, supaya pembaruan realtime tidak menggeser layar
 
-        const psAdaFoto = (p) => typeof p.foto_url === 'string' && /^https:\/\/\S{6,}$/i.test(p.foto_url.trim()) && !psFotoRusak.has(p.id);
+        const psAdaFoto = (p) => !!fotoUmkmAman(p.foto_url) && !psFotoRusak.has(p.id);
 
         function psKartuTengah() {
             const rail = document.getElementById('penjual-sekitar-scroll');
@@ -12283,7 +12283,7 @@
                 return `
                     <div class="ps-kartu" data-pid="${uiRef(p.id)}" data-vid="${vRef}" data-warna="${i}" onclick="window.psBukaWarung(${vRef})">
                         <div class="ps-foto">
-                            <img src="${esc(p.foto_url.trim())}" loading="lazy" alt="" onerror="window.psFotoGagal(this)">
+                            <img src="${esc(fotoUmkmAman(p.foto_url))}" loading="lazy" alt="" onerror="window.psFotoGagal(this)">
                             <div class="watermark-projekgo">PROJEKGO</div>
                         </div>
                         <div class="ps-isi">
@@ -12543,6 +12543,218 @@
     };
     // --- AKHIR TAMBAHAN LANGKAH 3 ---
 
+    // ---------- MAKANAN FAVORIT (halaman Food, setelah warung ke-25) ----------
+    // Tampilan sama dengan "Penjual disekitar kamu". Hanya menu BERFOTO dari warung yang sedang BUKA,
+    // tidak habis, dan harganya terisi. Pilihannya acak dan berganti tiap FAV_GANTI_MS, tapi tidak
+    // berganti selama pelanggan sedang menggeser/menyentuh kontainernya atau saat halaman tidak terlihat.
+    // Tidak membaca Firebase sama sekali: memakai data menu yang sudah ada di memori.
+    // Semua teks dari database lewat esc(); ID lewat uiRef/uiVal; foto lewat fotoUmkmAman (https saja).
+    const FAV_MAKS = 8;
+    const FAV_GANTI_MS = 30000;
+    const FAV_WARNA = ['#F0C24B', '#E58A76', '#9BD66B', '#7FC4EC', '#C39ADB', '#F2A56B'];
+    let favPilihan = [];            // id menu yang sedang tampil
+    let favWaktu = 0;               // kapan pilihan terakhir diacak
+    let favSentuh = 0;              // kapan pelanggan terakhir menyentuh/menggeser kontainer
+    const favDilewati = new Set();  // menu yang ditekan "Tidak tertarik"
+    const favFotoRusak = new Set(); // menu yang fotonya gagal dimuat
+
+    function favWarungBuka(v) {
+        if (!v) return false;
+        const rt = typeof window.isVendorOpenNow === 'function' ? window.isVendorOpenNow(v) : null;
+        if (rt === false) return false;
+        if (rt === true) return true;
+        return (v.status || 'BUKA').toUpperCase() === 'BUKA';
+    }
+
+    function favKandidat() {
+        const warung = new Map(currentDisplayVendors.map(v => [v.id, v]));
+        const hasil = new Map();
+        allProducts.forEach(p => {
+            if (!p || p.is_available === false || p.is_sold_out === true) return;
+            if (!(parseInt(p.harga, 10) > 0) || !fotoUmkmAman(p.foto_url)) return;
+            if (favDilewati.has(p.id) || favFotoRusak.has(p.id)) return;
+            const v = warung.get(p.vendor_id);
+            if (!favWarungBuka(v)) return;
+            hasil.set(p.id, { p, v });
+        });
+        return hasil;
+    }
+
+    // Acak: utamakan 1 menu per warung supaya beragam, sisanya diisi menu lain; hindari mengulang set sebelumnya
+    function favAcak(kandidat) {
+        const sebelumnya = new Set(favPilihan);
+        const semua = [...kandidat.values()];
+        for (let i = semua.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [semua[i], semua[j]] = [semua[j], semua[i]]; }
+        semua.sort((a, b) => Number(sebelumnya.has(a.p.id)) - Number(sebelumnya.has(b.p.id)));
+        const dipilih = [], warungDipakai = new Set();
+        semua.forEach(x => { if (dipilih.length < FAV_MAKS && !warungDipakai.has(x.v.id)) { dipilih.push(x); warungDipakai.add(x.v.id); } });
+        semua.forEach(x => { if (dipilih.length < FAV_MAKS && !dipilih.includes(x)) dipilih.push(x); });
+        favPilihan = dipilih.map(x => x.p.id);
+        favWaktu = Date.now();
+    }
+
+    function favTandai(rail) {
+        if (!rail) return;
+        const kartu = rail.querySelectorAll('.ps-kartu:not(.ps-keluar)');
+        if (!kartu.length) return;
+        const kotak = rail.getBoundingClientRect();
+        const tengah = kotak.left + kotak.width / 2;
+        let dekat = kartu[0], jarak = Infinity;
+        if (kotak.width > 0) kartu.forEach(k => {
+            const r = k.getBoundingClientRect();
+            const j = Math.abs(r.left + r.width / 2 - tengah);
+            if (j < jarak) { jarak = j; dekat = k; }
+        });
+        kartu.forEach(k => k.classList.toggle('pusat', k === dekat));
+        const latar = document.getElementById('fav-panggung');
+        if (latar) latar.style.backgroundColor = FAV_WARNA[(Number(dekat.dataset.warna) || 0) % FAV_WARNA.length];
+    }
+
+    function favIsiRail(rail, kandidat) {
+        const uLat = parseFloat(localStorage.getItem('user_lat'));
+        const uLng = parseFloat(localStorage.getItem('user_lng'));
+        const isi = favPilihan.map(id => kandidat.get(id)).filter(Boolean);
+        rail.innerHTML = isi.map(({ p, v }, i) => {
+            const harga = parseInt(p.harga, 10);
+            const coret = parseInt(p.harga_coret, 10);
+            const kategori = extractCategories(v.kategori_utama)[0] || '';
+            let jarak = '';
+            const vLat = parseFloat(v.latitude), vLng = parseFloat(v.longitude);
+            if ([uLat, uLng, vLat, vLng].every(Number.isFinite) && typeof window.calculateDistance === 'function') {
+                const d = window.calculateDistance(uLat, uLng, vLat, vLng);
+                if (Number.isFinite(d) && d < 900) jarak = d < 1 ? `${Math.round(d * 1000)} m` : `${d.toFixed(1)} km`;
+            }
+            const lokasi = [v.alamat_warung || v.lokasi || '', jarak].filter(Boolean).join(' · ');
+            const vRef = uiRef(v.id);
+            return `
+                <div class="ps-kartu" data-pid="${uiRef(p.id)}" data-vid="${vRef}" data-warna="${i}" onclick="window.favBukaWarung(${vRef})">
+                    <div class="ps-foto">
+                        <img src="${esc(fotoUmkmAman(p.foto_url))}" loading="lazy" alt="" onerror="window.favFotoGagal(this)">
+                        <div class="watermark-projekgo">PROJEKGO</div>
+                    </div>
+                    <div class="ps-isi">
+                        <div class="ps-nama"><b>${esc(v.nama_warung || 'Warung Projekgo')}</b><i>|</i>${esc(p.nama_menu || '')}</div>
+                        ${kategori ? `<div class="ps-tag">${esc(kategori)}</div>` : ''}
+                        ${lokasi ? `<div class="ps-lokasi">${esc(lokasi)}</div>` : ''}
+                        <div class="ps-harga"><b><span>Rp</span>${harga.toLocaleString('id-ID')}</b>${coret > harga ? `<s>Rp${coret.toLocaleString('id-ID')}</s>` : ''}</div>
+                    </div>
+                    <div class="ps-strip"><span>Harga asli warung</span><span>Tanpa markup</span></div>
+                </div>`;
+        }).join('');
+        rail.scrollLeft = 0;
+        rail.classList.add('ps-diam');
+        favTandai(rail);
+        void rail.offsetWidth;
+        rail.classList.remove('ps-diam');
+        return isi.length;
+    }
+
+    // Membuat kontainer baru (dipanggil dari renderWarungList). Pilihan yang masih berlaku dipertahankan,
+    // jadi pembaruan data realtime tidak mengacak ulang kartunya.
+    window.buatKontainerFavorit = () => {
+        const kandidat = favKandidat();
+        if (kandidat.size === 0) return null;
+        const masihAda = favPilihan.filter(id => kandidat.has(id));
+        if (!masihAda.length || Date.now() - favWaktu >= FAV_GANTI_MS) favAcak(kandidat);
+        else {
+            favPilihan = masihAda;
+            // Ada kartu yang hilang (habis/tutup): isi kekurangannya dengan menu lain
+            if (favPilihan.length < Math.min(FAV_MAKS, kandidat.size)) {
+                const tambah = [...kandidat.keys()].filter(id => !favPilihan.includes(id)).sort(() => Math.random() - 0.5);
+                favPilihan = favPilihan.concat(tambah.slice(0, FAV_MAKS - favPilihan.length));
+            }
+        }
+
+        const box = document.createElement('div');
+        box.id = 'kontainer-makanan-favorit';
+        box.style.cssText = 'margin: 10px 0; border-top: 8px solid var(--bg); border-bottom: 8px solid var(--bg); background: var(--bg);';
+        box.innerHTML = `
+            <div style="padding: 14px 20px 12px 20px; display: flex; justify-content: space-between; align-items: flex-end; gap: 10px;">
+                <div>
+                    <div style="font-size: 19px; font-weight: 800; color: #111;">Makanan favorit</div>
+                    <div style="font-size: 12px; font-weight: 600; color: #6B6B70;">Pilihan acak, berganti tiap ${Math.round(FAV_GANTI_MS / 1000)} detik</div>
+                </div>
+                <i class="ph-fill ph-shuffle" style="font-size: 22px; color: var(--primary);" aria-hidden="true"></i>
+            </div>
+            <div id="fav-panggung" class="ps-panggung">
+                <div id="fav-rail" class="ps-rail"></div>
+                <div class="ps-aksi">
+                    <button type="button" class="ps-btn ps-lewat" onclick="window.favTidakTertarik()">Tidak tertarik</button>
+                    <button type="button" class="ps-btn ps-detail" onclick="window.favLihatDetail()">Lihat detail</button>
+                </div>
+            </div>`;
+        const rail = box.querySelector('#fav-rail');
+        let tunggu = false;
+        rail.addEventListener('scroll', () => {
+            favSentuh = Date.now();
+            if (tunggu) return;
+            tunggu = true;
+            requestAnimationFrame(() => { tunggu = false; favTandai(rail); });
+        }, { passive: true });
+        ['touchstart', 'pointerdown'].forEach(ev => box.addEventListener(ev, () => { favSentuh = Date.now(); }, { passive: true }));
+        if (favIsiRail(rail, kandidat) === 0) return null;
+        // Ukuran baru bisa dihitung setelah kontainer masuk ke halaman
+        requestAnimationFrame(() => favTandai(rail));
+        return box;
+    };
+
+    function favKartuTengah() {
+        const rail = document.getElementById('fav-rail');
+        return rail ? rail.querySelector('.ps-kartu.pusat:not(.ps-keluar)') : null;
+    }
+
+    // Ketuk kartu atau "Lihat detail": buka halaman warung tersebut
+    window.favBukaWarung = (vidRef) => { const vid = uiVal(vidRef); if (vid) openVendorPage(vid); };
+    window.favLihatDetail = () => { const k = favKartuTengah(); if (k) window.favBukaWarung(k.dataset.vid); };
+
+    function favBuang(k) {
+        if (!k || k.classList.contains('ps-keluar')) return;
+        k.classList.add('ps-keluar');
+        k.classList.remove('pusat');
+        setTimeout(() => {
+            const rail = k.parentElement;
+            k.remove();
+            favPilihan = favPilihan.filter(id => id !== uiVal(k.dataset.pid));
+            if (rail && !rail.querySelector('.ps-kartu')) { favGanti(true); return; }
+            favTandai(rail);
+        }, 260);
+    }
+    window.favTidakTertarik = () => {
+        const k = favKartuTengah();
+        if (!k) return;
+        favDilewati.add(uiVal(k.dataset.pid));
+        favBuang(k);
+    };
+    window.favFotoGagal = (img) => {
+        const k = img && img.closest('.ps-kartu');
+        if (!k) return;
+        favFotoRusak.add(uiVal(k.dataset.pid));
+        favBuang(k);
+    };
+
+    // Acak ulang isi kontainer yang sedang tampil
+    function favGanti(paksa) {
+        const box = document.getElementById('kontainer-makanan-favorit');
+        const rail = document.getElementById('fav-rail');
+        if (!box || !rail) return;
+        const kandidat = favKandidat();
+        if (kandidat.size === 0) { box.remove(); return; }
+        favAcak(kandidat);
+        if (paksa) { favIsiRail(rail, kandidat); return; }
+        rail.style.transition = 'opacity 0.3s ease';
+        rail.style.opacity = '0';
+        setTimeout(() => { favIsiRail(rail, kandidat); rail.style.opacity = '1'; }, 300);
+    }
+
+    setInterval(() => {
+        if (document.hidden) return;
+        const box = document.getElementById('kontainer-makanan-favorit');
+        if (!box || box.offsetParent === null) return;               // halaman Food sedang tidak dibuka
+        if (Date.now() - favWaktu < FAV_GANTI_MS) return;
+        if (Date.now() - favSentuh < 10000) return;                  // pelanggan baru saja menggeser
+        favGanti(false);
+    }, 5000);
+
     function renderWarungList(vends) {
         // --- AWAL TAHAP 4: LOGIKA PEMFILTERAN ---
         let foodVendors = [...vends]; // Copy array agar tidak merusak data original
@@ -12781,29 +12993,29 @@
                 const fakePrice = item.harga_coret ? parseInt(item.harga_coret) : Math.ceil(realPrice * 1.2);
                 
                 cards += `
-                    <div style="width: 150px; cursor: pointer; background: white; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 12px rgba(255,152,0,0.15); position: relative; border: 1px solid #FFF3E0;" onclick="openProductDetail('${item.id}')">
-                        <div style="position: relative; width: 100%; height: 110px; background: #f9f9f9;">
-                            <img src="${img}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='${FALLBACK_MENU_IMG}'">
+                    <div style="width: 186px; cursor: pointer; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(255,152,0,0.15); position: relative; border: 1px solid #FFF3E0;" onclick="openProductDetail(uiVal(${uiRef(item.id)}))">
+                        <div style="position: relative; width: 100%; height: 146px; background: #f9f9f9;">
+                            <img src="${esc(img)}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null;this.src='${FALLBACK_MENU_IMG}'">
                             <div class="watermark-projekgo">PROJEKGO</div>
-                            <div style="position: absolute; top: 6px; left: 6px; background: rgba(255,255,255,0.95); color: #E65100; font-size: 9px; font-weight: 800; padding: 4px 8px; border-radius: 12px; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                <i class="ph-fill ph-storefront"></i> <span style="white-space: nowrap; max-width: 70px; overflow: hidden; text-overflow: ellipsis;">${esc(item.vendor_name || 'Warung')}</span>
+                            <div style="position: absolute; top: 6px; left: 6px; background: rgba(255,255,255,0.95); color: #E65100; font-size: 10px; font-weight: 800; padding: 4px 9px; border-radius: 12px; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <i class="ph-fill ph-storefront"></i> <span style="white-space: nowrap; max-width: 100px; overflow: hidden; text-overflow: ellipsis;">${esc(item.vendor_name || 'Warung')}</span>
                             </div>
                         </div>
 
                         <div style="border-top: 2px dotted #FFE0B2; margin: 0 10px;"></div>
 
-                        <div style="padding: 10px 10px 16px 10px; position: relative;">
-                            <div style="font-size: 12px; font-weight: 700; color: #333; line-height: 1.3; height: 31px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                        <div style="padding: 12px 12px 18px 12px; position: relative;">
+                            <div style="font-size: 13.5px; font-weight: 700; color: #333; line-height: 1.3; height: 35px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                                 <span style="color: #FF9800; font-weight: 800; margin-right: 4px;">Spesial</span>${esc(item.nama_menu)}
                             </div>
 
                             <div style="display: flex; align-items: baseline; margin-top: 8px;">
-                                <span style="color: #E65100; font-size: 10px; font-weight: 800;">Rp</span>
-                                <span style="color: #E65100; font-size: 15px; font-weight: 800; margin-right: 4px;">${realPrice.toLocaleString('id-ID')}</span>
-                                <span style="color: #aaa; font-size: 10px; text-decoration: line-through;">Rp${fakePrice.toLocaleString('id-ID')}</span>
+                                <span style="color: #E65100; font-size: 11px; font-weight: 800;">Rp</span>
+                                <span style="color: #E65100; font-size: 18px; font-weight: 800; margin-right: 4px;">${realPrice.toLocaleString('id-ID')}</span>
+                                <span style="color: #aaa; font-size: 11px; text-decoration: line-through;">Rp${fakePrice.toLocaleString('id-ID')}</span>
                             </div>
 
-                            <div style="position: absolute; bottom: 0; right: 0; background: #FF9800; color: white; font-size: 12px; font-weight: 800; padding: 6px 14px; border-radius: 16px 0 12px 0; box-shadow: -2px -2px 5px rgba(255, 152, 0, 0.2);">
+                            <div style="position: absolute; bottom: 0; right: 0; background: #FF9800; color: white; font-size: 13px; font-weight: 800; padding: 7px 16px; border-radius: 16px 0 14px 0; box-shadow: -2px -2px 5px rgba(255, 152, 0, 0.2);">
                                 Pesan
                             </div>
                         </div>
@@ -12926,6 +13138,13 @@
         // Kontainer oranye "Pilihan Makan untuk Kamu" — disisipkan 5 baris warung di bawah
         // "Resto Top Rating". Dibangun lewat DOM: teks lewat textContent, foto hanya https.
         let pilihanMakanInserted = false;
+        let favoritInserted = false;
+        const renderFavorit = () => {
+            if (favoritInserted) return;
+            favoritInserted = true;
+            const el = window.buatKontainerFavorit();
+            if (el) c.appendChild(el);
+        };
         const renderPilihanMakan = () => {
             if (pilihanMakanInserted) return;
             pilihanMakanInserted = true;
@@ -13033,6 +13252,9 @@
             // 5 baris warung setelah "Resto Top Rating"
             if (index === 15) renderPilihanMakan();
 
+            // Makanan favorit: setelah warung ke-25
+            if (index === 25) renderFavorit();
+
             const umkm = isWarungUmkm(v);
             // Menu UMKM sengaja tidak ada di allProducts, jadi harga & jumlah menunya diambil dari rawProducts
             const vendorProds = (umkm ? rawProducts : allProducts).filter(p => p.vendor_id === v.id && p.is_available !== false);
@@ -13119,7 +13341,7 @@
 
             div.innerHTML = `
                 <div style="display: flex; gap: 12px; ${(!s || belumAdaMenu) ? 'opacity:0.6; filter:grayscale(100%);' : ''} transition: transform 0.2s;" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'" onmouseleave="this.style.transform='scale(1)'">
-                    <div style="position: relative; width: 112px; height: 112px; flex-shrink: 0;">
+                    <div style="position: relative; width: 124px; height: 124px; flex-shrink: 0;">
                         <img src="${esc(img)}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; border-radius: 20px; border: 1px solid #eee;" onerror="this.src='${FALLBACK_VENDOR_IMG}'">
                         
                         ${umkm
@@ -13177,6 +13399,7 @@
             renderRestoTopRatingImageStyle();
             renderExclusiveStyle();
             renderPilihanMakan(); // warungnya kurang dari 15: tetap tampil, di ujung daftar
+            renderFavorit(); // warungnya kurang dari 25: tetap tampil, di ujung daftar
         }
 
         if (!bestSellerInserted) renderBestSeller();
