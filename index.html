@@ -1539,7 +1539,11 @@
         .rr-lajur { display: flex; gap: 8px; align-items: center; }
         #page-service-form { padding-bottom: 24px; }
         .rr-box, .rr-box * { box-sizing: border-box; }
-        .rr-box .ride-inputs { min-width: 0; }
+        .rr-box .ride-inputs { min-width: 0; position: relative; gap: 28px; }
+        .rr-tukar { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); z-index: 4; width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid #D9D9DE; background: #fff; color: var(--primary); font-size: 17px; display: grid; place-items: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.12); }
+        .rr-tukar.putar i { animation: rrPutar .35s ease; }
+        @keyframes rrPutar { from { transform: rotate(0); } to { transform: rotate(180deg); } }
+        @media (prefers-reduced-motion: reduce) { .rr-tukar.putar i { animation: none; } }
         .rr-in { flex: 1; min-width: 0; width: 100%; background: #fff; border: 1.5px solid #D9D9DE; border-radius: 14px; padding: 13px 40px 13px 14px; font-family: inherit; font-size: 14px; font-weight: 600; color: #111; outline: none; transition: border-color .2s, box-shadow .2s; }
         .rr-in:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(255,106,0,0.12); }
         .rr-in::placeholder { color: #9A9AA0; font-weight: 500; }
@@ -10610,6 +10614,7 @@
                                         <div class="dot-dest" style="background:#F44336; border-color:#FFEBEE;"></div>
                                     </div>
                                     <div class="ride-inputs">
+                                        <button type="button" id="rr-tukar" class="rr-tukar" onclick="window.rrTukarLokasi()" aria-label="Balik lokasi jemput dan tujuan"><i class="ph-bold ph-arrows-down-up" aria-hidden="true"></i></button>
                                         <div class="rr-lajur">
                                             <div class="rr-inwrap">
                                                 <input type="text" id="svc-jemput" class="rr-in" placeholder="Lokasi jemput saat ini...">
@@ -10918,6 +10923,43 @@
             }
         };
 
+        // Titik pusat pencarian lokasi terdekat: tujuan -> sekitar titik jemput; selain itu posisi pengguna / pusat area.
+        window.rrPusatCari = (tipe) => {
+            const ambil = (lokasi) => {
+                if (!lokasi) return null;
+                const la = typeof lokasi.lat === 'function' ? lokasi.lat() : lokasi.lat;
+                const ln = typeof lokasi.lng === 'function' ? lokasi.lng() : lokasi.lng;
+                return (Number.isFinite(la) && Number.isFinite(ln)) ? { lat: la, lng: ln } : null;
+            };
+            if (tipe === 'tujuan' && originPlace && originPlace.geometry) {
+                const p = ambil(originPlace.geometry.location);
+                if (p) return p;
+            }
+            const gl = parseFloat(localStorage.getItem('user_lat')), gn = parseFloat(localStorage.getItem('user_lng'));
+            if (Number.isFinite(gl) && Number.isFinite(gn)) return { lat: gl, lng: gn };
+            return currentArea === 'Kebumen Kota' ? { lat: -7.6688, lng: 109.6508 } : { lat: -7.6046, lng: 109.4503 };
+        };
+
+        // Balik lokasi: jemput <-> tujuan (teks dan titik koordinatnya ikut tertukar)
+        window.rrTukarLokasi = () => {
+            const j = document.getElementById('svc-jemput'), t = document.getElementById('svc-tujuan');
+            if (!j || !t) return;
+            const teks = j.value; j.value = t.value; t.value = teks;
+            const titik = originPlace; originPlace = destPlace; destPlace = titik;
+            const tombol = document.getElementById('rr-tukar');
+            if (tombol) { tombol.classList.remove('putar'); void tombol.offsetWidth; tombol.classList.add('putar'); }
+            routePrice = 0;
+            const ringkas = document.getElementById('route-summary');
+            if (originPlace && originPlace.geometry && destPlace && destPlace.geometry) {
+                calculateRoute();
+            } else {
+                if (ringkas) ringkas.style.display = 'none';
+                const sl = document.getElementById('suggested-locations'); if (sl) sl.style.display = 'block';
+                if (window.directionsRenderer) window.directionsRenderer.setDirections({ routes: [] });
+                window.rrTahap('cari');
+            }
+        };
+
         window.rrKosongkan = (tipe) => {
             const el = document.getElementById(tipe === 'jemput' ? 'svc-jemput' : 'svc-tujuan');
             if (!el) return;
@@ -10980,18 +11022,32 @@
                 // Tunda 1000ms (1 detik) - PENUNDAAN (DEBOUNCE) DITERAPKAN DI SINI
                 rideSearchTimeout = setTimeout(() => {
                     if (window.mapsAutocompleteService) {
+                        // Hanya tampilkan lokasi TERDEKAT: pencarian dibatasi ke sekitar titik pusat
+                        // (jemput = posisi pengguna, tujuan = sekitar titik jemput), lalu diurutkan dari yang terdekat.
+                        const pusat = window.rrPusatCari(targetType);
+                        const selisih = 0.3; // sekitar 33 km
                         window.mapsAutocompleteService.getPlacePredictions({
                             input: val,
                             componentRestrictions: { country: "id" },
+                            origin: new google.maps.LatLng(pusat.lat, pusat.lng),
+                            locationRestriction: { north: pusat.lat + selisih, south: pusat.lat - selisih, east: pusat.lng + selisih, west: pusat.lng - selisih },
                             sessionToken: window.mapsSessionToken // Kirim sesi aktif
                         }, (predictions, status) => {
-                            if (status !== google.maps.places.PlacesServiceStatus.OK || !predictions) {
-                                listContainer.innerHTML = `<div style="padding: 15px; text-align:center; color:#888;">Lokasi tidak ditemukan</div>`;
+                            const BATAS_JARAK_M = 40000;
+                            let daftar = (status === google.maps.places.PlacesServiceStatus.OK && predictions) ? predictions.slice() : [];
+                            // Buang yang jauh (mis. BNI di Jakarta), urutkan dari yang terdekat
+                            daftar = daftar.filter(p => typeof p.distance_meters !== 'number' || p.distance_meters <= BATAS_JARAK_M);
+                            daftar.sort((a, b) => (typeof a.distance_meters === 'number' ? a.distance_meters : 1e9) - (typeof b.distance_meters === 'number' ? b.distance_meters : 1e9));
+                            if (daftar.length === 0) {
+                                listContainer.innerHTML = `<div style="padding: 15px; text-align:center; color:#888;">Lokasi tidak ditemukan di sekitar kamu</div>`;
                                 return;
                             }
 
-                            let html = `<div style="font-size:14px; font-weight:800; color:var(--dark); margin-top:15px; margin-bottom:10px;">Hasil Pencarian</div>`;
-                            predictions.forEach(p => {
+                            let html = `<div style="font-size:14px; font-weight:800; color:var(--dark); margin-top:15px; margin-bottom:10px;">Terdekat dari ${targetType === 'tujuan' && originPlace ? 'titik jemput' : 'lokasimu'}</div>`;
+                            daftar.forEach(p => {
+                                const jarakTeks = (typeof p.distance_meters === 'number')
+                                    ? (p.distance_meters < 1000 ? Math.round(p.distance_meters) + ' m' : (p.distance_meters / 1000).toFixed(1) + ' km') + ' • '
+                                    : '';
                                 // KEAMANAN: place_id hanya huruf/angka/_/-, teks dari Google di-escape
                                 if (!/^[A-Za-z0-9_-]+$/.test(String(p.place_id || ''))) return;
                                 const sf = p.structured_formatting || {};
@@ -11001,7 +11057,7 @@
                                     <i class="ph-fill ph-map-pin" style="font-size: 24px; color: #1C1C1E;"></i>
                                     <div style="flex-grow: 1; overflow:hidden;">
                                         <div style="font-size: 15.5px; font-weight: 700; color: #111; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(sf.main_text || p.description || '')}</div>
-                                        <div style="font-size: 12.5px; color: #6B6B70; margin-top: 3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(sf.secondary_text || '')}</div>
+                                        <div style="font-size: 12.5px; color: #6B6B70; margin-top: 3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(jarakTeks + (sf.secondary_text || ''))}</div>
                                     </div>
                                     <i class="ph-bold ph-dots-three-vertical" style="color:#6B6B70;"></i>
                                 </div>
