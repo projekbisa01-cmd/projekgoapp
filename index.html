@@ -2213,6 +2213,28 @@
         .bh-ban-tombol { font-size: 11px; font-weight: 800; padding: 7px 13px; border-radius: 99px; background: #fff; color: #E85300; }
         .bh-ban-foto { position: relative; width: 118px; height: 118px; flex-shrink: 0; border-radius: 28px; overflow: hidden; background: rgba(255,255,255,0.95); transform: rotate(4deg); box-shadow: 0 14px 22px -10px rgba(90,30,0,0.5); }
         .bh-ban-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        /* ===== PENYESUAIAN BERANDA: header pendek, banner foto besar, layanan 2 baris geser, kartu persegi ===== */
+        .bh-head { padding: 12px 16px 46px; border-radius: 0 0 28px 28px; }
+        .bh-sapa { min-height: 88px; margin-top: 6px; }
+        .bh-nama { font-size: 24px; }
+        .bh-maskot { width: 150px; margin: -26px -14px -46px 0; }
+        .bh-maskot::before { width: 130px; height: 130px; bottom: 36px; }
+        .bh-ban-s { min-height: 178px; }
+        .bh-ban-teks { max-width: 50%; }
+        .bh-ban-foto { width: 150px; height: 150px; border-radius: 32px; }
+        .bh-grid { display: grid; grid-template-columns: 132px; grid-auto-columns: 96px; grid-template-rows: repeat(2, auto); grid-auto-flow: column; gap: 10px; overflow-x: auto; overflow-y: hidden; padding: 18px 16px 8px; margin: 0 -16px 0; scroll-snap-type: x proximity; scroll-padding: 0 16px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+        .bh-grid::-webkit-scrollbar { display: none; }
+        .bh-s { scroll-snap-align: start; }
+        .bh-s.bh-food { grid-column: auto; grid-row: span 2; flex-direction: column; justify-content: center; text-align: center; gap: 10px; padding: 14px 10px; }
+        .bh-food-teks { align-items: center; }
+        .bh-gelembung { left: 50%; margin-left: -48px; top: -14px; }
+        .bh-mn-foto { height: auto; aspect-ratio: 1 / 1; }
+        /* ===== HALAMAN FOOD GAYA 2 ===== */
+        .fd2-baris { display: flex; gap: 12px; overflow-x: auto; padding: 0 14px 2px; scrollbar-width: none; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; scroll-padding: 0 14px; }
+        .fd2-baris::-webkit-scrollbar { display: none; }
+        .fd2-kartu { position: relative; flex: 0 0 172px; height: 196px; border-radius: 20px; overflow: hidden; background: #5A3A1A; cursor: pointer; scroll-snap-align: start; box-shadow: 0 6px 14px rgba(0,0,0,0.18); }
+        .fd2-kartu img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .fd2-tombol-tutup { display: block; width: calc(100% - 30px); margin: 18px 15px 0; min-height: 48px; border: 1.5px dashed #D9CBBB; border-radius: 14px; background: #fff; color: #6B5B4B; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
         .bh-slider { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; border-radius: 20px; }
         .bh-slider::-webkit-scrollbar { display: none; }
         .bh-slide { flex: 0 0 100%; scroll-snap-align: center; position: relative; overflow: hidden; border: 0; border-radius: 20px; padding: 16px; min-height: 120px; color: #fff; text-align: left; cursor: pointer; display: flex; flex-direction: column; justify-content: center; }
@@ -5313,6 +5335,7 @@
             currentPage = pageName;
             window.history.pushState({page: pageName}, '', '');
             renderPage(pageName, false);
+            if (pageName === 'food' && typeof window.__segarkanUrutanFood === 'function') window.__segarkanUrutanFood();
         }
         
         window.goBack = () => { window.history.back(); }
@@ -11930,6 +11953,18 @@
                     loadMockData();
                 });
 
+                // 4. Pengaturan tampilan halaman Food (diatur admin): settings/ui_food
+                onSnapshot(doc(db, "settings", "ui_food"), (snap) => {
+                    const d = snap.exists() ? snap.data() : {};
+                    const mode = d.mode === 2 ? 2 : 1;
+                    const bintang = Array.isArray(d.bintang) ? d.bintang.filter(x => typeof x === 'string').slice(0, 200) : [];
+                    const berubah = mode !== window.__uiFood.mode || bintang.join('|') !== window.__uiFood.bintang.join('|');
+                    window.__uiFood = { mode, bintang };
+                    if (berubah) checkAndRenderAll();
+                }, (error) => {
+                    console.warn("Pengaturan UI Food tidak terbaca, memakai gaya 1:", error.code || error.message);
+                });
+
                 // Timeout darurat jika internet pengguna super lemot (8 detik)
                 setTimeout(() => {
                     if (!isVendorsReady || !isProductsReady) {
@@ -13243,6 +13278,106 @@
         favGanti(false);
     }, 5000);
 
+    // ===== PENGATURAN UI HALAMAN FOOD (settings/ui_food, diatur admin) =====
+    // mode 1 = tampilan lama; mode 2 = baris warung + kartu foto menu (hanya warung non Buku Menu).
+    window.__uiFood = { mode: 1, bintang: [] };
+    const __acakWarung = new Map();
+    function acakWarung(kunci) {
+        let x = __acakWarung.get(kunci);
+        if (x === undefined) { x = Math.random(); __acakWarung.set(kunci, x); }
+        return x;
+    }
+    // Dipanggil saat halaman Food dibuka: urutan acak dikocok ulang
+    window.__segarkanUrutanFood = () => {
+        __acakWarung.clear();
+        if (window.__uiFood.mode === 2 && typeof window.__renderWarungList === 'function' && typeof currentDisplayVendors !== 'undefined' && currentDisplayVendors.length) {
+            window.__renderWarungList(currentDisplayVendors);
+        }
+    };
+
+    // Blok warung gaya 2. Dibangun lewat DOM: teks lewat textContent, foto hanya https (fotoUmkmAman).
+    function buatBlokResto2(v, menuList, info) {
+        const items = menuList
+            .filter(p => p && p.id && p.nama_menu && p.is_sold_out !== true && parseInt(p.harga, 10) > 0 && fotoUmkmAman(p.foto_url))
+            .sort(bandingUrutanMitra)
+            .slice(0, 10);
+        if (!items.length) return null;
+        const el = (tag, css, teks) => { const e = document.createElement(tag); if (css) e.style.cssText = css; if (teks != null) e.textContent = teks; return e; };
+        const blok = el('div', 'background:#fff; padding:14px 0 16px; border-bottom:1px solid #f0f0f0;');
+
+        const kepala = el('div', 'display:flex; align-items:center; gap:10px; padding:0 14px; cursor:pointer;');
+        kepala.setAttribute('role', 'button');
+        kepala.tabIndex = 0;
+        const bukaWarung = () => openVendorPage(v.id);
+        kepala.addEventListener('click', bukaWarung);
+        kepala.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') bukaWarung(); });
+        const logo = document.createElement('img');
+        logo.src = fotoUmkmAman(v.shop_photo) || FALLBACK_VENDOR_IMG;
+        logo.alt = '';
+        logo.loading = 'lazy';
+        logo.style.cssText = 'width:30px; height:30px; border-radius:50%; object-fit:cover; flex-shrink:0; border:1px solid #eee;';
+        logo.onerror = function () { this.onerror = null; this.src = FALLBACK_VENDOR_IMG; };
+        kepala.appendChild(logo);
+        kepala.appendChild(el('div', 'flex:1; min-width:0; font-size:18px; font-weight:800; color:#111; letter-spacing:-0.3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;', v.nama_warung || 'Warung Projekgo'));
+        if (v.has_sertifikat_halal || v.is_halal) {
+            const halal = el('span', 'display:inline-flex; align-items:center; gap:4px; flex-shrink:0; background:#F3E5F5; color:#8E24AA; font-size:11px; font-weight:800; padding:5px 9px; border-radius:99px; border:1px solid #E1BEE7;');
+            const ic = document.createElement('i');
+            ic.className = 'ph-fill ph-seal-check';
+            halal.appendChild(ic);
+            halal.appendChild(document.createTextNode('Halal'));
+            kepala.appendChild(halal);
+        }
+        blok.appendChild(kepala);
+
+        const baris1 = el('div', 'display:flex; align-items:center; gap:5px; padding:4px 14px 10px 54px; font-size:12px; color:#666; white-space:nowrap; overflow:hidden;');
+        const bintang = document.createElement('i');
+        bintang.className = 'ph-fill ph-star';
+        bintang.style.cssText = 'color:#FF7300; font-size:13px;';
+        baris1.appendChild(bintang);
+        baris1.appendChild(el('span', 'font-weight:700; color:#333;', info.rating));
+        baris1.appendChild(el('span', 'color:#888;', '(' + info.jumlahRating + ' ratings)'));
+        baris1.appendChild(el('span', 'color:#ccc;', '•'));
+        baris1.appendChild(el('span', '', info.rentang));
+        baris1.appendChild(el('span', 'color:#ccc;', '•'));
+        baris1.appendChild(el('span', 'overflow:hidden; text-overflow:ellipsis;', info.deskripsi));
+        blok.appendChild(baris1);
+
+        const baris = el('div'); baris.className = 'fd2-baris';
+        items.forEach(p => {
+            const harga = parseInt(p.harga, 10) || 0;
+            const coret = hargaCoret(harga, p.harga_coret);
+            const kartu = el('div'); kartu.className = 'fd2-kartu';
+            kartu.setAttribute('role', 'button');
+            kartu.tabIndex = 0;
+            const buka = () => openProductDetail(p.id);
+            kartu.addEventListener('click', buka);
+            kartu.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') buka(); });
+            const img = document.createElement('img');
+            img.src = fotoUmkmAman(p.foto_url);
+            img.alt = '';
+            img.loading = 'lazy';
+            img.onerror = function () { kartu.remove(); };
+            kartu.appendChild(img);
+            kartu.appendChild(el('div', 'position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.35) 40%, rgba(0,0,0,0) 65%); pointer-events:none;'));
+            if (coret > harga) {
+                kartu.appendChild(el('div', 'position:absolute; top:8px; left:8px; background:#FFD54F; color:#7A4A00; font-size:12px; font-weight:800; padding:4px 9px; border-radius:99px; pointer-events:none;', '-' + Math.round((coret - harga) / coret * 100) + '%'));
+            }
+            const bawah = el('div', 'position:absolute; left:10px; right:10px; bottom:10px; color:#fff; pointer-events:none;');
+            const hargaBaris = el('div', 'display:flex; align-items:center; gap:6px; margin-bottom:6px;');
+            hargaBaris.appendChild(el('span', 'background:#D32F2F; color:#fff; font-size:12px; font-weight:800; padding:4px 9px; border-radius:99px;', 'Rp' + harga.toLocaleString('id-ID')));
+            if (coret > harga) hargaBaris.appendChild(el('span', 'font-size:11px; font-weight:600; text-decoration:line-through; opacity:0.85;', 'Rp' + coret.toLocaleString('id-ID')));
+            bawah.appendChild(hargaBaris);
+            bawah.appendChild(el('div', 'font-size:15px; font-weight:800; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 1px 4px rgba(0,0,0,0.5);', p.nama_menu));
+            bawah.appendChild(el('div', 'font-size:11px; font-weight:600; text-transform:uppercase; opacity:0.9; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;', v.nama_warung || p.vendor_name || ''));
+            kartu.appendChild(bawah);
+            baris.appendChild(kartu);
+        });
+        blok.appendChild(baris);
+        return blok;
+    }
+
+    window.__renderWarungList = (v) => renderWarungList(v);
+
     function renderWarungList(vends) {
         // --- AWAL TAHAP 4: LOGIKA PEMFILTERAN ---
         let foodVendors = [...vends]; // Copy array agar tidak merusak data original
@@ -13263,8 +13398,10 @@
         const idWarungBermenu = new Set();
         rawProducts.forEach(p => { if (p.vendor_id) idWarungBermenu.add(p.vendor_id); });
 
-        // Warung yang belum punya menu (masih "update") disembunyikan dari halaman Food.
-        foodVendors = foodVendors.filter(v => idWarungBermenu.has(v.id));
+        // Warung tutup dan warung yang menunya belum ada (sedang update) disembunyikan dulu.
+        // Pelanggan bisa menampilkannya lewat tombol di bawah daftar.
+        const tampilTutup = window.__tampilWarungTutup === true;
+        const bukaDanBermenu = (v) => (v.status || 'BUKA').toUpperCase() === 'BUKA' && idWarungBermenu.has(v.id);
 
         // Peringkat tampil: 0 = buka & ada menu, 1 = buka tapi menunya kosong, 2 = tutup.
         // Warung yang sedang mengupdate menu ikut turun ke bawah seperti warung tutup.
@@ -13275,7 +13412,7 @@
         };
 
         // Fungsi sorting bawaan (Buka & ada menu -> Andalan -> Order Index)
-        const defaultWarungSort = (a, b) => {
+        const defaultWarungSortLama = (a, b) => {
             const pa = peringkatWarung(a), pb = peringkatWarung(b);
             if (pa !== pb) return pa - pb;
             
@@ -13292,6 +13429,21 @@
             return orderA - orderB;
             // --------------------------------------------------------------------------------
         };
+
+        // Gaya 2: warung berbintang (diatur admin) di paling atas, sisanya diacak tiap halaman Food dibuka
+        const modeUI2 = !!window.__uiFood && window.__uiFood.mode === 2;
+        const urutBintangAcak = (a, b) => {
+            const pa = peringkatWarung(a), pb = peringkatWarung(b);
+            if (pa !== pb) return pa - pb;
+            const ia = window.__uiFood.bintang.indexOf(a.id), ib = window.__uiFood.bintang.indexOf(b.id);
+            if (ia !== -1 || ib !== -1) {
+                if (ia === -1) return 1;
+                if (ib === -1) return -1;
+                return ia - ib;
+            }
+            return acakWarung(a.id) - acakWarung(b.id);
+        };
+        const defaultWarungSort = (a, b) => modeUI2 ? urutBintangAcak(a, b) : defaultWarungSortLama(a, b);
 
         if (window.currentFoodFilter === 'Terdekat') {
             const uLat = parseFloat(localStorage.getItem('user_lat'));
@@ -13329,6 +13481,20 @@
             // Mode "Semua"
             foodVendors.sort(defaultWarungSort);
         }
+        // Sembunyikan warung tutup / sedang update kecuali pelanggan menekan tombol tampilkan
+        const jumlahTersembunyi = foodVendors.filter(v => !bukaDanBermenu(v)).length;
+        if (!tampilTutup) foodVendors = foodVendors.filter(bukaDanBermenu);
+        const tombolTutup = () => {
+            if (jumlahTersembunyi === 0) return null;
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'fd2-tombol-tutup';
+            b.textContent = tampilTutup
+                ? 'Sembunyikan warung yang tutup dan sedang update'
+                : 'Tampilkan warung yang tutup dan sedang update (' + jumlahTersembunyi + ')';
+            b.addEventListener('click', () => { window.__tampilWarungTutup = !window.__tampilWarungTutup; renderWarungList(vends); });
+            return b;
+        };
         // --- AKHIR TAHAP 4 ---
 
         const c = document.getElementById('container-warung'); 
@@ -13373,8 +13539,8 @@
                     const vendorName = item.vendor_name || "Warung Projekgo";
                     
                     cardsHtml += `
-                        <div style="width: 220px; flex-shrink: 0; cursor: pointer; background: white; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.03); display: flex; flex-direction: column; overflow: hidden;" onclick="openProductDetail('${item.id}')">
-                            <div style="position:relative; width:100%; height:160px; overflow:hidden;">
+                        <div style="width: 190px; flex-shrink: 0; cursor: pointer; background: white; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.03); display: flex; flex-direction: column; overflow: hidden;" onclick="openProductDetail('${item.id}')">
+                            <div style="position:relative; width:100%; aspect-ratio:1/1; overflow:hidden;">
                                 <img src="${img}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='${FALLBACK_MENU_IMG}'">
                                 <div class="watermark-projekgo">PROJEKGO</div>
                                 <div style="position:absolute; top:0; left:0; background: #FF0055; color: white; font-size:10px; padding:4px 8px; border-bottom-right-radius:8px; font-weight:800; z-index:2;">
@@ -13523,7 +13689,9 @@
         let topRatingImgInserted = false;
         const renderRestoTopRatingImageStyle = () => {
             if (topRatingImgInserted) return;
-            const vendors = foodVendors.slice(0, 5); 
+            // Resto acak yang sedang buka, punya menu, dan punya gambar
+            const adaGambar = (v) => !!(fotoUmkmAman(v.cover_photo) || fotoUmkmAman(v.shop_photo) || rawProducts.some(p => p.vendor_id === v.id && fotoUmkmAman(p.foto_url)));
+            const vendors = foodVendors.filter(v => bukaDanBermenu(v) && adaGambar(v)).sort((a, b) => acakWarung('t' + a.id) - acakWarung('t' + b.id)).slice(0, 5);
             if(vendors.length === 0) return;
             
             // Tampilan mengikuti kontainer "Menu Paling Laris": kotak putih melengkung,
@@ -13671,6 +13839,8 @@
         
         if (foodVendors.length === 0) {
             c.innerHTML = `<div style="text-align:center; padding: 40px; color: #888;">Belum ada restoran yang tersedia di area ini.</div>`;
+            const tbKosong = tombolTutup();
+            if (tbKosong) c.appendChild(tbKosong);
             return;
         }
 
@@ -13746,6 +13916,12 @@
                 halalBadgeHtml = `<div style="display:inline-flex; align-items:center; gap:3px; background:#F3E5F5; color:#8E24AA; font-size:10px; font-weight:800; padding:4px 6px; border-radius:6px; border:1px solid #E1BEE7;"><i class="ph-fill ph-seal-check" style="font-size:12px;"></i> Bersertifikat Halal</div>`;
             } else if (v.is_halal) {
                 halalBadgeHtml = `<div style="display:inline-flex; align-items:center; gap:3px; background:#F3E5F5; color:#8E24AA; font-size:10px; font-weight:800; padding:4px 6px; border-radius:6px; border:1px solid #E1BEE7;"><i class="ph-fill ph-check-circle" style="color:#8E24AA; font-size:12px;"></i> Halal</div>`;
+            }
+
+            // Gaya 2 (hanya warung biasa yang buka dan sudah punya menu; Buku Menu tetap gaya lama)
+            if (modeUI2 && !umkm && s && !belumAdaMenu) {
+                const blok2 = buatBlokResto2(v, vendorProds, { rating, jumlahRating: ratingCountText, rentang: formattedPrice + 'rb-' + maxPriceStr + 'rb', deskripsi: menuDesc });
+                if (blok2) { c.appendChild(blok2); return; }
             }
 
             // MODIFIKASI DIMENSI ZOOM OUT 20% (Padding, Gap, Width, Font-Size Diperkecil)
@@ -13850,6 +14026,9 @@
         }
 
         if (!bestSellerInserted) renderBestSeller();
+
+        const tbAkhir = tombolTutup();
+        if (tbAkhir) c.appendChild(tbAkhir);
 
         if (foodVendors.length > 0) {
             const endContainer = document.createElement('div');
