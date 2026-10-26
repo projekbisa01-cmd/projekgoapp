@@ -509,37 +509,56 @@
             <button class="btn-add-float" onclick="openAddModal()"><i class="ph-bold ph-plus"></i></button>
         </div>
 
-        <!-- TAGIHAN PAGE -->
-        <div id="page-tagihan" class="page-content">
+        <!-- PENGATURAN UI HALAMAN FOOD (menggantikan halaman Tagihan) -->
+        <div id="page-uifood" class="page-content">
+            <style>
+                .uf-pilih { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 16px; }
+                .uf-mode { text-align: left; background: #fff; border: 2px solid #eee; border-radius: 16px; padding: 14px; cursor: pointer; font-family: inherit; transition: border-color .15s, background .15s; }
+                .uf-mode.aktif { border-color: var(--primary); background: #FFF6EE; }
+                .uf-mode b { display: block; font-size: 14px; color: var(--dark); margin-bottom: 4px; }
+                .uf-mode span { display: block; font-size: 12px; color: var(--gray); line-height: 1.45; }
+                .uf-judul { font-size: 15px; font-weight: 800; padding: 16px 16px 0; color: var(--dark); }
+                .uf-ket { font-size: 12px; color: var(--gray); padding: 4px 16px 0; line-height: 1.5; }
+                .uf-baris { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-top: 1px solid #f3f3f3; }
+                .uf-baris .nm { flex: 1; min-width: 0; font-size: 13px; font-weight: 700; color: var(--dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+                .uf-baris small { display: block; font-size: 11px; font-weight: 500; color: var(--gray); }
+                .uf-aksi { width: 38px; height: 38px; border-radius: 10px; border: 1px solid #eee; background: #fff; display: grid; place-items: center; font-size: 18px; cursor: pointer; color: var(--gray); }
+                .uf-aksi.bintang.on { background: #FFF4D6; border-color: #FFD54F; color: #E6A100; }
+                .uf-aksi:disabled { opacity: .35; cursor: default; }
+                .uf-urut { width: 22px; font-size: 12px; font-weight: 800; color: var(--primary); text-align: center; }
+                .uf-simpan { display: flex; align-items: center; gap: 12px; padding: 16px; }
+                #uf-status { font-size: 13px; font-weight: 700; }
+                @media (max-width: 480px) { .uf-pilih { grid-template-columns: 1fr; } }
+            </style>
             <div class="page-header">
-                <h1 class="page-title">Tagihan Seller</h1>
-                <p class="page-subtitle">Kelola tagihan dan status pembayaran mitra</p>
-            </div>
-            
-            <div style="position: relative; margin-bottom: 20px;">
-                <i class="ph ph-magnifying-glass" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray); font-size: 20px;"></i>
-                <input type="text" id="search-tagihan" class="form-input" style="padding-left: 45px;" placeholder="Cari nama mitra..." oninput="renderTagihanList()">
+                <h1 class="page-title">Pengaturan UI Halaman Food</h1>
+                <p class="page-subtitle">Pilih gaya tampilan halaman Food di aplikasi pelanggan</p>
             </div>
 
             <div class="data-card">
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Mitra & Akses</th>
-                                <th>Total Tagihan</th>
-                                <th>Status</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tagihan-list-body">
-                            <tr>
-                                <td colspan="4" style="text-align:center; padding:30px; color:#999;">
-                                    Belum ada data tagihan.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="uf-judul">Gaya tampilan</div>
+                <div class="uf-pilih">
+                    <button type="button" class="uf-mode" id="uf-mode-1"><b>Gaya 1 (tampilan sekarang)</b><span>Daftar warung dengan foto warung di kiri dan keterangan di kanan.</span></button>
+                    <button type="button" class="uf-mode" id="uf-mode-2"><b>Gaya 2 (kartu foto menu)</b><span>Tiap warung punya baris kartu foto menu yang bisa digeser. Warung Buku Menu tetap memakai tampilan lama.</span></button>
+                </div>
+            </div>
+
+            <div class="data-card">
+                <div class="uf-judul">Urutan warung (Gaya 2)</div>
+                <div class="uf-ket">Warung yang diberi bintang tampil paling atas, sesuai urutan di bawah. Warung lain urutannya diacak setiap halaman Food dibuka.</div>
+                <div class="uf-judul" style="font-size:13px; padding-top:14px;">Warung berbintang</div>
+                <div id="uf-berbintang"></div>
+                <div class="uf-judul" style="font-size:13px; padding-top:14px;">Semua warung</div>
+                <div style="padding: 10px 16px 6px; position: relative;">
+                    <input type="text" id="uf-cari" class="form-input" placeholder="Cari nama warung...">
+                </div>
+                <div id="uf-daftar"></div>
+            </div>
+
+            <div class="data-card">
+                <div class="uf-simpan">
+                    <button type="button" id="uf-simpan" class="btn-modal" style="flex:0 0 auto; background:var(--primary); color:#fff; padding:14px 22px;">Simpan pengaturan</button>
+                    <span id="uf-status" role="status"></span>
                 </div>
             </div>
         </div>
@@ -940,9 +959,9 @@
             <i class="ph ph-storefront"></i>
             <span>Mitra</span>
         </div>
-        <div class="nav-item" onclick="showPage('tagihan', this)">
-            <i class="ph ph-receipt"></i>
-            <span>Tagihan</span>
+        <div class="nav-item" onclick="showPage('uifood', this)">
+            <i class="ph ph-layout"></i>
+            <span>UI Food</span>
         </div>
         <div class="nav-item" onclick="showPage('products', this)">
             <i class="ph ph-bowl-food"></i>
@@ -2103,6 +2122,7 @@
                 if(mitraTab) window.switchReviewTab('mitra', mitraTab);
             }
             if (pageId === 'tagihan') window.renderTagihanList();
+            if (pageId === 'uifood') window.muatUiFood();
             if (pageId === 'umkm') window.renderWarungAdminList();
             if (pageId === 'pendaftaran') window.renderPengajuanMitra();
             if (pageId === 'kategori') window.renderKategoriPage();
@@ -2894,6 +2914,130 @@
                 `;
             });
             tbody.innerHTML = html;
+        };
+
+        // ===== PENGATURAN UI HALAMAN FOOD (dokumen settings/ui_food) =====
+        // Isi dokumen: { mode: 1 | 2, bintang: [idWarung, ...] }. Dibaca aplikasi pelanggan secara realtime.
+        let uiFoodState = { mode: 1, bintang: [] };
+        let uiFoodTerpasang = false;
+
+        window.muatUiFood = async () => {
+            const status = document.getElementById('uf-status');
+            if (status) { status.textContent = ''; status.style.color = ''; }
+            try {
+                await window.fetchVendors();
+                const snap = await getDoc(doc(db, "settings", "ui_food"));
+                const d = snap.exists() ? snap.data() : {};
+                uiFoodState = {
+                    mode: d.mode === 2 ? 2 : 1,
+                    bintang: Array.isArray(d.bintang) ? d.bintang.filter(x => typeof x === 'string') : []
+                };
+            } catch (e) {
+                console.error(e);
+                if (status) { status.textContent = 'Pengaturan belum bisa dibaca. Periksa aturan Firestore untuk settings/ui_food.'; status.style.color = 'var(--danger)'; }
+            }
+            if (!uiFoodTerpasang) {
+                uiFoodTerpasang = true;
+                document.getElementById('uf-mode-1').addEventListener('click', () => { uiFoodState.mode = 1; window.renderUiFood(); });
+                document.getElementById('uf-mode-2').addEventListener('click', () => { uiFoodState.mode = 2; window.renderUiFood(); });
+                document.getElementById('uf-cari').addEventListener('input', () => window.renderUiFood());
+                document.getElementById('uf-simpan').addEventListener('click', () => window.simpanUiFood());
+            }
+            window.renderUiFood();
+        };
+
+        window.renderUiFood = () => {
+            document.getElementById('uf-mode-1').classList.toggle('aktif', uiFoodState.mode === 1);
+            document.getElementById('uf-mode-2').classList.toggle('aktif', uiFoodState.mode === 2);
+
+            // Warung Buku Menu (dikelola admin) tidak ikut Gaya 2, jadi tidak perlu diberi bintang
+            const biasa = adminAllVendors.filter(v => v.is_admin_managed !== true);
+            const peta = new Map(biasa.map(v => [v.id, v]));
+            uiFoodState.bintang = uiFoodState.bintang.filter(id => peta.has(id));
+
+            const buatBaris = (v, nomor) => {
+                const baris = document.createElement('div');
+                baris.className = 'uf-baris';
+                if (nomor) {
+                    const n = document.createElement('div');
+                    n.className = 'uf-urut';
+                    n.textContent = String(nomor);
+                    baris.appendChild(n);
+                }
+                const nm = document.createElement('div');
+                nm.className = 'nm';
+                nm.textContent = v.nama_warung || 'Tanpa nama';
+                const kecil = document.createElement('small');
+                kecil.textContent = [v.area || v.lokasi || '', (v.status || 'BUKA').toUpperCase()].filter(Boolean).join(' · ');
+                nm.appendChild(kecil);
+                baris.appendChild(nm);
+                return baris;
+            };
+            const tombol = (ikon, judul, klik, kelas, nonaktif) => {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'uf-aksi' + (kelas ? ' ' + kelas : '');
+                b.title = judul;
+                b.setAttribute('aria-label', judul);
+                b.disabled = !!nonaktif;
+                const i = document.createElement('i');
+                i.className = ikon;
+                b.appendChild(i);
+                b.addEventListener('click', klik);
+                return b;
+            };
+
+            const boxB = document.getElementById('uf-berbintang');
+            boxB.textContent = '';
+            if (!uiFoodState.bintang.length) {
+                const kosong = document.createElement('div');
+                kosong.className = 'uf-ket';
+                kosong.style.padding = '8px 16px 12px';
+                kosong.textContent = 'Belum ada warung berbintang. Tekan bintang pada daftar di bawah.';
+                boxB.appendChild(kosong);
+            }
+            uiFoodState.bintang.forEach((id, idx) => {
+                const v = peta.get(id);
+                const baris = buatBaris(v, idx + 1);
+                baris.appendChild(tombol('ph-bold ph-arrow-up', 'Naikkan', () => { const a = uiFoodState.bintang; [a[idx - 1], a[idx]] = [a[idx], a[idx - 1]]; window.renderUiFood(); }, '', idx === 0));
+                baris.appendChild(tombol('ph-bold ph-arrow-down', 'Turunkan', () => { const a = uiFoodState.bintang; [a[idx + 1], a[idx]] = [a[idx], a[idx + 1]]; window.renderUiFood(); }, '', idx === uiFoodState.bintang.length - 1));
+                baris.appendChild(tombol('ph-fill ph-star', 'Hapus bintang', () => { uiFoodState.bintang = uiFoodState.bintang.filter(x => x !== id); window.renderUiFood(); }, 'bintang on'));
+                boxB.appendChild(baris);
+            });
+
+            const kata = (document.getElementById('uf-cari').value || '').toLowerCase();
+            const boxD = document.getElementById('uf-daftar');
+            boxD.textContent = '';
+            biasa
+                .filter(v => !uiFoodState.bintang.includes(v.id) && (v.nama_warung || '').toLowerCase().includes(kata))
+                .sort((a, b) => (a.nama_warung || '').localeCompare(b.nama_warung || ''))
+                .forEach(v => {
+                    const baris = buatBaris(v, 0);
+                    baris.appendChild(tombol('ph ph-star', 'Beri bintang', () => { uiFoodState.bintang.push(v.id); window.renderUiFood(); }, 'bintang'));
+                    boxD.appendChild(baris);
+                });
+        };
+
+        window.simpanUiFood = async () => {
+            const status = document.getElementById('uf-status');
+            const tombolSimpan = document.getElementById('uf-simpan');
+            tombolSimpan.disabled = true;
+            status.style.color = '';
+            status.textContent = 'Menyimpan...';
+            try {
+                await setDoc(doc(db, "settings", "ui_food"), {
+                    mode: uiFoodState.mode === 2 ? 2 : 1,
+                    bintang: uiFoodState.bintang.slice(0, 200),
+                    updated_at: new Date().toISOString()
+                });
+                status.style.color = 'var(--success)';
+                status.textContent = 'Tersimpan. Aplikasi pelanggan akan ikut berubah.';
+            } catch (e) {
+                console.error(e);
+                status.style.color = 'var(--danger)';
+                status.textContent = 'Gagal menyimpan. Periksa aturan Firestore untuk settings/ui_food.';
+            }
+            tombolSimpan.disabled = false;
         };
 
         window.renderTagihanList = () => {
