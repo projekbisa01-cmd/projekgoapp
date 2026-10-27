@@ -1384,7 +1384,9 @@
         #product-detail-modal.show .product-detail-sheet { transform: translateY(0); }
         .product-detail-sheet { position: relative; }
         #pd-scroll-area { overscroll-behavior-y: contain; }
-        .pd-grabber { position: absolute; top: 8px; left: 50%; width: 42px; height: 5px; margin-left: -21px; border-radius: 99px; background: rgba(255,255,255,0.9); box-shadow: 0 1px 4px rgba(0,0,0,0.3); z-index: 6; pointer-events: none; }
+        .pd-grabber { flex-shrink: 0; width: 40px; height: 5px; margin: 12px auto 14px; border-radius: 99px; background: #D9D9D9; pointer-events: none; }
+        .pd-foto-wrap { position: relative; flex-shrink: 0; margin: 0 20px; aspect-ratio: 5 / 4; border-radius: 18px; overflow: hidden; background: #F3EEE8; }
+        .pd-foto-wrap .watermark-projekgo, .pd-foto-wrap .pd-tutup-x { display: none !important; }
 
         /* --- SKELETON LOADING (SHIMMER EFFECT) --- */
         .skeleton {
@@ -2231,7 +2233,6 @@
         .bh-s.bh-food { grid-column: auto; grid-row: span 2; flex-direction: column; justify-content: center; text-align: center; gap: 10px; padding: 14px 10px; }
         .bh-food-teks { align-items: center; }
         .bh-gelembung { left: 50%; margin-left: -48px; top: -14px; }
-        .bh-mn-foto { height: auto; aspect-ratio: 1 / 1; }
         /* ===== HALAMAN FOOD GAYA 2 ===== */
         .fd2-baris { display: flex; gap: 12px; overflow-x: auto; padding: 0 14px 2px; scrollbar-width: none; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; scroll-padding: 0 14px; }
         .fd2-baris::-webkit-scrollbar { display: none; }
@@ -2253,8 +2254,10 @@
         .bh-lagi-btn { border: 0; background: #FFF1E6; color: #C24E00; font-size: 12.5px; font-weight: 800; padding: 10px 13px; border-radius: 99px; white-space: nowrap; cursor: pointer; }
         .bh-fav { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .bh-mn { background: #fff; border: 1px solid #F0E2D4; border-radius: 18px; overflow: hidden; cursor: pointer; display: flex; flex-direction: column; }
-        .bh-mn-foto { position: relative; height: 124px; overflow: hidden; background: #FFF3E0; flex-shrink: 0; }
-        .bh-mn-foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
+        .bh-mn-foto { position: relative; aspect-ratio: 1 / 1; overflow: hidden; background: #FFF3E0; flex-shrink: 0; }
+        .bh-mn-latar { position: absolute; inset: -12%; width: 124%; height: 124%; object-fit: cover; filter: blur(14px) saturate(1.15); opacity: 0.6; pointer-events: none; }
+        .bh-mn-foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center; display: block; }
+        .bh-mn-foto img.bh-mn-latar { inset: -12%; width: 124%; height: 124%; object-fit: cover; }
         .bh-mn-diskon { position: absolute; top: 8px; left: 8px; font-size: 10.5px; font-weight: 800; background: #D32F2F; color: #fff; padding: 2px 7px; border-radius: 99px; }
         .bh-mn-isi { padding: 9px 10px 10px; display: flex; flex-direction: column; flex: 1; }
         .bh-mn-nama { font-size: 13px; font-weight: 700; color: #1C1C1E; line-height: 1.3; min-height: 2.6em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
@@ -2958,19 +2961,19 @@
                 <div style="overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; width: 100%; scrollbar-width: none; -webkit-overflow-scrolling: touch;" id="pd-scroll-area">
                     
                     <!-- Tinggi gambar disesuaikan agar konten lebih banyak terlihat (fit to screen) -->
-                    <div style="position: relative; width: 100%; height: 240px; flex-shrink: 0;">
-                        <img id="pd-img" style="width: 100%; height: 100%; object-fit: cover; border-top-left-radius: 25px; border-top-right-radius: 25px;" src="">
+                    <div class="pd-foto-wrap">
+                        <img id="pd-img" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block;" src="">
                         
                         <!-- TAMBAHAN: Watermark Projekgo dengan ukuran font lebih besar khusus untuk pop-up detail -->
                         <div class="watermark-projekgo" style="font-size: 28px; letter-spacing: 4px;">PROJEKGO</div>
                         
-                        <div onclick="closeProductDetailModal()" style="position: absolute; top: 15px; right: 15px; background: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; z-index: 10;">
+                        <div class="pd-tutup-x" onclick="closeProductDetailModal()" style="position: absolute; top: 15px; right: 15px; background: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; z-index: 10;">
                             <i class="ph-bold ph-x" style="font-size: 16px; color: #333;"></i>
                         </div>
                     </div>
 
                     <!-- Konten Putih yang tumpang tindih ke atas gambar -->
-                    <div style="background: white; border-top-left-radius: 24px; border-top-right-radius: 24px; margin-top: -24px; position: relative; z-index: 2; padding: 20px 0; flex-grow: 1; display: flex; flex-direction: column;">
+                    <div style="background: white; position: relative; z-index: 2; padding: 16px 0 20px; flex-grow: 1; display: flex; flex-direction: column;">
                         
                         <!-- Header Detail -->
                         <div style="padding: 0 20px;">
@@ -12316,7 +12319,19 @@
                 img.alt = '';
                 img.loading = 'lazy';
                 img.decoding = 'async';
-                img.onerror = function () { this.onerror = null; this.classList.add('kosong'); this.src = FALLBACK_MENU_IMG; };
+                img.onerror = function () { this.onerror = null; this.classList.add('kosong'); this.src = FALLBACK_MENU_IMG; if (latar) latar.remove(); };
+                // Latar buram dari foto yang sama, supaya foto utuh (tidak dipotong) tetap mengisi kotak
+                let latar = null;
+                if (urlFoto) {
+                    latar = document.createElement('img');
+                    latar.className = 'bh-mn-latar';
+                    latar.src = urlFoto;
+                    latar.alt = '';
+                    latar.setAttribute('aria-hidden', 'true');
+                    latar.loading = 'lazy';
+                    latar.onerror = function () { this.remove(); };
+                    foto.appendChild(latar);
+                }
                 foto.appendChild(img);
                 if (promoMitra) {
                     const d = document.createElement('span');
