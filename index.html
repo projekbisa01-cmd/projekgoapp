@@ -1382,6 +1382,9 @@
         #product-detail-modal.show { opacity: 1; }
         .product-detail-sheet { background: white; width: 100%; max-width: 480px; border-top-left-radius: 25px; border-top-right-radius: 25px; animation: slideUpSheet 0.3s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(100%); transition: transform 0.3s; display: flex; flex-direction: column; max-height: 90vh; }
         #product-detail-modal.show .product-detail-sheet { transform: translateY(0); }
+        .product-detail-sheet { position: relative; }
+        #pd-scroll-area { overscroll-behavior-y: contain; }
+        .pd-grabber { position: absolute; top: 8px; left: 50%; width: 42px; height: 5px; margin-left: -21px; border-radius: 99px; background: rgba(255,255,255,0.9); box-shadow: 0 1px 4px rgba(0,0,0,0.3); z-index: 6; pointer-events: none; }
 
         /* --- SKELETON LOADING (SHIMMER EFFECT) --- */
         .skeleton {
@@ -2950,6 +2953,7 @@
                     /* Menyembunyikan scrollbar agar UI Pop-Up terlihat seperti Native App (Metode Kodular) */
                     #pd-scroll-area::-webkit-scrollbar { display: none; }
                 </style>
+                <div class="pd-grabber" aria-hidden="true"></div>
                 <!-- Area Scroll Utama (Gambar + Konten ikut ter-scroll bersamaan) -->
                 <div style="overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; width: 100%; scrollbar-width: none; -webkit-overflow-scrolling: touch;" id="pd-scroll-area">
                     
@@ -7223,8 +7227,9 @@
             const pdImg = document.getElementById('pd-img');
             pdImg.src = img; 
             pdImg.onerror = function() { this.src = FALLBACK_MENU_IMG; };
-            pdImg.style.cursor = 'zoom-in';
-            pdImg.onclick = () => openImageViewer(img); 
+            pdImg.style.cursor = 'default';
+            pdImg.draggable = false;
+            pdImg.onclick = null; // gambar tidak membuka tampilan layar penuh
             
             // Vendor UI sesuai gambar
             const vendorEl = document.getElementById('pd-vendor');
@@ -7458,6 +7463,43 @@
                 }
             }
         }
+
+        // Geser pop-up detail menu ke bawah untuk menutup (tombol back HP sudah ditangani onpopstate)
+        (() => {
+            const modal = document.getElementById('product-detail-modal');
+            const sheet = modal && modal.querySelector('.product-detail-sheet');
+            const area = document.getElementById('pd-scroll-area');
+            if (!sheet || !area) return;
+            let y0 = null, dy = 0, t0 = 0, geser = false;
+            sheet.addEventListener('touchstart', (e) => {
+                y0 = null;
+                if (e.touches.length !== 1 || area.scrollTop > 0) return;
+                if (e.target.closest && e.target.closest('textarea, input')) return;
+                y0 = e.touches[0].clientY; dy = 0; t0 = Date.now(); geser = false;
+            }, { passive: true });
+            sheet.addEventListener('touchmove', (e) => {
+                if (y0 === null) return;
+                dy = e.touches[0].clientY - y0;
+                if (dy <= 0 || area.scrollTop > 0) { if (geser) { geser = false; sheet.style.transition = ''; sheet.style.transform = ''; } return; }
+                geser = true;
+                sheet.style.transition = 'none';
+                sheet.style.transform = 'translateY(' + dy + 'px)';
+            }, { passive: true });
+            const selesai = () => {
+                if (y0 === null) return;
+                y0 = null;
+                if (!geser) return;
+                geser = false;
+                const cepat = dy / Math.max(1, Date.now() - t0) > 0.5;
+                const tutup = dy > 110 || (dy > 50 && cepat);
+                sheet.style.transition = '';
+                sheet.style.transform = '';
+                if (tutup) window.closeProductDetailModal();
+                dy = 0;
+            };
+            sheet.addEventListener('touchend', selesai);
+            sheet.addEventListener('touchcancel', selesai);
+        })();
 
         // FUNGSI BARU: Update Qty di Pop Up Detail
         window.updatePdQty = (change) => {
@@ -12604,9 +12646,14 @@
             const vid = uiVal(vidRef);
             if (vid) openVendorPage(vid);
         };
+        // Ketuk kartu menu (Warung di sekitar kamu / Makanan favorit): buka pop-up detail menu
+        window.psBukaMenu = (el) => {
+            const pid = el && el.dataset ? uiVal(el.dataset.pid) : '';
+            if (pid) openProductDetail(pid);
+        };
         window.psLihatDetail = () => {
             const k = psKartuTengah();
-            if (k) window.psBukaWarung(k.dataset.vid);
+            if (k) window.psBukaMenu(k);
         };
 
         function psBuang(k) {
@@ -12780,7 +12827,7 @@
                 const vRef = uiRef(v.id);
 
                 return `
-                    <div class="ps-kartu" data-pid="${uiRef(p.id)}" data-vid="${vRef}" data-warna="${i}" onclick="window.psBukaWarung(${vRef})">
+                    <div class="ps-kartu" data-pid="${uiRef(p.id)}" data-vid="${vRef}" data-warna="${i}" onclick="window.psBukaMenu(this)">
                         <div class="ps-foto">
                             <img src="${esc(fotoUmkmAman(p.foto_url))}" loading="lazy" alt="" onerror="window.psFotoGagal(this)">
                             <div class="watermark-projekgo">PROJEKGO</div>
@@ -13150,7 +13197,7 @@
             const lokasi = [v.alamat_warung || v.lokasi || '', jarak].filter(Boolean).join(' · ');
             const vRef = uiRef(v.id);
             return `
-                <div class="ps-kartu" data-pid="${uiRef(p.id)}" data-vid="${vRef}" data-warna="${i}" onclick="window.favBukaWarung(${vRef})">
+                <div class="ps-kartu" data-pid="${uiRef(p.id)}" data-vid="${vRef}" data-warna="${i}" onclick="window.psBukaMenu(this)">
                     <div class="ps-foto">
                         <img src="${esc(fotoUmkmAman(p.foto_url))}" loading="lazy" alt="" onerror="window.favFotoGagal(this)">
                         <div class="watermark-projekgo">PROJEKGO</div>
@@ -13228,7 +13275,7 @@
 
     // Ketuk kartu atau "Lihat detail": buka halaman warung tersebut
     window.favBukaWarung = (vidRef) => { const vid = uiVal(vidRef); if (vid) openVendorPage(vid); };
-    window.favLihatDetail = () => { const k = favKartuTengah(); if (k) window.favBukaWarung(k.dataset.vid); };
+    window.favLihatDetail = () => { const k = favKartuTengah(); if (k) window.psBukaMenu(k); };
 
     function favBuang(k) {
         if (!k || k.classList.contains('ps-keluar')) return;
