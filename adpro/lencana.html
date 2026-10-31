@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<title>ADPRO · penghitung</title>
+</head>
+<body>
+<!-- Halaman kecil tanpa tampilan (31 Okt 2026).
+     Dibuka diam-diam oleh aplikasi admin ProjekGo untuk menampilkan angka merah di menu Katalog.
+     Memakai login ADPRO yang sudah tersimpan di browser; hanya MENGHITUNG (tidak membaca isi data),
+     lalu mengirim satu angka ke aplikasi admin di domain projekgo.id. Tidak login = tidak mengirim apa-apa. -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, query, where, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAc4ZnBU6xAil7Un4Y53Jxncj_B6eURHBo",
+    authDomain: "projekgo-app.firebaseapp.com",
+    projectId: "projekgo-app",
+    storageBucket: "projekgo-app.firebasestorage.app",
+    messagingSenderId: "910691523179",
+    appId: "1:910691523179:web:2c78d27de6a02cec952f2e"
+};
+
+// Hanya berjalan di dalam aplikasi admin ProjekGo
+const induk = (() => {
+    try { return (location.ancestorOrigins && location.ancestorOrigins[0]) || (document.referrer ? new URL(document.referrer).origin : ''); } catch (e) { return ''; }
+})();
+const indukSah = window.parent !== window && /^https:\/\/([a-z0-9-]+\.)*projekgo\.id$/i.test(induk);
+
+if (indukSah) {
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const jumlah = async (q) => (await getCountFromServer(q)).data().count;
+    const henti = onAuthStateChanged(auth, async (u) => {
+        henti();
+        if (!u) return;
+        try {
+            const [ulasan, saranSemua, saranDibaca, daftarSemua, daftarTerdaftar] = await Promise.all([
+                jumlah(query(collection(db, 'reviews'), where('status', '==', 'pending'))),
+                jumlah(collection(db, 'saran_masukan')),
+                jumlah(query(collection(db, 'saran_masukan'), where('status', '==', 'dibaca'))),
+                jumlah(collection(db, 'pengajuan_mitra')),
+                jumlah(query(collection(db, 'pengajuan_mitra'), where('status', '==', 'terdaftar')))
+            ]);
+            const total = Math.max(0, ulasan) + Math.max(0, saranSemua - saranDibaca) + Math.max(0, daftarSemua - daftarTerdaftar);
+            window.parent.postMessage({ jenis: 'adpro-lencana', total: total }, induk);
+        } catch (e) { /* bukan akun admin katalog / tidak ada sinyal: diam saja */ }
+    });
+}
+</script>
+</body>
+</html>
