@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Verifikasi Email Admin</title>
+<style>
+  body { margin: 0; background: #FBF7F2; color: #1F1611; font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .wrap { max-width: 440px; margin: 0 auto; padding: 32px 18px; display: flex; flex-direction: column; gap: 14px; }
+  h1 { margin: 0; font-size: 22px; }
+  p { margin: 0; color: #5C4E42; font-size: 14px; }
+  label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 700; color: #5C4E42; }
+  input { min-height: 48px; padding: 0 12px; border: 1px solid #E3D9CE; border-radius: 12px; font: inherit; background: #fff; }
+  button { min-height: 50px; border-radius: 14px; border: 0; background: #C2410C; color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
+  button.dua { background: #fff; color: #1F1611; border: 1px solid #E3D9CE; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  #hasil { padding: 14px; border-radius: 12px; background: #fff; border: 1px solid #EFE6DC; font-size: 14px; white-space: pre-wrap; min-height: 24px; }
+  .ok { color: #1E6B34; } .galat { color: #9B2C2C; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Verifikasi Email Admin</h1>
+  <p>Halaman sekali pakai. Menandai email projekbisa01@gmail.com sebagai terverifikasi, supaya login admin dengan kata sandi tidak terganggu kalau suatu saat email itu dipakai Masuk dengan Google.</p>
+  <label>Email<input id="e" type="email" value="projekbisa01@gmail.com" autocomplete="username"></label>
+  <label>Kata sandi (sama dengan admin dispatch)<input id="p" type="password" autocomplete="current-password"></label>
+  <button type="button" id="bMasuk">1. Masuk</button>
+  <button type="button" id="bKirim" disabled>2. Kirim email verifikasi</button>
+  <button type="button" class="dua" id="bCek" disabled>3. Cek status (setelah klik tautan di Gmail)</button>
+  <div id="hasil" role="status">Belum masuk.</div>
+</div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, sendEmailVerification, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  const auth = getAuth(initializeApp({
+    apiKey: "AIzaSyBCp2PBN1ASET6QjuQ3PWdC1gysQv0z_OY",
+    authDomain: "onbid-2f87a.firebaseapp.com",
+    projectId: "onbid-2f87a",
+    appId: "1:223888282484:web:2fc05ed67ca1fab39e1221"
+  }));
+  const $ = (id) => document.getElementById(id);
+  const tulis = (t, k) => { $('hasil').textContent = t; $('hasil').className = k || ''; };
+  const status = (u) => u.emailVerified
+    ? 'SUDAH TERVERIFIKASI: ' + u.email + '\nSelesai. Halaman ini boleh dihapus dari GitHub.'
+    : 'Masuk sebagai ' + u.email + ', tapi email BELUM terverifikasi.';
+
+  $('bMasuk').onclick = async () => {
+    const email = $('e').value.trim().toLowerCase();
+    if (email !== 'projekbisa01@gmail.com') return tulis('Halaman ini hanya untuk projekbisa01@gmail.com.', 'galat');
+    tulis('Masuk...');
+    try {
+      const r = await signInWithEmailAndPassword(auth, email, $('p').value);
+      $('p').value = '';
+      $('bKirim').disabled = r.user.emailVerified;
+      $('bCek').disabled = false;
+      tulis(status(r.user), r.user.emailVerified ? 'ok' : '');
+    } catch (e) {
+      tulis('Gagal masuk: ' + (e.code || e.message), 'galat');
+    }
+  };
+  $('bKirim').onclick = async () => {
+    try {
+      await sendEmailVerification(auth.currentUser);
+      tulis('Email verifikasi terkirim ke ' + auth.currentUser.email + '.\nBuka Gmail itu (cek juga folder Spam), klik tautannya, lalu kembali ke sini dan tekan nomor 3.', 'ok');
+    } catch (e) {
+      tulis('Gagal mengirim: ' + (e.code || e.message), 'galat');
+    }
+  };
+  $('bCek').onclick = async () => {
+    if (!auth.currentUser) return tulis('Sudah selesai dan keluar. Halaman ini boleh dihapus.', 'ok');
+    try {
+      await auth.currentUser.reload();
+      const u = auth.currentUser;
+      tulis(status(u), u.emailVerified ? 'ok' : '');
+      if (u.emailVerified) { $('bKirim').disabled = true; await signOut(auth); }
+    } catch (e) {
+      tulis('Gagal cek: ' + (e.code || e.message), 'galat');
+    }
+  };
+</script>
+</body>
+</html>
