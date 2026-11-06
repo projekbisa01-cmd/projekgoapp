@@ -15,13 +15,14 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getFirestore, collection, query, where, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+// 4 Nov 2026: ikut pindah ke proyek onbid bersama ADPRO.
 const firebaseConfig = {
-    apiKey: "AIzaSyAc4ZnBU6xAil7Un4Y53Jxncj_B6eURHBo",
-    authDomain: "projekgo-app.firebaseapp.com",
-    projectId: "projekgo-app",
-    storageBucket: "projekgo-app.firebasestorage.app",
-    messagingSenderId: "910691523179",
-    appId: "1:910691523179:web:2c78d27de6a02cec952f2e"
+    apiKey: "AIzaSyBCp2PBN1ASET6QjuQ3PWdC1gysQv0z_OY",
+    authDomain: "onbid-2f87a.firebaseapp.com",
+    projectId: "onbid-2f87a",
+    storageBucket: "onbid-2f87a.firebasestorage.app",
+    messagingSenderId: "223888282484",
+    appId: "1:223888282484:web:2fc05ed67ca1fab39e1221"
 };
 
 // Hanya berjalan di dalam aplikasi admin ProjekGo
@@ -39,14 +40,15 @@ if (indukSah) {
         henti();
         if (!u) return;
         try {
-            const [ulasan, saranSemua, saranDibaca, daftarSemua, daftarTerdaftar] = await Promise.all([
+            const [ulasan, saranSemua, saranDibaca, daftarSemua, daftarTerdaftar, pindah] = await Promise.all([
                 jumlah(query(collection(db, 'reviews'), where('status', '==', 'pending'))),
                 jumlah(collection(db, 'saran_masukan')),
                 jumlah(query(collection(db, 'saran_masukan'), where('status', '==', 'dibaca'))),
                 jumlah(collection(db, 'pengajuan_mitra')),
-                jumlah(query(collection(db, 'pengajuan_mitra'), where('status', '==', 'terdaftar')))
+                jumlah(query(collection(db, 'pengajuan_mitra'), where('status', '==', 'terdaftar'))),
+                jumlah(query(collection(db, 'pindah_gmail'), where('status', '==', 'menunggu')))
             ]);
-            const total = Math.max(0, ulasan) + Math.max(0, saranSemua - saranDibaca) + Math.max(0, daftarSemua - daftarTerdaftar);
+            const total = Math.max(0, ulasan) + Math.max(0, saranSemua - saranDibaca) + Math.max(0, daftarSemua - daftarTerdaftar) + Math.max(0, pindah);
             window.parent.postMessage({ jenis: 'adpro-lencana', total: total }, induk);
         } catch (e) { /* bukan akun admin katalog / tidak ada sinyal: diam saja */ }
     });

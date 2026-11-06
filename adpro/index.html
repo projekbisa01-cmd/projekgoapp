@@ -423,6 +423,21 @@
         .ap-kt { position: relative; display: flex; flex-direction: column; align-items: center; gap: 7px; min-height: 92px; padding: 12px 4px 10px; border-radius: 14px; background: #fff; border: 1px solid var(--ap-garis); font-family: inherit; color: var(--dark); cursor: pointer; }
         .ap-kt > b { font-size: 11.5px; font-weight: 700; text-align: center; line-height: 1.25; }
         .ap-kt-bd { position: absolute; top: 6px; right: 8px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 99px; background: #C53030; color: #fff; font-size: 10.5px; font-weight: 800; font-style: normal; display: grid; place-items: center; box-sizing: border-box; }
+        /* Pindah Gmail & Pelanggan (4d, 4 Nov 2026) */
+        .pg-kar { background:#fff; border:1px solid var(--ap-garis); border-radius:16px; padding:14px; display:flex; flex-direction:column; gap:10px; margin-bottom:12px; }
+        .pg-kar h3 { margin:0; font-size:15.5px; font-weight:800; }
+        .pg-br { display:grid; grid-template-columns:92px 1fr; gap:8px; font-size:13px; align-items:baseline; }
+        .pg-br span { color:var(--gray); font-weight:700; font-size:12px; }
+        .pg-br b { font-weight:700; word-break:break-all; }
+        .pg-ak { display:grid; grid-template-columns:1fr 1fr 1.3fr; gap:8px; }
+        .pg-ak button, .pg-ak a { min-height:44px; border-radius:12px; font-family:inherit; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; text-decoration:none; }
+        .pg-wa { background:#fff; border:1px solid var(--ap-garis); color:#1E6B34; }
+        .pg-tolak { background:#fff; border:1px solid var(--ap-garis); color:#9B2C2C; }
+        .pg-setuju { background:var(--primary); border:0; color:#fff; }
+        .pg-peringatan { background:#FCEDEB; color:#9B2C2C; border-radius:10px; padding:8px 10px; font-size:12px; font-weight:700; line-height:1.45; }
+        .pg-kosong { text-align:center; color:var(--gray); font-size:13px; padding:30px 10px; }
+        .pg-cari { width:100%; min-height:44px; padding:0 14px; border:1px solid var(--ap-garis); border-radius:12px; font-family:inherit; font-size:14px; margin-bottom:12px; box-sizing:border-box; }
+        .pg-tag { display:inline-block; font-size:10.5px; font-weight:800; padding:3px 8px; border-radius:99px; }
         .ap-kembali { display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 0 12px; margin-bottom: 12px; border-radius: 10px; border: 1px solid var(--ap-garis); background: #fff; color: var(--dark); font-family: inherit; font-size: 12.5px; font-weight: 800; cursor: pointer; }
     </style>
 </head>
@@ -473,6 +488,7 @@
                     <button type="button" class="ap-baris" data-ap-cek="ulasan"><span class="ap-ik ap-kuning"><i class="ph-bold ph-star"></i></span><span class="ap-tx"><b>Ulasan menunggu disetujui</b><span>Tampil di aplikasi setelah di-ACC</span></span><span class="ap-bd" id="ap-n-ulasan">0</span></button>
                     <button type="button" class="ap-baris" data-ap-cek="saran"><span class="ap-ik ap-kuning"><i class="ph-bold ph-lightbulb"></i></span><span class="ap-tx"><b>Saran belum dibaca</b><span>Dari aplikasi pelanggan</span></span><span class="ap-bd" id="ap-n-saran">0</span></button>
                     <button type="button" class="ap-baris" data-ap-cek="daftar"><span class="ap-ik ap-biru"><i class="ph-bold ph-user-plus"></i></span><span class="ap-tx"><b>Pendaftaran seller baru</b><span>Menunggu di-ACC</span></span><span class="ap-bd" id="ap-n-daftar">0</span></button>
+                    <button type="button" class="ap-baris" data-ap-cek="pindah"><span class="ap-ik ap-biru"><i class="ph-bold ph-arrows-clockwise"></i></span><span class="ap-tx"><b>Seller minta pindah ke Gmail</b><span>Cek lalu setujui</span></span><span class="ap-bd" id="ap-n-pindah">0</span></button>
                     <button type="button" class="ap-baris" data-ap-cek="kosong"><span class="ap-ik ap-merah"><i class="ph-bold ph-storefront"></i></span><span class="ap-tx"><b>Warung belum ada menu</b><span>Belum bisa dipesan dari katalog</span></span><span class="ap-bd" id="ap-n-kosong">0</span></button>
                 </div>
                 <div class="ap-beres" id="ap-cek-beres" hidden><i class="ph-bold ph-check-circle"></i> Semua beres, tidak ada yang perlu dicek.</div>
@@ -980,6 +996,25 @@
 
 
         <!-- HALAMAN LAINNYA (31 Okt 2026): menu yang dulu ada di navbar + cadangan data & rotasi PIN -->
+        <!-- PINDAH GMAIL (4d, 4 Nov 2026) -->
+        <div id="page-pindahgmail" class="page-content">
+            <div class="page-header">
+                <h1 class="page-title">Pindah Gmail</h1>
+                <p class="page-subtitle">Seller lama yang minta masuk pakai Gmail. Setelah disetujui, Gmail itu menjadi pemilik warungnya. Kalau ragu, konfirmasi dulu lewat WA ke nomor warung.</p>
+            </div>
+            <div id="pg-daftar"><div class="pg-kosong">Memuat...</div></div>
+        </div>
+
+        <!-- PELANGGAN (blokir akun pemesan palsu) -->
+        <div id="page-pelanggan" class="page-content">
+            <div class="page-header">
+                <h1 class="page-title">Pelanggan</h1>
+                <p class="page-subtitle">Akun Google pelanggan aplikasi katalog. Akun yang diblokir tidak bisa mengirim pesanan dari aplikasi.</p>
+            </div>
+            <input type="search" id="pl-cari-pelanggan" class="pg-cari" placeholder="Cari nama, nomor WA, atau Gmail..." aria-label="Cari pelanggan">
+            <div id="pl-daftar"><div class="pg-kosong">Memuat...</div></div>
+        </div>
+
         <div id="page-lainnya" class="page-content">
             <div class="page-header">
                 <h1 class="page-title">Lainnya</h1>
@@ -987,6 +1022,8 @@
             <h2 class="ap-grp">Seller &amp; katalog</h2>
             <div class="ap-kisi">
                 <button type="button" class="ap-kt" data-ap-buka="pendaftaran"><i class="ap-kt-bd" id="ap-n-daftar2" hidden>0</i><span class="ap-ik ap-biru"><i class="ph-bold ph-user-plus"></i></span><b>Pendaftaran Seller</b></button>
+                <button type="button" class="ap-kt" data-ap-buka="pindahgmail"><i class="ap-kt-bd" id="ap-n-pindah2" hidden>0</i><span class="ap-ik ap-biru"><i class="ph-bold ph-arrows-clockwise"></i></span><b>Pindah Gmail</b></button>
+                <button type="button" class="ap-kt" data-ap-buka="pelanggan"><span class="ap-ik ap-biru"><i class="ph-bold ph-users-three"></i></span><b>Pelanggan</b></button>
                 <button type="button" class="ap-kt" data-ap-buka="uifood"><span class="ap-ik ap-hijau"><i class="ph-bold ph-paint-brush"></i></span><b>UI Halaman Food</b></button>
                 <button type="button" class="ap-kt" data-ap-buka="umkm"><span class="ap-ik ap-hijau"><i class="ph-bold ph-book-open"></i></span><b>UMKM &amp; Buku Menu</b></button>
                 <button type="button" class="ap-kt" data-ap-buka="kategori"><span class="ap-ik ap-hijau"><i class="ph-bold ph-squares-four"></i></span><b>Kategori</b></button>
@@ -1012,8 +1049,8 @@
                 <div id="ekspor-status" style="display:none; font-size:12px; color:#1e40af; margin-top:10px; font-weight:600;"></div>
             </div>
 
-            <!-- ROTASI PIN MASSAL -->
-            <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:14px; padding:16px; margin-bottom:20px;">
+            <!-- ROTASI PIN MASSAL: tidak dipakai lagi sejak seller login dengan Google (4 Nov 2026) -->
+            <div hidden style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:14px; padding:16px; margin-bottom:20px;">
                 <div style="display:flex; align-items:center; gap:8px; font-weight:800; color:#92400e; font-size:14px; margin-bottom:6px;">
                     <i class="ph-fill ph-arrows-clockwise"></i> Rotasi PIN Semua Mitra
                 </div>
@@ -1074,11 +1111,8 @@
                 <div style="font-size: 11px; color: var(--gray); margin-top: 4px;">*Tanpa spasi, digunakan untuk login</div>
             </div>
             <div class="form-group">
-                <label class="form-label">PIN Keamanan</label>
-                <div style="display: flex; gap: 8px;">
-                    <input type="text" id="new-vendor-pin" class="form-input" placeholder="Min 6 digit">
-                    <button type="button" onclick="generateRandomPin()" class="btn-modal" style="background: var(--warning); color: white; width: auto; white-space: nowrap; padding: 0 15px; font-size: 12px;">Acak PIN</button>
-                </div>
+                <label class="form-label">Gmail Pemilik (untuk Masuk dengan Google)</label>
+                <input type="email" id="new-vendor-pin" class="form-input" placeholder="contoh: warungbudi@gmail.com (boleh diisi nanti)">
             </div>
             <div class="form-group">
                 <label class="form-label">Nama Warung</label>
@@ -1293,21 +1327,21 @@
     <!-- MODAL MIGRASI EMAIL -->
     <div id="migrate-vendor-modal" class="modal-overlay">
         <div class="modal-box">
-            <div class="modal-title">Migrasi Mitra ke Email</div>
-            <p style="color:var(--gray); font-size:13px; margin-bottom:15px;">Buat akses Email & Password baru untuk mitra lama: <b id="mig-name">...</b></p>
+            <div class="modal-title">Atur Gmail Pemilik</div>
+            <p style="color:var(--gray); font-size:13px; margin-bottom:15px;">Gmail yang dipakai pemilik untuk <b>Masuk dengan Google</b> di aplikasi Mitra: <b id="mig-name">...</b></p>
             <input type="hidden" id="mig-id">
             
             <div class="form-group" style="background: #e0f2fe; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
                 <p style="font-size: 12px; color: #0284c7; margin: 0; line-height: 1.4;">
-                    <i class="ph-fill ph-info"></i> <b>Penting:</b> Proses ini akan membuatkan akun Auth baru untuk mitra tanpa menghapus data menu mereka. 
+                    <i class="ph-fill ph-info"></i> <b>Penting:</b> Tidak ada akun atau PIN yang dibuat. Pemilik cukup Masuk dengan Google memakai Gmail ini. Data menu tidak berubah. 
                 </p>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Email Baru untuk Mitra</label>
+                <label class="form-label">Gmail Pemilik</label>
                 <input type="email" id="mig-email" class="form-input" placeholder="Contoh: warungbudi@gmail.com">
             </div>
-            <div class="form-group">
+            <div class="form-group" hidden style="display:none;">
                 <label class="form-label">Password Sementara</label>
                 <input type="text" id="mig-pass" class="form-input" placeholder="Klik Acak">
                 <button type="button" onclick="document.getElementById('mig-pass').value = window.buatPinAcak()" class="btn-modal" style="background: var(--warning); color: white; width: auto; padding: 6px 14px; font-size: 12px; margin-top: 6px;">Acak</button>
@@ -1316,7 +1350,7 @@
             
             <div class="modal-actions">
                 <button class="btn-modal" style="background:#f1f5f9;" onclick="closeModal('migrate-vendor-modal')">Batal</button>
-                <button id="btn-submit-migrate" class="btn-modal" style="background:#9333ea; color:white;" onclick="confirmMigration()">Migrasi Sekarang</button>
+                <button id="btn-submit-migrate" class="btn-modal" style="background:#9333ea; color:white;" onclick="confirmMigration()">Simpan Gmail</button>
             </div>
         </div>
     </div>
@@ -1548,13 +1582,15 @@
         import { getStorage, ref, deleteObject, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
         import { getAuth, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, updatePassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+        // 4 Nov 2026: ADPRO pindah ke proyek onbid (satu Firebase untuk semua aplikasi ProjekGo).
+        // Login admin = email + kata sandi yang sama dengan admin dispatch.
         const firebaseConfig = {
-            apiKey: "AIzaSyAc4ZnBU6xAil7Un4Y53Jxncj_B6eURHBo",
-            authDomain: "projekgo-app.firebaseapp.com",
-            projectId: "projekgo-app",
-            storageBucket: "projekgo-app.firebasestorage.app",
-            messagingSenderId: "910691523179",
-            appId: "1:910691523179:web:2c78d27de6a02cec952f2e"
+            apiKey: "AIzaSyBCp2PBN1ASET6QjuQ3PWdC1gysQv0z_OY",
+            authDomain: "onbid-2f87a.firebaseapp.com",
+            projectId: "onbid-2f87a",
+            storageBucket: "onbid-2f87a.firebasestorage.app",
+            messagingSenderId: "223888282484",
+            appId: "1:223888282484:web:2fc05ed67ca1fab39e1221"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -1574,6 +1610,8 @@
         let currentVendorView = null; 
         let deleteTarget = null; 
         let adminAllPengajuan = [];
+        let adminAllPindah = [];     // permintaan seller lama pindah ke Gmail (status 'menunggu')
+        let adminAllPelanggan = [];  // dimuat saat halaman Pelanggan dibuka
 
 
         // --- PENYARING HTML ---
@@ -1844,7 +1882,7 @@
 
                 const isi = {
                     dibuat_pada: new Date().toISOString(),
-                    project: 'projekgo-app',
+                    project: 'onbid-2f87a',
                     berisi_pin: !!sertakanPin,
                     jumlah: { vendors: vendors.length, products: products.length, reviews: reviews.length },
                     vendors: vendors,
@@ -1881,47 +1919,28 @@
             if (vendorName === undefined) { const vv = adminAllVendors.find(x => x.id === vendorId); vendorName = vv ? (vv.nama_warung || '') : ''; }
             document.getElementById('mig-id').value = vendorId;
             document.getElementById('mig-name').innerText = vendorName;
-            document.getElementById('mig-email').value = '';
-            document.getElementById('mig-pass').value = window.buatPinAcak();
+            const vv2 = adminAllVendors.find(x => x.id === vendorId);
+            document.getElementById('mig-email').value = (vv2 && vv2.email && /@gmail\.com$/i.test(vv2.email)) ? vv2.email : '';
             document.getElementById('migrate-vendor-modal').style.display = 'flex';
         };
 
+        // Login seller sekarang lewat Google: cukup catat Gmail pemilik di data warung.
         window.confirmMigration = async () => {
             const vendorId = document.getElementById('mig-id').value;
             const email = document.getElementById('mig-email').value.trim().toLowerCase();
-            const pin = document.getElementById('mig-pass').value.trim();
             const btn = document.getElementById('btn-submit-migrate');
-
-            if (!email || !email.includes('@')) return alert('Email belum diisi dengan benar.');
-            if (!/^\d{8,}$/.test(pin)) return alert('PIN sementara minimal 8 angka.');
-
-            btn.innerText = 'Memproses...'; btn.disabled = true;
-
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert('Tulis Gmail pemilik dengan lengkap, misalnya warungbudi@gmail.com.');
+            if (email === 'projekbisa01@gmail.com' || email === 'admin@projekgo.id') return alert('Email admin tidak boleh dipakai sebagai pemilik warung.');
+            btn.innerText = 'Menyimpan...'; btn.disabled = true;
             try {
-                try {
-                    await createUserWithEmailAndPassword(secondaryAuth, email, pin);
-                    await signOut(secondaryAuth);
-                } catch (authErr) {
-                    if (authErr.code === 'auth/email-already-in-use') {
-                        throw new Error('Email ini sudah dipakai akun lain. Gunakan email berbeda.');
-                    }
-                    throw authErr;
-                }
-
-                await updateDoc(doc(db, "vendors", vendorId), {
-                    email: email,
-                    pin_wajib_ganti: true
-                });
-                await window.simpanPin(vendorId, pin);
-
+                await updateDoc(doc(db, "vendors", vendorId), { email: email, pin_wajib_ganti: false });
                 closeModal('migrate-vendor-modal');
                 await window.fetchVendors();
-                alert('Akun berhasil dibuat.\n\nEmail: ' + email + '\nPIN sementara: ' + pin
-                    + '\n\nKirim ke mitra lewat tombol "Kirim Akses via WA".');
+                alert('Gmail pemilik tersimpan.\n\nPemilik cukup buka seller.projekgo.id lalu tekan "Masuk dengan Google" memakai ' + email + '.');
             } catch (e) {
-                alert('Migrasi gagal: ' + e.message);
+                alert('Gagal menyimpan: ' + e.message);
             } finally {
-                btn.innerText = 'Migrasi Sekarang'; btn.disabled = false;
+                btn.innerText = 'Simpan Gmail'; btn.disabled = false;
             }
         };
 
@@ -2219,7 +2238,140 @@
             if (pageId === 'umkm') window.renderWarungAdminList();
             if (pageId === 'pendaftaran') window.renderPengajuanMitra();
             if (pageId === 'kategori') window.renderKategoriPage();
+            if (pageId === 'pindahgmail') window.fetchPindahGmail();
+            if (pageId === 'pelanggan') window.fetchPelanggan();
         }
+
+        /* ==========================================================
+           PINDAH GMAIL & PELANGGAN (4d, 4 Nov 2026)
+           Semua teks dari database ditulis lewat textContent (aman dari kode di nama).
+           ========================================================== */
+        const pgEl = (tag, props, anak) => {
+            const e = document.createElement(tag);
+            Object.entries(props || {}).forEach(([k, v]) => { if (k === 'text') e.textContent = v; else if (k === 'on') Object.entries(v).forEach(([ev, fn]) => e.addEventListener(ev, fn)); else e.setAttribute(k, v); });
+            (anak || []).forEach(c => c && e.appendChild(c));
+            return e;
+        };
+        const pgBaris = (lbl, isi) => pgEl('div', { class: 'pg-br' }, [pgEl('span', { text: lbl }), pgEl('b', { text: isi })]);
+        const pgWaktu = (ms) => { const t = Number(ms) || (ms && ms.seconds ? ms.seconds * 1000 : 0); return t ? new Date(t).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '-'; };
+        const pgNomorWA = (no) => { let p = String(no || '').replace(/\D/g, ''); if (p.startsWith('0')) p = '62' + p.slice(1); return p; };
+        // Tombol yang harus ditekan dua kali (pengganti confirm(), yang diblokir di sebagian HP)
+        const pgDuaKali = (btn, teksYakin, aksi) => {
+            let siap = false, t = null; const asli = btn.textContent;
+            btn.addEventListener('click', async () => {
+                if (!siap) { siap = true; btn.textContent = teksYakin; t = setTimeout(() => { siap = false; btn.textContent = asli; }, 3500); return; }
+                clearTimeout(t); btn.disabled = true; btn.textContent = 'Memproses...';
+                try { await aksi(); } catch (e) { console.error(e); alert('Gagal: ' + e.message); btn.disabled = false; btn.textContent = asli; siap = false; }
+            });
+        };
+
+        window.fetchPindahGmail = async () => {
+            try {
+                const snap = await getDocs(query(collection(db, "pindah_gmail"), where("status", "==", "menunggu")));
+                adminAllPindah = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.dibuat_at || 0) - (a.dibuat_at || 0));
+            } catch (e) {
+                console.error('Gagal memuat Pindah Gmail:', e);
+                adminAllPindah = [];
+            }
+            window.renderPindahGmail();
+        };
+
+        window.renderPindahGmail = () => {
+            const wadah = document.getElementById('pg-daftar');
+            if (!wadah) return;
+            wadah.textContent = '';
+            if (!adminAllPindah.length) { wadah.appendChild(pgEl('div', { class: 'pg-kosong', text: 'Tidak ada permintaan pindah Gmail.' })); return; }
+            adminAllPindah.forEach(r => {
+                const ids = Array.isArray(r.vendor_ids) ? r.vendor_ids : [];
+                const warung = ids.map(id => adminAllVendors.find(v => v.id === id)).filter(Boolean);
+                const namaWarung = warung.length ? warung.map(v => v.nama_warung || v.id).join(', ') : (r.nama_warung || '-');
+                const kar = pgEl('article', { class: 'pg-kar' }, [
+                    pgEl('h3', { text: namaWarung }),
+                    pgBaris('Email lama', r.email_lama || '-'),
+                    pgBaris('Gmail baru', r.gmail || '-'),
+                    pgBaris('Nama Google', r.nama_google || '-'),
+                    pgBaris('Diminta', pgWaktu(r.dibuat_at))
+                ]);
+                // Pemeriksaan: warung harus ada dan email loginnya saat ini memang email lama yang disebut.
+                const tidakAda = ids.filter(id => !adminAllVendors.some(v => v.id === id));
+                const tidakCocok = warung.filter(v => String(v.email || '').toLowerCase() !== String(r.email_lama || '').toLowerCase());
+                if (!ids.length || tidakAda.length || tidakCocok.length) {
+                    kar.appendChild(pgEl('div', { class: 'pg-peringatan', text: 'Perhatian: ' + (!ids.length ? 'tidak ada warung di permintaan ini.' : tidakAda.length ? 'sebagian warung tidak ditemukan.' : 'email login warung saat ini berbeda dengan email lama yang disebut.') + ' Jangan setujui sebelum dicek lewat WA.' }));
+                }
+                if (/^(projekbisa01@gmail\.com|admin@projekgo\.id)$/i.test(r.gmail || '')) {
+                    kar.appendChild(pgEl('div', { class: 'pg-peringatan', text: 'Gmail ini adalah email admin. Jangan disetujui.' }));
+                }
+                const noWa = pgNomorWA((warung[0] || {}).no_wa);
+                const pesan = 'Halo, ini admin ProjekGo. Apakah benar Anda meminta login aplikasi Mitra untuk warung "' + namaWarung + '" dipindah ke Gmail ' + (r.gmail || '') + '? Balas YA kalau benar.';
+                const wa = pgEl('a', { class: 'pg-wa', href: noWa ? 'https://wa.me/' + noWa + '?text=' + encodeURIComponent(pesan) : '#', target: '_blank', rel: 'noopener', text: noWa ? 'WA warung' : 'WA (tidak ada)' });
+                if (!noWa) wa.addEventListener('click', e => { e.preventDefault(); alert('Nomor WA warung belum tercatat.'); });
+                const tolak = pgEl('button', { type: 'button', class: 'pg-tolak', text: 'Tolak' });
+                const setuju = pgEl('button', { type: 'button', class: 'pg-setuju', text: 'Setujui' });
+                pgDuaKali(tolak, 'Yakin tolak?', async () => {
+                    await updateDoc(doc(db, "pindah_gmail", r.id), { status: 'ditolak', diputus_at: Date.now() });
+                    adminAllPindah = adminAllPindah.filter(x => x.id !== r.id);
+                    window.renderPindahGmail();
+                });
+                pgDuaKali(setuju, 'Ketuk lagi', async () => {
+                    if (!warung.length) throw new Error('Warung tidak ditemukan.');
+                    const gmail = String(r.gmail || '').toLowerCase();
+                    if (!/^[^\s@]+@[^\s@]+$/.test(gmail) || /^(projekbisa01@gmail\.com|admin@projekgo\.id)$/i.test(gmail)) throw new Error('Gmail tidak valid.');
+                    const batch = writeBatch(db);
+                    warung.forEach(v => batch.update(doc(db, "vendors", v.id), { email: gmail, email_login_lama: v.email || '', pin_wajib_ganti: false }));
+                    batch.update(doc(db, "pindah_gmail", r.id), { status: 'disetujui', diputus_at: Date.now() });
+                    await batch.commit();
+                    adminAllPindah = adminAllPindah.filter(x => x.id !== r.id);
+                    window.renderPindahGmail();
+                    try { await window.fetchVendors(); } catch (e) { console.warn('Muat ulang mitra gagal:', e); }
+                });
+                kar.appendChild(pgEl('div', { class: 'pg-ak' }, [wa, tolak, setuju]));
+                wadah.appendChild(kar);
+            });
+        };
+
+        window.fetchPelanggan = async () => {
+            const wadah = document.getElementById('pl-daftar');
+            try {
+                const snap = await getDocs(collection(db, "users"));
+                adminAllPelanggan = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+                    .sort((a, b) => (Number(b.joinedAt) || 0) - (Number(a.joinedAt) || 0));
+            } catch (e) {
+                console.error('Gagal memuat pelanggan:', e);
+                if (wadah) { wadah.textContent = ''; wadah.appendChild(pgEl('div', { class: 'pg-kosong', text: 'Gagal memuat data pelanggan.' })); }
+                return;
+            }
+            window.renderPelanggan();
+        };
+
+        window.renderPelanggan = () => {
+            const wadah = document.getElementById('pl-daftar');
+            if (!wadah) return;
+            const kata = (document.getElementById('pl-cari-pelanggan').value || '').toLowerCase().trim();
+            const daftar = adminAllPelanggan.filter(u => !kata || [u.name, u.phone, u.email].some(x => String(x || '').toLowerCase().includes(kata)));
+            wadah.textContent = '';
+            if (!daftar.length) { wadah.appendChild(pgEl('div', { class: 'pg-kosong', text: kata ? 'Tidak ada yang cocok.' : 'Belum ada pelanggan.' })); return; }
+            daftar.slice(0, 200).forEach(u => {
+                const blokir = u.diblokir === true;
+                const judul = pgEl('h3', {}, [document.createTextNode((u.name || 'Tanpa nama') + ' '), pgEl('span', { class: 'pg-tag', style: blokir ? 'background:#FCEDEB;color:#9B2C2C;margin-left:6px;' : 'background:#E9F6EC;color:#1E6B34;margin-left:6px;', text: blokir ? 'Diblokir' : 'Aktif' })]);
+                const tombol = pgEl('button', { type: 'button', class: blokir ? 'pg-wa' : 'pg-tolak', text: blokir ? 'Buka blokir' : 'Blokir' });
+                pgDuaKali(tombol, blokir ? 'Yakin buka?' : 'Yakin blokir?', async () => {
+                    await updateDoc(doc(db, "users", u.id), { diblokir: !blokir, diblokir_at: Date.now() });
+                    u.diblokir = !blokir;
+                    window.renderPelanggan();
+                });
+                const noWa = pgNomorWA(u.phone);
+                const wa = pgEl('a', { class: 'pg-wa', href: noWa ? 'https://wa.me/' + noWa : '#', target: '_blank', rel: 'noopener', text: 'WA' });
+                wadah.appendChild(pgEl('article', { class: 'pg-kar' }, [
+                    judul,
+                    pgBaris('Nomor WA', u.phone || '-'),
+                    pgBaris('Gmail', u.email || '-'),
+                    pgBaris('Bergabung', pgWaktu(u.joinedAt)),
+                    pgBaris('Pesanan', String(Number(u.jumlah_pesan) || 0) + ' kali (dari aplikasi)'),
+                    pgEl('div', { class: 'pg-ak', style: 'grid-template-columns:1fr 1fr;' }, [wa, tombol])
+                ]));
+            });
+        };
+        document.getElementById('pl-cari-pelanggan').addEventListener('input', () => window.renderPelanggan());
 
         // --- RENDER KATEGORI OPTIONS ---
         window.renderKategoriOptions = () => {
@@ -2718,13 +2870,12 @@
 
                 if (isAdminManaged) {
                     accessInfo = `<div style="display:flex; align-items:center; gap:6px; color:#7c3aed; font-weight:700;"><i class="ph-fill ph-shield-star" style="font-size:16px;"></i> Dikelola Admin</div>`;
+                } else if (isMigrated && !/@projekgo\.id$/i.test(v.email)) {
+                    accessInfo = `<div style="display:flex; align-items:center; gap:6px; color:#10b981; font-weight:600; flex-wrap:wrap;"><i class="ph-fill ph-google-logo" style="font-size:16px;"></i> ${esc(emailTampil)} <button type="button" onclick="window.openMigrateModal(window.__vendorIds[${urutV}])" style="background:#f1f5f9; color:#334155; border:none; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Ganti</button></div>`;
                 } else if (isMigrated) {
-                    accessInfo = `
-                        <div style="display:flex; align-items:center; gap:6px; color:#10b981; margin-bottom: 6px; font-weight:600;"><i class="ph-fill ph-envelope-simple" style="font-size:16px;"></i> ${esc(emailTampil)}</div>
-                        <div style="display:flex; align-items:center; gap:6px; color:#ef4444; font-weight:600;"><i class="ph-fill ph-key" style="font-size:16px;"></i> PIN: <span id="pin-${v.id}">${pinTampil}</span> <button type="button" onclick="window.lihatPin('${v.id}')" style="background:#fee2e2; color:#b91c1c; border:none; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Lihat</button></div>
-                    `;
+                    accessInfo = `<div style="display:flex; align-items:center; gap:6px; color:#b45309; font-weight:600; flex-wrap:wrap;"><i class="ph-fill ph-warning-circle" style="font-size:16px;"></i> Belum pindah ke Gmail (${esc(emailTampil)}) <button type="button" onclick="window.openMigrateModal(window.__vendorIds[${urutV}])" style="background:#f3e8ff; color:#7e22ce; border:none; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Atur Gmail</button></div>`;
                 } else {
-                    accessInfo = `<div style="display:flex; align-items:center; gap:6px; color:#ef4444; font-weight:600;"><i class="ph-fill ph-warning-circle" style="font-size:16px;"></i> Belum punya akun email <button type="button" onclick="window.openMigrateModal(window.__vendorIds[${urutV}])" style="background:#f3e8ff; color:#7e22ce; border:none; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Buatkan Akun</button> | PIN: <span id="pin-${v.id}">${pinTampil}</span> <button type="button" onclick="window.lihatPin('${v.id}')" style="background:#fee2e2; color:#b91c1c; border:none; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Lihat</button></div>`;
+                    accessInfo = `<div style="display:flex; align-items:center; gap:6px; color:#ef4444; font-weight:600; flex-wrap:wrap;"><i class="ph-fill ph-warning-circle" style="font-size:16px;"></i> Belum ada Gmail pemilik <button type="button" onclick="window.openMigrateModal(window.__vendorIds[${urutV}])" style="background:#f3e8ff; color:#7e22ce; border:none; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Atur Gmail</button></div>`;
                 }
 
                 /* LOGIKA TOMBOL WA DINAMIS */
@@ -3472,28 +3623,20 @@
                         return; // Hentikan fungsi di sini
                     }
 
-                    // 3. LOGIKA LAMA (Untuk Mitra Baru)
-                    let rawName = (p.nama_pemilik || p.nama_warung || 'mitra').trim().split(' ')[0];
-                    let baseName = rawName.toLowerCase().replace(/[^a-z0-9]/g, '');
-                    if (!baseName) baseName = 'mitra';
-                    
-                    let randomNum = Math.floor(1000 + Math.random() * 9000);
-                    let newEmail = `${baseName}${randomNum}@projekgo.id`;
-                    let newVendorId = newEmail; 
-                    let newPin = window.buatPinAcak(); 
-                    
-                    // Otomatis buatkan akun Auth agar mitra bisa langsung login
-                    try {
-                        await createUserWithEmailAndPassword(secondaryAuth, newEmail, newPin);
-                    } catch (authErr) {
-                        console.warn("Peringatan Auth: ", authErr);
+                    // 3. MITRA BARU (4 Nov 2026): tidak ada lagi akun email + PIN.
+                    //    Gmail yang dipakai calon seller saat mendaftar langsung menjadi pemilik warung.
+                    let gmailPemilik = String(p.email || '').trim().toLowerCase();
+                    if (!gmailPemilik) {
+                        gmailPemilik = String(prompt('Pengajuan lama ini belum punya Gmail.\nTulis Gmail pemilik warung (untuk Masuk dengan Google):') || '').trim().toLowerCase();
                     }
+                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(gmailPemilik)) throw new Error("Gmail pemilik belum diisi dengan benar.");
+                    if (gmailPemilik === 'projekbisa01@gmail.com' || gmailPemilik === 'admin@projekgo.id') throw new Error("Email admin tidak boleh dipakai sebagai pemilik warung.");
 
-                    // Tambahkan ke koleksi "vendors" (Otomatis masuk halaman Mitra)
-                    const vendorRef = doc(db, "vendors", newVendorId);
+                    const vendorRef = doc(collection(db, "vendors"));
+                    const newVendorId = vendorRef.id;
                     await setDoc(vendorRef, {
                         id: newVendorId,
-                        email: newEmail,
+                        email: gmailPemilik,
                         nama_warung: p.nama_warung || 'Tanpa Nama',
                         kategori_utama: [],
                         alamat_warung: p.alamat || '-',
@@ -3502,12 +3645,9 @@
                         role: 'vendor',
                         nama_pemilik: p.nama_pemilik || '',
                         no_wa: p.no_wa || '',
-                        is_approved: true, 
-                        pin_wajib_ganti: true,   // PIN dari admin hanya untuk masuk pertama kali
+                        is_approved: true,
                         created_at: new Date().toISOString()
                     });
-
-                    await window.simpanPin(newVendorId, newPin);
 
                     // Update status pengajuan di Firestore
                     await updateDoc(doc(db, "pengajuan_mitra", id), {
@@ -3524,7 +3664,7 @@
                     // Tarik ulang data mitra
                     await window.fetchVendors();
 
-                    customAlert(`Pendaftaran di-ACC & Mitra berhasil dibuat!\n\nEmail Login: ${newEmail}\nPassword/PIN: ${newPin}\n\nSilakan informasikan Email dan PIN ini ke pihak Mitra.`);
+                    customAlert(`Pendaftaran di-ACC & warung berhasil dibuat!\n\nPemilik cukup buka seller.projekgo.id lalu tekan "Masuk dengan Google" memakai:\n${esc(gmailPemilik)}\n\nTidak ada PIN yang perlu dikirim.`);
                     window.renderPengajuanMitra(); 
                 } catch (error) {
                     customAlert("Gagal melakukan ACC & Daftar Mitra:\n" + error.message, true);
@@ -3619,10 +3759,14 @@
             const vName = document.getElementById('new-vendor-name').value.trim();
             const vLoc = document.getElementById('new-vendor-location').value.trim();
 
-            if(!vId || !vPin || !vName) {
-                alert("Mohon lengkapi ID, PIN, dan Nama Warung!");
+            // Kolom "new-vendor-pin" sekarang berisi Gmail pemilik (boleh kosong, bisa diatur nanti).
+            const vGmail = vPin.toLowerCase();
+            if(!vId || !vName) {
+                alert("Mohon lengkapi ID dan Nama Warung!");
                 return;
             }
+            if (vGmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(vGmail)) { alert("Gmail pemilik belum benar."); return; }
+            if (vGmail === 'projekbisa01@gmail.com' || vGmail === 'admin@projekgo.id') { alert("Email admin tidak boleh dipakai sebagai pemilik warung."); return; }
 
             try {
                 // Gunakan doc untuk memastikan ID menjadi Document ID di Firestore
@@ -3641,10 +3785,9 @@
                     is_andalan: false,
                     kategori_utama: [],
                     role: 'vendor',
+                    ...(vGmail ? { email: vGmail } : {}),
                     created_at: new Date().toISOString()
                 });
-
-                await window.simpanPin(vId, vPin);
                 
                 document.getElementById('add-modal').style.display = 'none';
                 
@@ -6103,6 +6246,7 @@
                 await window.fetchReviews();
                 await window.fetchBroadcasts();
                 await window.fetchPengajuanMitra(); // Panggil data pengajuan
+                await window.fetchPindahGmail();
             } catch (error) {
                 console.error("Kesalahan koneksi Firebase:", error);
                 if (error.code === 'permission-denied') {
@@ -6133,30 +6277,32 @@
                     ulasan: adminAllReviews.filter(r => r.status === 'pending' && !window.adalahSaran(r)).length,
                     saran: adminAllSaran.filter(r => r.status !== 'dibaca').length,
                     daftar: adminAllPengajuan.filter(p => p.status !== 'terdaftar').length,
+                    pindah: adminAllPindah.length,
                     kosong: adminAllVendors.filter(v => !punyaMenu(v)).length
                 };
             }
             let terakhirKirim = -1;
             window.apLencana = () => {
                 const n = hitung();
-                ['ulasan', 'saran', 'daftar', 'kosong'].forEach(k => {
+                ['ulasan', 'saran', 'daftar', 'pindah', 'kosong'].forEach(k => {
                     setAngka('ap-n-' + k, n[k], false);
                     const baris = document.querySelector('[data-ap-cek="' + k + '"]'); if (baris) baris.hidden = !n[k];
                 });
-                const total = n.ulasan + n.saran + n.daftar + n.kosong;
+                const total = n.ulasan + n.saran + n.daftar + n.pindah + n.kosong;
                 const beres = $('ap-cek-beres'); if (beres) beres.hidden = total > 0;
                 const isi = $('ap-cek-isi'); if (isi) isi.hidden = total === 0;
                 setAngka('ap-nav-dashboard', total, true);
                 setAngka('ap-nav-vendors', n.kosong, true);
                 setAngka('ap-nav-reviews', n.ulasan + n.saran, true);
-                setAngka('ap-nav-lainnya', n.daftar, true);
+                setAngka('ap-nav-lainnya', n.daftar + n.pindah, true);
                 setAngka('ap-n-daftar2', n.daftar, true);
+                setAngka('ap-n-pindah2', n.pindah, true);
                 setAngka('ap-f-kosong', n.kosong, false);
                 setAngka('ap-f-semua', adminAllVendors.length, false);
                 setAngka('ap-f-buka', adminAllVendors.filter(v => !tutup(v)).length, false);
                 setAngka('ap-f-tutup', adminAllVendors.filter(tutup).length, false);
                 // Angka untuk menu Katalog di aplikasi admin (kalau halaman ini dibuka dari dalam admin)
-                const untukAdmin = n.ulasan + n.saran + n.daftar;
+                const untukAdmin = n.ulasan + n.saran + n.daftar + n.pindah;
                 if (untukAdmin !== terakhirKirim) { terakhirKirim = untukAdmin; kirimKeAdmin(untukAdmin); }
             };
             // Hanya dikirim ke aplikasi admin ProjekGo (domain projekgo.id); isinya cuma angka
@@ -6170,7 +6316,7 @@
             }
 
             // Hitung ulang setiap kali data digambar ulang
-            ['renderVendorsList', 'renderVendorMenuOverview', 'renderSaranMasukan', 'renderPengajuanMitra', 'renderReviewVendors'].forEach(nama => {
+            ['renderVendorsList', 'renderVendorMenuOverview', 'renderSaranMasukan', 'renderPengajuanMitra', 'renderReviewVendors', 'renderPindahGmail'].forEach(nama => {
                 const asli = window[nama];
                 if (typeof asli !== 'function') return;
                 window[nama] = function () { const r = asli.apply(this, arguments); try { window.apLencana(); } catch (e) {} return r; };
@@ -6195,12 +6341,13 @@
                     if (tab && typeof window.switchReviewTab === 'function') window.switchReviewTab('saran', tab);
                 }
                 if (k === 'daftar') ke('pendaftaran', nav('lainnya'));
+                if (k === 'pindah') ke('pindahgmail', nav('lainnya'));
                 if (k === 'kosong') { ke('vendors', nav('vendors')); const c = document.querySelector('[data-ap-f="kosong"]'); if (c) c.click(); }
             }));
 
             // Kotak menu di halaman Lainnya + tombol kembali di halaman-halamannya
             document.querySelectorAll('[data-ap-buka]').forEach(b => b.addEventListener('click', () => ke(b.dataset.apBuka, nav('lainnya'))));
-            ['uifood', 'umkm', 'pendaftaran', 'kategori'].forEach(hal => {
+            ['uifood', 'umkm', 'pendaftaran', 'kategori', 'pindahgmail', 'pelanggan'].forEach(hal => {
                 const p = $('page-' + hal); if (!p || p.querySelector('.ap-kembali')) return;
                 const k = document.createElement('button');
                 k.type = 'button'; k.className = 'ap-kembali';
