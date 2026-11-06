@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Uji Login Google</title>
+<style>
+  body { margin: 0; background: #FBF7F2; color: #1F1611; font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .wrap { max-width: 440px; margin: 0 auto; padding: 32px 18px; display: flex; flex-direction: column; gap: 16px; }
+  h1 { margin: 0; font-size: 22px; }
+  p { margin: 0; color: #5C4E42; font-size: 14px; }
+  button { min-height: 54px; border-radius: 14px; border: 1px solid #DADCE0; background: #fff; font: inherit; font-weight: 800; font-size: 16px; cursor: pointer; }
+  #hasil { padding: 14px; border-radius: 12px; background: #fff; border: 1px solid #EFE6DC; font-size: 14px; white-space: pre-wrap; word-break: break-word; min-height: 24px; }
+  .ok { color: #1E6B34; } .galat { color: #9B2C2C; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Uji Login Google</h1>
+  <p>Halaman uji sekali pakai. Hanya mencoba masuk dengan Google ke proyek onbid lalu keluar lagi. Tidak menyimpan data apa pun.</p>
+  <button type="button" id="b">Masuk dengan Google</button>
+  <div id="hasil" role="status">Belum dicoba.</div>
+  <p id="ua"></p>
+</div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  const auth = getAuth(initializeApp({
+    apiKey: "AIzaSyBCp2PBN1ASET6QjuQ3PWdC1gysQv0z_OY",
+    authDomain: "onbid-2f87a.firebaseapp.com",
+    projectId: "onbid-2f87a",
+    appId: "1:223888282484:web:2fc05ed67ca1fab39e1221"
+  }));
+  const hasil = document.getElementById('hasil');
+  const tulis = (t, k) => { hasil.textContent = t; hasil.className = k || ''; };
+  document.getElementById('ua').textContent = 'Perangkat: ' + navigator.userAgent;
+  document.getElementById('b').onclick = async () => {
+    tulis('Membuka jendela Google...');
+    try {
+      const p = new GoogleAuthProvider();
+      p.setCustomParameters({ prompt: 'select_account' });
+      const r = await signInWithPopup(auth, p);
+      tulis('BERHASIL masuk sebagai ' + r.user.email + '.\nLogin Google bisa dipakai di sini.', 'ok');
+      await signOut(auth);
+    } catch (e) {
+      tulis('GAGAL: ' + (e.code || '') + '\n' + (e.message || e) + '\n\nFoto layar ini dan kirim ke Claude.', 'galat');
+    }
+  };
+</script>
+</body>
+</html>
