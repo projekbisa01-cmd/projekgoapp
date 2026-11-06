@@ -6376,5 +6376,51 @@
             <div class="pl-muat" id="pl-muat">Memuat peta...</div>
         </div>
 
+<!-- ===== TOMBOL MATA: tampilkan / sembunyikan kata sandi & PIN (6 Nov 2026) ===== -->
+<style>
+.mata-wrap { position: relative; display: block; }
+.mata-wrap > input { padding-right: 50px !important; width: 100%; box-sizing: border-box; }
+.mata-btn { position: absolute; right: 4px; top: 0; bottom: 0; margin: auto 0; width: 42px; height: 42px; border: 0; background: transparent; color: #6B5E52; display: grid; place-items: center; cursor: pointer; border-radius: 10px; padding: 0; }
+.mata-btn:hover { color: #C2410C; }
+.mata-btn:focus-visible { outline: 2px solid #C2410C; outline-offset: 1px; }
+.mata-btn svg { width: 20px; height: 20px; pointer-events: none; }
+</style>
+<script>
+(function () {
+  var BUKA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  var TUTUP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.2M6.6 6.6C3.9 8.4 2 12 2 12s3.6 7 10 7a9.7 9.7 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
+  function pasang(inp) {
+    if (inp.getAttribute('data-mata')) return;
+    inp.setAttribute('data-mata', '1');
+    var w = document.createElement('span');
+    w.className = 'mata-wrap';
+    // Jarak (margin) kolom dipindah ke pembungkus supaya ikon mata tepat di tengah kolom
+    var cs = window.getComputedStyle(inp);
+    w.style.marginTop = cs.marginTop; w.style.marginBottom = cs.marginBottom;
+    inp.parentNode.insertBefore(w, inp);
+    w.appendChild(inp);
+    inp.style.marginTop = '0'; inp.style.marginBottom = '0';
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'mata-btn';
+    b.setAttribute('aria-label', 'Tampilkan');
+    b.setAttribute('aria-pressed', 'false');
+    b.innerHTML = BUKA;
+    b.addEventListener('click', function (e) {
+      e.preventDefault();
+      var lihat = inp.type === 'password';
+      inp.type = lihat ? 'text' : 'password';
+      b.innerHTML = lihat ? TUTUP : BUKA;
+      b.setAttribute('aria-pressed', String(lihat));
+      b.setAttribute('aria-label', lihat ? 'Sembunyikan' : 'Tampilkan');
+      inp.focus();
+    });
+    w.appendChild(b);
+  }
+  function semua() { Array.prototype.forEach.call(document.querySelectorAll('input[type="password"]'), pasang); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', semua); else semua();
+})();
+</script>
 </body>
+
 </html>
