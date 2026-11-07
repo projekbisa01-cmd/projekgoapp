@@ -392,8 +392,10 @@
         .nav-item span { font-size: 11px; font-weight: 700; }
         .nav-item.active span { font-weight: 800; }
         .nav-item:focus-visible, .ap-baris:focus-visible, .ap-kt:focus-visible, .ap-chip:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-        .ap-nav-bd { position: absolute; top: 5px; left: 50%; margin-left: 5px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 99px; background: #C53030; color: #fff; font-size: 10px; font-weight: 800; font-style: normal; display: grid; place-items: center; box-sizing: border-box; }
+        .ap-nav-bd { position: absolute; top: 6px; left: 50%; margin-left: 6px; min-width: 15px; height: 15px; padding: 0 4px; border-radius: 99px; background: #C53030; color: #fff; font-size: 9px; line-height: 1; font-weight: 800; font-style: normal; display: grid; place-items: center; box-sizing: border-box; box-shadow: 0 0 0 2px #fff; }
         .ap-nav-bd[hidden], .ap-kt-bd[hidden], .ap-bd[hidden] { display: none; }
+        /* Ikon di navbar memakai <i> berukuran besar; pastikan angka merah tetap kecil */
+        .nav-item i.ap-nav-bd, .ap-kt i.ap-kt-bd { font-size: 9px !important; width: auto; line-height: 1; }
         .ap-grp { margin: 0 0 8px 4px; font-size: 13px; font-weight: 800; color: var(--gray); }
         .ap-cek { margin-bottom: 18px; }
         .ap-kartu { background: #fff; border: 1px solid var(--ap-garis); border-radius: 16px; overflow: hidden; }
@@ -406,7 +408,7 @@
         .ap-tx { flex: 1; min-width: 0; }
         .ap-tx b { display: block; font-size: 14.5px; font-weight: 700; }
         .ap-tx span { display: block; font-size: 12px; font-weight: 600; color: var(--gray); margin-top: 1px; }
-        .ap-bd { flex: none; min-width: 24px; height: 24px; border-radius: 99px; background: #C53030; color: #fff; font-size: 12px; font-weight: 800; display: grid; place-items: center; padding: 0 7px; box-sizing: border-box; }
+        .ap-bd { flex: none; min-width: 26px; height: 22px; border-radius: 99px; background: #F1EADF; color: #4A3F35; font-size: 12px; font-weight: 800; display: grid; place-items: center; padding: 0 8px; box-sizing: border-box; }
         .ap-beres { padding: 14px; border-radius: 14px; background: #E8F3E6; color: #2F6B3E; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
         .ap-beres[hidden] { display: none; }
         .ap-chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-bottom: 12px; padding-bottom: 2px; }
@@ -422,7 +424,7 @@
         @media (max-width: 360px) { .ap-kisi { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
         .ap-kt { position: relative; display: flex; flex-direction: column; align-items: center; gap: 7px; min-height: 92px; padding: 12px 4px 10px; border-radius: 14px; background: #fff; border: 1px solid var(--ap-garis); font-family: inherit; color: var(--dark); cursor: pointer; }
         .ap-kt > b { font-size: 11.5px; font-weight: 700; text-align: center; line-height: 1.25; }
-        .ap-kt-bd { position: absolute; top: 6px; right: 8px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 99px; background: #C53030; color: #fff; font-size: 10.5px; font-weight: 800; font-style: normal; display: grid; place-items: center; box-sizing: border-box; }
+        .ap-kt-bd { position: absolute; top: 6px; right: 8px; min-width: 15px; height: 15px; padding: 0 4px; border-radius: 99px; background: #C53030; color: #fff; font-size: 9px; line-height: 1; font-weight: 800; font-style: normal; display: grid; place-items: center; box-sizing: border-box; }
         /* Pindah Gmail & Pelanggan (4d, 4 Nov 2026) */
         .pg-kar { background:#fff; border:1px solid var(--ap-garis); border-radius:16px; padding:14px; display:flex; flex-direction:column; gap:10px; margin-bottom:12px; }
         .pg-kar h3 { margin:0; font-size:15.5px; font-weight:800; }
@@ -2254,6 +2256,12 @@
             if (pageId === 'pendaftaran') window.renderPengajuanMitra();
             if (pageId === 'kategori') window.renderKategoriPage();
             if (pageId === 'pindahgmail') window.fetchPindahGmail();
+            // Angka merah hilang begitu halamannya dibuka
+            if (window.apTandaiDilihat) {
+                if (pageId === 'reviews') window.apTandaiDilihat('ulasan', 'saran');
+                if (pageId === 'pendaftaran') window.apTandaiDilihat('daftar');
+                if (pageId === 'pindahgmail') window.apTandaiDilihat('pindah');
+            }
             if (pageId === 'pelanggan') window.fetchPelanggan();
         }
 
@@ -6292,11 +6300,27 @@
             const punyaMenu = (v) => adminAllProducts.some(p => p.vendor_id === v.id || (!p.vendor_id && p.vendor_name && p.vendor_name === v.nama_warung));
             window.apCocokFilter = (v) => apFilter === 'semua' || (apFilter === 'buka' && !tutup(v)) || (apFilter === 'tutup' && tutup(v)) || (apFilter === 'kosong' && !punyaMenu(v));
 
-            function setAngka(id, n, sembunyiNol) {
+            function setAngka(id, n, sembunyiNol, kecil) {
                 const el = $(id); if (!el) return;
-                el.textContent = n > 99 ? '99+' : String(n);
+                el.textContent = kecil ? (n > 9 ? '9+' : String(n)) : (n > 99 ? '99+' : String(n));
                 if (sembunyiNol) el.hidden = !n;
             }
+            // Angka merah hanya menghitung data yang masuk SETELAH halamannya terakhir dibuka
+            // di perangkat ini, dan hilang begitu halamannya dibuka. Daftar "Perlu dicek" di
+            // Beranda tetap menampilkan jumlah total yang belum ditangani (angka abu-abu).
+            const KUNCI_LIHAT = 'ap_lihat_';
+            const waktuData = (x) => Number(x) || Date.parse(x || '') || (x && x.seconds ? x.seconds * 1000 : 0);
+            function terakhirDilihat(k) {
+                try {
+                    let v = Number(localStorage.getItem(KUNCI_LIHAT + k));
+                    if (!v) { v = Date.now(); localStorage.setItem(KUNCI_LIHAT + k, String(v)); }
+                    return v;
+                } catch (e) { return 0; }
+            }
+            window.apTandaiDilihat = (...jenis) => {
+                try { jenis.forEach(k => localStorage.setItem(KUNCI_LIHAT + k, String(Date.now()))); } catch (e) {}
+                try { window.apLencana(); } catch (e) {}
+            };
             function hitung() {
                 return {
                     ulasan: adminAllReviews.filter(r => r.status === 'pending' && !window.adalahSaran(r)).length,
@@ -6304,6 +6328,15 @@
                     daftar: adminAllPengajuan.filter(p => p.status !== 'terdaftar').length,
                     pindah: adminAllPindah.length,
                     kosong: adminAllVendors.filter(v => !punyaMenu(v)).length
+                };
+            }
+            function hitungBaru() {
+                const tU = terakhirDilihat('ulasan'), tS = terakhirDilihat('saran'), tD = terakhirDilihat('daftar'), tP = terakhirDilihat('pindah');
+                return {
+                    ulasan: adminAllReviews.filter(r => r.status === 'pending' && !window.adalahSaran(r) && waktuData(r.timestamp) > tU).length,
+                    saran: adminAllSaran.filter(r => r.status !== 'dibaca' && waktuData(r.timestamp) > tS).length,
+                    daftar: adminAllPengajuan.filter(p => p.status !== 'terdaftar' && waktuData(p.tanggal_pengajuan || p.created_at) > tD).length,
+                    pindah: adminAllPindah.filter(r => waktuData(r.dibuat_at) > tP).length
                 };
             }
             let terakhirKirim = -1;
@@ -6316,18 +6349,20 @@
                 const total = n.ulasan + n.saran + n.daftar + n.pindah + n.kosong;
                 const beres = $('ap-cek-beres'); if (beres) beres.hidden = total > 0;
                 const isi = $('ap-cek-isi'); if (isi) isi.hidden = total === 0;
-                setAngka('ap-nav-dashboard', total, true);
-                setAngka('ap-nav-vendors', n.kosong, true);
-                setAngka('ap-nav-reviews', n.ulasan + n.saran, true);
-                setAngka('ap-nav-lainnya', n.daftar + n.pindah, true);
-                setAngka('ap-n-daftar2', n.daftar, true);
-                setAngka('ap-n-pindah2', n.pindah, true);
+                const b = hitungBaru();
+                const totalBaru = b.ulasan + b.saran + b.daftar + b.pindah;
+                setAngka('ap-nav-dashboard', totalBaru, true, true);
+                setAngka('ap-nav-vendors', 0, true, true);           // warung tanpa menu bukan data baru: tanpa angka merah
+                setAngka('ap-nav-reviews', b.ulasan + b.saran, true, true);
+                setAngka('ap-nav-lainnya', b.daftar + b.pindah, true, true);
+                setAngka('ap-n-daftar2', b.daftar, true, true);
+                setAngka('ap-n-pindah2', b.pindah, true, true);
                 setAngka('ap-f-kosong', n.kosong, false);
                 setAngka('ap-f-semua', adminAllVendors.length, false);
                 setAngka('ap-f-buka', adminAllVendors.filter(v => !tutup(v)).length, false);
                 setAngka('ap-f-tutup', adminAllVendors.filter(tutup).length, false);
                 // Angka untuk menu Katalog di aplikasi admin (kalau halaman ini dibuka dari dalam admin)
-                const untukAdmin = n.ulasan + n.saran + n.daftar + n.pindah;
+                const untukAdmin = totalBaru;
                 if (untukAdmin !== terakhirKirim) { terakhirKirim = untukAdmin; kirimKeAdmin(untukAdmin); }
             };
             // Hanya dikirim ke aplikasi admin ProjekGo (domain projekgo.id); isinya cuma angka
