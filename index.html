@@ -2582,6 +2582,145 @@ body.gm-terkunci { overflow: hidden; }
         .pc-pilih-btn.wa { background: #128C3E; }
         .pc-pilih-batal { border: 0; background: transparent; color: #5C4E42; font: inherit; font-size: 14px; font-weight: 700; padding: 8px; cursor: pointer; }
     </style>
+    <!-- ===== AKTIVITAS + CHAT RIDER (tahap 3, 7 Nov 2026) ===== -->
+    <style>
+        #page-aktivitas { padding: 0 0 110px !important; min-height: 100vh; background: #FFFAF3; }
+        .ktv-kepala { padding: calc(env(safe-area-inset-top, 0px) + 18px) 18px 6px; }
+        .ktv-kepala h1 { margin: 0; font-size: 24px; font-weight: 800; color: #1F1611; letter-spacing: -.01em; }
+        .ktv-kepala p { margin: 4px 0 0; font-size: 13px; font-weight: 600; color: #7A6E63; }
+        .ktv-tab { display: flex; margin: 8px 18px 0; border-bottom: 1px solid #F0E4D6; }
+        .ktv-tab button { flex: 1; min-height: 46px; border: 0; background: transparent; font: inherit; font-size: 14px; font-weight: 800; color: #8A7D70; border-bottom: 3px solid transparent; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; }
+        .ktv-tab button[aria-selected="true"] { color: #1F1611; border-bottom-color: #E85300; }
+        .ktv-tab em { font-style: normal; min-width: 20px; height: 20px; padding: 0 6px; box-sizing: border-box; border-radius: 99px; background: #E53935; color: #FFFFFF; font-size: 11px; line-height: 20px; }
+        .ktv-tab em[hidden] { display: none; }
+        .ktv-daftar { padding: 14px 16px 0; display: flex; flex-direction: column; gap: 12px; }
+        .ktv-kartu { width: 100%; text-align: left; background: #FFFFFF; border: 1px solid #F0E4D6; border-radius: 20px; padding: 14px; box-shadow: 0 6px 16px rgba(120,70,20,.06); font: inherit; color: inherit; display: block; cursor: pointer; }
+        .ktv-kartu:active { transform: scale(.99); }
+        .ktv-atas { display: flex; align-items: center; gap: 12px; }
+        .ktv-ik { width: 46px; height: 46px; border-radius: 15px; display: grid; place-items: center; font-size: 22px; flex: none; background: #FFF0E4; }
+        .ktv-ik.ojek { background: #E8F1FB; } .ktv-ik.kirim { background: #EEF5E8; } .ktv-ik.lain { background: #F4EEFA; }
+        .ktv-tengah { flex: 1; min-width: 0; }
+        .ktv-tengah b { display: block; font-size: 14.5px; font-weight: 800; color: #1F1611; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ktv-tengah span { display: block; font-size: 12.5px; font-weight: 600; color: #7A6E63; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ktv-st { flex: none; font-size: 11px; font-weight: 800; padding: 4px 9px; border-radius: 99px; background: #FFF0E4; color: #C2410C; }
+        .ktv-st.selesai { background: #E8F3E6; color: #2F6B3E; } .ktv-st.batal { background: #F3EFEC; color: #7A6E63; } .ktv-st.ulas { background: #FFF4D6; color: #7A5A0A; }
+        .ktv-jalan { margin-top: 12px; display: flex; align-items: center; gap: 10px; }
+        .ktv-titik { width: 9px; height: 9px; border-radius: 99px; background: #E85300; flex: none; animation: ktv-denyut 1.6s ease-out infinite; }
+        @keyframes ktv-denyut { 0% { box-shadow: 0 0 0 0 rgba(232,83,0,.5); } 100% { box-shadow: 0 0 0 9px rgba(232,83,0,0); } }
+        .ktv-jalan b { font-size: 13.5px; font-weight: 800; color: #1F1611; }
+        .ktv-jalan span { font-size: 12.5px; font-weight: 600; color: #7A6E63; }
+        .ktv-garis { display: flex; gap: 4px; margin-top: 10px; }
+        .ktv-garis i { flex: 1; height: 6px; border-radius: 99px; background: #F1E4D6; }
+        .ktv-garis i.ok { background: #E85300; }
+        .ktv-rider { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px dashed #F0E4D6; }
+        .ktv-av { width: 38px; height: 38px; border-radius: 99px; background: #FFE3CC; color: #C2410C; display: grid; place-items: center; font-weight: 800; flex: none; overflow: hidden; }
+        .ktv-av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .ktv-rider .ktv-tengah b { font-size: 13.5px; }
+        .ktv-tb { display: flex; gap: 8px; margin-top: 12px; }
+        .ktv-btn { flex: 1; min-height: 44px; border-radius: 13px; border: 0; font: inherit; font-size: 13.5px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; position: relative; }
+        .ktv-btn.utama { background: #E85300; color: #FFFFFF; }
+        .ktv-btn.garis { background: #FFFFFF; color: #C2410C; border: 1.5px solid #FFC9A0; }
+        .ktv-btn i { font-size: 17px; }
+        .ktv-n { min-width: 20px; height: 20px; padding: 0 6px; box-sizing: border-box; border-radius: 99px; background: #E53935; color: #FFFFFF; font-size: 11px; line-height: 20px; font-style: normal; }
+        .ktv-btn.utama .ktv-n { background: #FFFFFF; color: #C2410C; }
+        .ktv-n[hidden] { display: none; }
+        .ktv-kosong { text-align: center; padding: 34px 20px 10px; color: #7A6E63; font-size: 14px; font-weight: 600; line-height: 1.55; }
+        .ktv-kosong .ktv-ik { margin: 0 auto 12px; width: 64px; height: 64px; font-size: 30px; border-radius: 22px; }
+        .ktv-kosong b { display: block; color: #1F1611; font-size: 16px; margin-bottom: 4px; }
+        .ktv-kosong .ktv-btn { max-width: 260px; margin: 16px auto 0; display: flex; }
+        .ktv-subjudul { font-size: 11.5px; font-weight: 800; letter-spacing: .06em; color: #8A7D70; margin: 6px 2px -2px; text-transform: uppercase; }
+        .ktv-lama { display: block; margin: 18px auto 0; border: 0; background: transparent; color: #C2410C; font: inherit; font-size: 13px; font-weight: 800; text-decoration: underline; cursor: pointer; min-height: 44px; }
+
+        /* ---- Beranda: aktivitas terkini ---- */
+        .ktv-beranda { position: relative; z-index: 3; margin: -34px 16px 0; background: #FFFFFF; border: 1.5px solid #FFC9A0; border-radius: 24px; padding: 12px 14px 14px; box-shadow: 0 12px 28px rgba(232,83,0,.14); }
+        .ktv-beranda[hidden] { display: none; }
+        .ktv-beranda:not([hidden]) + .bn-wrap { margin-top: 0; padding-top: 16px !important; }
+        .ktv-beranda .ktv-jdl { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+        .ktv-beranda .ktv-jdl b { font-size: 11.5px; font-weight: 800; letter-spacing: .06em; color: #8A7D70; }
+        .ktv-beranda .ktv-jdl button { border: 0; background: transparent; color: #C2410C; font: inherit; font-size: 12.5px; font-weight: 800; min-height: 36px; padding: 0 2px; cursor: pointer; }
+        .ktv-beranda .ktv-kartu { border: 0; box-shadow: none; padding: 0; border-radius: 0; }
+
+        /* ---- Detail pesanan & ruang chat rider: layar penuh di atas aplikasi ---- */
+        .ktv-layar { position: fixed; top: 0; bottom: 0; left: 0; right: 0; max-width: var(--max-width, 480px); margin: 0 auto; z-index: 1200; background: #FFFAF3; display: flex; flex-direction: column; color: #1F1611; }
+        .ktv-layar[hidden] { display: none; }
+        .ktv-lk { display: flex; align-items: center; gap: 8px; padding: calc(env(safe-area-inset-top, 0px) + 8px) 10px 8px; background: #FFFFFF; border-bottom: 1px solid #F0E4D6; flex: none; }
+        .ktv-lk button { width: 44px; height: 44px; border: 0; background: transparent; border-radius: 12px; font-size: 22px; color: #1F1611; display: grid; place-items: center; cursor: pointer; flex: none; }
+        .ktv-lk div { flex: 1; min-width: 0; }
+        .ktv-lk b { display: block; font-size: 16px; font-weight: 800; }
+        .ktv-lk span { display: block; font-size: 12px; font-weight: 600; color: #7A6E63; }
+        .ktv-gulir { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 14px 16px calc(24px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 12px; }
+        .ktv-kotak { background: #FFFFFF; border: 1px solid #F0E4D6; border-radius: 20px; padding: 16px; }
+        .ktv-hero { background: linear-gradient(160deg, #FFF3E8, #FFFFFF 70%); border-color: #FFD9BD; }
+        .ktv-hero h2 { margin: 0; font-size: 19px; font-weight: 800; }
+        .ktv-hero p { margin: 4px 0 0; font-size: 13.5px; font-weight: 600; color: #6B5D51; line-height: 1.5; }
+        .ktv-adegan { position: relative; height: 66px; margin-top: 12px; border-radius: 14px; background: #FFF7EF; overflow: hidden; }
+        .ktv-adegan::before { content: ""; position: absolute; left: 14px; right: 14px; top: 46px; border-top: 2px dashed #F2C9A6; }
+        .ktv-adegan .m { position: absolute; top: 14px; left: 14px; font-size: 30px; animation: ktv-maju 3.4s ease-in-out infinite alternate; }
+        .ktv-adegan .tj { position: absolute; top: 16px; right: 14px; font-size: 26px; }
+        @keyframes ktv-maju { from { transform: translateX(0); } to { transform: translateX(calc(min(100vw, 480px) - 150px)); } }
+        .ktv-adegan.diam .m { animation: none; }
+        .ktv-adegan.sampai .m { animation: none; left: auto; right: 48px; }
+        #prc [hidden] { display: none !important; }
+        .ktv-eta { margin-top: 10px; font-size: 12.5px; font-weight: 700; color: #7A5A0A; background: #FFF4D6; border-radius: 10px; padding: 7px 10px; }
+        .ktv-eta[hidden] { display: none; }
+        .ktv-posisi { margin-top: 10px; display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border-radius: 12px; background: #FFFFFF; border: 1.5px solid #FFC9A0; color: #C2410C; font-size: 13px; font-weight: 800; text-decoration: none; }
+        .ktv-tl { display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: start; position: relative; padding-bottom: 16px; }
+        .ktv-tl:last-child { padding-bottom: 0; }
+        .ktv-tl:not(:last-child)::before { content: ""; position: absolute; left: 13px; top: 28px; bottom: 0; width: 2px; background: #F1E4D6; }
+        .ktv-tl.ok:not(:last-child)::before { background: #E85300; }
+        .ktv-tl .d { width: 28px; height: 28px; border-radius: 99px; display: grid; place-items: center; font-size: 13px; font-weight: 800; background: #F1E4D6; color: #8A7D70; box-sizing: border-box; }
+        .ktv-tl.ok .d { background: #E85300; color: #FFFFFF; }
+        .ktv-tl.kini .d { background: #FFFFFF; color: #E85300; border: 2.5px solid #E85300; }
+        .ktv-tl b { display: block; font-size: 14px; font-weight: 800; }
+        .ktv-tl span { display: block; font-size: 12px; font-weight: 600; color: #8A7D70; margin-top: 1px; }
+        .ktv-tl em { font-style: normal; font-size: 12px; font-weight: 700; color: #8A7D70; }
+        .ktv-tl.nanti b { color: #8A7D70; }
+        .ktv-h3 { margin: 0 0 10px; font-size: 14px; font-weight: 800; }
+        .ktv-rinci { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13.5px; line-height: 1.55; color: #3B2F26; background: #FFFAF3; border-radius: 12px; padding: 10px 12px; max-height: 260px; overflow-y: auto; }
+        .ktv-rr { display: flex; justify-content: space-between; gap: 10px; font-size: 13.5px; padding: 5px 0; }
+        .ktv-rr span { color: #6B5D51; font-weight: 600; } .ktv-rr b { font-weight: 800; }
+        .ktv-rr.total { border-top: 1px dashed #F0E4D6; margin-top: 6px; padding-top: 10px; font-size: 15px; }
+        .ktv-catat { font-size: 12px; font-weight: 600; color: #8A7D70; margin: 6px 0 0; line-height: 1.5; }
+        .ktv-bayar { display: flex; gap: 12px; background: #EEF6FF; border: 1px solid #CFE3FA; border-radius: 16px; padding: 12px 14px; }
+        .ktv-bayar i { font-size: 24px; color: #2B6CB0; flex: none; margin-top: 1px; }
+        .ktv-bayar b { display: block; font-size: 13.5px; font-weight: 800; color: #1E3A5F; }
+        .ktv-bayar p { margin: 3px 0 0; font-size: 12.5px; font-weight: 600; line-height: 1.5; color: #35506F; }
+        .ktv-ulas { background: #FFF8E6; border-color: #FBE1A6; text-align: center; }
+        .ktv-ulas b { display: block; font-size: 15px; font-weight: 800; }
+        .ktv-ulas p { margin: 4px 0 12px; font-size: 13px; font-weight: 600; color: #6B5D51; }
+        .ktv-bintang { display: flex; justify-content: center; gap: 6px; }
+        .ktv-bintang button { width: 46px; height: 46px; border: 0; background: transparent; font-size: 32px; color: #E5D6C6; cursor: pointer; padding: 0; line-height: 1; }
+        .ktv-bintang button.on { color: #F5A623; }
+        .ktv-ulas textarea { width: 100%; box-sizing: border-box; min-height: 76px; margin-top: 10px; border-radius: 12px; border: 1.5px solid #F0E4D6; padding: 10px 12px; font: inherit; font-size: 14px; resize: vertical; }
+        .ktv-ulas textarea:focus { outline: 2px solid #FFC9A0; outline-offset: 0; }
+        .ktv-ulas .ktv-btn { width: 100%; margin-top: 10px; }
+        .ktv-ulas .ktv-btn:disabled { opacity: .5; }
+        .ktv-galat { min-height: 18px; margin-top: 6px; font-size: 12.5px; font-weight: 700; color: #9B2C2C; }
+
+        /* Ruang chat rider memakai tampilan chat admin (pc-*) */
+        #prc .pc-kotak { position: absolute; inset: 0; max-width: none; z-index: auto; }
+        #prc { z-index: 1210; background: #F3EBDF; }
+        .prc-status { display: flex; align-items: center; gap: 10px; padding: 9px 12px; background: #FFF3E8; border-bottom: 1px solid #FFD9BD; flex: none; border: 0; width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+        .prc-status b { display: block; font-size: 13px; font-weight: 800; color: #1F1611; }
+        .prc-status span { display: block; font-size: 12px; font-weight: 600; color: #7A6E63; }
+        .prc-status em { margin-left: auto; font-style: normal; font-size: 12.5px; font-weight: 800; color: #C2410C; flex: none; }
+        .prc-qris { display: block; width: 220px; max-width: 100%; border-radius: 9px; margin-top: 6px; background: #FFFFFF; border: 0; padding: 0; cursor: zoom-in; }
+        .prc-qris img { display: block; width: 100%; border-radius: 9px; }
+        .prc-tutup { padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 0px)); background: #FFFFFF; text-align: center; font-size: 13.5px; font-weight: 700; color: #6B5D51; border-top: 1px solid #F0E4D6; flex: none; }
+        .prc-tutup[hidden] { display: none; }
+        .prc-lihat { position: fixed; inset: 0; z-index: 1300; background: rgba(15,10,6,.94); display: flex; align-items: center; justify-content: center; }
+        .prc-lihat[hidden] { display: none; }
+        .prc-lihat img { max-width: 100%; max-height: 100%; object-fit: contain; background: #FFFFFF; }
+        .prc-lihat button { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); right: 12px; width: 44px; height: 44px; border-radius: 99px; border: 0; background: rgba(255,255,255,.18); color: #FFFFFF; font-size: 22px; display: grid; place-items: center; cursor: pointer; }
+        /* Ajakan di layar chat admin: buka chat rider */
+        .prc-ajak { position: sticky; top: -12px; z-index: 2; margin: -12px -12px 4px; padding: 10px 12px; background: #FFF3E8; border-bottom: 1px solid #FFD9BD; display: flex; align-items: center; gap: 10px; border-left: 0; border-right: 0; border-top: 0; width: calc(100% + 24px); text-align: left; font: inherit; color: inherit; cursor: pointer; }
+        .prc-ajak[hidden] { display: none; }
+        .prc-ajak b { display: block; font-size: 13px; font-weight: 800; color: #1F1611; }
+        .prc-ajak span { display: block; font-size: 12px; font-weight: 600; color: #7A6E63; }
+        .prc-ajak > i { font-size: 22px; flex: none; }
+        .prc-ajak em { margin-left: auto; font-style: normal; flex: none; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 800; color: #C2410C; }
+        @media (prefers-reduced-motion: reduce) { .ktv-titik, .ktv-adegan .m { animation: none; } }
+    </style>
 </head>
 <body>
 
@@ -2975,6 +3114,9 @@ body.gm-terkunci { overflow: hidden; }
                     </div>
                 </div>
             </div>
+
+            <!-- AKTIVITAS TERKINI (tahap 3): muncul kalau ada pesanan berjalan -->
+            <div id="ktv-beranda" class="ktv-beranda" hidden aria-live="polite"></div>
 
             <!-- BANNER KEUNGGULAN (v2, 7 Nov 2026): dipindah ke atas Layanan, dengan gambar animasi -->
             <div class="bh-sec bn-wrap">
@@ -3681,6 +3823,7 @@ body.gm-terkunci { overflow: hidden; }
                         <button type="button" role="menuitem" id="pc-m-kosong" class="bahaya"><i class="ph ph-trash" aria-hidden="true"></i>Kosongkan chat</button>
                     </div>
                     <div class="pc-isi pc-motif" id="pc-isi" role="log" aria-live="polite" aria-label="Isi chat">
+                        <button type="button" id="prc-ajak" class="prc-ajak" hidden></button>
                         <div class="pc-info">Nomormu tidak dibagikan ke rider, jadi lebih privat. Hanya admin ProjekGo yang menyimpannya.</div>
                         <div id="pc-daftar"></div>
                     </div>
@@ -3714,6 +3857,17 @@ body.gm-terkunci { overflow: hidden; }
                     <input type="file" id="pc-file-galeri" accept="image/*" hidden>
                 </section>
             </div>
+        </div>
+
+        <!-- HALAMAN AKTIVITAS (tahap 3, 7 Nov 2026): pesanan berjalan & riwayat -->
+        <div id="page-aktivitas" class="page">
+            <div class="ktv-kepala"><h1>Aktivitas</h1><p>Pantau pesananmu dan chat dengan rider di sini.</p></div>
+            <div class="ktv-tab" role="tablist" aria-label="Jenis aktivitas">
+                <button type="button" role="tab" id="ktv-tab-jalan" aria-selected="true" aria-controls="ktv-daftar">Berjalan <em id="ktv-n-jalan" hidden>0</em></button>
+                <button type="button" role="tab" id="ktv-tab-riwayat" aria-selected="false" aria-controls="ktv-daftar">Riwayat</button>
+            </div>
+            <div class="ktv-daftar" id="ktv-daftar" role="tabpanel" aria-live="polite"></div>
+            <button type="button" class="ktv-lama" onclick="openPage('orders')">Lihat catatan pesanan lama di HP ini</button>
         </div>
 
         <div id="page-coming-soon" class="page" style="display: none; background: white; min-height: 100vh;">
@@ -4363,12 +4517,56 @@ body.gm-terkunci { overflow: hidden; }
         </section>
     </div>
 
+    <!-- DETAIL PESANAN (tahap 3): lacak di dalam aplikasi -->
+    <div id="ktv-detail" class="ktv-layar" hidden role="dialog" aria-modal="true" aria-labelledby="ktv-d-judul">
+        <div class="ktv-lk">
+            <button type="button" id="ktv-d-kembali" aria-label="Kembali"><i class="ph-bold ph-arrow-left" aria-hidden="true"></i></button>
+            <div><b id="ktv-d-judul">Detail pesanan</b><span id="ktv-d-sub"></span></div>
+        </div>
+        <div class="ktv-gulir" id="ktv-d-isi"></div>
+    </div>
+
+    <!-- CHAT DENGAN RIDER (tahap 3) -->
+    <div id="prc" class="ktv-layar" hidden role="dialog" aria-modal="true" aria-labelledby="prc-nama">
+        <section class="pc-kotak" aria-label="Chat dengan rider">
+            <div class="pc-kepala">
+                <button type="button" class="pc-ik" id="prc-kembali" aria-label="Kembali"><i class="ph-bold ph-arrow-left" aria-hidden="true"></i></button>
+                <span class="pc-av" id="prc-av" aria-hidden="true" style="display:grid;place-items:center;color:#C2410C;font-weight:800;">R</span>
+                <div class="pc-id"><b><span id="prc-nama">Rider ProjekGo</span> <svg class="pc-centang" viewBox="0 0 24 24" role="img" aria-label="Rider resmi ProjekGo"><path fill="#1D9BF0" d="M12 1.5l2.4 1.8 3-.2 1.1 2.8 2.6 1.5-.5 3 1.4 2.6-1.9 2.3.1 3-2.9.8-1.6 2.6-2.9-.7L12 22.5l-2.4-1.8-2.9.7-1.6-2.6-2.9-.8.1-3L.4 12.7 1.8 10l-.5-3 2.6-1.5L5 2.7l3 .2z"/><path d="m7.5 12.3 3 3 6-6.3" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></b><small id="prc-sub">Rider ProjekGo</small></div>
+            </div>
+            <button type="button" class="prc-status" id="prc-status"><i aria-hidden="true" id="prc-st-ik" style="font-style:normal;font-size:22px;">🛵</i><span style="min-width:0;"><b id="prc-st-j">Pesanan berjalan</b><span id="prc-st-s"></span></span><em>Lacak ›</em></button>
+            <div class="pc-isi pc-motif" id="prc-isi" role="log" aria-live="polite" aria-label="Isi chat dengan rider">
+                <div class="pc-info">Rider tidak melihat nomor WA-mu. Chat ini otomatis ditutup 1 jam setelah pesanan selesai. Admin ProjekGo ikut memantau.</div>
+                <div id="prc-daftar" style="margin-top:auto;display:flex;flex-direction:column;gap:6px;"></div>
+            </div>
+            <div class="pc-cepat" id="prc-cepat">
+                <button type="button" class="pc-chip" data-prc="lokasi"><i class="ph-fill ph-map-pin" aria-hidden="true"></i>Kirim lokasi saya</button>
+                <button type="button" class="pc-chip">Saya tunggu di depan ya</button>
+                <button type="button" class="pc-chip">Mau bayar transfer / QRIS ya</button>
+                <button type="button" class="pc-chip">Sudah saya transfer ya, mohon dicek 🙏</button>
+            </div>
+            <form class="pc-tulis" id="prc-form" autocomplete="off">
+                <div class="pc-kolom">
+                    <label for="prc-input" style="position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);">Pesan untuk rider</label>
+                    <textarea id="prc-input" rows="1" maxlength="1000" placeholder="Tulis pesan ke rider..." enterkeyhint="send"></textarea>
+                    <button type="button" class="pc-ik" data-prc="lokasi" aria-label="Kirim lokasi saya"><i class="ph ph-map-pin" aria-hidden="true"></i></button>
+                </div>
+                <button type="submit" class="pc-kirim" id="prc-kirim" aria-label="Kirim pesan" disabled><i class="ph-fill ph-paper-plane-right" aria-hidden="true"></i></button>
+            </form>
+            <div class="prc-tutup" id="prc-tutup" hidden>Chat dengan rider sudah ditutup. Ada kendala? Chat admin ProjekGo di menu Chat.</div>
+        </section>
+    </div>
+    <div id="prc-lihat" class="prc-lihat" hidden role="dialog" aria-modal="true" aria-label="QRIS">
+        <img id="prc-lihat-img" alt="QRIS pembayaran dari rider">
+        <button type="button" id="prc-lihat-x" aria-label="Tutup"><i class="ph-bold ph-x" aria-hidden="true"></i></button>
+    </div>
+
     <!-- NAVBAR BAWAH -->
     <div class="bottom-nav-container">
         <nav class="bottom-nav">
             <span class="nav-blob" aria-hidden="true"></span>
             <div class="nav-item active" onclick="openPage('home')" id="nav-home"><i class="ph ph-house"></i><span>Beranda</span></div>
-            <div class="nav-item" onclick="openPage('food')" id="nav-food"><i class="ph ph-fork-knife"></i><span>Food</span></div>
+            <div class="nav-item" onclick="openPage('aktivitas')" id="nav-aktivitas"><i class="ph ph-receipt"></i><span>Aktivitas</span><div class="nav-badge" id="ktv-badge">0</div></div>
             <div class="nav-item" onclick="openPage('chat')" id="nav-chat"><i class="ph ph-chat-circle-dots"></i><span>Chat</span><div class="nav-badge" id="pc-badge">0</div></div>
             <div class="nav-item" onclick="toggleCartPopup()" id="nav-cart">
                 <i class="ph ph-shopping-cart"></i>
@@ -6081,6 +6279,9 @@ body.gm-terkunci { overflow: hidden; }
                 return; 
             }
 
+            // 1.4 (tahap 3) Layar detail pesanan / chat rider terbuka
+            if (typeof window.ktvTanganiKembali === 'function' && window.ktvTanganiKembali()) return;
+
             // 1.5 (7 Nov 2026) Lembar pilihan kirim pesanan (chat / WhatsApp) terbuka
             if (typeof window.pcTanganiKembali === 'function' && window.pcTanganiKembali()) return;
 
@@ -6192,6 +6393,7 @@ body.gm-terkunci { overflow: hidden; }
             updateCartBadge(name);
             if (typeof window.umkmSyncBar === 'function') window.umkmSyncBar(name);
             if (typeof window.pcSaatHalaman === 'function') window.pcSaatHalaman(name); // chat admin (7 Nov 2026)
+            if (typeof window.ktvSaatHalaman === 'function') window.ktvSaatHalaman(name); // aktivitas (tahap 3)
 
             // 5. Kembalikan posisi scroll jika menggunakan tombol back, atau scroll ke atas jika buka halaman baru
             if (restoreScroll && pageScrolls[name] !== undefined) {
@@ -16074,6 +16276,683 @@ body.gm-terkunci { overflow: hidden; }
             if (e && !e.hidden) { window.pcPilihBatal(); kembalikan(simpanState); return true; }
             return false;
         };
+    </script>
+    <!-- ===== AKTIVITAS PELANGGAN + CHAT RIDER (tahap 3, 7 Nov 2026) =====
+         Data: aktivitas_pelanggan/{uid}/order/{kode} (ditulis admin), lacak/{kode} & ulasan_link/{k} (ditulis rider),
+         chat_rider/{kode} + /pesan. Semua isi ditampilkan dengan textContent / elemen DOM, tidak pernah sebagai HTML. -->
+    <script type="module">
+        import { getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, doc, onSnapshot, query, orderBy, limit, writeBatch, serverTimestamp, increment, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const app = getApp();
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const P = 'onbid-2f87a';
+        const D = (...s) => doc(db, 'artifacts', P, 'public', 'data', ...s);
+        const $ = (id) => document.getElementById(id);
+        const toast = (t) => { if (typeof window.showToast === 'function') window.showToast(t); };
+        const KODE = /^[A-Za-z0-9]{12,32}$/, KODE_RIDER = /^[A-Za-z0-9]{10,32}$/;
+        const JAM_MS = 3600 * 1000, HARI_MS = 24 * JAM_MS;
+        const el = (tag, cls, teks) => { const e = document.createElement(tag); if (cls) e.className = cls; if (teks != null) e.textContent = teks; return e; };
+        const ms = (v) => (v && typeof v.toMillis === 'function') ? v.toMillis() : (typeof v === 'number' ? v : (v && typeof v.seconds === 'number' ? v.seconds * 1000 : 0));
+        const dua = (n) => String(n).padStart(2, '0');
+        const jam = (t) => { const d = new Date(t); return dua(d.getHours()) + '.' + dua(d.getMinutes()); };
+        const rp = (n) => 'Rp' + (Math.max(0, Math.round(Number(n) || 0))).toLocaleString('id-ID');
+        const tglPendek = (t) => {
+            const a = new Date(); a.setHours(0, 0, 0, 0);
+            const b = new Date(t); b.setHours(0, 0, 0, 0);
+            const s = Math.round((a - b) / 86400000);
+            return s === 0 ? 'Hari ini, ' + jam(t) : (s === 1 ? 'Kemarin, ' + jam(t) : new Date(t).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) + ', ' + jam(t));
+        };
+
+        // ---------- Kata-kata per jenis order (sama dengan halaman lacak rider.projekgo.id/u) ----------
+        const JENIS = {
+            food:  { label: 'Food', ik: '🍜', tujuan: '🏠', langkah: [['Pesanan diterima admin', 'Diteruskan ke rider'], ['Rider ke resto', 'Pesanan dipesankan & dibuat'], ['Diantar ke lokasimu', 'Rider menuju alamatmu'], ['Pesanan sampai', 'Selamat menikmati']],
+                     judul: { menunggu: ['Mencarikan rider', 'Pesananmu sedang dialihkan ke rider lain.'], diteruskan: ['Pesanan diteruskan ke rider', 'Menunggu rider menerima pesananmu.'], menuju: ['Rider menuju resto', 'Pesananmu akan segera dipesankan.'], lokasi: ['Pesanan sedang dibuat', 'Rider sudah di resto dan menunggu pesananmu.'], antar: ['Pesanan sedang diantar', 'Rider sedang menuju alamatmu.'], selesai: ['Pesanan sudah sampai 🎉', 'Selamat menikmati, kak. Terima kasih sudah memesan di ProjekGo.'] } },
+            ojek:  { label: 'Ngojek', ik: '🛵', tujuan: '🏁', langkah: [['Order diterima admin', 'Diteruskan ke rider'], ['Rider menjemput', 'Menuju lokasi jemput'], ['Dalam perjalanan', 'Hati-hati di jalan ya'], ['Sampai tujuan', 'Terima kasih sudah naik ProjekGo']],
+                     judul: { menunggu: ['Mencarikan rider', 'Ordermu sedang dialihkan ke rider lain.'], diteruskan: ['Order diteruskan ke rider', 'Menunggu rider menerima ordermu.'], menuju: ['Rider menuju lokasi jemput', 'Tunggu di tempat yang mudah dilihat ya.'], lokasi: ['Rider menuju lokasi jemput', 'Tunggu di tempat yang mudah dilihat ya.'], antar: ['Dalam perjalanan', 'Hati-hati di jalan ya, Kak.'], selesai: ['Sudah sampai tujuan 🎉', 'Terima kasih sudah naik ProjekGo, kak.'] } },
+            kirim: { label: 'Kirim barang', ik: '📦', tujuan: '🏠', langkah: [['Order diterima admin', 'Diteruskan ke rider'], ['Rider mengambil barang', 'Menuju lokasi pengambilan'], ['Barang diantar', 'Menuju alamat penerima'], ['Barang sampai', 'Terima kasih sudah memakai ProjekGo']],
+                     judul: { menunggu: ['Mencarikan rider', 'Ordermu sedang dialihkan ke rider lain.'], diteruskan: ['Order diteruskan ke rider', 'Menunggu rider menerima ordermu.'], menuju: ['Rider menuju lokasi pengambilan', 'Barang akan segera diambil.'], lokasi: ['Rider menuju lokasi pengambilan', 'Barang akan segera diambil.'], antar: ['Barang sedang diantar', 'Rider sedang menuju alamat penerima.'], selesai: ['Barang sudah sampai 🎉', 'Terima kasih sudah memakai ProjekGo, kak.'] } },
+            lain:  { label: 'Pesanan', ik: '🛍️', tujuan: '🏠', langkah: [['Pesanan diterima admin', 'Diteruskan ke rider'], ['Rider mengerjakan', 'Pesananmu sedang ditangani'], ['Sedang diantar', 'Rider menuju alamatmu'], ['Pesanan selesai', 'Terima kasih sudah memakai ProjekGo']],
+                     judul: { menunggu: ['Mencarikan rider', 'Pesananmu sedang dialihkan ke rider lain.'], diteruskan: ['Pesanan diteruskan ke rider', 'Menunggu rider menerima pesananmu.'], menuju: ['Rider menuju lokasi', 'Pesananmu sedang ditangani rider.'], lokasi: ['Pesanan sedang dikerjakan', 'Rider sedang mengerjakan pesananmu.'], antar: ['Pesanan sedang diantar', 'Rider sedang menuju alamatmu.'], selesai: ['Pesanan selesai 🎉', 'Terima kasih sudah memakai ProjekGo, kak.'] } }
+        };
+        const J = (j) => JENIS[j] || JENIS.lain;
+        const PENDEK = { menunggu: 'Mencarikan rider', diteruskan: 'Menunggu rider', menuju: 'Rider menuju lokasi', lokasi: 'Rider di lokasi', antar: 'Sedang diantar', selesai: 'Selesai', batal: 'Dibatalkan' };
+
+        // ---------- Status ----------
+        let uid = null, hentiAkt = null, akt = [], sudahMuat = false;
+        const lacak = {}, hentiLacak = {}, chat = {}, hentiChat = {}, rider = {}, mintaRider = {};
+        let tab = 'jalan', bukaDetail = null, bukaChat = null, mintaBukaChat = null;
+        try { const q = new URLSearchParams(location.search); if (q.get('buka') === 'rider' && KODE.test(q.get('k') || '')) mintaBukaChat = q.get('k'); } catch (e) {}
+        const riwayatTetap = (() => { try { return JSON.parse(localStorage.getItem('ktv_akhir') || '{}') || {}; } catch (e) { return {}; } })();   // kode -> tahap akhir (sudah pasti)
+
+        function tahapDari(a) {
+            const l = lacak[a.kode];
+            const t = l ? String(l.tahap || '') : '';
+            if (a.akhir === 'batal' || t === 'batal' || riwayatTetap[a.kode] === 'batal') return 'batal';
+            if (t === 'selesai' || a.akhir === 'selesai' || riwayatTetap[a.kode] === 'selesai') return 'selesai';
+            if (['menunggu', 'menuju', 'lokasi', 'antar'].includes(t)) return t;
+            if (Date.now() - a.t > HARI_MS) return 'lama';   // lebih dari 24 jam tanpa kabar akhir
+            return 'diteruskan';
+        }
+        const berjalan = (a) => !['selesai', 'batal', 'lama'].includes(tahapDari(a));
+        function langkahKe(t) { return ({ menunggu: 0, diteruskan: 0, menuju: 1, lokasi: 1, antar: 2, selesai: 4 })[t] ?? 0; }
+        function selesaiMs(a) { const l = lacak[a.kode]; return (l && (ms(l.selesai_at) || (l.tahap === 'selesai' ? ms(l.tahap_at) : 0))) || ms(a.akhir_at) || 0; }
+        function chatBuka(a) {
+            if (!a.chat || !chat[a.kode]) return false;
+            const t = tahapDari(a);
+            if (t === 'batal' || t === 'lama') return false;
+            if (t === 'selesai') { const s = selesaiMs(a); return !!s && Date.now() < s + JAM_MS; }
+            return true;
+        }
+        const belumChat = (a) => (a.chat && chat[a.kode]) ? Math.max(0, Number(chat[a.kode].belum_pelanggan) || 0) : 0;
+
+        // ---------- Dengarkan data ----------
+        function berhenti() {
+            if (hentiAkt) { try { hentiAkt(); } catch (e) {} }
+            hentiAkt = null; akt = []; sudahMuat = false;
+            Object.keys(hentiLacak).forEach((k) => { try { hentiLacak[k](); } catch (e) {} delete hentiLacak[k]; delete lacak[k]; });
+            Object.keys(hentiChat).forEach((k) => { try { hentiChat[k](); } catch (e) {} delete hentiChat[k]; delete chat[k]; });
+            uid = null; tutupSemua(); gambarSemua();
+        }
+        function mulai(u) {
+            berhenti();
+            uid = u.uid;
+            hentiAkt = onSnapshot(query(collection(db, 'aktivitas_pelanggan', uid, 'order'), orderBy('dibuat_at', 'desc'), limit(30)), (s) => {
+                akt = s.docs.map((d) => {
+                    const x = d.data({ serverTimestamps: 'estimate' }) || {};
+                    return {
+                        kode: d.id, jenis: JENIS[x.jenis] ? x.jenis : 'lain', judul: String(x.judul || '').slice(0, 60), pesanan: String(x.pesanan || '').slice(0, 1500),
+                        fee: Number(x.fee) || 0, tambahan: Number(x.tambahan) || 0, chat: x.chat === true, lewat: x.lewat === 'wa' ? 'wa' : 'chat',
+                        riderNama: x.rider_nama ? String(x.rider_nama).slice(0, 60) : '', akhir: ['selesai', 'batal'].includes(x.akhir) ? x.akhir : '', akhir_at: x.akhir_at || null,
+                        t: ms(x.dibuat_at) || Date.now()
+                    };
+                }).filter((a) => KODE.test(a.kode));
+                sudahMuat = true;
+                aturPemantau();
+                gambarSemua();
+            }, (e) => { console.warn('Aktivitas belum terbaca:', e && e.code); sudahMuat = true; gambarSemua(); });
+        }
+        // Pemantau langsung hanya untuk pesanan yang masih mungkin berjalan (paling banyak 6)
+        function aturPemantau() {
+            const perlu = new Set(akt.filter((a) => !a.akhir && !riwayatTetap[a.kode] && Date.now() - a.t < HARI_MS).slice(0, 6).map((a) => a.kode));
+            const perluChat = new Set(akt.filter((a) => a.chat && perlu.has(a.kode)).map((a) => a.kode));
+            if (bukaChat) perluChat.add(bukaChat);
+            Object.keys(hentiLacak).forEach((k) => { if (!perlu.has(k)) { try { hentiLacak[k](); } catch (e) {} delete hentiLacak[k]; } });
+            Object.keys(hentiChat).forEach((k) => { if (!perluChat.has(k)) { try { hentiChat[k](); } catch (e) {} delete hentiChat[k]; } });
+            perlu.forEach((k) => {
+                if (hentiLacak[k]) return;
+                hentiLacak[k] = onSnapshot(D('lacak', k), (s) => {
+                    lacak[k] = s.exists() ? s.data({ serverTimestamps: 'estimate' }) : null;
+                    const l = lacak[k];
+                    if (l && (l.tahap === 'selesai' || l.tahap === 'batal')) simpanAkhir(k, l.tahap);
+                    if (l && KODE_RIDER.test(String(l.k || ''))) muatRider(l.k);
+                    gambarSemua();
+                }, (e) => console.warn('Lacak belum terbaca:', e && e.code));
+            });
+            perluChat.forEach((k) => {
+                if (hentiChat[k]) return;
+                let pertama = true;
+                hentiChat[k] = onSnapshot(doc(db, 'chat_rider', k), (s) => {
+                    const lama = chat[k];
+                    chat[k] = s.exists() ? s.data({ serverTimestamps: 'estimate' }) : null;
+                    const c = chat[k];
+                    if (!pertama && c && c.terakhir_dari === 'rider' && (Number(c.belum_pelanggan) || 0) > (Number(lama && lama.belum_pelanggan) || 0) && bukaChat !== k)
+                        toast('🛵 Rider: ' + String(c.terakhir || 'pesan baru').slice(0, 80));
+                    pertama = false;
+                    if (bukaChat === k) { gambarKepalaChat(); tandaiDibaca(); }
+                    gambarSemua();
+                    if (mintaBukaChat === k && c) { mintaBukaChat = null; bukaRuangRider(k); }
+                }, (e) => { console.warn('Chat rider belum terbaca:', e && e.code); chat[k] = null; gambarSemua(); });
+            });
+            // Riwayat > 24 jam tanpa tanda akhir: baca status lacak sekali, lalu diingat di HP ini
+            akt.filter((a) => !a.akhir && !riwayatTetap[a.kode] && Date.now() - a.t >= HARI_MS).slice(0, 8).forEach((a) => {
+                if (lacak[a.kode] !== undefined) return;
+                lacak[a.kode] = null;
+                getDoc(D('lacak', a.kode)).then((s) => {
+                    const l = s.exists() ? s.data() : null; lacak[a.kode] = l;
+                    if (l && (l.tahap === 'selesai' || l.tahap === 'batal')) simpanAkhir(a.kode, l.tahap);
+                    gambarSemua();
+                }).catch(() => {});
+            });
+            if (mintaBukaChat && !akt.some((a) => a.kode === mintaBukaChat)) mintaBukaChat = null;
+        }
+        function simpanAkhir(k, t) {
+            // Hanya untuk pesanan yang sudah lewat 24 jam (status tidak berubah lagi)
+            const a = akt.find((x) => x.kode === k);
+            if (!a || Date.now() - a.t < HARI_MS) return;
+            riwayatTetap[k] = t;
+            try { const isi = Object.entries(riwayatTetap).slice(-60); localStorage.setItem('ktv_akhir', JSON.stringify(Object.fromEntries(isi))); } catch (e) {}
+        }
+        function muatRider(k) {
+            if (rider[k] || mintaRider[k]) return;
+            mintaRider[k] = getDoc(D('ulasan_link', k)).then((s) => {
+                const x = s.exists() ? s.data() : {};
+                const foto = typeof x.foto === 'string' && x.foto.length <= 20000 && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(x.foto) ? x.foto : '';
+                rider[k] = { nama: String(x.nama || '').slice(0, 60), foto, uid: String(x.uid || ''), aktif: x.aktif === true };
+                gambarSemua();
+            }).catch(() => { rider[k] = { nama: '', foto: '' }; });
+        }
+        const infoRider = (a) => { const l = lacak[a.kode]; const r = l && rider[l.k]; return { nama: (r && r.nama) || a.riderNama || '', foto: (r && r.foto) || '' }; };
+
+        onAuthStateChanged(auth, (u) => {
+            const google = u && (u.providerData || []).some((p) => p.providerId === 'google.com');
+            if (google) { if (!uid || uid !== u.uid) mulai(u); } else berhenti();
+        });
+
+        // ---------- Gambar: kartu ----------
+        function avatar(info, kelas) {
+            const av = el('span', kelas || 'ktv-av');
+            if (info.foto) { const im = el('img'); im.alt = ''; im.src = info.foto; av.appendChild(im); }
+            else av.textContent = (info.nama || 'R').charAt(0).toUpperCase();
+            av.setAttribute('aria-hidden', 'true');
+            return av;
+        }
+        function garisLangkah(a) {
+            const g = el('div', 'ktv-garis'), t = tahapDari(a), n = langkahKe(t);
+            for (let i = 0; i < 4; i++) { const s = el('i'); if (i <= n && t !== 'batal') s.className = 'ok'; g.appendChild(s); }
+            g.setAttribute('aria-label', 'Tahap ' + Math.min(4, n + 1) + ' dari 4');
+            g.setAttribute('role', 'img');
+            return g;
+        }
+        function kartu(a, lengkap) {
+            const j = J(a.jenis), t = tahapDari(a), jalan = berjalan(a);
+            const b = el('div', 'ktv-kartu'); b.setAttribute('role', 'button'); b.tabIndex = 0;
+            b.setAttribute('aria-label', j.label + (a.judul ? ', ' + a.judul : '') + ', ' + (PENDEK[t] || 'Tercatat'));
+            const atas = el('div', 'ktv-atas');
+            const ik = el('span', 'ktv-ik ' + a.jenis, j.ik); ik.setAttribute('aria-hidden', 'true');
+            const tg = el('div', 'ktv-tengah');
+            tg.append(el('b', '', j.label + (a.judul ? ' · ' + a.judul : '')), el('span', '', tglPendek(a.t) + (a.fee ? ' · ongkir ' + rp(a.fee + a.tambahan) : '')));
+            atas.append(ik, tg);
+            if (!jalan) {
+                const s = selesaiMs(a), bisaUlas = t === 'selesai' && s && Date.now() < s + HARI_MS && lacak[a.kode] && !ulasanTerkirim(a.kode);
+                atas.appendChild(el('span', 'ktv-st ' + (bisaUlas ? 'ulas' : (t === 'selesai' ? 'selesai' : 'batal')), bisaUlas ? 'Beri ulasan' : (t === 'batal' ? 'Batal' : (t === 'selesai' ? 'Selesai' : 'Tercatat'))));
+            }
+            b.appendChild(atas);
+            if (jalan) {
+                const jl = el('div', 'ktv-jalan'); jl.append(el('i', 'ktv-titik'));
+                const tx = el('div'); tx.append(el('b', '', (J(a.jenis).judul[t] || ['Pesanan berjalan'])[0]));
+                jl.appendChild(tx);
+                b.append(jl, garisLangkah(a));
+                const info = infoRider(a);
+                if (lengkap && info.nama && t !== 'menunggu' && t !== 'diteruskan') {
+                    const r = el('div', 'ktv-rider'); const rt = el('div', 'ktv-tengah');
+                    rt.append(el('b', '', info.nama), el('span', '', 'Rider ProjekGo'));
+                    r.append(avatar(info), rt); b.appendChild(r);
+                }
+                const tb = el('div', 'ktv-tb');
+                if (chatBuka(a)) {
+                    const c = el('button', 'ktv-btn utama'); c.type = 'button';
+                    const n = belumChat(a), em = el('em', 'ktv-n', n > 9 ? '9+' : String(n)); em.hidden = n === 0;
+                    c.append(ikonPh('ph-fill ph-chat-circle-dots'), document.createTextNode('Chat rider'), em);
+                    c.onclick = (e) => { e.stopPropagation(); bukaRuangRider(a.kode); };
+                    tb.appendChild(c);
+                }
+                const l = el('button', 'ktv-btn garis'); l.type = 'button';
+                l.append(ikonPh('ph-bold ph-map-trifold'), document.createTextNode('Lacak pesanan'));
+                l.onclick = (e) => { e.stopPropagation(); bukaDetailPesanan(a.kode); };
+                tb.appendChild(l);
+                b.appendChild(tb);
+            }
+            b.onclick = () => bukaDetailPesanan(a.kode);
+            b.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); bukaDetailPesanan(a.kode); } };
+            return b;
+        }
+        function ikonPh(k) { const i = el('i', k); i.setAttribute('aria-hidden', 'true'); return i; }
+
+        function gambarDaftar() {
+            const w = $('ktv-daftar'); if (!w) return;
+            const jalan = akt.filter(berjalan), riwayat = akt.filter((a) => !berjalan(a));
+            const n = $('ktv-n-jalan'); if (n) { n.textContent = String(jalan.length); n.hidden = jalan.length === 0; }
+            $('ktv-tab-jalan').setAttribute('aria-selected', String(tab === 'jalan'));
+            $('ktv-tab-riwayat').setAttribute('aria-selected', String(tab === 'riwayat'));
+            const frag = document.createDocumentFragment();
+            if (!auth.currentUser || !uid) {
+                const k = el('div', 'ktv-kosong');
+                k.append(el('div', 'ktv-ik', '🧾'), el('b', '', 'Masuk dulu untuk melihat pesananmu'), document.createTextNode('Pesanan yang kamu kirim lewat chat aplikasi akan tampil di sini, lengkap dengan status rider.'));
+                const m = el('button', 'ktv-btn utama', 'Masuk dengan Google'); m.type = 'button';
+                m.onclick = () => { if (typeof window.gmGerbang === 'function') window.gmGerbang('sambut'); };
+                k.appendChild(m); frag.appendChild(k);
+            } else if (!sudahMuat) {
+                frag.appendChild(el('div', 'ktv-kosong', 'Memuat pesanan...'));
+            } else {
+                const isi = tab === 'jalan' ? jalan : riwayat;
+                if (!isi.length) {
+                    const k = el('div', 'ktv-kosong');
+                    k.append(el('div', 'ktv-ik', tab === 'jalan' ? '🛵' : '🧾'), el('b', '', tab === 'jalan' ? 'Belum ada pesanan berjalan' : 'Belum ada riwayat'),
+                        document.createTextNode(tab === 'jalan' ? 'Pesan lewat chat aplikasi, nanti status rider dan chat rider muncul di sini.' : 'Pesanan yang sudah selesai akan tersimpan di sini.'));
+                    if (tab === 'jalan') { const m = el('button', 'ktv-btn utama', 'Chat admin untuk pesan'); m.type = 'button'; m.onclick = () => window.openPage('chat'); k.appendChild(m); }
+                    frag.appendChild(k);
+                } else isi.forEach((a) => frag.appendChild(kartu(a, tab === 'jalan')));
+            }
+            w.replaceChildren(frag);
+        }
+        function gambarBeranda() {
+            const w = $('ktv-beranda'); if (!w) return;
+            const jalan = akt.filter(berjalan);
+            w.hidden = !jalan.length;
+            if (!jalan.length) { w.replaceChildren(); return; }
+            const jdl = el('div', 'ktv-jdl');
+            jdl.appendChild(el('b', '', 'AKTIVITAS TERKINI'));
+            const lihat = el('button', '', jalan.length > 1 ? 'Lihat semua (' + jalan.length + ') ›' : 'Lihat detail ›'); lihat.type = 'button';
+            lihat.onclick = () => { if (jalan.length > 1) window.openPage('aktivitas'); else bukaDetailPesanan(jalan[0].kode); };
+            jdl.appendChild(lihat);
+            w.replaceChildren(jdl, kartu(jalan[0], true));
+        }
+        function gambarLencana() {
+            const nJalan = akt.filter(berjalan).length;
+            const nav = $('ktv-badge');
+            if (nav) { nav.textContent = nJalan > 9 ? '9+' : String(nJalan); nav.style.display = nJalan > 0 ? 'flex' : 'none'; }
+            // Ajakan di layar chat admin: ada chat rider yang aktif
+            const aj = $('prc-ajak');
+            if (aj) {
+                const a = akt.find((x) => berjalan(x) && chatBuka(x)) || akt.find((x) => chatBuka(x));
+                aj.hidden = !a;
+                if (a) {
+                    const info = infoRider(a), n = belumChat(a);
+                    aj.replaceChildren();
+                    const ik = el('i', '', '🛵'); ik.setAttribute('aria-hidden', 'true'); ik.style.fontStyle = 'normal';
+                    const tx = el('span'); tx.style.minWidth = '0';
+                    tx.append(el('b', '', 'Chat rider' + (info.nama ? ' · ' + info.nama : '')), el('span', '', J(a.jenis).label + ' · ' + (PENDEK[tahapDari(a)] || 'berjalan')));
+                    const em = el('em'); if (n > 0) em.appendChild(el('i', 'ktv-n', n > 9 ? '9+' : String(n))); em.appendChild(document.createTextNode('Buka ›'));
+                    aj.append(ik, tx, em);
+                    aj.onclick = () => bukaRuangRider(a.kode);
+                }
+            }
+        }
+        function gambarSemua() {
+            gambarLencana(); gambarBeranda();
+            const p = $('page-aktivitas'); if (p && p.style.display !== 'none') gambarDaftar();
+            if (bukaDetail) gambarDetail();
+            if (bukaChat) gambarKepalaChat();
+        }
+        if ($('ktv-tab-jalan')) {
+            $('ktv-tab-jalan').onclick = () => { tab = 'jalan'; gambarDaftar(); };
+            $('ktv-tab-riwayat').onclick = () => { tab = 'riwayat'; gambarDaftar(); };
+        }
+        window.ktvSaatHalaman = (name) => {
+            if (name === 'aktivitas') { const n = $('nav-aktivitas'); if (n) n.classList.add('active'); gambarDaftar(); }
+            if (name === 'home') gambarBeranda();
+        };
+        setInterval(() => { if (akt.length) gambarSemua(); }, 60000);   // "x menit lalu", chat ditutup 1 jam
+
+        // ---------- Layar penuh: detail & chat rider (tombol Back HP menutup layar ini dulu) ----------
+        function dorongRiwayat(tanda) { try { window.history.pushState(Object.assign({}, window.history.state || { page: 'home' }, { ktv: tanda }), '', ''); } catch (e) {} }
+        function tutupSemua() {
+            $('prc-lihat') && ($('prc-lihat').hidden = true);
+            if (bukaChat) tutupRuangRider();
+            if (bukaDetail) tutupDetailPesanan();
+        }
+        window.ktvTanganiKembali = () => {
+            if ($('prc-lihat') && !$('prc-lihat').hidden) { $('prc-lihat').hidden = true; return true; }
+            if (bukaChat) { tutupRuangRider(); return true; }
+            if (bukaDetail) { tutupDetailPesanan(); return true; }
+            return false;
+        };
+        const kembali = () => { try { window.history.back(); } catch (e) { window.ktvTanganiKembali(); } };
+
+        // ---------- Detail pesanan ----------
+        function bukaDetailPesanan(kode) {
+            if (!akt.some((a) => a.kode === kode)) return;
+            bukaDetail = kode;
+            $('ktv-detail').hidden = false;
+            document.body.style.overflow = 'hidden';
+            dorongRiwayat('detail');
+            if (!hentiLacak[kode] && lacak[kode] === undefined) {
+                lacak[kode] = null;
+                getDoc(D('lacak', kode)).then((s) => { lacak[kode] = s.exists() ? s.data() : null; if (lacak[kode] && KODE_RIDER.test(String(lacak[kode].k || ''))) muatRider(lacak[kode].k); gambarSemua(); }).catch(() => {});
+            }
+            cekUlasan(kode);
+            gambarDetail(true);
+        }
+        function tutupDetailPesanan() {
+            bukaDetail = null; ulasState = null;
+            $('ktv-detail').hidden = true;
+            if (!bukaChat) document.body.style.overflow = '';
+        }
+        $('ktv-d-kembali').onclick = kembali;
+
+        // Ulasan dari aplikasi (link sekali pakai yang sama dengan halaman ulasan rider)
+        const ulasanCache = {};   // kode -> 'belum' | 'sudah' | 'tidak'
+        function ulasanTerkirim(kode) { return ulasanCache[kode] === 'sudah' || (() => { try { return localStorage.getItem('ktv_ulas_' + kode) === '1'; } catch (e) { return false; } })(); }
+        function cekUlasan(kode) {
+            if (ulasanCache[kode] || ulasanTerkirim(kode)) return;
+            ulasanCache[kode] = 'cek';
+            getDoc(D('ulasan_token', kode)).then((s) => {
+                const x = s.exists() ? s.data() : null;
+                ulasanCache[kode] = !x ? 'tidak' : (x.terpakai === true ? 'sudah' : 'belum');
+                if (x) ulasanCache[kode + '_oid'] = String(x.order_id || '');
+                if (bukaDetail === kode) gambarDetail();
+            }).catch(() => { ulasanCache[kode] = 'tidak'; });
+        }
+        let ulasState = null;   // { bintang, komentar, kirim, galat }
+
+        function gambarDetail(awal) {
+            const a = akt.find((x) => x.kode === bukaDetail); if (!a) return;
+            const w = $('ktv-d-isi'), gulir = w.scrollTop;
+            const j = J(a.jenis), t = tahapDari(a), l = lacak[a.kode] || null, info = infoRider(a);
+            $('ktv-d-judul').textContent = j.label + (a.judul ? ' · ' + a.judul : '');
+            $('ktv-d-sub').textContent = 'Pesanan #' + a.kode.slice(-5).toUpperCase() + ' · ' + tglPendek(a.t);
+            const frag = document.createDocumentFragment();
+
+            // 1. Status utama
+            const hero = el('section', 'ktv-kotak ktv-hero');
+            const jd = t === 'batal' ? ['Pesanan dibatalkan', 'Pesanan ini dibatalkan admin. Ada pertanyaan? Chat admin ProjekGo di menu Chat.']
+                : t === 'lama' ? ['Pesanan tercatat', 'Status akhir pesanan ini tidak tercatat. Ada kendala? Chat admin ProjekGo.']
+                : (j.judul[t] || j.judul.diteruskan);
+            hero.append(el('h2', '', jd[0]), el('p', '', jd[1]));
+            if (t !== 'batal' && t !== 'lama') {
+                const ad = el('div', 'ktv-adegan' + (t === 'selesai' ? ' sampai' : (t === 'menunggu' || t === 'diteruskan' ? ' diam' : '')));
+                ad.setAttribute('aria-hidden', 'true');
+                ad.append(el('span', 'm', t === 'selesai' ? '✅' : '🛵'), el('span', 'tj', j.tujuan));
+                hero.appendChild(ad);
+                const est = l && Number.isInteger(l.estimasi_menit) ? l.estimasi_menit : 0, estAt = l ? ms(l.estimasi_at) : 0;
+                const eta = el('div', 'ktv-eta');
+                if (t === 'lokasi' && est > 0 && estAt) { const siap = estAt + est * 60000; eta.textContent = Date.now() < siap ? 'Perkiraan siap sekitar pukul ' + jam(siap) + ' (±' + est + ' menit, diisi rider)' : 'Seharusnya sudah hampir siap'; }
+                else eta.hidden = true;
+                hero.appendChild(eta);
+                const pos = l && l.posisi && t === 'antar' ? l.posisi : null;
+                if (pos && isFinite(Number(pos.lat)) && isFinite(Number(pos.lng)) && Math.abs(pos.lat) <= 90 && Math.abs(pos.lng) <= 180) {
+                    const p = el('a', 'ktv-posisi'); p.href = 'https://www.google.com/maps?q=' + Number(pos.lat).toFixed(6) + ',' + Number(pos.lng).toFixed(6); p.target = '_blank'; p.rel = 'noopener noreferrer';
+                    p.append(ikonPh('ph-fill ph-navigation-arrow'), document.createTextNode('Lihat posisi rider' + (ms(pos.at) ? ' · ' + jam(ms(pos.at)) : '')));
+                    hero.appendChild(p);
+                }
+            }
+            frag.appendChild(hero);
+
+            // 2. Tahap (4 langkah)
+            if (t !== 'batal') {
+                const tl = el('section', 'ktv-kotak');
+                tl.appendChild(el('h3', 'ktv-h3', 'Perjalanan pesanan'));
+                const n = langkahKe(t);
+                j.langkah.forEach((x, i) => {
+                    const ok = i < n || t === 'selesai', kini = i === n && t !== 'selesai';
+                    const r = el('div', 'ktv-tl' + (ok ? ' ok' : '') + (kini ? ' kini' : '') + (!ok && !kini ? ' nanti' : ''));
+                    const d = el('span', 'd', ok ? '✓' : String(i + 1)); d.setAttribute('aria-hidden', 'true');
+                    const tx = el('div'); tx.append(el('b', '', x[0]), el('span', '', (i === 1 && kini && info.nama) ? info.nama + ' · ' + x[1] : x[1]));
+                    let wkt = '';
+                    if (i === 0) wkt = jam(a.t);
+                    else if (kini && l && ms(l.tahap_at)) wkt = jam(ms(l.tahap_at));
+                    else if (i === 3 && t === 'selesai' && selesaiMs(a)) wkt = jam(selesaiMs(a));
+                    r.append(d, tx, el('em', '', wkt || (ok ? '' : '-')));
+                    r.setAttribute('aria-label', 'Langkah ' + (i + 1) + ': ' + x[0] + (ok ? ', selesai' : (kini ? ', sedang berjalan' : '')));
+                    tl.appendChild(r);
+                });
+                frag.appendChild(tl);
+            }
+
+            // 3. Rider
+            if (info.nama && t !== 'menunggu' && t !== 'diteruskan' && t !== 'batal') {
+                const rk = el('section', 'ktv-kotak');
+                const r = el('div', 'ktv-rider'); r.style.cssText = 'margin:0;padding:0;border:0;';
+                const rt = el('div', 'ktv-tengah'); rt.append(el('b', '', info.nama), el('span', '', 'Rider ProjekGo · nomormu tidak dibagikan'));
+                r.append(avatar(info), rt);
+                if (chatBuka(a)) {
+                    const c = el('button', 'ktv-btn utama'); c.type = 'button'; c.style.flex = 'none'; c.style.padding = '0 14px';
+                    const nn = belumChat(a), em = el('em', 'ktv-n', nn > 9 ? '9+' : String(nn)); em.hidden = nn === 0;
+                    c.append(ikonPh('ph-fill ph-chat-circle-dots'), document.createTextNode('Chat'), em);
+                    c.onclick = () => bukaRuangRider(a.kode);
+                    r.appendChild(c);
+                }
+                rk.appendChild(r);
+                if (a.lewat === 'wa' && t !== 'selesai') rk.appendChild(el('p', 'ktv-catat', 'Pesanan ini lewat WhatsApp, jadi rider menghubungimu lewat WhatsApp.'));
+                frag.appendChild(rk);
+            }
+
+            // 4. Ulasan (24 jam setelah selesai)
+            const sMs = selesaiMs(a);
+            if (t === 'selesai' && l && KODE_RIDER.test(String(l.k || '')) && sMs && Date.now() < sMs + HARI_MS && ulasanCache[a.kode] === 'belum' && !ulasanTerkirim(a.kode)) frag.appendChild(kotakUlasan(a, info));
+            else if (t === 'selesai' && (ulasanCache[a.kode] === 'sudah' || ulasanTerkirim(a.kode))) { const u = el('section', 'ktv-kotak ktv-ulas'); u.append(el('b', '', 'Terima kasih atas ulasanmu 🙏'), el('p', '', 'Ulasanmu membantu rider ProjekGo jadi lebih baik.')); u.lastChild.style.margin = '4px 0 0'; frag.appendChild(u); }
+
+            // 5. Rincian
+            const rc = el('section', 'ktv-kotak');
+            rc.appendChild(el('h3', 'ktv-h3', 'Rincian pesanan'));
+            if (a.pesanan) rc.appendChild(el('div', 'ktv-rinci', a.pesanan.replace(/[*_~`]/g, '')));
+            const baris = (k, v, kelas) => { const r = el('div', 'ktv-rr' + (kelas ? ' ' + kelas : '')); r.append(el('span', '', k), el('b', '', v)); rc.appendChild(r); };
+            if (a.fee) baris('Ongkir', rp(a.fee));
+            if (a.tambahan) baris('Biaya tambahan', rp(a.tambahan));
+            if (a.fee || a.tambahan) baris('Total ongkir', rp(a.fee + a.tambahan), 'total');
+            rc.appendChild(el('p', 'ktv-catat', a.jenis === 'food' ? 'Harga makanan mengikuti harga di warung/resto. Total belanja dikirim rider lewat nota.' : 'Total akhir dikonfirmasi rider.'));
+            frag.appendChild(rc);
+
+            // 6. Pembayaran: tunai atau transfer ke rider
+            if (t !== 'batal') {
+                const by = el('section', 'ktv-bayar');
+                const tx = el('div');
+                tx.append(el('b', '', 'Bayar tunai ke rider, atau transfer juga bisa'),
+                    el('p', '', 'Mau bayar transfer? Bisa juga. Nanti rider akan mengirimkan QRIS pembayaran atau nomor rekening' + (a.chat ? ' lewat chat rider' : '') + ', lalu transfer langsung ke rider.'));
+                by.append(ikonPh('ph-fill ph-wallet'), tx);
+                frag.appendChild(by);
+            }
+            w.replaceChildren(frag);
+            if (!awal) w.scrollTop = gulir; else w.scrollTop = 0;
+        }
+
+        function kotakUlasan(a, info) {
+            if (!ulasState || ulasState.kode !== a.kode) ulasState = { kode: a.kode, bintang: 0, komentar: '', kirim: false, galat: '' };
+            const u = el('section', 'ktv-kotak ktv-ulas');
+            u.append(el('b', '', 'Bagaimana pelayanan ' + (info.nama || 'rider') + '?'), el('p', '', 'Beri bintang untuk rider. Bisa sampai 24 jam setelah pesanan selesai.'));
+            const bt = el('div', 'ktv-bintang'); bt.setAttribute('role', 'radiogroup'); bt.setAttribute('aria-label', 'Jumlah bintang');
+            for (let i = 1; i <= 5; i++) {
+                const s = el('button', ulasState.bintang >= i ? 'on' : '', '★'); s.type = 'button';
+                s.setAttribute('role', 'radio'); s.setAttribute('aria-checked', String(ulasState.bintang === i)); s.setAttribute('aria-label', i + ' bintang');
+                s.onclick = () => { ulasState.bintang = i; gambarDetail(); };
+                bt.appendChild(s);
+            }
+            u.appendChild(bt);
+            if (ulasState.bintang) {
+                const ta = el('textarea'); ta.maxLength = 300; ta.placeholder = 'Ceritakan pengalamanmu (boleh dikosongkan)'; ta.value = ulasState.komentar;
+                ta.setAttribute('aria-label', 'Komentar ulasan');
+                ta.oninput = () => { ulasState.komentar = ta.value; };
+                const k = el('button', 'ktv-btn utama', ulasState.kirim ? 'Mengirim...' : 'Kirim ulasan'); k.type = 'button'; k.disabled = ulasState.kirim;
+                k.onclick = () => kirimUlasan(a);
+                u.append(ta, k);
+            }
+            const g = el('div', 'ktv-galat', ulasState.galat || ''); g.setAttribute('role', 'status'); u.appendChild(g);
+            return u;
+        }
+        async function kirimUlasan(a) {
+            const l = lacak[a.kode], st = ulasState;
+            if (!st || st.kirim || st.bintang < 1 || st.bintang > 5 || !l) return;
+            const k = String(l.k || ''), uidRider = String(l.uid || ''), oid = ulasanCache[a.kode + '_oid'] || String(l.order_id || '');
+            if (!KODE_RIDER.test(k) || !/^[A-Z0-9][A-Z0-9_-]{0,63}$/.test(uidRider) || !oid) { st.galat = 'Ulasan belum bisa dikirim untuk pesanan ini.'; gambarDetail(); return; }
+            st.kirim = true; st.galat = ''; gambarDetail();
+            const r = rider[k] || {};
+            const isi = { kode: k, order_kode: a.kode, uid: uidRider, nama_rider: String(r.nama || a.riderNama || '').slice(0, 60), bintang: st.bintang, komentar: String(st.komentar || '').replace(/\s+/g, ' ').trim().slice(0, 300), order_id: oid, dibuat_at: serverTimestamp() };
+            const coba = async (salinan) => {
+                const b = writeBatch(db);
+                b.set(D('ulasan_rider', a.kode), isi);
+                if (salinan) b.set(D('ulasan_masuk', uidRider, 'items', a.kode), isi);
+                b.update(D('ulasan_token', a.kode), { terpakai: true, dipakai_at: serverTimestamp() });
+                await b.commit();
+            };
+            try {
+                try { await coba(true); } catch (e) { if (e && e.code === 'permission-denied') await coba(false); else throw e; }
+                ulasanCache[a.kode] = 'sudah'; try { localStorage.setItem('ktv_ulas_' + a.kode, '1'); } catch (e) {}
+                ulasState = null; toast('Terima kasih, ulasanmu terkirim'); gambarSemua();
+            } catch (e) {
+                console.warn('Ulasan gagal:', e && e.code, e);
+                st.kirim = false; st.galat = e && e.code === 'permission-denied' ? 'Ulasan tidak bisa dikirim (sudah pernah dinilai atau sudah lewat 24 jam).' : 'Belum terkirim. Periksa internet lalu coba lagi.';
+                gambarDetail();
+            }
+        }
+
+        // ---------- Chat rider ----------
+        let hentiPesanR = null, pesanR = [], tundaR = [], antreanR = Promise.resolve(), kirimTerakhirR = 0;
+        function bukaRuangRider(kode) {
+            const a = akt.find((x) => x.kode === kode);
+            if (!a || !a.chat) return;
+            if (!auth.currentUser) { if (window.gmGerbang) window.gmGerbang('sambut'); return; }
+            if (bukaChat === kode) return;
+            if (bukaChat) tutupRuangRider();
+            bukaChat = kode; pesanR = []; tundaR = [];
+            aturPemantau();
+            $('prc').hidden = false;
+            document.body.style.overflow = 'hidden';
+            dorongRiwayat('chat');
+            gambarKepalaChat(); gambarPesanR(true);
+            hentiPesanR = onSnapshot(query(collection(db, 'chat_rider', kode, 'pesan'), orderBy('dibuat_at', 'desc'), limit(80)), { includeMetadataChanges: true }, (s) => {
+                if (bukaChat !== kode) return;
+                pesanR = s.docs.map((d) => {
+                    const x = d.data({ serverTimestamps: 'estimate' }) || {};
+                    return { id: d.id, dari: x.dari === 'rider' ? 'rider' : 'pelanggan', teks: String(x.teks || '').slice(0, 3000), jenis: String(x.jenis || 'teks'), lat: x.lat, lng: x.lng, qris: typeof x.qris === 'string' ? x.qris : '', t: ms(x.dibuat_at) || Date.now(), tunda: !!(d.metadata && d.metadata.hasPendingWrites) };
+                }).sort((p, q) => p.t - q.t);
+                gambarPesanR();
+            }, (e) => { console.warn('Pesan rider belum terbaca:', e && e.code); });
+            tandaiDibaca();
+            aturTinggiR();
+        }
+        function tutupRuangRider() {
+            if (hentiPesanR) { try { hentiPesanR(); } catch (e) {} }
+            hentiPesanR = null; bukaChat = null; pesanR = []; tundaR = [];
+            $('prc').hidden = true; $('prc-input').value = ''; aturInputR();
+            if (!bukaDetail) document.body.style.overflow = '';
+            aturPemantau(); gambarSemua();
+        }
+        $('prc-kembali').onclick = kembali;
+        $('prc-status').onclick = () => { const k = bukaChat; if (!k) return; if (bukaDetail === k) { kembali(); return; } tutupRuangRider(); try { window.history.replaceState(Object.assign({}, window.history.state || {}, { ktv: 'detail' }), '', ''); } catch (e) {} bukaDetail = null; bukaDetailPesananTanpaRiwayat(k); };
+        function bukaDetailPesananTanpaRiwayat(k) { bukaDetail = k; $('ktv-detail').hidden = false; document.body.style.overflow = 'hidden'; cekUlasan(k); gambarDetail(true); }
+        function gambarKepalaChat() {
+            const a = akt.find((x) => x.kode === bukaChat); if (!a) return;
+            const info = infoRider(a), t = tahapDari(a), j = J(a.jenis), buka = chatBuka(a);
+            $('prc-nama').textContent = info.nama || 'Rider ProjekGo';
+            const av = $('prc-av'); av.replaceChildren();
+            if (info.foto) { const im = el('img'); im.alt = ''; im.src = info.foto; av.appendChild(im); av.style.background = '#FFFFFF'; }
+            else { av.textContent = (info.nama || 'R').charAt(0).toUpperCase(); av.style.background = '#FFE3CC'; }
+            $('prc-sub').textContent = buka ? 'Rider ProjekGo · ' + (t === 'selesai' ? 'pesanan selesai' : 'mengantar pesanan ' + j.label + '-mu') : 'Chat sudah ditutup';
+            $('prc-st-ik').textContent = t === 'selesai' ? '✅' : (t === 'batal' ? '✖️' : j.ik);
+            $('prc-st-j').textContent = (t === 'batal' ? ['Pesanan dibatalkan'] : (j.judul[t] || j.judul.diteruskan))[0];
+            $('prc-st-s').textContent = t === 'selesai' ? 'Chat ditutup otomatis 1 jam setelah selesai' : (t === 'batal' ? '' : 'Tahap ' + Math.min(4, langkahKe(t) + 1) + ' dari 4');
+            $('prc-form').hidden = !buka; $('prc-cepat').hidden = !buka; $('prc-tutup').hidden = buka;
+        }
+        // Tebal *teks* dan miring _teks_ seperti WhatsApp, tautan https bisa diketuk. Tanpa HTML.
+        function isiTeksR(w, teks) {
+            const re = /(https:\/\/[^\s<>"']+)|\*([^*\n]{1,200})\*|_([^_\n]{1,200})_/g;
+            let i = 0, m;
+            while ((m = re.exec(teks))) {
+                if (m.index > i) w.appendChild(document.createTextNode(teks.slice(i, m.index)));
+                if (m[1]) {
+                    const url = m[1].replace(/[),.;!?]+$/, '');
+                    const a = el('a', '', url); a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'; w.appendChild(a);
+                    re.lastIndex = m.index + url.length; i = re.lastIndex; continue;
+                }
+                w.appendChild(el(m[2] ? 'b' : 'i', '', m[2] || m[3]));
+                i = re.lastIndex;
+            }
+            if (i < teks.length) w.appendChild(document.createTextNode(teks.slice(i)));
+        }
+        const QRIS_HOST = /^https:\/\/(i\.ibb\.co(\.com)?|firebasestorage\.googleapis\.com|lh[0-9]\.googleusercontent\.com|storage\.googleapis\.com)\//i;
+        function gambarPesanR(paksaBawah) {
+            const isi = $('prc-isi'), w = $('prc-daftar'); if (!w) return;
+            const diBawah = isi.scrollHeight - isi.scrollTop - isi.clientHeight < 90;
+            const frag = document.createDocumentFragment();
+            let hari = '';
+            pesanR.concat(tundaR).forEach((p) => {
+                const a = new Date(); a.setHours(0, 0, 0, 0); const b0 = new Date(p.t); b0.setHours(0, 0, 0, 0);
+                const s = Math.round((a - b0) / 86400000), h = s === 0 ? 'Hari ini' : (s === 1 ? 'Kemarin' : new Date(p.t).toLocaleDateString('id-ID', { day: 'numeric', month: 'long' }));
+                if (h !== hari) { hari = h; frag.appendChild(el('div', 'pc-hari', h)); }
+                const b = el('div', 'pc-bub ' + (p.dari === 'pelanggan' ? 'saya' : 'adm'));
+                const lat = Number(p.lat), lng = Number(p.lng);
+                if (p.jenis === 'lokasi' && isFinite(lat) && isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
+                    b.classList.add('pc-lok');
+                    const pt = el('div', 'pc-lok-peta'); pt.appendChild(ikonPh('ph-fill ph-map-pin'));
+                    const a2 = el('a', '', 'Buka di Google Maps'); a2.href = 'https://www.google.com/maps?q=' + lat.toFixed(6) + ',' + lng.toFixed(6); a2.target = '_blank'; a2.rel = 'noopener noreferrer';
+                    b.append(pt, el('div', 'pc-lok-t', p.dari === 'pelanggan' ? 'Lokasi saya' : 'Lokasi dari rider'), a2);
+                } else if (p.jenis === 'qris') {
+                    b.appendChild(el('b', '', 'QRIS pembayaran'));
+                    if (QRIS_HOST.test(p.qris)) {
+                        const btn = el('button', 'prc-qris'); btn.type = 'button'; btn.setAttribute('aria-label', 'Perbesar QRIS');
+                        const im = el('img'); im.alt = 'QRIS pembayaran dari rider'; im.loading = 'lazy'; im.referrerPolicy = 'no-referrer'; im.src = p.qris;
+                        btn.appendChild(im); btn.onclick = () => { $('prc-lihat-img').src = p.qris; $('prc-lihat').hidden = false; dorongRiwayat('lihat'); };
+                        b.appendChild(btn);
+                    } else if (/^https:\/\//i.test(p.qris)) { const a3 = el('a', '', 'Buka QRIS'); a3.href = p.qris; a3.target = '_blank'; a3.rel = 'noopener noreferrer'; b.appendChild(el('div')).appendChild(a3); }
+                    if (p.teks) { const tx = el('div'); tx.style.marginTop = '4px'; isiTeksR(tx, p.teks); b.appendChild(tx); }
+                } else isiTeksR(b, p.teks);
+                const wk = el('div', 'pc-waktu', p.tunda ? 'mengirim…' : jam(p.t));
+                b.appendChild(wk);
+                frag.appendChild(b);
+            });
+            w.replaceChildren(frag);
+            if (paksaBawah || diBawah) isi.scrollTop = isi.scrollHeight;
+        }
+        let tandaJalanR = false;
+        function tandaiDibaca() {
+            const k = bukaChat; if (!k || tandaJalanR || document.hidden) return;
+            const c = chat[k]; if (!c || !(Number(c.belum_pelanggan) > 0)) return;
+            tandaJalanR = true;
+            updateDoc(doc(db, 'chat_rider', k), { belum_pelanggan: 0 }).catch(() => {}).then(() => { tandaJalanR = false; });
+        }
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) tandaiDibaca(); });
+        function kirimR(isi) {
+            const k = bukaChat, a = akt.find((x) => x.kode === k);
+            if (!k || !a || !chatBuka(a) || !auth.currentUser) return Promise.resolve(false);
+            const sementara = { id: 't' + Date.now(), dari: 'pelanggan', teks: isi.teks, jenis: isi.jenis, lat: isi.lat, lng: isi.lng, t: Date.now(), tunda: true };
+            tundaR.push(sementara); gambarPesanR(true);
+            const tugas = antreanR.then(async () => {
+                const tunggu = kirimTerakhirR + 1300 - Date.now();
+                if (tunggu > 0) await new Promise((r) => setTimeout(r, tunggu));
+                const data = { dari: 'pelanggan', teks: isi.teks, jenis: isi.jenis, dibuat_at: serverTimestamp() };
+                if (isi.jenis === 'lokasi') { data.lat = isi.lat; data.lng = isi.lng; }
+                const b = writeBatch(db);
+                b.set(doc(collection(db, 'chat_rider', k, 'pesan')), data);
+                b.update(doc(db, 'chat_rider', k), { terakhir: isi.jenis === 'lokasi' ? '📍 Lokasi' : isi.teks.replace(/\s+/g, ' ').slice(0, 200), terakhir_dari: 'pelanggan', terakhir_at: serverTimestamp(), at_pelanggan: serverTimestamp(), belum_rider: increment(1), belum_pelanggan: 0 });
+                kirimTerakhirR = Date.now();
+                await b.commit();
+                return true;
+            }).catch((e) => {
+                console.warn('Pesan ke rider gagal:', e && e.code, e);
+                toast(e && e.code === 'permission-denied' ? 'Chat dengan rider sudah ditutup' : 'Pesan belum terkirim. Periksa internet.');
+                return false;
+            }).then((ok) => { tundaR = tundaR.filter((x) => x !== sementara); if (bukaChat === k) gambarPesanR(); return ok; });
+            antreanR = tugas.catch(() => {});
+            return tugas;
+        }
+        function aturInputR() {
+            const i = $('prc-input'); if (!i) return;
+            i.style.height = 'auto'; i.style.height = Math.min(120, i.scrollHeight) + 'px';
+            $('prc-kirim').disabled = !i.value.trim();
+        }
+        $('prc-input').addEventListener('input', aturInputR);
+        $('prc-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const i = $('prc-input'), teks = i.value.trim().slice(0, 1000);
+            if (!teks) return;
+            i.value = ''; aturInputR();
+            kirimR({ teks, jenis: 'teks' }).then((ok) => { if (!ok && !i.value) { i.value = teks; aturInputR(); } });
+        });
+        function kirimLokasiR() {
+            if (!navigator.geolocation) { toast('HP ini tidak bisa membaca lokasi'); return; }
+            toast('Mengambil lokasi...');
+            navigator.geolocation.getCurrentPosition((p) => {
+                kirimR({ jenis: 'lokasi', teks: 'Lokasi saya', lat: Math.round(p.coords.latitude * 1e6) / 1e6, lng: Math.round(p.coords.longitude * 1e6) / 1e6 });
+            }, () => toast('Lokasi belum diizinkan. Nyalakan GPS lalu coba lagi.'), { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
+        }
+        $('prc').addEventListener('click', (e) => {
+            const b = e.target.closest('[data-prc="lokasi"]'); if (b) { kirimLokasiR(); return; }
+            const c = e.target.closest('#prc-cepat .pc-chip'); if (c) { const i = $('prc-input'); i.value = c.textContent.trim(); aturInputR(); i.focus(); }
+        });
+        $('prc-lihat-x').onclick = kembali;
+        $('prc-lihat').addEventListener('click', (e) => { if (e.target.id === 'prc-lihat') kembali(); });
+        // Keyboard HP: tinggi layar chat mengikuti layar yang terlihat
+        function aturTinggiR() {
+            const vv = window.visualViewport, k = $('prc');
+            if (!k || k.hidden) return;
+            if (vv && window.innerHeight - vv.height > 120) { k.style.bottom = 'auto'; k.style.height = vv.height + 'px'; k.style.top = vv.offsetTop + 'px'; }
+            else { k.style.height = ''; k.style.top = ''; k.style.bottom = ''; }
+            const isi = $('prc-isi'); if (isi && document.activeElement === $('prc-input')) isi.scrollTop = isi.scrollHeight;
+        }
+        if (window.visualViewport) { window.visualViewport.addEventListener('resize', aturTinggiR); window.visualViewport.addEventListener('scroll', aturTinggiR); }
+
+        // Dibuka dari notifikasi (aplikasi sudah terbuka)
+        if (navigator.serviceWorker) navigator.serviceWorker.addEventListener('message', (e) => {
+            const d = e.data || {};
+            if (d.jenis === 'pc-buka-rider' && KODE.test(String(d.k || ''))) {
+                if (akt.some((a) => a.kode === d.k) && chat[d.k]) bukaRuangRider(d.k); else mintaBukaChat = d.k;
+            }
+        });
+        window.ktvBukaAktivitas = () => window.openPage('aktivitas');
+        gambarSemua();
     </script>
 </body>
 
