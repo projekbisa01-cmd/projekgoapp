@@ -2496,6 +2496,14 @@ body.gm-terkunci { overflow: hidden; }
         .pc-kirim { width: 46px; height: 46px; border-radius: 99px; border: 0; background: #E85300; color: #FFFFFF; display: grid; place-items: center; flex: none; cursor: pointer; font-size: 19px; padding: 0; }
         .pc-kirim:disabled { opacity: 0.45; cursor: default; }
         .pc-kotak button:focus-visible, .pc-kotak a:focus-visible { outline: 2px solid #C2410C; outline-offset: 2px; }
+        /* Bar ajakan menyalakan notifikasi */
+        .pc-notif { display: flex; align-items: center; gap: 8px; padding: 8px 10px 8px 12px; background: #FFF4D6; color: #5C3D00; font-size: 12.5px; font-weight: 700; line-height: 1.4; flex: none; border-bottom: 1px solid #F3DFAA; }
+        .pc-notif[hidden] { display: none; }
+        .pc-notif > i { font-size: 20px; color: #C2410C; flex: none; }
+        .pc-notif span { flex: 1; min-width: 0; }
+        .pc-notif-ya { flex: none; height: 34px; padding: 0 12px; border-radius: 10px; border: 0; background: #E85300; color: #FFFFFF; font: inherit; font-size: 12.5px; font-weight: 800; cursor: pointer; }
+        .pc-notif-ya[hidden] { display: none; }
+        .pc-notif-x { flex: none; width: 32px; height: 32px; border: 0; background: transparent; color: #7A5A1A; display: grid; place-items: center; cursor: pointer; font-size: 15px; padding: 0; }
         /* Menu lampiran */
         .pc-lampir { position: absolute; left: 10px; right: 10px; bottom: calc(74px + env(safe-area-inset-bottom, 0px)); z-index: 3; background: #FFFFFF; border-radius: 20px; box-shadow: 0 14px 34px rgba(42,32,24,0.22); padding: 16px 8px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
         .pc-lampir[hidden] { display: none; }
@@ -3631,6 +3639,12 @@ body.gm-terkunci { overflow: hidden; }
                         <span class="pc-av" aria-hidden="true">P<i class="pc-onl" id="pc-onl"></i></span>
                         <div class="pc-id"><b>Admin ProjekGo</b><small id="pc-status">Online · biasanya balas &lt; 5 menit</small></div>
                         <a class="pc-wa" href="https://wa.me/62882008667068" target="_blank" rel="noopener" aria-label="Chat lewat WhatsApp admin 0882-0086-67068"><i class="ph-fill ph-whatsapp-logo" aria-hidden="true"></i><span>WhatsApp</span></a>
+                    </div>
+                    <div class="pc-notif" id="pc-notif" hidden role="status">
+                        <i class="ph-fill ph-bell-ringing" aria-hidden="true"></i>
+                        <span id="pc-notif-teks">Nyalakan notifikasi supaya tahu saat admin membalas, walau aplikasi ditutup.</span>
+                        <button type="button" class="pc-notif-ya" id="pc-notif-ya">Nyalakan</button>
+                        <button type="button" class="pc-notif-x" id="pc-notif-x" aria-label="Tutup pemberitahuan"><i class="ph-bold ph-x" aria-hidden="true"></i></button>
                     </div>
                     <div class="pc-isi pc-motif" id="pc-isi" role="log" aria-live="polite" aria-label="Isi chat">
                         <div class="pc-info">Nomormu tidak dibagikan ke rider, jadi lebih privat. Hanya admin ProjekGo yang menyimpannya.</div>
@@ -15149,6 +15163,8 @@ body.gm-terkunci { overflow: hidden; }
         import { getFirestore, collection, doc, onSnapshot, query, orderBy, limit, writeBatch, serverTimestamp, increment, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getStorage, ref as sRef, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+        import { getMessaging, getToken, isSupported } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
+        import { arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const app = getApp();
         const db = getFirestore(app);
@@ -15164,6 +15180,8 @@ body.gm-terkunci { overflow: hidden; }
         let antrean = Promise.resolve(), kirimTerakhir = 0, sedangTandai = false;
         const urlFoto = {}, mintaFoto = {};   // path Storage -> URL tampilan
         let unggahan = [];                     // foto yang sedang diunggah (tampil dulu di layar)
+        let bukaChatNanti = false;             // dibuka dari notifikasi (?buka=chat)
+        try { bukaChatNanti = new URLSearchParams(location.search).get('buka') === 'chat'; } catch (e) {}
 
         const ms = (v) => (v && typeof v.toMillis === 'function') ? v.toMillis() : (typeof v === 'number' ? v : (v && typeof v.seconds === 'number' ? v.seconds * 1000 : Date.now()));
         const jam = (t) => { const d = new Date(t); return String(d.getHours()).padStart(2, '0') + '.' + String(d.getMinutes()).padStart(2, '0'); };
@@ -15384,6 +15402,10 @@ body.gm-terkunci { overflow: hidden; }
         onAuthStateChanged(auth, (u) => {
             const google = u && (u.providerData || []).some((p) => p.providerId === 'google.com');
             if (google) mulai(u); else berhenti();
+            if (google) {
+                setTimeout(() => siapkanNotif(false), 1500);   // sudah diizinkan: perbarui alamat notifikasi diam-diam
+                if (bukaChatNanti) { bukaChatNanti = false; setTimeout(() => { if (!penuh) window.openPage('chat'); }, 300); }
+            }
         });
 
         // ---------- KIRIM ----------
@@ -15632,6 +15654,78 @@ body.gm-terkunci { overflow: hidden; }
         }
         if (vv) { vv.addEventListener('resize', aturTinggi); vv.addEventListener('scroll', aturTinggi); }
 
+        // ---------- NOTIFIKASI SAAT APLIKASI DITUTUP (tahap 2, 7 Nov 2026) ----------
+        // Alamat notifikasi HP (token) disimpan di users/{uid}.notif_tokens. Cloud Function
+        // "kirimNotifChat" mengirim notifikasi saat admin membalas. Penerimanya notif-sw.js.
+        const dukungNotif = ('Notification' in window) && ('serviceWorker' in navigator) && ('PushManager' in window);
+        const hpApple = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        const terpasang = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+        let notifJalan = false;
+        const bacaL = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+        const tulisL = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+
+        function perbaruiBannerNotif() {
+            const bar = $('pc-notif'), teks = $('pc-notif-teks'), ya = $('pc-notif-ya');
+            if (!bar) return;
+            const ditutup = Number(bacaL('pc_notif_tutup') || 0);
+            const baruDitutup = Date.now() - ditutup < 3 * 86400000;   // muncul lagi 3 hari setelah ditutup
+            let pesan = '', tombol = false;
+            if (!uid) pesan = '';
+            else if (!dukungNotif) pesan = (hpApple && !terpasang) ? 'Di iPhone, notifikasi hanya jalan kalau aplikasi dipasang ke Layar Utama (Bagikan → Tambah ke Layar Utama).' : '';
+            else if (Notification.permission === 'default') { pesan = 'Nyalakan notifikasi supaya tahu saat admin membalas, walau aplikasi ditutup.'; tombol = true; }
+            else if (Notification.permission === 'denied') pesan = 'Notifikasi diblokir. Buka Pengaturan HP → Aplikasi → ProjekGo (atau Chrome) → Notifikasi, lalu izinkan.';
+            bar.hidden = !pesan || baruDitutup;
+            if (pesan) { teks.textContent = pesan; ya.hidden = !tombol; }
+        }
+
+        function tungguAktif(reg) {
+            if (reg.active) return Promise.resolve();
+            return new Promise((ok) => {
+                const sw = reg.installing || reg.waiting;
+                if (!sw) { ok(); return; }
+                const t = setTimeout(ok, 10000);
+                sw.addEventListener('statechange', () => { if (sw.state === 'activated') { clearTimeout(t); ok(); } });
+            });
+        }
+
+        async function siapkanNotif(minta) {
+            if (!uid || notifJalan || !dukungNotif) { perbaruiBannerNotif(); return; }
+            notifJalan = true;
+            try {
+                if (!(await isSupported().catch(() => false))) return;
+                let izin = Notification.permission;
+                if (izin === 'default' && minta) izin = await Notification.requestPermission();
+                if (izin !== 'granted') return;
+                const reg = await navigator.serviceWorker.register('notif-sw.js', { scope: 'notif-chat/' });
+                await tungguAktif(reg);
+                const token = await getToken(getMessaging(app), { serviceWorkerRegistration: reg });
+                if (!token || !uid) return;
+                const kunci = 'pc_notif_token_' + uid;
+                if (bacaL(kunci) === token) return;   // sudah tersimpan sebelumnya
+                const ref = doc(db, 'users', uid);
+                try { await updateDoc(ref, { notif_tokens: arrayUnion(token) }); }
+                catch (e) {
+                    // Daftar HP sudah penuh (maks 10): mulai ulang dengan HP ini saja
+                    if (e && e.code === 'permission-denied') await updateDoc(ref, { notif_tokens: [token] });
+                    else throw e;
+                }
+                tulisL(kunci, token);
+                if (minta) toast('Notifikasi aktif. Kamu akan diberi tahu saat admin membalas.');
+            } catch (e) {
+                console.warn('Notifikasi belum bisa dinyalakan:', e);
+                if (minta) toast('Notifikasi belum bisa dinyalakan di HP ini. Chat tetap bisa dipakai seperti biasa.');
+            } finally {
+                notifJalan = false;
+                perbaruiBannerNotif();
+            }
+        }
+        if ($('pc-notif-ya')) $('pc-notif-ya').addEventListener('click', () => siapkanNotif(true));   // izin diminta dari ketukan
+        if ($('pc-notif-x')) $('pc-notif-x').addEventListener('click', () => { tulisL('pc_notif_tutup', String(Date.now())); perbaruiBannerNotif(); });
+        // Notifikasi diketuk saat aplikasi masih terbuka di belakang: langsung ke Chat
+        if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (e) => {
+            if (e.data && e.data.jenis === 'pc-buka-chat' && !penuh && typeof window.openPage === 'function') window.openPage('chat');
+        });
+
         // ---------- MASUK / KELUAR HALAMAN CHAT ----------
         window.pcSaatHalaman = (nama) => {
             const masukChat = nama === 'chat';
@@ -15640,7 +15734,7 @@ body.gm-terkunci { overflow: hidden; }
             document.body.classList.toggle('pc-layar', penuh);
             perbaruiStatus();
             aturTinggi();
-            if (penuh) { window.scrollTo(0, 0); render(true); }
+            if (penuh) { window.scrollTo(0, 0); render(true); perbaruiBannerNotif(); }
             tandaiDibaca();
         };
         document.addEventListener('visibilitychange', () => { perbaruiStatus(); tandaiDibaca(); });
