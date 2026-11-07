@@ -1598,8 +1598,17 @@
         const storage = getStorage(app);
         const auth = getAuth(app);
 
-        // Inisialisasi Secondary App untuk membuat user tanpa me-logout Admin
-        const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp");
+        // Secondary App sekarang menunjuk ke proyek LAMA (projekgo-app), hanya untuk "Ganti PIN"
+        // akun email + PIN seller yang belum pindah ke Gmail (PIN dipakai sekali saat menghubungkan warung).
+        const firebaseConfigLama = {
+            apiKey: "AIzaSyAc4ZnBU6xAil7Un4Y53Jxncj_B6eURHBo",
+            authDomain: "projekgo-app.firebaseapp.com",
+            projectId: "projekgo-app",
+            storageBucket: "projekgo-app.firebasestorage.app",
+            messagingSenderId: "910691523179",
+            appId: "1:910691523179:web:2c78d27de6a02cec952f2e"
+        };
+        const secondaryApp = initializeApp(firebaseConfigLama, "SecondaryApp");
         const secondaryAuth = getAuth(secondaryApp);
 
         let adminAllProducts = []; 
@@ -1690,11 +1699,14 @@
                 return;
             }
             const pesan = `Halo ${v.nama_warung || ''}, saya dari Projekgo.\n\n`
-                + `Email login Anda: *${v.email || vendorId}*\n`
-                + `PIN masuk Anda: *${pin}*\n\n`
-                + `Dipakai untuk masuk ke aplikasi penjual dan mengatur katalog jualan kamu. `
-                + `Simpan dan rahasiakan PIN ini, jangan diberitahukan ke siapa pun. `
-                + `Kalau kemudian hari lupa, silakan chat admin.`;
+                + `Aplikasi Mitra sekarang masuk pakai akun Google (Gmail). Caranya:\n`
+                + `1. Buka seller.projekgo.id\n`
+                + `2. Tekan *Masuk dengan Google* dan pilih Gmail Anda\n`
+                + `3. Di layar "Hubungkan warung lama", isi:\n`
+                + `   Email lama: *${v.email || vendorId}*\n`
+                + `   PIN lama: *${pin}*\n`
+                + `4. Tunggu persetujuan admin, setelah itu cukup Masuk dengan Google.\n\n`
+                + `Rahasiakan PIN ini, jangan diberitahukan ke siapa pun.`;
             window.open(`https://wa.me/${phone}?text=${encodeURIComponent(pesan)}`, '_blank');
         };
 
@@ -1933,7 +1945,9 @@
             if (email === 'projekbisa01@gmail.com' || email === 'admin@projekgo.id') return alert('Email admin tidak boleh dipakai sebagai pemilik warung.');
             btn.innerText = 'Menyimpan...'; btn.disabled = true;
             try {
-                await updateDoc(doc(db, "vendors", vendorId), { email: email, pin_wajib_ganti: false });
+                const vLama = adminAllVendors.find(x => x.id === vendorId) || {};
+                await updateDoc(doc(db, "vendors", vendorId), { email: email, login_google: true, pin_wajib_ganti: false, ...(vLama.email && vLama.email !== email && !vLama.email_login_lama ? { email_login_lama: vLama.email } : {}) });
+                try { await deleteDoc(doc(db, "vendors", vendorId, "private", "akses")); } catch (e) { console.warn('PIN lama tidak terhapus:', e); }
                 closeModal('migrate-vendor-modal');
                 await window.fetchVendors();
                 alert('Gmail pemilik tersimpan.\n\nPemilik cukup buka seller.projekgo.id lalu tekan "Masuk dengan Google" memakai ' + email + '.');
@@ -2078,8 +2092,9 @@
             const pinLama = await window.ambilPin(vendorId);
 
             if (!pinLama) {
-                return alert('PIN lama tidak tercatat, jadi password login tidak bisa diubah dari panel ini. '
-                    + 'Mitra ini perlu dibuatkan akun lewat tombol Migrasi.');
+                return alert('PIN lama tidak tercatat, jadi PIN tidak bisa diubah dari panel ini.\n\n'
+                    + 'Lebih mudah: tanyakan Gmail pemilik lewat WA, lalu tekan "Atur Gmail" di kartu warung ini. '
+                    + 'Pemilik langsung bisa Masuk dengan Google tanpa PIN.');
             }
 
             try {
@@ -2097,8 +2112,8 @@
                 }
 
                 closeModal('edit-pin-modal');
-                alert('PIN sementara berhasil dibuat.\n\nPIN: ' + pinBaru + '\n\nKirim ke mitra lewat tombol "Kirim Akses via WA". '
-                    + 'Mitra akan diminta membuat PIN sendiri saat login.');
+                alert('PIN lama berhasil diganti.\n\nPIN: ' + pinBaru + '\n\nKirim ke mitra lewat tombol "Kirim PIN & cara pindah via WA". '
+                    + 'PIN ini hanya dipakai sekali untuk menghubungkan warung ke Gmail.');
             } catch (e) {
                 alert('Gagal mengganti PIN: ' + e.message
                     + '\n\nKalau pesannya soal kredensial, berarti mitra sudah pernah mengganti PIN sendiri '
@@ -2317,7 +2332,10 @@
                     const gmail = String(r.gmail || '').toLowerCase();
                     if (!/^[^\s@]+@[^\s@]+$/.test(gmail) || /^(projekbisa01@gmail\.com|admin@projekgo\.id)$/i.test(gmail)) throw new Error('Gmail tidak valid.');
                     const batch = writeBatch(db);
-                    warung.forEach(v => batch.update(doc(db, "vendors", v.id), { email: gmail, email_login_lama: v.email || '', pin_wajib_ganti: false }));
+                    warung.forEach(v => {
+                        batch.update(doc(db, "vendors", v.id), { email: gmail, email_login_lama: v.email || '', login_google: true, pin_wajib_ganti: false });
+                        batch.delete(doc(db, "vendors", v.id, "private", "akses")); // PIN lama tidak dipakai lagi
+                    });
                     batch.update(doc(db, "pindah_gmail", r.id), { status: 'disetujui', diputus_at: Date.now() });
                     await batch.commit();
                     adminAllPindah = adminAllPindah.filter(x => x.id !== r.id);
@@ -2862,6 +2880,8 @@
                 let kategoriStr = Array.isArray(kategoriDataRaw) ? kategoriDataRaw.join(', ') : kategoriDataRaw;
                 
                 const isMigrated = !!v.email;
+                // Sudah login Google = disetujui lewat Pindah Gmail / Atur Gmail, atau emailnya Gmail.
+                const sudahGmail = isMigrated && (v.login_google === true || !!v.email_login_lama || /@gmail\.com$/i.test(v.email));
                 const isAdminManaged = v.is_admin_managed === true;
                 let accessInfo = '';
                 
@@ -2870,10 +2890,11 @@
 
                 if (isAdminManaged) {
                     accessInfo = `<div style="display:flex; align-items:center; gap:6px; color:#7c3aed; font-weight:700;"><i class="ph-fill ph-shield-star" style="font-size:16px;"></i> Dikelola Admin</div>`;
-                } else if (isMigrated && !/@projekgo\.id$/i.test(v.email)) {
+                } else if (sudahGmail) {
                     accessInfo = `<div style="display:flex; align-items:center; gap:6px; color:#10b981; font-weight:600; flex-wrap:wrap;"><i class="ph-fill ph-google-logo" style="font-size:16px;"></i> ${esc(emailTampil)} <button type="button" onclick="window.openMigrateModal(window.__vendorIds[${urutV}])" style="background:#f1f5f9; color:#334155; border:none; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Ganti</button></div>`;
                 } else if (isMigrated) {
-                    accessInfo = `<div style="display:flex; align-items:center; gap:6px; color:#b45309; font-weight:600; flex-wrap:wrap;"><i class="ph-fill ph-warning-circle" style="font-size:16px;"></i> Belum pindah ke Gmail (${esc(emailTampil)}) <button type="button" onclick="window.openMigrateModal(window.__vendorIds[${urutV}])" style="background:#f3e8ff; color:#7e22ce; border:none; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Atur Gmail</button></div>`;
+                    accessInfo = `<div style="display:flex; align-items:center; gap:6px; color:#b45309; font-weight:600; flex-wrap:wrap;"><i class="ph-fill ph-warning-circle" style="font-size:16px;"></i> Belum pindah ke Gmail (${esc(emailTampil)}) <button type="button" onclick="window.openMigrateModal(window.__vendorIds[${urutV}])" style="background:#f3e8ff; color:#7e22ce; border:none; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Atur Gmail</button></div>
+                    <div style="display:flex; align-items:center; gap:6px; margin-top:6px; color:#475569; font-weight:600; flex-wrap:wrap;"><i class="ph-fill ph-key" style="font-size:15px;"></i> PIN lama: <b id="pin-${esc(v.id)}" style="font-family:monospace; letter-spacing:1px;">••••••</b> <button type="button" onclick="window.lihatPin(window.__vendorIds[${urutV}])" style="background:#f1f5f9; color:#334155; border:none; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Lihat</button></div>`;
                 } else {
                     accessInfo = `<div style="display:flex; align-items:center; gap:6px; color:#ef4444; font-weight:600; flex-wrap:wrap;"><i class="ph-fill ph-warning-circle" style="font-size:16px;"></i> Belum ada Gmail pemilik <button type="button" onclick="window.openMigrateModal(window.__vendorIds[${urutV}])" style="background:#f3e8ff; color:#7e22ce; border:none; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Atur Gmail</button></div>`;
                 }
@@ -2886,9 +2907,13 @@
                         phone = '62' + phone.substring(1); // Ubah 0 jadi 62
                     }
                     
-                    waButtonHtml = `
-                        <button type="button" onclick="window.kirimAksesWA('${v.id}', '${phone}')" style="display:inline-flex; align-items:center; gap:6px; background:#10b981; color:white; padding:8px 14px; border:none; border-radius:10px; font-weight:700; font-size:12px; margin-top:10px; cursor:pointer; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">
-                            <i class="ph-fill ph-whatsapp-logo" style="font-size:16px;"></i> Kirim Akses via WA
+                    waButtonHtml = sudahGmail ? `
+                        <a href="https://wa.me/${phone}" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; gap:6px; background:#ecfdf5; color:#047857; padding:8px 14px; border-radius:10px; font-weight:700; font-size:12px; margin-top:10px; text-decoration:none;">
+                            <i class="ph-fill ph-whatsapp-logo" style="font-size:16px;"></i> Chat WA warung
+                        </a>
+                    ` : `
+                        <button type="button" onclick="window.kirimAksesWA(window.__vendorIds[${urutV}], '${phone}')" style="display:inline-flex; align-items:center; gap:6px; background:#10b981; color:white; padding:8px 14px; border:none; border-radius:10px; font-weight:700; font-size:12px; margin-top:10px; cursor:pointer; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">
+                            <i class="ph-fill ph-whatsapp-logo" style="font-size:16px;"></i> Kirim PIN &amp; cara pindah via WA
                         </button>
                     `;
                 }
@@ -2958,7 +2983,7 @@
                                     <button class="action-btn btn-edit-info" onclick="window.openEditVendorInfo(window.__vendorIds[${urutV}])" title="Edit Info" aria-label="Edit info mitra">
                                         <i class="ph-bold ph-pencil-simple"></i>
                                     </button>
-                                    <button class="action-btn btn-edit-pin" onclick="window.openEditPin(window.__vendorIds[${urutV}])" title="Ganti PIN" aria-label="Ganti PIN mitra">
+                                    <button class="action-btn btn-edit-pin" ${sudahGmail ? 'hidden style="display:none"' : ''} onclick="window.openEditPin(window.__vendorIds[${urutV}])" title="Ganti PIN lama" aria-label="Ganti PIN lama mitra">
                                         <i class="ph-bold ph-lock-key"></i>
                                     </button>
                                     <button class="action-btn btn-delete" onclick="window.askDelete('vendors', '${v.id}')" title="Hapus Mitra">

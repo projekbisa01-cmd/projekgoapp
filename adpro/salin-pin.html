@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Salin PIN Lama</title>
+<style>
+  :root {
+    --bg: #FFFCF5; --kartu: #FFFFFF; --teks: #2A2018; --redup: #6B5E52; --garis: #E8DFD1;
+    --aksen: #C2410C; --aksen-teks: #FFFFFF; --ok: #2F6B3E; --ok-bg: #E8F3E6; --galat: #9B2C2C; --galat-bg: #FCEDEB;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--teks); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 20px 16px 48px; display: flex; flex-direction: column; gap: 14px; }
+  h1 { margin: 0; font-size: 22px; font-weight: 800; }
+  .sub { margin: 0; color: var(--redup); font-size: 14px; }
+  .kartu { background: var(--kartu); border: 1px solid var(--garis); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .kartu h2 { margin: 0; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+  .no { width: 26px; height: 26px; border-radius: 99px; background: var(--aksen); color: var(--aksen-teks); display: inline-grid; place-items: center; font-size: 13px; flex: none; }
+  .kartu.selesai .no { background: var(--ok); }
+  label { font-size: 13px; font-weight: 700; color: var(--redup); display: flex; flex-direction: column; gap: 4px; }
+  input { font: inherit; padding: 10px 12px; border: 1px solid var(--garis); border-radius: 10px; background: #fff; color: var(--teks); }
+  .baris { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 520px) { .baris { grid-template-columns: 1fr; } }
+  button { font: inherit; font-weight: 800; min-height: 44px; padding: 0 18px; border-radius: 12px; border: 0; cursor: pointer; background: var(--aksen); color: var(--aksen-teks); }
+  button.dua { background: #fff; color: var(--teks); border: 1px solid var(--garis); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .status { font-size: 13.5px; font-weight: 700; }
+  .status.ok { color: var(--ok); } .status.galat { color: var(--galat); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--garis); }
+  th { font-size: 12px; color: var(--redup); }
+  td.n { text-align: right; font-variant-numeric: tabular-nums; }
+  .cocok { color: var(--ok); font-weight: 800; } .beda { color: var(--galat); font-weight: 800; }
+  #log { background: #FBF7F0; border: 1px solid var(--garis); border-radius: 12px; padding: 10px 12px; font: 12.5px/1.55 ui-monospace, Menlo, monospace; max-height: 260px; overflow: auto; white-space: pre-wrap; margin: 0; }
+  .catatan { font-size: 13px; color: var(--redup); margin: 0; }
+  .peringatan { background: var(--galat-bg); color: var(--galat); border-radius: 12px; padding: 10px 12px; font-size: 13.5px; font-weight: 600; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <h1>Salin PIN Lama</h1>
+    <p class="sub">Menyalin PIN seller dari sistem lama (projekgo-app) ke onbid, supaya tombol <b>Lihat</b> PIN di ADPRO bisa dipakai saat seller lupa PIN untuk menghubungkan warungnya ke Gmail. Hanya untuk warung yang <b>belum pindah ke Gmail</b>. Hanya untuk pemilik (projekbisa01@gmail.com).</p>
+  </div>
+
+  <section class="kartu" id="k1">
+    <h2><span class="no">1</span>Masuk ke data lama (projekgo-app)</h2>
+    <p class="catatan">Email dan kata sandi login ADPRO yang lama.</p>
+    <div class="baris">
+      <label>Email<input id="e1" type="email" autocomplete="username" value="projekbisa01@gmail.com"></label>
+      <label>Kata sandi<input id="p1" type="password" autocomplete="current-password"></label>
+    </div>
+    <button type="button" id="b1">Masuk projekgo-app</button>
+    <div class="status" id="s1" role="status"></div>
+  </section>
+
+  <section class="kartu" id="k2">
+    <h2><span class="no">2</span>Masuk ke data baru (onbid)</h2>
+    <p class="catatan">Email dan kata sandi admin dispatch.</p>
+    <div class="baris">
+      <label>Email<input id="e2" type="email" autocomplete="username" value="projekbisa01@gmail.com"></label>
+      <label>Kata sandi<input id="p2" type="password" autocomplete="current-password"></label>
+    </div>
+    <button type="button" id="b2">Masuk onbid</button>
+    <div class="status" id="s2" role="status"></div>
+  </section>
+
+  <section class="kartu" id="k3">
+    <h2><span class="no">3</span>Salin PIN</h2>
+    <button type="button" id="bSalin" disabled>Salin PIN lama ke onbid</button>
+    <div class="status" id="s3" role="status"></div>
+    <pre id="log" hidden></pre>
+  </section>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { getFirestore, collection, getDocs, getDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  const PEMILIK = "projekbisa01@gmail.com";
+  const appLama = initializeApp({
+    apiKey: "AIzaSyAc4ZnBU6xAil7Un4Y53Jxncj_B6eURHBo",
+    authDomain: "projekgo-app.firebaseapp.com",
+    projectId: "projekgo-app",
+    appId: "1:910691523179:web:2c78d27de6a02cec952f2e"
+  }, "lama");
+  const appBaru = initializeApp({
+    apiKey: "AIzaSyBCp2PBN1ASET6QjuQ3PWdC1gysQv0z_OY",
+    authDomain: "onbid-2f87a.firebaseapp.com",
+    projectId: "onbid-2f87a",
+    appId: "1:223888282484:web:2fc05ed67ca1fab39e1221"
+  }, "baru");
+  const authLama = getAuth(appLama), authBaru = getAuth(appBaru);
+  const dbLama = getFirestore(appLama), dbBaru = getFirestore(appBaru);
+  const $ = (id) => document.getElementById(id);
+  const masuk = { lama: false, baru: false };
+
+  const status = (id, t, k) => { $(id).textContent = t; $(id).className = 'status' + (k ? ' ' + k : ''); };
+  const tulisLog = (t) => { $('log').hidden = false; $('log').textContent += t + '\n'; };
+  const pesanGalat = (e) => {
+    const k = (e && e.code) || '';
+    if (/invalid-credential|wrong-password|user-not-found/.test(k)) return 'Email atau kata sandi salah.';
+    if (/permission-denied/.test(k)) return 'Ditolak rules (izin tidak cukup).';
+    return k || String(e && e.message || e);
+  };
+  async function loginKe(auth, eId, pId, sId, kId, kunci) {
+    const email = $(eId).value.trim().toLowerCase();
+    if (email !== PEMILIK) return status(sId, 'Halaman ini hanya untuk ' + PEMILIK + '.', 'galat');
+    try {
+      const c = await signInWithEmailAndPassword(auth, email, $(pId).value);
+      $(pId).value = '';
+      masuk[kunci] = true; $(kId).classList.add('selesai');
+      status(sId, 'Masuk sebagai ' + c.user.email, 'ok');
+    } catch (e) { status(sId, pesanGalat(e), 'galat'); }
+    $('bSalin').disabled = !(masuk.lama && masuk.baru);
+  }
+  $('b1').onclick = () => loginKe(authLama, 'e1', 'p1', 's1', 'k1', 'lama');
+  $('b2').onclick = () => loginKe(authBaru, 'e2', 'p2', 's2', 'k2', 'baru');
+
+  $('bSalin').onclick = async () => {
+    $('bSalin').disabled = true; $('log').textContent = '';
+    status('s3', 'Menyalin... jangan tutup halaman ini.');
+    let disalin = 0, dilewati = 0, tanpaPin = 0, gagal = 0;
+    try {
+      const warungBaru = new Map((await getDocs(collection(dbBaru, 'vendors'))).docs.map(d => [d.id, d.data()]));
+      const warungLama = (await getDocs(collection(dbLama, 'vendors'))).docs;
+      for (const w of warungLama) {
+        const baru = warungBaru.get(w.id);
+        const nama = (baru && baru.nama_warung) || w.data().nama_warung || w.id;
+        // Lewati warung yang tidak ada di onbid atau sudah pindah ke Gmail (PIN tidak dipakai lagi)
+        if (!baru) { dilewati++; continue; }
+        if (baru.login_google === true || baru.email_login_lama || /@gmail\.com$/i.test(baru.email || '')) { dilewati++; continue; }
+        try {
+          const p = await getDoc(doc(dbLama, 'vendors', w.id, 'private', 'akses'));
+          if (!p.exists() || !p.data().pin) { tanpaPin++; tulisLog('Tidak ada PIN tersimpan: ' + nama); continue; }
+          await setDoc(doc(dbBaru, 'vendors', w.id, 'private', 'akses'), { pin: String(p.data().pin), updated_at: p.data().updated_at || new Date().toISOString(), disalin_dari: 'projekgo-app' }, { merge: true });
+          disalin++;
+        } catch (e) { gagal++; tulisLog('GAGAL ' + nama + ': ' + pesanGalat(e)); }
+      }
+      status('s3', 'Selesai. ' + disalin + ' PIN disalin, ' + dilewati + ' dilewati (sudah Gmail / tidak ada di onbid), ' + tanpaPin + ' tanpa PIN' + (gagal ? ', ' + gagal + ' gagal' : '') + '.', gagal ? 'galat' : 'ok');
+    } catch (e) {
+      status('s3', 'Gagal: ' + pesanGalat(e), 'galat');
+    }
+    try { await signOut(authLama); await signOut(authBaru); } catch (e) {}
+  };
+</script>
+<!-- ===== TOMBOL MATA: tampilkan / sembunyikan kata sandi & PIN (6 Nov 2026) ===== -->
+<style>
+.mata-wrap { position: relative; display: block; }
+.mata-wrap > input { padding-right: 50px !important; width: 100%; box-sizing: border-box; }
+.mata-btn { position: absolute; right: 4px; top: 0; bottom: 0; margin: auto 0; width: 42px; height: 42px; border: 0; background: transparent; color: #6B5E52; display: grid; place-items: center; cursor: pointer; border-radius: 10px; padding: 0; }
+.mata-btn:hover { color: #C2410C; }
+.mata-btn:focus-visible { outline: 2px solid #C2410C; outline-offset: 1px; }
+.mata-btn svg { width: 20px; height: 20px; pointer-events: none; }
+</style>
+<script>
+(function () {
+  var BUKA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  var TUTUP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.2M6.6 6.6C3.9 8.4 2 12 2 12s3.6 7 10 7a9.7 9.7 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
+  function pasang(inp) {
+    if (inp.getAttribute('data-mata')) return;
+    inp.setAttribute('data-mata', '1');
+    var w = document.createElement('span');
+    w.className = 'mata-wrap';
+    // Jarak (margin) kolom dipindah ke pembungkus supaya ikon mata tepat di tengah kolom
+    var cs = window.getComputedStyle(inp);
+    w.style.marginTop = cs.marginTop; w.style.marginBottom = cs.marginBottom;
+    inp.parentNode.insertBefore(w, inp);
+    w.appendChild(inp);
+    inp.style.marginTop = '0'; inp.style.marginBottom = '0';
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'mata-btn';
+    b.setAttribute('aria-label', 'Tampilkan');
+    b.setAttribute('aria-pressed', 'false');
+    b.innerHTML = BUKA;
+    b.addEventListener('click', function (e) {
+      e.preventDefault();
+      var lihat = inp.type === 'password';
+      inp.type = lihat ? 'text' : 'password';
+      b.innerHTML = lihat ? TUTUP : BUKA;
+      b.setAttribute('aria-pressed', String(lihat));
+      b.setAttribute('aria-label', lihat ? 'Sembunyikan' : 'Tampilkan');
+      inp.focus();
+    });
+    w.appendChild(b);
+  }
+  function semua() { Array.prototype.forEach.call(document.querySelectorAll('input[type="password"]'), pasang); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', semua); else semua();
+})();
+</script>
+</body>
+</html>
