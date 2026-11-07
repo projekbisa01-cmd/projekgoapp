@@ -2336,8 +2336,11 @@ body.gm-terkunci { overflow: hidden; }
 .gm-identitas .p1 { margin-top: 4px; padding: 8px 10px; border-radius: 10px; background: #FFF4EC; color: #5A3410; font-weight: 600; }
 @media (prefers-reduced-motion: reduce) { .gm-an-lewat, .gm-an-goyang, .gm-an-roda, .gm-panel { animation: none; } .gm-an-lewat { transform: translateX(300px); } }
 </style>
-    <!-- ===== CHAT PELANGGAN ↔ ADMIN + BERANDA FOKUS LAYANAN (7 Nov 2026) ===== -->
+    <!-- ===== CHAT PELANGGAN ↔ ADMIN + BERANDA FOKUS LAYANAN (v2, 7 Nov 2026) ===== -->
     <style>
+        /* Latar utama aplikasi putih gading */
+        body { background: #FFFBF2; }
+
         /* Beranda fokus layanan: bagian warung/menu disembunyikan (elemennya tetap ada agar skrip lama aman) */
         #page-home [data-bh-resto] { display: none !important; }
 
@@ -2352,26 +2355,106 @@ body.gm-terkunci { overflow: hidden; }
         #page-home .bh-nama { text-shadow: none; }
         #page-home .bh-sub { display: inline-flex; align-items: center; gap: 5px; background: #FFE2A8; color: #7A4A00; border-color: transparent; font-weight: 800; }
 
-        /* Kotak chat (dipakai di beranda dan layar penuh; elemen yang sama dipindah) */
-        .pc-kecil { font-size: 11.5px; font-weight: 700; color: #1E6B34; }
-        .pc-kotak { display: flex; flex-direction: column; height: 470px; background: #FFFFFF; border-radius: 22px; overflow: hidden; border: 1px solid #F0E6DB; box-shadow: 0 8px 24px rgba(42,32,24,0.08); font-family: inherit; color: #2A2018; }
-        .pc-kepala { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #FFFFFF; border-bottom: 1px solid #F0E8DF; }
-        .pc-av { position: relative; width: 40px; height: 40px; border-radius: 99px; background: #FF6A00; color: #FFFFFF; display: grid; place-items: center; font-weight: 800; font-size: 17px; flex: none; }
-        .pc-onl { position: absolute; right: 0; bottom: 0; width: 11px; height: 11px; border-radius: 99px; background: #22A447; border: 2px solid #FFFFFF; }
+        /* ---------- BANNER (dipindah ke atas Layanan) ---------- */
+        .bn-wrap { position: relative; z-index: 2; margin-top: -34px; padding-top: 0 !important; }
+        .bn-wrap .bh-slider { border-radius: 24px; }
+        .bh-slide.bn-s { min-height: 150px; padding: 16px 18px; border-radius: 24px; color: #4A1D05; justify-content: center; box-shadow: 0 10px 24px rgba(120,60,20,0.10); }
+        .bn-s .bn-teks { position: relative; z-index: 1; width: 58%; display: flex; flex-direction: column; align-items: flex-start; }
+        .bn-s .bn-label { font-size: 10.5px; font-weight: 800; padding: 3px 8px; border-radius: 99px; background: rgba(255,255,255,0.9); }
+        .bn-s .bh-slide-judul { padding-right: 0; margin-top: 8px; font-size: 17px; line-height: 1.25; }
+        .bn-s .bh-slide-sub { padding-right: 0; margin-top: 5px; opacity: 1; font-size: 12px; }
+        .bn-s .bn-gambar { position: absolute; right: 0; bottom: 0; width: 46%; max-width: 170px; height: auto; pointer-events: none; }
+        .bn-oranye { background: linear-gradient(135deg, #FFF1DF, #FFE0C2) !important; border: 1px solid #FFD4AE !important; }
+        .bn-oranye .bn-label { color: #9A3412; } .bn-oranye .bh-slide-sub { color: #7A3F1A; }
+        .bn-biru { background: linear-gradient(135deg, #EEF3FF, #D9E5FF) !important; border: 1px solid #C9D8FB !important; color: #1E3A8A !important; }
+        .bn-biru .bn-label { color: #1E40AF; } .bn-biru .bh-slide-sub { color: #33508F; }
+        .bn-ungu { background: linear-gradient(135deg, #F5EEFF, #E7DBFF) !important; border: 1px solid #DCCBFA !important; color: #4C1D95 !important; }
+        .bn-ungu .bn-label { color: #6B21A8; } .bn-ungu .bh-slide-sub { color: #5B3A8C; }
+        .bn-hijau { background: linear-gradient(135deg, #EDF8F0, #D5EFDD) !important; border: 1px solid #C4E6CF !important; color: #14532D !important; }
+        .bn-hijau .bn-label { color: #166534; } .bn-hijau .bh-slide-sub { color: #2E6B45; }
+        @keyframes bn-jalan { 0%, 100% { transform: translateX(-6px); } 50% { transform: translateX(6px); } }
+        @keyframes bn-goyang { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+        @keyframes bn-garis { to { stroke-dashoffset: -36; } }
+        @keyframes bn-putar { to { transform: rotate(360deg); } }
+        @keyframes bn-naik { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+        @keyframes bn-denyut { 0% { transform: scale(0.85); opacity: 0.9; } 100% { transform: scale(1.25); opacity: 0; } }
+        @keyframes bn-loncat { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-10px); } 60% { transform: translateY(-10px); } }
+        @keyframes bn-kerlip { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
+        .bn-gambar .a-jalan { animation: bn-jalan 3.2s ease-in-out infinite; }
+        .bn-gambar .a-goyang { animation: bn-goyang .5s ease-in-out infinite; }
+        .bn-gambar .a-garis { animation: bn-garis .9s linear infinite; }
+        .bn-gambar .a-putar { transform-box: fill-box; transform-origin: center; animation: bn-putar .6s linear infinite; }
+        .bn-gambar .a-naik { animation: bn-naik 2.4s ease-in-out infinite; }
+        .bn-gambar .a-denyut { transform-box: fill-box; transform-origin: center; animation: bn-denyut 1.8s ease-out infinite; }
+        .bn-gambar .a-loncat { animation: bn-loncat 1.6s ease-in-out infinite; }
+        .bn-gambar .a-loncat.d2 { animation-delay: .25s; } .bn-gambar .a-loncat.d3 { animation-delay: .5s; }
+        .bn-gambar .a-kerlip { animation: bn-kerlip 1.6s ease-in-out infinite; }
+        .bn-gambar .a-kerlip.d2 { animation-delay: .8s; }
+        @media (prefers-reduced-motion: reduce) { .bn-gambar * { animation: none !important; } }
+
+        /* ---------- ETALASE CHAT DI BERANDA (bukan chat asli) ---------- */
+        .pc-etalase { position: relative; overflow: hidden; border-radius: 26px; background: linear-gradient(160deg, #FFF3E6 0%, #FFFFFF 65%); border: 1px solid #F3E2CF; padding: 16px; }
+        .pc-etalase::before { content: ""; position: absolute; left: -36px; bottom: 60px; width: 120px; height: 120px; border-radius: 99px; background: #FFE9D6; }
+        .pc-et-atas { position: relative; display: flex; align-items: center; gap: 10px; }
+        .pc-gel { position: relative; flex: 1; min-width: 0; background: #FFFFFF; border: 1.5px solid #FFC9A0; border-radius: 18px; padding: 12px; box-shadow: 0 8px 20px rgba(194,65,12,0.14); animation: pc-ayun 2.6s ease-in-out infinite; }
+        .pc-gel::after { content: ""; position: absolute; right: -9px; top: 50%; margin-top: -8px; width: 14px; height: 14px; background: #FFFFFF; border-top: 1.5px solid #FFC9A0; border-right: 1.5px solid #FFC9A0; transform: rotate(45deg); }
+        .pc-baru { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 800; color: #FFFFFF; background: #E85300; padding: 3px 8px; border-radius: 99px; }
+        .pc-baru i { width: 6px; height: 6px; border-radius: 99px; background: #FFFFFF; animation: pc-kedip 1.2s ease-in-out infinite; }
+        .pc-gel b { display: block; font-size: 13.5px; font-weight: 800; margin-top: 7px; color: #1F1611; }
+        .pc-gel p { margin: 3px 0 0; font-size: 12.5px; font-weight: 600; line-height: 1.5; color: #4A3B2E; }
+        .pc-gel p strong { color: #C2410C; }
+        @keyframes pc-ayun { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+        @keyframes pc-kedip { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+        .pc-hp { position: relative; flex: none; width: 168px; height: 318px; border-radius: 32px; background: #2A2018; padding: 7px; box-shadow: 0 16px 30px rgba(42,32,24,0.24); }
+        .pc-hp-layar { position: relative; width: 100%; height: 100%; border-radius: 26px; overflow: hidden; display: flex; flex-direction: column; }
+        .pc-hp-kepala { position: relative; display: flex; align-items: center; gap: 6px; padding: 18px 8px 7px; background: #FF6A00; color: #FFFFFF; }
+        .pc-hp-kepala::before { content: ""; position: absolute; left: 50%; top: 5px; transform: translateX(-50%); width: 46px; height: 8px; border-radius: 99px; background: #2A2018; }
+        .pc-hp-kepala span { width: 22px; height: 22px; border-radius: 99px; background: #FFFFFF; color: #FF6A00; display: grid; place-items: center; font-weight: 800; font-size: 11px; }
+        .pc-hp-kepala b { font-size: 10.5px; font-weight: 800; display: block; }
+        .pc-hp-kepala small { font-size: 8.5px; opacity: .9; font-weight: 600; display: block; }
+        .pc-hp-isi { position: relative; flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 5px; padding: 7px; }
+        .pc-hp-b { max-width: 86%; padding: 5px 8px 3px; border-radius: 9px; font-size: 10.5px; line-height: 1.35; box-shadow: 0 1px 1px rgba(0,0,0,0.08); color: #2A2018; }
+        .pc-hp-b small { display: block; text-align: right; font-size: 8px; color: #6B6B6B; }
+        .pc-hp-b.s { align-self: flex-end; background: #DCF7C5; border-top-right-radius: 3px; }
+        .pc-hp-b.a { align-self: flex-start; background: #FFFFFF; border-top-left-radius: 3px; }
+        .pc-hp-foto { width: 92px; height: 52px; border-radius: 7px; background: #E8D9C6; display: grid; place-items: center; color: #9A7B55; font-size: 20px; }
+        .pc-hp-tulis { position: relative; display: flex; gap: 5px; padding: 5px 7px 9px; }
+        .pc-hp-tulis i { flex: 1; height: 22px; border-radius: 99px; background: #FFFFFF; }
+        .pc-hp-tulis u { width: 22px; height: 22px; border-radius: 99px; background: #E85300; }
+        .pc-kel { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; }
+        .pc-kel div { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; font-size: 11.5px; line-height: 1.35; font-weight: 700; color: #3B2F26; background: #FFFFFF; border: 1px solid #F3E2CF; border-radius: 14px; padding: 10px 6px; }
+        .pc-kel i { font-size: 22px; color: #E85300; }
+        .pc-mulai { position: relative; margin-top: 14px; width: 100%; min-height: 54px; border-radius: 16px; border: 0; background: #E85300; color: #FFFFFF; font: inherit; font-size: 15.5px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
+        .pc-mulai em { font-style: normal; font-size: 11px; background: #FFFFFF; color: #C2410C; padding: 2px 8px; border-radius: 99px; }
+        .pc-mulai em[hidden] { display: none; }
+        .pc-wa-et { position: relative; margin-top: 8px; width: 100%; min-height: 48px; box-sizing: border-box; border-radius: 16px; border: 1.5px solid #BFE5CB; background: #F2FBF5; color: #11713A; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
+        .pc-et-catatan { position: relative; margin: 10px 0 0; font-size: 11.5px; line-height: 1.5; font-weight: 600; color: #6B5D51; text-align: center; }
+        .pc-etalase button:focus-visible, .pc-etalase a:focus-visible { outline: 2px solid #C2410C; outline-offset: 2px; }
+        @media (prefers-reduced-motion: reduce) { .pc-gel, .pc-baru i { animation: none; } }
+
+        /* Motif latar chat: motor, paket, pin, mangkuk, helm (garis pudar, tidak menimpa tulisan) */
+        .pc-motif { background-color: #F3EBDF; background-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22 viewBox=%220 0 150 150%22%3E%3Cg fill=%22none%22 stroke=%22%23C9B59B%22 stroke-width=%221.6%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 opacity=%22.5%22%3E%3Cg transform=%22translate%2810 14%29%22%3E%3Ccircle cx=%226%22 cy=%2220%22 r=%225%22/%3E%3Ccircle cx=%2232%22 cy=%2220%22 r=%225%22/%3E%3Cpath d=%22M6 20h8l6-10h7l5 10M20 10l-3-6h-5M27 10l2-5h5M11 15h9%22/%3E%3C/g%3E%3Cg transform=%22translate%2894 10%29%22%3E%3Cpath d=%22M14 2 26 8v14l-12 6-12-6V8z%22/%3E%3Cpath d=%22M2 8l12 6 12-6M14 14v14M8 5l12 6%22/%3E%3C/g%3E%3Cg transform=%22translate%2862 58%29%22%3E%3Cpath d=%22M10 26S2 17 2 10a8 8 0 0 1 16 0c0 7-8 16-8 16z%22/%3E%3Ccircle cx=%2210%22 cy=%2210%22 r=%223%22/%3E%3C/g%3E%3Cg transform=%22translate%2810 92%29%22%3E%3Cpath d=%22M2 14h28a14 12 0 0 1-28 0z%22/%3E%3Cpath d=%22M10 9c0-3 3-3 3-6M17 9c0-3 3-3 3-6M24 9c0-3 3-3 3-6%22/%3E%3C/g%3E%3Cg transform=%22translate%28102 92%29%22%3E%3Cpath d=%22M3 20a13 13 0 0 1 26 0v4H3z%22/%3E%3Cpath d=%22M16 7v8h13%22/%3E%3C/g%3E%3Cg transform=%22translate%28120 56%29%22%3E%3Cpath d=%22M2 4h18v12H9l-5 4v-4H2z%22/%3E%3C/g%3E%3Cg transform=%22translate%2856 124%29%22%3E%3Cpath d=%22M8 1l2.2 4.6 5 .7-3.6 3.5.9 5L8 12.4 3.5 14.8l.9-5L.8 6.3l5-.7z%22/%3E%3C/g%3E%3Cg transform=%22translate%2840 50%29%22%3E%3Crect x=%221%22 y=%221%22 width=%2212%22 height=%2218%22 rx=%222%22/%3E%3Cpath d=%22M4 6h6M4 10h6M4 14h4%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); background-size: 150px 150px; }
+
+        /* ---------- LAYAR CHAT ---------- */
+        #page-chat { padding: 0 !important; min-height: 100vh; background: #F3EBDF; }
+        body.pc-layar { overflow: hidden; }
+        .pc-kotak { position: fixed; top: 0; left: 0; right: 0; height: 100%; max-width: var(--max-width); margin: 0 auto; z-index: 1001; display: flex; flex-direction: column; background: #F3EBDF; font-family: inherit; color: #2A2018; }
+        .pc-kepala { display: flex; align-items: center; gap: 8px; padding: calc(10px + env(safe-area-inset-top, 0px)) 12px 10px; background: #FF6A00; color: #FFFFFF; flex: none; }
+        .pc-av { position: relative; width: 40px; height: 40px; border-radius: 99px; background: #FFFFFF; color: #FF6A00; display: grid; place-items: center; font-weight: 800; font-size: 17px; flex: none; }
+        .pc-onl { position: absolute; right: 0; bottom: 0; width: 11px; height: 11px; border-radius: 99px; background: #22A447; border: 2px solid #FF6A00; }
         .pc-onl.tutup { background: #B9AFA4; }
         .pc-id { flex: 1; min-width: 0; }
-        .pc-id b { display: block; font-size: 14.5px; font-weight: 800; }
-        .pc-id small { display: block; font-size: 12px; font-weight: 600; color: #1E6B34; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .pc-id small.tutup { color: #8A5A00; }
-        .pc-wa { display: inline-flex; align-items: center; gap: 5px; height: 38px; padding: 0 10px; border-radius: 12px; background: #E6F6EC; color: #11713A; text-decoration: none; font-size: 12px; font-weight: 800; flex: none; }
+        .pc-id b { display: block; font-size: 15px; font-weight: 800; }
+        .pc-id small { display: block; font-size: 12px; font-weight: 600; color: #FFF1E3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pc-wa { display: inline-flex; align-items: center; gap: 5px; height: 38px; padding: 0 10px; border-radius: 12px; background: #FFFFFF; color: #11713A; text-decoration: none; font-size: 12px; font-weight: 800; flex: none; }
         .pc-wa i { font-size: 18px; }
-        .pc-ik { width: 38px; height: 38px; border-radius: 12px; border: 1px solid #EFE6DC; background: #FFFFFF; color: #4A3B2E; display: grid; place-items: center; cursor: pointer; font-size: 18px; flex: none; padding: 0; }
-        .pc-kembali { display: none; border: 0; background: transparent; color: #FFFFFF; font-size: 22px; }
-        .pc-isi { flex: 1; overflow-y: auto; background: #EFE7DE; padding: 12px; display: flex; flex-direction: column; gap: 6px; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
-        #pc-daftar { display: flex; flex-direction: column; gap: 6px; }
-        .pc-info { align-self: center; max-width: 90%; text-align: center; font-size: 11.5px; font-weight: 600; line-height: 1.45; color: #6B4E12; background: #FFF4D6; padding: 6px 10px; border-radius: 8px; }
-        .pc-hari { align-self: center; font-size: 11px; font-weight: 700; color: #6B5D51; background: rgba(255,255,255,0.8); padding: 3px 10px; border-radius: 8px; margin: 4px 0; }
-        .pc-bub { max-width: 82%; padding: 7px 10px 5px; border-radius: 12px; font-size: 14px; line-height: 1.45; box-shadow: 0 1px 1px rgba(0,0,0,0.07); white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; }
+        .pc-ik { width: 40px; height: 40px; border-radius: 12px; border: 0; background: transparent; color: #FFFFFF; display: grid; place-items: center; cursor: pointer; font-size: 22px; flex: none; padding: 0; }
+        .pc-isi { flex: 1; min-height: 0; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 6px; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+        /* Pesan menempel di bawah (dekat kolom tulis), seperti WhatsApp */
+        #pc-daftar { margin-top: auto; display: flex; flex-direction: column; gap: 6px; }
+        .pc-info { align-self: center; max-width: 92%; text-align: center; font-size: 11.5px; font-weight: 600; line-height: 1.45; color: #6B4E12; background: #FFF4D6; padding: 6px 10px; border-radius: 8px; }
+        .pc-hari { align-self: center; font-size: 11px; font-weight: 700; color: #6B5D51; background: rgba(255,255,255,0.9); padding: 3px 10px; border-radius: 8px; margin: 4px 0; }
+        .pc-bub { max-width: 80%; padding: 7px 10px 5px; border-radius: 12px; font-size: 14px; line-height: 1.45; box-shadow: 0 1px 1px rgba(0,0,0,0.08); white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; position: relative; }
         .pc-bub.adm { align-self: flex-start; background: #FFFFFF; border-top-left-radius: 4px; }
         .pc-bub.saya { align-self: flex-end; background: #DCF7C5; border-top-right-radius: 4px; }
         .pc-bub a { color: #0B63A8; text-decoration: underline; }
@@ -2382,36 +2465,55 @@ body.gm-terkunci { overflow: hidden; }
         .pc-lok-peta { height: 92px; border-radius: 9px; background: #E3EBDD; display: grid; place-items: center; color: #E85300; font-size: 34px; }
         .pc-lok-t { padding: 6px 6px 0; font-size: 13px; font-weight: 800; white-space: normal; }
         .pc-lok a { display: inline-block; padding: 2px 6px 0; font-size: 12.5px; font-weight: 700; }
+        .pc-foto { padding: 4px; }
+        .pc-foto-g { display: block; width: 240px; max-width: 100%; border-radius: 9px; background: #E8D9C6; border: 0; padding: 0; cursor: zoom-in; overflow: hidden; position: relative; }
+        .pc-foto-g img { display: block; width: 100%; height: 100%; object-fit: cover; }
+        .pc-foto-st { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(42,32,24,0.35); color: #FFFFFF; font-size: 13px; font-weight: 800; }
+        .pc-foto-ulang { margin: 6px 4px 0; border: 0; background: #FFFFFF; color: #9B2C2C; font: inherit; font-size: 12.5px; font-weight: 800; padding: 6px 10px; border-radius: 99px; cursor: pointer; }
+        .pc-foto .pc-waktu { padding: 0 4px 2px; }
+        .pc-kontak { min-width: 220px; }
+        .pc-kontak-k { display: flex; align-items: center; gap: 10px; padding-bottom: 7px; border-bottom: 1px solid rgba(0,0,0,0.08); white-space: normal; }
+        .pc-kontak-av { width: 42px; height: 42px; border-radius: 99px; background: #BFE3A6; color: #2F5D1A; display: grid; place-items: center; font-weight: 800; flex: none; }
+        .pc-bub.adm .pc-kontak-av { background: #E7EEF8; color: #2B5A8A; }
+        .pc-kontak-k b { display: block; font-size: 14px; }
+        .pc-kontak-k > div span { display: block; font-size: 12.5px; color: #4A5A3E; }
+        .pc-kontak-c { display: block; text-align: center; font-size: 12.5px; font-weight: 800; color: #1E6B34; padding: 6px 0 0; white-space: normal; }
         .pc-psn { padding: 0; min-width: 230px; overflow: hidden; background: #FFFFFF !important; border: 1.5px solid #FFD2B0; }
         .pc-psn-k { display: flex; align-items: center; gap: 6px; padding: 8px 10px; background: #FFF4EC; color: #9A3412; font-size: 12.5px; font-weight: 800; white-space: normal; }
-        .pc-psn-b { padding: 8px 10px 0; font-size: 13px; line-height: 1.5; max-height: 220px; overflow: hidden; position: relative; }
+        .pc-psn-b { padding: 8px 10px 0; font-size: 13px; line-height: 1.5; max-height: 220px; overflow: hidden; }
         .pc-psn-b.terbuka { max-height: none; }
         .pc-psn-lagi { display: block; width: 100%; border: 0; background: transparent; color: #C2410C; font: inherit; font-size: 12.5px; font-weight: 800; padding: 6px 10px 0; text-align: left; cursor: pointer; }
         .pc-psn .pc-waktu { padding: 0 10px 6px; }
-        .pc-cepat { display: flex; gap: 8px; overflow-x: auto; padding: 8px 12px 0; background: #FFFFFF; scrollbar-width: none; }
+        .pc-cepat { display: flex; gap: 8px; overflow-x: auto; padding: 6px 10px 0; scrollbar-width: none; flex: none; }
         .pc-cepat::-webkit-scrollbar { display: none; }
         .pc-chip { flex: none; height: 34px; padding: 0 12px; border-radius: 99px; border: 1px solid #E6D9CB; background: #FFFFFF; color: #4A3B2E; font: inherit; font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
         .pc-chip i { color: #E85300; font-size: 15px; }
-        .pc-tulis { display: flex; align-items: flex-end; gap: 8px; padding: 8px 12px 10px; background: #FFFFFF; margin: 0; }
-        .pc-tulis textarea { flex: 1; min-width: 0; height: 44px; min-height: 44px; max-height: 120px; resize: none; border: 0; border-radius: 22px; background: #F6F2ED; padding: 11px 16px; font: inherit; font-size: 15px; line-height: 1.45; color: #2A2018; box-sizing: border-box; outline: none; }
-        .pc-tulis textarea:focus { box-shadow: 0 0 0 2px #FFB98A; }
-        .pc-tulis .pc-ik { width: 44px; height: 44px; border-radius: 99px; border: 0; background: #F6F2ED; color: #E85300; font-size: 20px; }
-        .pc-kirim { width: 44px; height: 44px; border-radius: 99px; border: 0; background: #E85300; color: #FFFFFF; display: grid; place-items: center; flex: none; cursor: pointer; font-size: 19px; padding: 0; }
+        .pc-tulis { display: flex; align-items: flex-end; gap: 8px; padding: 8px 10px calc(10px + env(safe-area-inset-bottom, 0px)); margin: 0; flex: none; }
+        .pc-kolom { flex: 1; min-width: 0; display: flex; align-items: flex-end; background: #FFFFFF; border-radius: 23px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); padding-right: 4px; }
+        .pc-kolom:focus-within { box-shadow: 0 0 0 2px #FFB98A; }
+        .pc-kolom textarea { flex: 1; min-width: 0; height: 46px; min-height: 46px; max-height: 120px; resize: none; border: 0; background: transparent; padding: 12px 6px 12px 16px; font: inherit; font-size: 15px; line-height: 1.45; color: #2A2018; box-sizing: border-box; outline: none; }
+        .pc-kolom .pc-ik { width: 40px; height: 46px; color: #6B5D51; font-size: 21px; }
+        .pc-kirim { width: 46px; height: 46px; border-radius: 99px; border: 0; background: #E85300; color: #FFFFFF; display: grid; place-items: center; flex: none; cursor: pointer; font-size: 19px; padding: 0; }
         .pc-kirim:disabled { opacity: 0.45; cursor: default; }
         .pc-kotak button:focus-visible, .pc-kotak a:focus-visible { outline: 2px solid #C2410C; outline-offset: 2px; }
-
-        /* Layar penuh (halaman Chat) */
-        #page-chat { padding: 0 !important; min-height: 100vh; background: #EFE7DE; }
-        .pc-kotak.pc-penuh { position: fixed; top: 0; bottom: 0; left: 0; right: 0; max-width: var(--max-width); margin: 0 auto; height: auto; border-radius: 0; border: 0; box-shadow: none; z-index: 1001; }
-        .pc-penuh .pc-kepala { background: #FF6A00; border-bottom: 0; padding-top: calc(10px + env(safe-area-inset-top, 0px)); }
-        .pc-penuh .pc-kembali { display: grid; }
-        .pc-penuh .pc-av { background: #FFFFFF; color: #FF6A00; }
-        .pc-penuh .pc-onl { border-color: #FF6A00; }
-        .pc-penuh .pc-id b { color: #FFFFFF; }
-        .pc-penuh .pc-id small, .pc-penuh .pc-id small.tutup { color: #FFF1E3; }
-        .pc-penuh .pc-wa { background: #FFFFFF; }
-        .pc-penuh .pc-perbesar { display: none; }
-        .pc-penuh .pc-tulis { padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
+        /* Menu lampiran */
+        .pc-lampir { position: absolute; left: 10px; right: 10px; bottom: calc(74px + env(safe-area-inset-bottom, 0px)); z-index: 3; background: #FFFFFF; border-radius: 20px; box-shadow: 0 14px 34px rgba(42,32,24,0.22); padding: 16px 8px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+        .pc-lampir[hidden] { display: none; }
+        .pc-lampir button { border: 0; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 6px; font: inherit; font-size: 12.5px; font-weight: 700; color: #2A2018; cursor: pointer; padding: 4px 0; }
+        .pc-lampir button span { width: 54px; height: 54px; border-radius: 99px; display: grid; place-items: center; color: #FFFFFF; font-size: 24px; }
+        /* Lihat foto besar */
+        .pc-lihat { position: fixed; inset: 0; z-index: 3100; background: rgba(15,10,6,0.94); display: flex; align-items: center; justify-content: center; }
+        .pc-lihat[hidden] { display: none; }
+        .pc-lihat img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .pc-lihat button { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); right: 12px; width: 44px; height: 44px; border-radius: 99px; border: 0; background: rgba(255,255,255,0.15); color: #FFFFFF; font-size: 22px; display: grid; place-items: center; cursor: pointer; }
+        /* Isian kontak manual */
+        .pc-kform { position: fixed; inset: 0; z-index: 3050; display: flex; align-items: flex-end; justify-content: center; background: rgba(31,22,17,0.45); }
+        .pc-kform[hidden] { display: none; }
+        .pc-kform form { width: 100%; max-width: var(--max-width); background: #FFFFFF; border-radius: 26px 26px 0 0; padding: 16px 18px calc(18px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 10px; margin: 0; }
+        .pc-kform h2 { margin: 0; font-size: 18px; font-weight: 800; }
+        .pc-kform label { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; font-weight: 700; color: #5C4E42; }
+        .pc-kform input { min-height: 48px; border: 1px solid #E3D9CE; border-radius: 12px; padding: 0 12px; font: inherit; font-size: 15px; }
+        .pc-kform .pc-pilih-btn { margin-top: 2px; }
 
         /* Lencana Chat di navbar (5 menu) */
         .bottom-nav { grid-template-columns: repeat(5, 1fr); }
@@ -2823,12 +2925,74 @@ body.gm-terkunci { overflow: hidden; }
                     <div style="min-width: 0;">
                         <div id="home-salam" class="bh-salam">Selamat datang,</div>
                         <div class="bh-nama">Hi, <span id="greeting-name">Projekger</span></div>
-                        <span class="bh-sub"><i class="ph-fill ph-shield-check" aria-hidden="true"></i>Pesan lewat chat, nomormu privat</span>
+                        <span class="bh-sub"><i class="ph-fill ph-shield-check" aria-hidden="true"></i>Nomormu tidak dibagikan ke rider</span>
                     </div>
                     <div class="bh-maskot" aria-hidden="true">
                         <img src="https://i.ibb.co.com/SDtKrDdz/Desain-tanpa-judul-31.png" alt="" loading="eager">
                     </div>
                 </div>
+            </div>
+
+            <!-- BANNER KEUNGGULAN (v2, 7 Nov 2026): dipindah ke atas Layanan, dengan gambar animasi -->
+            <div class="bh-sec bn-wrap">
+                <div id="home-promo-slider" class="bh-slider" aria-roledescription="carousel" aria-label="Keunggulan ProjekGo">
+                    <button type="button" class="bh-slide bn-s bn-oranye" onclick="openPromoModal('Lebih Hemat 20% - 30%', 'Harga makanan asli dari penjual, tidak dinaikkan sama sekali! Ditambah lagi, belanja makin tenang tanpa biaya aplikasi.', 'https://i.ibb.co.com/bjnf9ZfB/Desain-tanpa-judul-79.png', '#FFF3E0')">
+                        <span class="bn-teks"><span class="bn-label">Tanpa biaya aplikasi</span><span class="bh-slide-judul">Harga asli warung, langsung diantar</span><span class="bh-slide-sub">Bayar tunai ke rider atau QRIS</span></span>
+                        <svg class="bn-gambar" viewBox="0 0 180 150" aria-hidden="true">
+                            <circle cx="132" cy="58" r="44" fill="#FFD0A3"/>
+                            <g class="a-naik"><circle cx="150" cy="30" r="11" fill="#FFC23D" stroke="#E59A00" stroke-width="2"/><text x="150" y="34.5" text-anchor="middle" font-size="11" font-weight="800" fill="#8A5A00" font-family="sans-serif">Rp</text></g>
+                            <path d="M0 132H180" stroke="#E8B48A" stroke-width="3"/>
+                            <path class="a-garis" d="M0 140H180" stroke="#F4C9A3" stroke-width="3" stroke-dasharray="18 18"/>
+                            <g class="a-jalan"><g class="a-goyang">
+                                <path d="M58 104h44l12-20h-18l-8 12H66z" fill="#FF6A00"/>
+                                <rect x="88" y="66" width="26" height="22" rx="4" fill="#C2410C"/><path d="M92 72h18M92 78h12" stroke="#FFD8B5" stroke-width="2"/>
+                                <circle cx="77" cy="70" r="9" fill="#FF8A3D"/><path d="M70 72h14" stroke="#4A1D05" stroke-width="3" stroke-linecap="round"/>
+                                <path d="M72 80l-6 18h14l6-12" fill="#3B2F26"/><path d="M112 84l8 2" stroke="#3B2F26" stroke-width="3" stroke-linecap="round"/>
+                            </g>
+                            <g class="a-putar"><circle cx="64" cy="118" r="12" fill="#2A2018"/><circle cx="64" cy="118" r="5" fill="#FFFFFF"/></g>
+                            <g class="a-putar"><circle cx="114" cy="118" r="12" fill="#2A2018"/><circle cx="114" cy="118" r="5" fill="#FFFFFF"/></g>
+                            </g>
+                        </svg>
+                    </button>
+                    <button type="button" class="bh-slide bn-s bn-biru" onclick="openProjekgoInfoModal()">
+                        <span class="bn-teks"><span class="bn-label">Projekgo Prioritas</span><span class="bh-slide-judul">Satu rider khusus untukmu</span><span class="bh-slide-sub">Ketuk untuk kenalan</span></span>
+                        <svg class="bn-gambar" viewBox="0 0 180 150" aria-hidden="true">
+                            <circle class="a-denyut" cx="110" cy="80" r="46" fill="#C7D7FF"/>
+                            <circle cx="110" cy="80" r="38" fill="#FFFFFF"/>
+                            <path d="M84 88a26 26 0 0 1 52 0v8H84z" fill="#2340A8"/>
+                            <path d="M110 62v16h26" stroke="#9DB4F5" stroke-width="4" fill="none" stroke-linecap="round"/>
+                            <rect x="94" y="80" width="30" height="10" rx="5" fill="#AFC4FF"/>
+                            <path d="M84 112h52" stroke="#2340A8" stroke-width="5" stroke-linecap="round"/>
+                            <g class="a-naik"><circle cx="146" cy="44" r="15" fill="#FFC23D"/><path d="M149 33l-10 13h7l-3 10 11-14h-7z" fill="#7A4A00"/></g>
+                            <circle class="a-kerlip" cx="62" cy="50" r="4" fill="#8FA9F0"/><circle class="a-kerlip d2" cx="70" cy="116" r="3" fill="#8FA9F0"/>
+                        </svg>
+                    </button>
+                    <button type="button" class="bh-slide bn-s bn-ungu" onclick="openPromoModal('Pesan Apa Saja, Di Mana Saja', 'Bisa pesan di beberapa tempat sekalian! Bahkan bisa titip beli di luar menu aplikasi. Apa saja dan di mana saja, Projekgo bantu.', 'https://i.ibb.co.com/Sw1p64Vm/Desain-tanpa-judul-81.png', '#E3F2FD')">
+                        <span class="bn-teks"><span class="bn-label">Titip beli juga bisa</span><span class="bh-slide-judul">Pesan apa saja, di mana saja</span><span class="bh-slide-sub">Bisa titip beli di luar menu</span></span>
+                        <svg class="bn-gambar" viewBox="0 0 180 150" aria-hidden="true">
+                            <circle cx="114" cy="84" r="46" fill="#E2D2FB"/>
+                            <g class="a-loncat"><circle cx="96" cy="48" r="9" fill="#E5484D"/><path d="M96 39c1-4 4-6 7-6" stroke="#2F7D3E" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>
+                            <g class="a-loncat d2"><rect x="110" y="30" width="12" height="26" rx="4" fill="#3B82F6"/><rect x="113" y="25" width="6" height="7" rx="2" fill="#1E40AF"/></g>
+                            <g class="a-loncat d3"><ellipse cx="136" cy="48" rx="12" ry="8" fill="#F2B45A"/><path d="M130 46h12" stroke="#C9822B" stroke-width="2"/></g>
+                            <path d="M84 62h60l-6 60H90z" fill="#7B3FA8"/>
+                            <path d="M100 62v-4a14 14 0 0 1 28 0v4" stroke="#5B2C84" stroke-width="4" fill="none"/>
+                            <path d="M98 84h32" stroke="#C9A8EC" stroke-width="4" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <button type="button" class="bh-slide bn-s bn-hijau" onclick="openPromoModal('100% Dukung Ekonomi Lokal', 'Rider, UMKM, dan pelanggan adalah warga lokal. Pesan di Projekgo berarti kamu membantu perputaran ekonomi daerah kita!', 'https://i.ibb.co.com/sdCCWGKh/Desain-tanpa-judul-82.png', '#FCE4EC')">
+                        <span class="bn-teks"><span class="bn-label">100% warga lokal</span><span class="bh-slide-judul">Dukung warung Gombong–Kebumen</span><span class="bh-slide-sub">Rider, UMKM, dan pelanggan warga lokal</span></span>
+                        <svg class="bn-gambar" viewBox="0 0 180 150" aria-hidden="true">
+                            <circle cx="114" cy="86" r="46" fill="#C9EBD3"/>
+                            <rect x="80" y="72" width="68" height="48" rx="3" fill="#FFFFFF" stroke="#2F7D3E" stroke-width="3"/>
+                            <rect x="88" y="84" width="22" height="16" rx="2" fill="#D5EFDD"/><rect x="118" y="88" width="20" height="32" rx="2" fill="#2F7D3E"/>
+                            <path d="M76 72h76l-6-16H82z" fill="#2F7D3E"/>
+                            <path d="M76 72a7 7 0 0 0 14 0 7 7 0 0 0 14 0 7 7 0 0 0 14 0 7 7 0 0 0 14 0 7 7 0 0 0 14 0" fill="#FFFFFF" stroke="#2F7D3E" stroke-width="2"/>
+                            <path d="M70 122h88" stroke="#2F7D3E" stroke-width="4" stroke-linecap="round"/>
+                            <g class="a-naik"><path d="M146 36c-4-7-15-3-11 6l11 10 11-10c4-9-7-13-11-6z" fill="#E5484D"/></g>
+                        </svg>
+                    </button>
+                </div>
+                <div id="bh-dots" class="bh-dots" aria-hidden="true"><span class="on"></span><span></span><span></span><span></span></div>
             </div>
 
             <!-- PENCARIAN (menempel di atas saat digulir) -->
@@ -2880,66 +3044,40 @@ body.gm-terkunci { overflow: hidden; }
                 </div>
             </div>
 
-            <!-- CHAT ADMIN DI APLIKASI (7 Nov 2026): nomor pelanggan tidak diteruskan ke rider -->
+            <!-- ETALASE CHAT ADMIN (v2, 7 Nov 2026): hanya pengenalan fitur, chat asli ada di menu Chat -->
             <div class="bh-sec" id="pc-slot-beranda">
-                <div class="bh-judul" style="margin-bottom: 10px;"><span>Chat admin</span><span class="pc-kecil"><i class="ph-fill ph-shield-check" aria-hidden="true"></i> Nomormu tetap privat</span></div>
-                <section id="pc-kotak" class="pc-kotak" aria-label="Chat dengan admin ProjekGo">
-                    <div class="pc-kepala">
-                        <button type="button" class="pc-ik pc-kembali" onclick="goBack()" aria-label="Kembali"><i class="ph-bold ph-arrow-left" aria-hidden="true"></i></button>
-                        <span class="pc-av" aria-hidden="true">P<i class="pc-onl" id="pc-onl"></i></span>
-                        <div class="pc-id"><b>Admin ProjekGo</b><small id="pc-status">Online · biasanya balas &lt; 5 menit</small></div>
-                        <a class="pc-wa" href="https://wa.me/62882008667068" target="_blank" rel="noopener" aria-label="Chat lewat WhatsApp admin 0882-0086-67068"><i class="ph-fill ph-whatsapp-logo" aria-hidden="true"></i><span>WhatsApp</span></a>
-                        <button type="button" class="pc-ik pc-perbesar" onclick="openPage('chat')" aria-label="Buka chat layar penuh"><i class="ph-bold ph-arrows-out-simple" aria-hidden="true"></i></button>
+                <div class="bh-judul" style="margin-bottom: 10px;"><span>Chat admin di aplikasi</span></div>
+                <div class="pc-etalase">
+                    <div class="pc-et-atas">
+                        <div class="pc-gel">
+                            <span class="pc-baru"><i aria-hidden="true"></i>BARU</span>
+                            <b>Fitur baru nih! 👋</b>
+                            <p>Mau pesan? Ngobrol saja dengan admin lewat chat aplikasi. Nomormu lebih privat: hanya admin yang simpan, <strong>tidak dibagikan ke rider</strong> pengantaran.</p>
+                        </div>
+                        <div class="pc-hp" aria-hidden="true">
+                            <div class="pc-hp-layar pc-motif">
+                                <div class="pc-hp-kepala"><span>P</span><div><b>Admin ProjekGo</b><small>Online</small></div></div>
+                                <div class="pc-hp-isi">
+                                    <div class="pc-hp-b s">Min, kirim paket ke Kebumen ya 📦<small>10.02 ✓✓</small></div>
+                                    <div class="pc-hp-b s" style="padding:3px;"><div class="pc-hp-foto"><i class="ph-fill ph-image"></i></div><small style="padding:0 3px 1px;">10.02</small></div>
+                                    <div class="pc-hp-b a">Siap Kak! Nomormu tidak dibagikan ke rider 🔒<small>10.03</small></div>
+                                    <div class="pc-hp-b a" style="background:#FFF4EC; border:1px solid #FFD2B0;"><b style="color:#9A3412;">🛵 Rider menuju lokasi</b><small>10.05</small></div>
+                                </div>
+                                <div class="pc-hp-tulis"><i></i><u></u></div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="pc-isi" id="pc-isi" role="log" aria-live="polite" aria-label="Isi chat">
-                        <div class="pc-info">Chat di aplikasi: nomor WA kamu tidak diteruskan ke rider. Admin yang menghubungkan.</div>
-                        <div id="pc-daftar"></div>
+                    <div class="pc-kel">
+                        <div><i class="ph-fill ph-lock-key" aria-hidden="true"></i>Nomor tidak dibagikan ke rider</div>
+                        <div><i class="ph-fill ph-camera" aria-hidden="true"></i>Kirim foto, lokasi &amp; kontak</div>
+                        <div><i class="ph-fill ph-archive" aria-hidden="true"></i>Pesanan tersimpan rapi</div>
                     </div>
-                    <div class="pc-cepat">
-                        <button type="button" class="pc-chip" onclick="pcKirimLokasi()"><i class="ph-fill ph-map-pin" aria-hidden="true"></i>Kirim lokasi saya</button>
-                        <button type="button" class="pc-chip" onclick="pcIsiCepat('Min, mau cek ongkir dari ... ke ...')">Cek ongkir</button>
-                        <button type="button" class="pc-chip" onclick="pcIsiCepat('Min, mau titip beli ... di ...')">Titip beli</button>
-                        <button type="button" class="pc-chip" onclick="pcIsiCepat('Min, mau ngojek dari ... ke ...')">Ngojek</button>
-                    </div>
-                    <form class="pc-tulis" id="pc-form" autocomplete="off">
-                        <button type="button" class="pc-ik" onclick="pcKirimLokasi()" aria-label="Kirim lokasi saya"><i class="ph-fill ph-map-pin" aria-hidden="true"></i></button>
-                        <label for="pc-input" style="position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);">Pesan untuk admin</label>
-                        <textarea id="pc-input" rows="1" maxlength="1000" placeholder="Tulis pesan untuk admin..." enterkeyhint="send"></textarea>
-                        <button type="submit" class="pc-kirim" id="pc-kirim" aria-label="Kirim pesan" disabled><i class="ph-fill ph-paper-plane-right" aria-hidden="true"></i></button>
-                    </form>
-                </section>
+                    <button type="button" class="pc-mulai" onclick="openPage('chat')"><i class="ph-fill ph-chat-circle-dots" aria-hidden="true"></i>Mulai chat dengan admin <em id="pc-badge-et" hidden>0 balasan baru</em></button>
+                    <a class="pc-wa-et" href="https://wa.me/62882008667068" target="_blank" rel="noopener"><i class="ph-fill ph-whatsapp-logo" aria-hidden="true"></i>Lebih suka WhatsApp? Chat 0882-0086-67068</a>
+                    <p class="pc-et-catatan">Nomormu tidak dibagikan ke rider, jadi lebih privat. Hanya admin ProjekGo yang menyimpannya.</p>
+                </div>
             </div>
 
-            <!-- SLIDER PROMO (bergeser sendiri, bisa digeser manual) -->
-            <div class="bh-sec">
-                <div id="home-promo-slider" class="bh-slider" aria-roledescription="carousel" aria-label="Keunggulan ProjekGo">
-                    <button type="button" class="bh-slide" style="background:#1E6B24;" onclick="openPromoModal('Lebih Hemat 20% - 30%', 'Harga makanan asli dari penjual, tidak dinaikkan sama sekali! Ditambah lagi, belanja makin tenang tanpa biaya aplikasi.', 'https://i.ibb.co.com/bjnf9ZfB/Desain-tanpa-judul-79.png', '#FFF3E0')">
-                        <span class="bh-slide-bulat" style="background:#2B8433;"></span>
-                        <i class="ph-fill ph-money bh-slide-ic" style="color:#A8E6B0;"></i>
-                        <span class="bh-slide-judul">Harga asli warung,<br>tanpa biaya aplikasi</span>
-                        <span class="bh-slide-sub">Bayar tunai ke rider atau QRIS</span>
-                    </button>
-                    <button type="button" class="bh-slide" style="background:#2340A8;" onclick="openProjekgoInfoModal()">
-                        <span class="bh-slide-bulat" style="background:#3152C2;"></span>
-                        <i class="ph-fill ph-lightning bh-slide-ic" style="color:#AFC4FF;"></i>
-                        <span class="bh-slide-judul">Satu rider<br>khusus untukmu</span>
-                        <span class="bh-slide-sub">Kenalan sama Projekgo Prioritas</span>
-                    </button>
-                    <button type="button" class="bh-slide" style="background:#7B3FA8;" onclick="openPromoModal('Pesan Apa Saja, Di Mana Saja', 'Bisa pesan di beberapa tempat sekalian! Bahkan bisa titip beli di luar menu aplikasi. Apa saja dan di mana saja, Projekgo bantu.', 'https://i.ibb.co.com/Sw1p64Vm/Desain-tanpa-judul-81.png', '#E3F2FD')">
-                        <span class="bh-slide-bulat" style="background:#8E52BC;"></span>
-                        <i class="ph-fill ph-shopping-cart bh-slide-ic" style="color:#E2C8F7;"></i>
-                        <span class="bh-slide-judul">Pesan apa saja,<br>di mana saja</span>
-                        <span class="bh-slide-sub">Bisa titip beli di luar menu</span>
-                    </button>
-                    <button type="button" class="bh-slide" style="background:#B23A1E;" onclick="openPromoModal('100% Dukung Ekonomi Lokal', 'Rider, UMKM, dan pelanggan adalah warga lokal. Pesan di Projekgo berarti kamu membantu perputaran ekonomi daerah kita!', 'https://i.ibb.co.com/sdCCWGKh/Desain-tanpa-judul-82.png', '#FCE4EC')">
-                        <span class="bh-slide-bulat" style="background:#C94B2C;"></span>
-                        <i class="ph-fill ph-storefront bh-slide-ic" style="color:#FFC4B0;"></i>
-                        <span class="bh-slide-judul">Dukung warung<br>Gombong–Kebumen</span>
-                        <span class="bh-slide-sub">Rider, UMKM, dan pelanggan warga lokal</span>
-                    </button>
-                </div>
-                <div id="bh-dots" class="bh-dots" aria-hidden="true"><span class="on"></span><span></span><span></span><span></span></div>
-            </div>
 
             <!-- PESAN LAGI: dari riwayat pesanan terakhir di HP ini (diisi renderPesanLagi) -->
             <div data-bh-resto id="home-pesan-lagi" class="bh-sec" hidden></div>
@@ -3484,8 +3622,46 @@ body.gm-terkunci { overflow: hidden; }
         </div>
 
         <!-- ===== HALAMAN COMING SOON ===== -->
-        <!-- HALAMAN CHAT LAYAR PENUH (7 Nov 2026): kotak chat beranda dipindah ke sini -->
-        <div id="page-chat" class="page"><div id="pc-slot-penuh"></div></div>
+        <!-- HALAMAN CHAT ADMIN (v2, 7 Nov 2026) -->
+        <div id="page-chat" class="page">
+            <div id="pc-slot-penuh">
+                <section id="pc-kotak" class="pc-kotak" aria-label="Chat dengan admin ProjekGo">
+                    <div class="pc-kepala">
+                        <button type="button" class="pc-ik" onclick="goBack()" aria-label="Kembali"><i class="ph-bold ph-arrow-left" aria-hidden="true"></i></button>
+                        <span class="pc-av" aria-hidden="true">P<i class="pc-onl" id="pc-onl"></i></span>
+                        <div class="pc-id"><b>Admin ProjekGo</b><small id="pc-status">Online · biasanya balas &lt; 5 menit</small></div>
+                        <a class="pc-wa" href="https://wa.me/62882008667068" target="_blank" rel="noopener" aria-label="Chat lewat WhatsApp admin 0882-0086-67068"><i class="ph-fill ph-whatsapp-logo" aria-hidden="true"></i><span>WhatsApp</span></a>
+                    </div>
+                    <div class="pc-isi pc-motif" id="pc-isi" role="log" aria-live="polite" aria-label="Isi chat">
+                        <div class="pc-info">Nomormu tidak dibagikan ke rider, jadi lebih privat. Hanya admin ProjekGo yang menyimpannya.</div>
+                        <div id="pc-daftar"></div>
+                    </div>
+                    <div class="pc-lampir" id="pc-lampir" hidden role="menu" aria-label="Kirim lampiran">
+                        <button type="button" role="menuitem" onclick="pcPilihLampiran('kamera')"><span style="background:#E85300;"><i class="ph-fill ph-camera" aria-hidden="true"></i></span>Kamera</button>
+                        <button type="button" role="menuitem" onclick="pcPilihLampiran('galeri')"><span style="background:#7B3FA8;"><i class="ph-fill ph-image" aria-hidden="true"></i></span>Galeri</button>
+                        <button type="button" role="menuitem" onclick="pcPilihLampiran('lokasi')"><span style="background:#1E8A4C;"><i class="ph-fill ph-map-pin" aria-hidden="true"></i></span>Lokasi</button>
+                        <button type="button" role="menuitem" onclick="pcPilihLampiran('kontak')"><span style="background:#2B6CB0;"><i class="ph-fill ph-user" aria-hidden="true"></i></span>Kontak</button>
+                    </div>
+                    <div class="pc-cepat">
+                        <button type="button" class="pc-chip" onclick="pcKirimLokasi()"><i class="ph-fill ph-map-pin" aria-hidden="true"></i>Kirim lokasi saya</button>
+                        <button type="button" class="pc-chip" onclick="pcIsiCepat('Min, mau cek ongkir dari ... ke ...')">Cek ongkir</button>
+                        <button type="button" class="pc-chip" onclick="pcIsiCepat('Min, mau titip beli ... di ...')">Titip beli</button>
+                        <button type="button" class="pc-chip" onclick="pcIsiCepat('Min, mau ngojek dari ... ke ...')">Ngojek</button>
+                    </div>
+                    <form class="pc-tulis" id="pc-form" autocomplete="off">
+                        <div class="pc-kolom">
+                            <label for="pc-input" style="position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);">Pesan untuk admin</label>
+                            <textarea id="pc-input" rows="1" maxlength="1000" placeholder="Tulis pesan..." enterkeyhint="send"></textarea>
+                            <button type="button" class="pc-ik" id="pc-klip" aria-label="Kirim foto, lokasi, atau kontak" aria-haspopup="true" aria-expanded="false"><i class="ph ph-paperclip" aria-hidden="true"></i></button>
+                            <button type="button" class="pc-ik" onclick="pcPilihLampiran('kamera')" aria-label="Ambil foto"><i class="ph ph-camera" aria-hidden="true"></i></button>
+                        </div>
+                        <button type="submit" class="pc-kirim" id="pc-kirim" aria-label="Kirim pesan" disabled><i class="ph-fill ph-paper-plane-right" aria-hidden="true"></i></button>
+                    </form>
+                    <input type="file" id="pc-file-kamera" accept="image/*" capture="environment" hidden>
+                    <input type="file" id="pc-file-galeri" accept="image/*" hidden>
+                </section>
+            </div>
+        </div>
 
         <div id="page-coming-soon" class="page" style="display: none; background: white; min-height: 100vh;">
             <div class="sub-header">
@@ -4082,7 +4258,7 @@ body.gm-terkunci { overflow: hidden; }
             <h2 id="pc-pilih-judul">Kirim pesanan lewat</h2>
             <label class="pc-op">
                 <input type="radio" name="pc-lewat" value="chat">
-                <span><b>Chat aplikasi <em class="pc-tg">Lebih privat</em></b><small>Nomor WA kamu tidak diteruskan ke rider. Admin membalas di chat aplikasi ini.</small></span>
+                <span><b>Chat aplikasi <em class="pc-tg">Lebih privat</em></b><small>Nomormu tidak dibagikan ke rider. Hanya admin ProjekGo yang menyimpannya.</small></span>
             </label>
             <label class="pc-op">
                 <input type="radio" name="pc-lewat" value="wa">
@@ -4091,6 +4267,23 @@ body.gm-terkunci { overflow: hidden; }
             <button type="button" class="pc-pilih-btn" id="pc-pilih-kirim"><i class="ph-fill ph-paper-plane-right" aria-hidden="true"></i><span>Kirim lewat chat aplikasi</span></button>
             <button type="button" class="pc-pilih-batal" onclick="pcPilihBatal()">Batal</button>
         </section>
+    </div>
+
+    <!-- LIHAT FOTO BESAR (chat) -->
+    <div id="pc-lihat" class="pc-lihat" hidden role="dialog" aria-modal="true" aria-label="Foto">
+        <img id="pc-lihat-img" alt="Foto di chat">
+        <button type="button" onclick="pcTutupLihat()" aria-label="Tutup foto"><i class="ph-bold ph-x" aria-hidden="true"></i></button>
+    </div>
+
+    <!-- ISIAN KONTAK (kalau HP tidak bisa membuka daftar kontak) -->
+    <div id="pc-kform" class="pc-kform" hidden role="dialog" aria-modal="true" aria-labelledby="pc-kform-judul">
+        <form id="pc-kform-isi" autocomplete="off">
+            <h2 id="pc-kform-judul">Kirim kontak</h2>
+            <label>Nama<input type="text" id="pc-k-nama" maxlength="60" placeholder="Contoh: Bu Sari (penerima)" required></label>
+            <label>Nomor WA / HP<input type="tel" id="pc-k-nomor" maxlength="20" inputmode="tel" placeholder="08xxxxxxxxxx" required></label>
+            <button type="submit" class="pc-pilih-btn"><i class="ph-fill ph-paper-plane-right" aria-hidden="true"></i><span>Kirim kontak</span></button>
+            <button type="button" class="pc-pilih-batal" onclick="pcTutupKontak()">Batal</button>
+        </form>
     </div>
 
     <!-- NAVBAR BAWAH -->
@@ -14947,25 +15140,30 @@ body.gm-terkunci { overflow: hidden; }
         console.log('Form saran v4 siap.');
     </script>
 
-    <!-- ===== CHAT PELANGGAN ↔ ADMIN (7 Nov 2026) =====
+    <!-- ===== CHAT PELANGGAN ↔ ADMIN (v2, 7 Nov 2026) =====
          Data: chat_pelanggan/{uid} (ringkasan) + chat_pelanggan/{uid}/pesan/{id}.
+         Foto: Storage chat_pelanggan/{uid}/{idPesan}.jpg (dikecilkan dulu di HP).
          Semua isi chat ditampilkan dengan textContent / elemen DOM, tidak pernah sebagai HTML. -->
     <script type="module">
         import { getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, doc, onSnapshot, query, orderBy, limit, writeBatch, serverTimestamp, increment, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getStorage, ref as sRef, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
         const app = getApp();
         const db = getFirestore(app);
         const auth = getAuth(app);
+        const storage = getStorage(app);
         const $ = (id) => document.getElementById(id);
         const toast = (t) => { if (typeof window.showToast === 'function') window.showToast(t); };
         const MAKS_TEKS = 1000, MAKS_PESANAN = 3000;
 
         let uid = null, hentiInduk = null, hentiPesan = null;
         let induk = null, daftar = [], adminTerakhir = 0, sudahMuat = false;
-        let penuh = false, diLayar = false;
+        let penuh = false;
         let antrean = Promise.resolve(), kirimTerakhir = 0, sedangTandai = false;
+        const urlFoto = {}, mintaFoto = {};   // path Storage -> URL tampilan
+        let unggahan = [];                     // foto yang sedang diunggah (tampil dulu di layar)
 
         const ms = (v) => (v && typeof v.toMillis === 'function') ? v.toMillis() : (typeof v === 'number' ? v : (v && typeof v.seconds === 'number' ? v.seconds * 1000 : Date.now()));
         const jam = (t) => { const d = new Date(t); return String(d.getHours()).padStart(2, '0') + '.' + String(d.getMinutes()).padStart(2, '0'); };
@@ -14978,33 +15176,33 @@ body.gm-terkunci { overflow: hidden; }
             return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: d.getFullYear() === k.getFullYear() ? undefined : 'numeric' });
         }
         const ikon = (kelas) => { const i = document.createElement('i'); i.className = kelas; i.setAttribute('aria-hidden', 'true'); return i; };
+        const el = (tag, kelas, teks) => { const e = document.createElement(tag); if (kelas) e.className = kelas; if (teks != null) e.textContent = teks; return e; };
+        const inisial = (n) => String(n || '?').trim().split(/\s+/).slice(0, 2).map((x) => x.charAt(0)).join('').toUpperCase() || '?';
+        const rapikanNomor = (n) => { const s = String(n || '').replace(/[^\d+]/g, ''); return s.charAt(0) === '+' ? '+' + s.slice(1).replace(/\+/g, '') : s.replace(/\+/g, ''); };
+        const nomorSah = (n) => /^\+?\d{6,16}$/.test(n);
 
         // Teks -> elemen aman: *tebal*, _miring_, dan tautan https saja
-        function isiTeks(el, teks) {
+        function isiTeks(wadah, teks) {
             const re = /(https:\/\/[^\s<>"']+)|\*([^*\n]{1,300})\*|_([^_\n]{1,300})_/g;
             let i = 0, m;
             while ((m = re.exec(teks))) {
-                if (m.index > i) el.appendChild(document.createTextNode(teks.slice(i, m.index)));
+                if (m.index > i) wadah.appendChild(document.createTextNode(teks.slice(i, m.index)));
                 if (m[1]) {
                     const url = m[1].replace(/[),.;!?]+$/, '');
                     let aman = null;
                     try { const u = new URL(url); if (u.protocol === 'https:') aman = u.href; } catch (e) {}
                     if (aman) {
-                        const a = document.createElement('a');
-                        a.href = aman; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = url;
-                        el.appendChild(a);
+                        const a = el('a', '', url); a.href = aman; a.target = '_blank'; a.rel = 'noopener noreferrer';
+                        wadah.appendChild(a);
                         i = m.index + url.length; re.lastIndex = i;
                         continue;
                     }
-                    el.appendChild(document.createTextNode(m[0]));
-                } else if (m[2]) {
-                    const b = document.createElement('b'); b.textContent = m[2]; el.appendChild(b);
-                } else {
-                    const em = document.createElement('i'); em.textContent = m[3]; el.appendChild(em);
-                }
+                    wadah.appendChild(document.createTextNode(m[0]));
+                } else if (m[2]) { wadah.appendChild(el('b', '', m[2])); }
+                else { wadah.appendChild(el('i', '', m[3])); }
                 i = re.lastIndex;
             }
-            if (i < teks.length) el.appendChild(document.createTextNode(teks.slice(i)));
+            if (i < teks.length) wadah.appendChild(document.createTextNode(teks.slice(i)));
         }
 
         function namaDepan() {
@@ -15013,40 +15211,74 @@ body.gm-terkunci { overflow: hidden; }
             return n ? 'Kak ' + n : 'Kak';
         }
 
+        // Ambil URL foto dari Storage (hanya pemilik chat & admin yang diizinkan rules)
+        function ambilUrlFoto(path) {
+            if (urlFoto[path] || mintaFoto[path]) return;
+            mintaFoto[path] = getDownloadURL(sRef(storage, path))
+                .then((u) => { urlFoto[path] = u; render(); })
+                .catch((e) => { console.warn('Foto chat belum terbaca:', e && e.code); urlFoto[path] = 'gagal'; render(); });
+        }
+
+        function kotakFoto(src, w, h, status, onUlang) {
+            const g = el('button', 'pc-foto-g');
+            g.type = 'button';
+            const rasio = (w > 0 && h > 0) ? Math.min(1.4, Math.max(0.6, h / w)) : 0.75;
+            g.style.height = Math.round(240 * rasio) + 'px';
+            if (src && src !== 'gagal') {
+                const img = el('img'); img.alt = 'Foto'; img.loading = 'lazy'; img.decoding = 'async'; img.src = src;
+                g.appendChild(img);
+                g.setAttribute('aria-label', 'Lihat foto besar');
+                g.onclick = () => bukaLihat(src);
+            } else {
+                g.setAttribute('aria-label', 'Foto');
+                g.appendChild(el('span', 'pc-foto-st', src === 'gagal' ? 'Foto tidak bisa dibuka' : 'Memuat foto...'));
+            }
+            if (status) g.appendChild(el('span', 'pc-foto-st', status));
+            const wadah = document.createDocumentFragment();
+            wadah.appendChild(g);
+            if (onUlang) { const u = el('button', 'pc-foto-ulang', 'Gagal terkirim · Coba lagi'); u.type = 'button'; u.onclick = onUlang; wadah.appendChild(u); }
+            return wadah;
+        }
+
         function gelembung(p) {
             const saya = p.dari === 'pelanggan';
-            const b = document.createElement('div');
-            b.className = 'pc-bub ' + (saya ? 'saya' : 'adm');
+            const b = el('div', 'pc-bub ' + (saya ? 'saya' : 'adm'));
             const lat = Number(p.lat), lng = Number(p.lng);
             if (p.jenis === 'lokasi' && isFinite(lat) && isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
                 b.classList.add('pc-lok');
-                const peta = document.createElement('div'); peta.className = 'pc-lok-peta'; peta.appendChild(ikon('ph-fill ph-map-pin'));
-                const t = document.createElement('div'); t.className = 'pc-lok-t'; t.textContent = saya ? 'Lokasi saya' : 'Lokasi dari admin';
-                const a = document.createElement('a');
+                const peta = el('div', 'pc-lok-peta'); peta.appendChild(ikon('ph-fill ph-map-pin'));
+                const a = el('a', '', 'Buka di Google Maps');
                 a.href = 'https://www.google.com/maps?q=' + lat.toFixed(6) + ',' + lng.toFixed(6);
-                a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = 'Buka di Google Maps';
-                b.append(peta, t, a);
+                a.target = '_blank'; a.rel = 'noopener noreferrer';
+                b.append(peta, el('div', 'pc-lok-t', saya ? 'Lokasi saya' : 'Lokasi dari admin'), a);
+            } else if (p.jenis === 'foto' && p.foto) {
+                b.classList.add('pc-foto');
+                if (!urlFoto[p.foto]) ambilUrlFoto(p.foto);
+                b.appendChild(kotakFoto(urlFoto[p.foto], p.w, p.h));
+            } else if (p.jenis === 'kontak' && p.kontak_nomor) {
+                b.classList.add('pc-kontak');
+                const k = el('div', 'pc-kontak-k');
+                const t = el('div'); t.append(el('b', '', p.kontak_nama || 'Kontak'), el('span', '', p.kontak_nomor));
+                k.append(el('span', 'pc-kontak-av', inisial(p.kontak_nama)), t);
+                b.append(k, el('span', 'pc-kontak-c', saya ? 'Kontak dikirim ke admin' : 'Kontak dari admin'));
             } else if (p.jenis === 'pesanan') {
                 b.classList.add('pc-psn');
-                const k = document.createElement('div'); k.className = 'pc-psn-k';
+                const k = el('div', 'pc-psn-k');
                 k.append(ikon('ph-fill ph-receipt'), document.createTextNode('Pesanan' + (p.layanan ? ' · ' + p.layanan : '')));
-                const isi = document.createElement('div'); isi.className = 'pc-psn-b';
-                isiTeks(isi, p.teks);
-                b.append(k, isi);
-                // Tombol "Lihat semua" baru dimunculkan kalau isinya memang terpotong (dicek setelah tampil)
-                const lagi = document.createElement('button'); lagi.type = 'button'; lagi.className = 'pc-psn-lagi'; lagi.textContent = 'Lihat semua'; lagi.hidden = true;
+                const isi = el('div', 'pc-psn-b'); isiTeks(isi, p.teks);
+                const lagi = el('button', 'pc-psn-lagi', 'Lihat semua'); lagi.type = 'button'; lagi.hidden = true;
                 lagi.onclick = () => { const buka = !isi.classList.contains('terbuka'); isi.classList.toggle('terbuka', buka); lagi.textContent = buka ? 'Ringkas' : 'Lihat semua'; };
-                b.appendChild(lagi);
+                b.append(k, isi, lagi);
             } else {
                 isiTeks(b, p.teks);
             }
-            const w = document.createElement('span'); w.className = 'pc-waktu';
+            const w = el('span', 'pc-waktu');
             w.appendChild(document.createTextNode(jam(p.t)));
             if (saya && !p.lokal) {
                 const dibaca = induk && ms(induk.dibaca_admin_at || 0) >= p.t && !p.tunda;
                 const i = ikon(p.tunda ? 'ph ph-clock' : (dibaca ? 'ph-bold ph-checks dibaca' : 'ph-bold ph-check'));
-                i.setAttribute('aria-label', p.tunda ? 'Mengirim' : (dibaca ? 'Dibaca admin' : 'Terkirim'));
                 i.removeAttribute('aria-hidden');
+                i.setAttribute('aria-label', p.tunda ? 'Mengirim' : (dibaca ? 'Dibaca admin' : 'Terkirim'));
                 w.appendChild(i);
             }
             b.appendChild(w);
@@ -15059,14 +15291,23 @@ body.gm-terkunci { overflow: hidden; }
             const diBawah = isi.scrollHeight - isi.scrollTop - isi.clientHeight < 90;
             const frag = document.createDocumentFragment();
             let hariSblm = '';
-            const hari = (t) => { const h = labelHari(t); if (h !== hariSblm) { hariSblm = h; const d = document.createElement('div'); d.className = 'pc-hari'; d.textContent = h; frag.appendChild(d); } };
-            if (!daftar.length) {
+            const hari = (t) => { const h = labelHari(t); if (h !== hariSblm) { hariSblm = h; frag.appendChild(el('div', 'pc-hari', h)); } };
+            if (!daftar.length && !unggahan.length) {
                 const kini = Date.now();
                 hari(kini);
                 frag.appendChild(gelembung({ dari: 'admin', jenis: 'teks', lokal: true, t: kini, teks: 'Halo ' + namaDepan() + ', mau pesan apa hari ini? Tulis saja di sini seperti chat WhatsApp, admin langsung bantu.' }));
-                frag.appendChild(gelembung({ dari: 'admin', jenis: 'teks', lokal: true, t: kini, teks: 'Bisa pesan makanan dari warung mana saja, ngojek, kirim paket, atau titip belanja.' }));
+                frag.appendChild(gelembung({ dari: 'admin', jenis: 'teks', lokal: true, t: kini, teks: 'Bisa pesan makanan dari warung mana saja, ngojek, kirim paket, atau titip belanja. Kirim juga foto, lokasi, atau kontak penerima lewat tombol klip 📎.' }));
             }
+            const sudahAda = new Set(daftar.map((p) => p.id));
             daftar.forEach((p) => { hari(p.t); frag.appendChild(gelembung(p)); });
+            unggahan.filter((u) => !sudahAda.has(u.id)).forEach((u) => {
+                hari(u.t);
+                const b = el('div', 'pc-bub saya pc-foto');
+                b.appendChild(kotakFoto(u.url, u.w, u.h, u.gagal ? '' : (u.persen < 100 ? 'Mengirim ' + u.persen + '%' : 'Mengirim...'), u.gagal ? () => unggahFoto(u) : null));
+                const w = el('span', 'pc-waktu'); w.append(document.createTextNode(jam(u.t)), ikon('ph ph-clock'));
+                b.appendChild(w);
+                frag.appendChild(b);
+            });
             wadah.textContent = '';
             wadah.appendChild(frag);
             wadah.querySelectorAll('.pc-psn').forEach((k) => {
@@ -15079,23 +15320,23 @@ body.gm-terkunci { overflow: hidden; }
         function perbaruiStatus() {
             const buka = typeof window.checkOperationalStatus === 'function' ? window.checkOperationalStatus(false) : true;
             const s = $('pc-status'), o = $('pc-onl');
-            if (s) { s.textContent = buka ? 'Online · biasanya balas < 5 menit' : 'Di luar jam buka (06.30–21.00) · dibalas besok pagi'; s.classList.toggle('tutup', !buka); }
+            if (s) s.textContent = buka ? 'Online · biasanya balas < 5 menit' : 'Di luar jam buka (06.30–21.00) · dibalas besok pagi';
             if (o) o.classList.toggle('tutup', !buka);
         }
 
         function perbaruiLencana() {
             const n = Number(induk && induk.belum_pelanggan) || 0;
-            const el = $('pc-badge');
-            if (!el) return;
-            const tampil = n > 0 && !(penuh || diLayar);
-            el.textContent = n > 9 ? '9+' : String(n);
-            el.style.display = tampil ? 'flex' : 'none';
+            const teks = n > 9 ? '9+' : String(n);
+            const nav = $('pc-badge');
+            if (nav) { nav.textContent = teks; nav.style.display = (n > 0 && !penuh) ? 'flex' : 'none'; }
+            const et = $('pc-badge-et');
+            if (et) { et.textContent = teks + ' balasan baru'; et.hidden = !(n > 0); }
         }
 
-        // Tandai balasan admin sudah dibaca saat kotak chat benar-benar terlihat
+        // Tandai balasan admin sudah dibaca saat layar Chat terbuka
         function tandaiDibaca() {
             perbaruiLencana();
-            if (!uid || sedangTandai || !(penuh || diLayar) || document.visibilityState !== 'visible') return;
+            if (!uid || sedangTandai || !penuh || document.visibilityState !== 'visible') return;
             if (!(induk && Number(induk.belum_pelanggan) > 0)) return;
             sedangTandai = true;
             updateDoc(doc(db, 'chat_pelanggan', uid), { belum_pelanggan: 0 })
@@ -15107,7 +15348,7 @@ body.gm-terkunci { overflow: hidden; }
             if (hentiInduk) { try { hentiInduk(); } catch (e) {} }
             if (hentiPesan) { try { hentiPesan(); } catch (e) {} }
             hentiInduk = hentiPesan = null;
-            uid = null; induk = null; daftar = []; adminTerakhir = 0; sudahMuat = false;
+            uid = null; induk = null; daftar = []; adminTerakhir = 0; sudahMuat = false; unggahan = [];
             perbaruiLencana(); render(true);
         }
 
@@ -15121,10 +15362,19 @@ body.gm-terkunci { overflow: hidden; }
             hentiPesan = onSnapshot(query(collection(db, 'chat_pelanggan', uid, 'pesan'), orderBy('dibuat_at', 'desc'), limit(40)), { includeMetadataChanges: true }, (s) => {
                 daftar = s.docs.map((d) => {
                     const x = d.data({ serverTimestamps: 'estimate' }) || {};
-                    return { id: d.id, dari: x.dari === 'admin' ? 'admin' : 'pelanggan', teks: String(x.teks || '').slice(0, MAKS_PESANAN), jenis: String(x.jenis || 'teks'), lat: x.lat, lng: x.lng, layanan: x.layanan ? String(x.layanan).slice(0, 40) : '', t: ms(x.dibuat_at), tunda: !!(d.metadata && d.metadata.hasPendingWrites) };
+                    return {
+                        id: d.id, dari: x.dari === 'admin' ? 'admin' : 'pelanggan', teks: String(x.teks || '').slice(0, MAKS_PESANAN), jenis: String(x.jenis || 'teks'),
+                        lat: x.lat, lng: x.lng, layanan: x.layanan ? String(x.layanan).slice(0, 40) : '',
+                        foto: typeof x.foto === 'string' ? x.foto : '', w: Number(x.w) || 0, h: Number(x.h) || 0,
+                        kontak_nama: x.kontak_nama ? String(x.kontak_nama).slice(0, 60) : '', kontak_nomor: x.kontak_nomor ? String(x.kontak_nomor).slice(0, 20) : '',
+                        t: ms(x.dibuat_at), tunda: !!(d.metadata && d.metadata.hasPendingWrites)
+                    };
                 }).sort((a, b) => a.t - b.t);
+                // Foto yang selesai diunggah sudah muncul sebagai pesan: hapus dari daftar sementara
+                const ids = new Set(daftar.map((p) => p.id));
+                unggahan = unggahan.filter((u) => !ids.has(u.id));
                 const adminBaru = daftar.filter((p) => p.dari === 'admin').reduce((m, p) => Math.max(m, p.t), 0);
-                if (sudahMuat && adminBaru > adminTerakhir && !(penuh || diLayar)) toast('Admin membalas chat kamu');
+                if (sudahMuat && adminBaru > adminTerakhir && !penuh) toast('Admin membalas chat kamu');
                 adminTerakhir = Math.max(adminTerakhir, adminBaru);
                 sudahMuat = true;
                 render();
@@ -15139,23 +15389,31 @@ body.gm-terkunci { overflow: hidden; }
         // ---------- KIRIM ----------
         function ringkas(isi) {
             if (isi.jenis === 'lokasi') return '📍 Lokasi';
+            if (isi.jenis === 'foto') return '📷 Foto';
+            if (isi.jenis === 'kontak') return ('👤 Kontak ' + (isi.kontak_nama || '')).trim().slice(0, 200);
             if (isi.jenis === 'pesanan') return ('🧾 Pesanan ' + (isi.layanan || '')).trim().slice(0, 200);
             return isi.teks.replace(/\s+/g, ' ').slice(0, 200);
         }
+        function bolehKirim() {
+            if (!auth.currentUser) { if (window.gmGerbang) window.gmGerbang('sambut'); return false; }
+            if (typeof window.gmCekBlokir === 'function' && !window.gmCekBlokir()) return false;
+            return true;
+        }
 
-        function kirim(isi) {
+        function kirim(isi, pesanRefSiap) {
             const u = auth.currentUser;
-            if (!u) { if (window.gmGerbang) window.gmGerbang('sambut'); return Promise.resolve(false); }
-            if (typeof window.gmCekBlokir === 'function' && !window.gmCekBlokir()) return Promise.resolve(false);
+            if (!bolehKirim()) return Promise.resolve(false);
             const tugas = antrean.then(async () => {
                 // Aturan server: paling cepat 1 pesan per detik. Beri jeda supaya tidak ditolak.
                 const tunggu = kirimTerakhir + 1300 - Date.now();
                 if (tunggu > 0) await new Promise((r) => setTimeout(r, tunggu));
                 const prof = (typeof window.gmDataProfil === 'function' && window.gmDataProfil()) || {};
                 const indukRef = doc(db, 'chat_pelanggan', u.uid);
-                const pesanRef = doc(collection(db, 'chat_pelanggan', u.uid, 'pesan'));
+                const pesanRef = pesanRefSiap || doc(collection(db, 'chat_pelanggan', u.uid, 'pesan'));
                 const data = { dari: 'pelanggan', teks: isi.teks, jenis: isi.jenis, dibuat_at: serverTimestamp() };
                 if (isi.jenis === 'lokasi') { data.lat = isi.lat; data.lng = isi.lng; }
+                if (isi.jenis === 'foto') { data.foto = isi.foto; data.w = isi.w; data.h = isi.h; }
+                if (isi.jenis === 'kontak') { data.kontak_nama = isi.kontak_nama; data.kontak_nomor = isi.kontak_nomor; }
                 if (isi.jenis === 'pesanan') {
                     if (isi.layanan) data.layanan = String(isi.layanan).slice(0, 40);
                     const o = Math.round(Number(isi.ongkir) || 0);
@@ -15199,40 +15457,154 @@ body.gm-terkunci { overflow: hidden; }
             if (!inp) return;
             inp.value = t;
             sesuaikanInput();
-            if (!penuh) { window.openPage('chat'); }
+            if (!penuh) window.openPage('chat');
             setTimeout(() => { inp.focus(); const p = t.indexOf('...'); if (p >= 0) inp.setSelectionRange(p, p + 3); }, 60);
         };
 
         window.pcKirimLokasi = () => {
-            if (!auth.currentUser) { if (window.gmGerbang) window.gmGerbang('sambut'); return; }
+            if (!bolehKirim()) return;
             if (!navigator.geolocation) { toast('HP ini tidak bisa membaca lokasi.'); return; }
             toast('Mengambil lokasimu...');
             navigator.geolocation.getCurrentPosition((p) => {
                 const lat = Number(p.coords.latitude.toFixed(6)), lng = Number(p.coords.longitude.toFixed(6));
                 kirim({ jenis: 'lokasi', teks: '📍 Lokasi saya', lat, lng });
-                if (!penuh && !diLayar) window.openPage('chat');
+                if (!penuh) window.openPage('chat');
             }, (e) => {
                 toast(e && e.code === 1 ? 'Izin lokasi ditolak. Nyalakan izin lokasi untuk aplikasi ini dulu.' : 'Lokasi belum terbaca. Coba lagi di tempat terbuka.');
             }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 });
         };
 
+        // ---------- FOTO ----------
+        // Dikecilkan dulu di HP: sisi terpanjang maks 1280 px, JPEG ~200–450 KB
+        function muatGambar(file) {
+            return new Promise((ok, gagal) => {
+                const url = URL.createObjectURL(file);
+                const img = new Image();
+                img.onload = () => { URL.revokeObjectURL(url); ok(img); };
+                img.onerror = () => { URL.revokeObjectURL(url); gagal(new Error('bukan gambar')); };
+                img.src = url;
+            });
+        }
+        async function kecilkan(file) {
+            const img = await muatGambar(file);
+            let maks = 1280, mutu = 0.78, hasil = null, w = 0, h = 0;
+            for (let coba = 0; coba < 6; coba++) {
+                const skala = Math.min(1, maks / Math.max(img.naturalWidth, img.naturalHeight));
+                w = Math.max(1, Math.round(img.naturalWidth * skala)); h = Math.max(1, Math.round(img.naturalHeight * skala));
+                const c = document.createElement('canvas'); c.width = w; c.height = h;
+                const g = c.getContext('2d'); g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, w, h); g.drawImage(img, 0, 0, w, h);
+                hasil = await new Promise((r) => c.toBlob(r, 'image/jpeg', mutu));
+                if (hasil && hasil.size <= 450 * 1024) break;
+                if (mutu > 0.55) mutu -= 0.1; else maks = Math.round(maks * 0.8);
+            }
+            if (!hasil || hasil.size >= 1.9 * 1024 * 1024) throw new Error('terlalu besar');
+            return { blob: hasil, w, h };
+        }
+        function unggahFoto(u) {
+            if (!bolehKirim()) return;
+            u.gagal = false; u.persen = 0; render(true);
+            const path = 'chat_pelanggan/' + auth.currentUser.uid + '/' + u.id + '.jpg';
+            const tugas = uploadBytesResumable(sRef(storage, path), u.blob, { contentType: 'image/jpeg' });
+            tugas.on('state_changed', (s) => {
+                const p = s.totalBytes ? Math.round(s.bytesTransferred / s.totalBytes * 100) : 0;
+                if (p !== u.persen) { u.persen = p; render(); }
+            }, (e) => {
+                console.error('Unggah foto gagal:', e);
+                u.gagal = true; render();
+                toast(e && e.code === 'storage/unauthorized' ? 'Foto ditolak server. Coba lagi nanti atau kirim lewat WhatsApp.' : 'Foto belum terkirim. Periksa internet lalu ketuk Coba lagi.');
+            }, () => {
+                urlFoto[path] = u.url;   // tampilkan foto lokal tanpa mengunduh ulang
+                kirim({ jenis: 'foto', teks: '📷 Foto', foto: path, w: u.w, h: u.h }, u.ref).then((ok) => { if (!ok) { u.gagal = true; render(); } });
+            });
+        }
+        async function prosesFile(file) {
+            if (!file) return;
+            if (!bolehKirim()) return;
+            if (!/^image\//.test(file.type || '')) { toast('Pilih file gambar (foto).'); return; }
+            if (file.size > 30 * 1024 * 1024) { toast('Foto terlalu besar.'); return; }
+            if (!penuh) window.openPage('chat');
+            try {
+                const { blob, w, h } = await kecilkan(file);
+                const r = doc(collection(db, 'chat_pelanggan', auth.currentUser.uid, 'pesan'));
+                const u = { id: r.id, ref: r, blob, w, h, url: URL.createObjectURL(blob), persen: 0, gagal: false, t: Date.now() };
+                unggahan.push(u);
+                unggahFoto(u);
+            } catch (e) {
+                console.warn('Foto tidak bisa diproses:', e);
+                toast('Foto ini tidak bisa dibaca. Coba foto lain.');
+            }
+        }
+        ['pc-file-kamera', 'pc-file-galeri'].forEach((id) => {
+            const inp = $(id);
+            if (inp) inp.addEventListener('change', () => { const f = inp.files && inp.files[0]; inp.value = ''; prosesFile(f); });
+        });
+
+        // ---------- KONTAK ----------
+        function kirimKontak(nama, nomor) {
+            const n = String(nama || '').trim().slice(0, 60) || 'Kontak';
+            const no = rapikanNomor(nomor);
+            if (!nomorSah(no)) { toast('Nomor kontak tidak valid.'); return false; }
+            kirim({ jenis: 'kontak', teks: '👤 ' + n, kontak_nama: n, kontak_nomor: no });
+            return true;
+        }
+        async function pilihKontak() {
+            if (!bolehKirim()) return;
+            // Android Chrome: buka daftar kontak HP, pelanggan memilih SATU kontak sendiri
+            if (navigator.contacts && typeof navigator.contacts.select === 'function') {
+                try {
+                    const hasil = await navigator.contacts.select(['name', 'tel'], { multiple: false });
+                    if (!hasil || !hasil.length) return;
+                    const k = hasil[0];
+                    const tel = (k.tel || []).find((t) => nomorSah(rapikanNomor(t)));
+                    if (!tel) { toast('Kontak ini tidak punya nomor HP.'); return; }
+                    kirimKontak((k.name || [])[0], tel);
+                    return;
+                } catch (e) { console.warn('Daftar kontak tidak bisa dibuka:', e); }
+            }
+            bukaIsianKontak();
+        }
+        function bukaIsianKontak() {
+            const f = $('pc-kform'); if (!f) return;
+            $('pc-k-nama').value = ''; $('pc-k-nomor').value = '';
+            f.hidden = false;
+            setTimeout(() => $('pc-k-nama').focus(), 60);
+        }
+        window.pcTutupKontak = () => { const f = $('pc-kform'); if (f) f.hidden = true; };
+        if ($('pc-kform-isi')) $('pc-kform-isi').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (kirimKontak($('pc-k-nama').value, $('pc-k-nomor').value)) window.pcTutupKontak();
+        });
+
+        // ---------- MENU LAMPIRAN & LIHAT FOTO ----------
+        const menuLampir = $('pc-lampir'), klip = $('pc-klip');
+        const tutupLampir = () => { if (menuLampir) menuLampir.hidden = true; if (klip) klip.setAttribute('aria-expanded', 'false'); };
+        if (klip) klip.addEventListener('click', () => { const buka = menuLampir.hidden; menuLampir.hidden = !buka; klip.setAttribute('aria-expanded', String(buka)); });
+        document.addEventListener('click', (e) => { if (menuLampir && !menuLampir.hidden && !menuLampir.contains(e.target) && !(klip && klip.contains(e.target))) tutupLampir(); });
+        window.pcPilihLampiran = (jenis) => {
+            tutupLampir();
+            if (!bolehKirim()) return;
+            if (jenis === 'kamera') $('pc-file-kamera').click();
+            else if (jenis === 'galeri') $('pc-file-galeri').click();
+            else if (jenis === 'lokasi') window.pcKirimLokasi();
+            else if (jenis === 'kontak') pilihKontak();
+        };
+        function bukaLihat(src) { const l = $('pc-lihat'); if (!l) return; $('pc-lihat-img').src = src; l.hidden = false; }
+        window.pcTutupLihat = () => { const l = $('pc-lihat'); if (l) { l.hidden = true; $('pc-lihat-img').removeAttribute('src'); } };
+        if ($('pc-lihat')) $('pc-lihat').addEventListener('click', (e) => { if (e.target.id === 'pc-lihat') window.pcTutupLihat(); });
+
+        // ---------- KOLOM TULIS ----------
         function sesuaikanInput() {
             const inp = $('pc-input'), btn = $('pc-kirim');
             if (!inp) return;
-            inp.style.height = '44px';
-            inp.style.height = Math.min(120, Math.max(44, inp.scrollHeight)) + 'px';
+            inp.style.height = '46px';
+            inp.style.height = Math.min(120, Math.max(46, inp.scrollHeight)) + 'px';
             if (btn) btn.disabled = !inp.value.trim();
         }
-
         const form = $('pc-form'), input = $('pc-input');
         if (form && input) {
             input.addEventListener('input', sesuaikanInput);
-            // Di beranda: mengetik langsung membuka chat layar penuh supaya keyboard tidak menutupi
-            input.addEventListener('focus', () => {
-                if (penuh) return;
-                window.openPage('chat');
-                setTimeout(() => input.focus(), 60);
-            });
+            // Saat keyboard muncul, gulung ke pesan terbaru (tunggu animasi keyboard)
+            input.addEventListener('focus', () => { tutupLampir(); setTimeout(() => { const isi = $('pc-isi'); if (isi) isi.scrollTop = isi.scrollHeight; }, 350); });
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const teks = input.value.trim().slice(0, MAKS_TEKS);
@@ -15247,31 +15619,36 @@ body.gm-terkunci { overflow: hidden; }
             });
         }
 
-        // ---------- PINDAH BERANDA <-> LAYAR PENUH ----------
+        // ---------- KEYBOARD HP: layar chat mengikuti tinggi area yang terlihat ----------
+        const vv = window.visualViewport;
+        function aturTinggi() {
+            const k = $('pc-kotak'), isi = $('pc-isi');
+            if (!k) return;
+            if (!penuh || !vv) { k.style.height = ''; k.style.top = ''; return; }
+            const diBawah = isi && (isi.scrollHeight - isi.scrollTop - isi.clientHeight < 90);
+            k.style.height = Math.round(vv.height) + 'px';
+            k.style.top = Math.round(vv.offsetTop) + 'px';
+            if (diBawah && isi) isi.scrollTop = isi.scrollHeight;
+        }
+        if (vv) { vv.addEventListener('resize', aturTinggi); vv.addEventListener('scroll', aturTinggi); }
+
+        // ---------- MASUK / KELUAR HALAMAN CHAT ----------
         window.pcSaatHalaman = (nama) => {
-            const kotak = $('pc-kotak'), slotPenuh = $('pc-slot-penuh'), slotBeranda = $('pc-slot-beranda');
-            if (!kotak || !slotPenuh || !slotBeranda) return;
-            const keChat = nama === 'chat';
-            if (keChat && !penuh) { slotPenuh.appendChild(kotak); kotak.classList.add('pc-penuh'); }
-            if (!keChat && penuh) { slotBeranda.appendChild(kotak); kotak.classList.remove('pc-penuh'); }
-            penuh = keChat;
+            const masukChat = nama === 'chat';
+            if (!masukChat && penuh) { tutupLampir(); window.pcTutupLihat(); window.pcTutupKontak(); }
+            penuh = masukChat;
+            document.body.classList.toggle('pc-layar', penuh);
             perbaruiStatus();
-            if (penuh) render(true);
+            aturTinggi();
+            if (penuh) { window.scrollTo(0, 0); render(true); }
             tandaiDibaca();
         };
-
-        if ('IntersectionObserver' in window && $('pc-kotak')) {
-            new IntersectionObserver((ent) => {
-                diLayar = ent.some((x) => x.isIntersecting && x.intersectionRatio >= 0.35);
-                tandaiDibaca();
-            }, { threshold: [0, 0.35, 0.7] }).observe($('pc-kotak'));
-        }
         document.addEventListener('visibilitychange', () => { perbaruiStatus(); tandaiDibaca(); });
         setInterval(perbaruiStatus, 60000);
         perbaruiStatus(); render(true);
 
         // ---------- LEMBAR PILIHAN KIRIM PESANAN ----------
-        let pilihLanjut = null, pilihBatal = null, pilihState = null;
+        let pilihLanjut = null, pilihBatal = null, simpanState = null;
         const pilihan = () => { const r = document.querySelector('input[name="pc-lewat"]:checked'); return r && r.value === 'wa' ? 'wa' : 'chat'; };
         function perbaruiTombolPilih() {
             const btn = $('pc-pilih-kirim');
@@ -15280,42 +15657,46 @@ body.gm-terkunci { overflow: hidden; }
             btn.classList.toggle('wa', wa);
             btn.querySelector('span').textContent = wa ? 'Lanjut ke WhatsApp admin' : 'Kirim lewat chat aplikasi';
         }
-        function tutupPilih() { const el = $('pc-pilih'); if (!el) return; el.classList.remove('show'); el.hidden = true; }
+        function tutupPilih() { const e = $('pc-pilih'); if (!e) return; e.classList.remove('show'); e.hidden = true; }
         document.querySelectorAll('input[name="pc-lewat"]').forEach((r) => r.addEventListener('change', perbaruiTombolPilih));
 
         window.pcPilihKirim = (lanjut, batal) => {
-            const el = $('pc-pilih');
-            if (!el) { lanjut('wa'); return; }
-            pilihLanjut = lanjut; pilihBatal = typeof batal === 'function' ? batal : null; pilihState = window.history.state;
+            const e = $('pc-pilih');
+            if (!e) { lanjut('wa'); return; }
+            pilihLanjut = lanjut; pilihBatal = typeof batal === 'function' ? batal : null; simpanState = window.history.state;
             let lw = 'chat';
-            try { if (localStorage.getItem('pc_lewat') === 'wa') lw = 'wa'; } catch (e) {}
-            const r = el.querySelector('input[value="' + lw + '"]'); if (r) r.checked = true;
+            try { if (localStorage.getItem('pc_lewat') === 'wa') lw = 'wa'; } catch (x) {}
+            const r = e.querySelector('input[value="' + lw + '"]'); if (r) r.checked = true;
             perbaruiTombolPilih();
-            el.hidden = false;
-            requestAnimationFrame(() => el.classList.add('show'));
+            e.hidden = false;
+            requestAnimationFrame(() => e.classList.add('show'));
             setTimeout(() => { const b = $('pc-pilih-kirim'); if (b) b.focus(); }, 60);
         };
         window.pcPilihBatal = () => {
             const f = pilihBatal;
             pilihLanjut = pilihBatal = null;
             tutupPilih();
-            if (f) { try { f(); } catch (e) { console.warn(e); } }
+            if (f) { try { f(); } catch (x) { console.warn(x); } }
         };
         if ($('pc-pilih-kirim')) $('pc-pilih-kirim').addEventListener('click', () => {
             const lw = pilihan();
-            try { localStorage.setItem('pc_lewat', lw); } catch (e) {}
+            try { localStorage.setItem('pc_lewat', lw); } catch (x) {}
             const f = pilihLanjut;
             pilihLanjut = pilihBatal = null;
             tutupPilih();
             if (f) f(lw);   // dipanggil langsung dari ketukan, jadi WhatsApp tidak diblokir browser
         });
-        // Tombol Back HP saat lembar pilihan terbuka: tutup lembar, tetap di halaman yang sama
+
+        // Tombol Back HP: tutup jendela kecil dulu (foto besar, isian kontak, menu lampiran, lembar pilihan)
         window.pcTanganiKembali = () => {
-            const el = $('pc-pilih');
-            if (!el || el.hidden) return false;
-            window.pcPilihBatal();
-            try { window.history.pushState(pilihState, '', ''); } catch (e) {}
-            return true;
+            const kembalikan = (st) => { try { window.history.pushState(st, '', ''); } catch (x) {} };
+            const st = { page: 'chat' };
+            if ($('pc-lihat') && !$('pc-lihat').hidden) { window.pcTutupLihat(); kembalikan(st); return true; }
+            if ($('pc-kform') && !$('pc-kform').hidden) { window.pcTutupKontak(); kembalikan(st); return true; }
+            if (menuLampir && !menuLampir.hidden) { tutupLampir(); kembalikan(st); return true; }
+            const e = $('pc-pilih');
+            if (e && !e.hidden) { window.pcPilihBatal(); kembalikan(simpanState); return true; }
+            return false;
         };
     </script>
 </body>
