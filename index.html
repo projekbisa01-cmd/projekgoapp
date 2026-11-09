@@ -2725,6 +2725,15 @@ body.gm-terkunci { overflow: hidden; }
         .ktv-kendala .ktv-btn { width: 100%; }
         .ktv-diubah { font-size: 12px; font-weight: 700; color: #7A5A0A; background: #FFF4D6; border-radius: 10px; padding: 6px 10px; margin: 0 0 8px; }
         @media (prefers-reduced-motion: reduce) { .prc-pg-ik { animation: none; } }
+        /* Kode pelanggan di Profil */
+        .pkode { background: #FFFFFF; margin: 0 0 10px; padding: 16px 18px; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 14px; }
+        .pkode[hidden] { display: none; }
+        .pkode-ik { width: 46px; height: 46px; border-radius: 14px; background: #1F1611; color: #FFFFFF; display: grid; place-items: center; font-size: 22px; flex: none; }
+        .pkode-t { flex: 1; min-width: 0; }
+        .pkode-t small { display: block; font-size: 12px; font-weight: 700; color: #7A6E63; }
+        .pkode-t b { display: block; font-size: 22px; font-weight: 800; letter-spacing: .08em; color: #1F1611; margin: 1px 0 2px; }
+        .pkode-t p { margin: 0; font-size: 12px; font-weight: 600; line-height: 1.45; color: #7A6E63; }
+        .pkode button { flex: none; min-height: 44px; padding: 0 14px; border-radius: 12px; border: 1.5px solid #FFC9A0; background: #FFFFFF; color: #C2410C; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
         .prc-lihat { position: fixed; inset: 0; z-index: 1300; background: rgba(15,10,6,.94); display: flex; align-items: center; justify-content: center; }
         .prc-lihat[hidden] { display: none; }
         .prc-lihat img { max-width: 100%; max-height: 100%; object-fit: contain; background: #FFFFFF; }
@@ -3760,6 +3769,13 @@ body.gm-terkunci { overflow: hidden; }
                 </div>
             </div>
             
+            <!-- KODE PELANGGAN (9 Nov 2026): pengganti nomor yang disembunyikan, untuk pesan lewat WhatsApp -->
+            <div id="pkode" class="pkode" hidden>
+                <span class="pkode-ik" aria-hidden="true">🆔</span>
+                <div class="pkode-t"><small>Kode pelanggan kamu</small><b id="pkode-isi">Memuat…</b><p>Pesan lewat WhatsApp admin? Sebutkan kode ini supaya pesananmu tetap tampil di menu Aktivitas.</p></div>
+                <button type="button" id="pkode-salin" aria-label="Salin kode pelanggan">Salin</button>
+            </div>
+
             <div style="background:white; padding: 20px; box-shadow:var(--shadow-sm);">
                 
                 <!-- TOMBOL MODE PENJUAL (TAMBAHAN BARU) -->
@@ -4553,7 +4569,7 @@ body.gm-terkunci { overflow: hidden; }
             </div>
             <button type="button" class="prc-status" id="prc-status"><i aria-hidden="true" id="prc-st-ik" style="font-style:normal;font-size:22px;">🛵</i><span style="min-width:0;"><b id="prc-st-j">Pesanan berjalan</b><span id="prc-st-s"></span></span><em>Lacak ›</em></button>
             <div class="pc-isi pc-motif" id="prc-isi" role="log" aria-live="polite" aria-label="Isi chat dengan rider">
-                <div class="pc-info">Rider tidak melihat nomor WA-mu. Chat ini ditutup begitu pesanan selesai; kendala setelahnya disampaikan ke admin. Admin ProjekGo ikut memantau.</div>
+                <div class="pc-info">Rider tidak melihat nomor WA-mu. Chat ini ditutup otomatis 1 jam setelah pesanan selesai; kendala setelahnya disampaikan ke admin. Admin ProjekGo ikut memantau.</div>
                 <div id="prc-daftar" style="margin-top:auto;display:flex;flex-direction:column;gap:6px;"></div>
             </div>
             <div class="pc-cepat" id="prc-cepat">
@@ -16373,8 +16389,10 @@ body.gm-terkunci { overflow: hidden; }
         function chatBuka(a) {
             if (!a.chat || !chat[a.kode]) return false;
             const t = tahapDari(a);
-            // (9 Nov 2026) chat rider tutup begitu pesanan selesai / batal; kendala -> chat admin
-            return !['selesai', 'batal', 'lama'].includes(t);
+            // Chat rider tetap terbuka 1 jam setelah pesanan selesai; batal = langsung tutup. Setelah itu kendala -> chat admin
+            if (t === 'batal' || t === 'lama') return false;
+            if (t === 'selesai') { const s = selesaiMs(a); return !!s && Date.now() < s + JAM_MS; }
+            return true;
         }
         const belumChat = (a) => (a.chat && chat[a.kode]) ? Math.max(0, Number(chat[a.kode].belum_pelanggan) || 0) : 0;
 
@@ -16406,7 +16424,7 @@ body.gm-terkunci { overflow: hidden; }
         }
         // Pemantau langsung hanya untuk pesanan yang masih mungkin berjalan (paling banyak 6)
         function aturPemantau() {
-            const perlu = new Set(akt.filter((a) => !a.akhir && !riwayatTetap[a.kode] && Date.now() - a.t < HARI_MS).slice(0, 6).map((a) => a.kode));
+            const perlu = new Set(akt.filter((a) => (!a.akhir || (a.akhir === 'selesai' && Date.now() - ms(a.akhir_at) < JAM_MS)) && !riwayatTetap[a.kode] && Date.now() - a.t < HARI_MS).slice(0, 6).map((a) => a.kode));
             const perluChat = new Set(akt.filter((a) => a.chat && perlu.has(a.kode)).map((a) => a.kode));
             if (bukaChat) perluChat.add(bukaChat);
             Object.keys(hentiLacak).forEach((k) => { if (!perlu.has(k)) { try { hentiLacak[k](); } catch (e) {} delete hentiLacak[k]; } });
@@ -16430,8 +16448,10 @@ body.gm-terkunci { overflow: hidden; }
                     const c = chat[k];
                     const pgBaru = c ? ms(c.panggil_at) : 0, pgLama = lama ? ms(lama.panggil_at) : 0;
                     if (!pertama && c && pgBaru > pgLama && Date.now() - pgBaru < 2 * 60 * 1000) tampilPanggil(k);
-                    else if (!pertama && c && c.terakhir_dari === 'rider' && (Number(c.belum_pelanggan) || 0) > (Number(lama && lama.belum_pelanggan) || 0) && bukaChat !== k)
-                        toast('🛵 Rider: ' + String(c.terakhir || 'pesan baru').slice(0, 80));
+                    else if (!pertama && c && c.terakhir_dari === 'rider' && (Number(c.belum_pelanggan) || 0) > (Number(lama && lama.belum_pelanggan) || 0)) {
+                        nadaPesan();
+                        if (bukaChat !== k) toast('🛵 Rider: ' + String(c.terakhir || 'pesan baru').slice(0, 80));
+                    }
                     pertama = false;
                     if (bukaChat === k) { gambarKepalaChat(); tandaiDibaca(); }
                     gambarSemua();
@@ -16606,6 +16626,7 @@ body.gm-terkunci { overflow: hidden; }
         window.ktvSaatHalaman = (name) => {
             if (name === 'aktivitas') { const n = $('nav-aktivitas'); if (n) n.classList.add('active'); gambarDaftar(); }
             if (name === 'home') gambarBeranda();
+            if (name === 'profile') muatKodePelanggan();
         };
         setInterval(() => { if (akt.length) gambarSemua(); }, 60000);   // "x menit lalu", chat ditutup 1 jam
 
@@ -16867,9 +16888,9 @@ body.gm-terkunci { overflow: hidden; }
             $('prc-sub').textContent = buka ? 'Rider ProjekGo · ' + (t === 'selesai' ? 'pesanan selesai' : 'mengantar pesanan ' + j.label + '-mu') : 'Chat sudah ditutup';
             $('prc-st-ik').textContent = t === 'selesai' ? '✅' : (t === 'batal' ? '✖️' : j.ik);
             $('prc-st-j').textContent = (t === 'batal' ? ['Pesanan dibatalkan'] : (j.judul[t] || j.judul.diteruskan))[0];
-            $('prc-st-s').textContent = t === 'selesai' ? 'Ada kendala? Ketuk "Ada kendala pesanan"' : (t === 'batal' ? '' : 'Tahap ' + Math.min(4, langkahKe(t) + 1) + ' dari 4');
+            $('prc-st-s').textContent = t === 'selesai' ? (buka ? 'Chat dengan rider tutup pukul ' + jam(selesaiMs(a) + JAM_MS) : 'Ada kendala? Ketuk "Ada kendala pesanan"') : (t === 'batal' ? '' : 'Tahap ' + Math.min(4, langkahKe(t) + 1) + ' dari 4');
             $('prc-form').hidden = !buka; $('prc-cepat').hidden = !buka; $('prc-tutup').hidden = buka;
-            $('prc-tutup-t').textContent = t === 'batal' ? 'Pesanan dibatalkan, chat dengan rider ditutup.' : 'Pesanan sudah selesai, chat dengan rider ditutup.';
+            $('prc-tutup-t').textContent = t === 'batal' ? 'Pesanan dibatalkan, chat dengan rider ditutup.' : 'Chat dengan rider sudah ditutup (1 jam setelah pesanan selesai).';
         }
         // Tebal *teks* dan miring _teks_ seperti WhatsApp, tautan https bisa diketuk. Tanpa HTML.
         function isiTeksR(w, teks) {
@@ -17049,20 +17070,16 @@ body.gm-terkunci { overflow: hidden; }
         let panggilKode = null;
         function tampilPanggil(k) {
             const a = akt.find((x) => x.kode === k); if (!a || !chatBuka(a)) return;
-            try { if (navigator.vibrate) navigator.vibrate([500, 200, 500, 200, 700]); } catch (e) {}
-            try {
-                const C = window.AudioContext || window.webkitAudioContext, ac = new C(), t0 = ac.currentTime;
-                [0, 0.5, 1].forEach((d) => { const o = ac.createOscillator(), gn = ac.createGain(); o.frequency.value = 880; gn.gain.setValueAtTime(0.0001, t0 + d); gn.gain.exponentialRampToValueAtTime(0.3, t0 + d + 0.03); gn.gain.exponentialRampToValueAtTime(0.0001, t0 + d + 0.35); o.connect(gn); gn.connect(ac.destination); o.start(t0 + d); o.stop(t0 + d + 0.4); });
-            } catch (e) {}
-            if (bukaChat === k) { toast('📞 Rider memanggilmu'); return; }
+            if (bukaChat === k) { nada([[880, 0, 0.3], [660, 0.36, 0.3]]); try { if (navigator.vibrate) navigator.vibrate([400, 200, 400]); } catch (e) {} toast('📞 Rider memanggilmu'); return; }
             panggilKode = k;
             const info = infoRider(a);
             $('prc-pg-j').textContent = (info.nama || 'Rider') + ' memanggilmu';
             $('prc-pg-s').textContent = 'Rider yang mengantar pesanan ' + J(a.jenis).label + '-mu menunggu balasan. Buka chat sekarang ya.';
             $('prc-panggil').hidden = false;
+            mulaiDering();
             setTimeout(() => $('prc-pg-buka').focus(), 50);
         }
-        const tutupPanggil = () => { $('prc-panggil').hidden = true; panggilKode = null; };
+        const tutupPanggil = () => { $('prc-panggil').hidden = true; panggilKode = null; berhentiDering(); };
         $('prc-pg-buka').onclick = () => { const k = panggilKode; tutupPanggil(); if (k) bukaRuangRider(k); };
         $('prc-pg-nanti').onclick = tutupPanggil;
 
@@ -17107,6 +17124,88 @@ body.gm-terkunci { overflow: hidden; }
             const isi = $('prc-isi'); if (isi && document.activeElement === $('prc-input')) isi.scrollTop = isi.scrollHeight;
         }
         if (window.visualViewport) { window.visualViewport.addEventListener('resize', aturTinggiR); window.visualViewport.addEventListener('scroll', aturTinggiR); }
+
+        // ---------- Nada di dalam aplikasi (9 Nov 2026) ----------
+        // Saat aplikasi terbuka: nada pendek untuk balasan admin / pesan rider, dering untuk panggilan rider.
+        // (Nada notifikasi saat aplikasi tertutup diatur HP, tidak bisa diganti dari aplikasi web.)
+        let ctxNada = null;
+        const siapkanNada = () => { try { ctxNada = ctxNada || new (window.AudioContext || window.webkitAudioContext)(); if (ctxNada.state === 'suspended') ctxNada.resume(); } catch (e) {} };
+        ['pointerdown', 'keydown'].forEach((ev) => document.addEventListener(ev, siapkanNada, { once: true, passive: true }));
+        function nada(urutan) {   // urutan: [[frekuensi, mulai(detik), lama(detik)], ...]
+            try {
+                if (document.hidden) return;
+                siapkanNada(); if (!ctxNada || ctxNada.state !== 'running') return;
+                const t0 = ctxNada.currentTime;
+                urutan.forEach(([f, m, l]) => {
+                    const o = ctxNada.createOscillator(), gn = ctxNada.createGain();
+                    o.type = 'sine'; o.frequency.value = f;
+                    gn.gain.setValueAtTime(0.0001, t0 + m); gn.gain.exponentialRampToValueAtTime(0.22, t0 + m + 0.02); gn.gain.exponentialRampToValueAtTime(0.0001, t0 + m + l);
+                    o.connect(gn); gn.connect(ctxNada.destination); o.start(t0 + m); o.stop(t0 + m + l + 0.02);
+                });
+            } catch (e) {}
+        }
+        const nadaPesan = () => nada([[784, 0, 0.18], [1175, 0.13, 0.28]]);            // "ting-tung" ProjekGo
+        let deringTimer = 0;
+        function mulaiDering() {
+            berhentiDering();
+            let n = 0;
+            const sekali = () => { nada([[880, 0, 0.32], [660, 0.38, 0.32], [880, 0.76, 0.32]]); try { if (navigator.vibrate) navigator.vibrate([400, 200, 400]); } catch (e) {} };
+            sekali();
+            deringTimer = setInterval(() => { if (++n >= 6 || $('prc-panggil').hidden) { berhentiDering(); return; } sekali(); }, 2400);   // ±15 detik
+        }
+        function berhentiDering() { clearInterval(deringTimer); deringTimer = 0; }
+        // Balasan admin: dengarkan ringkasan chat admin (1 dokumen) hanya untuk nada
+        let hentiNadaAdmin = null, belumAdminLama = -1;
+        onAuthStateChanged(auth, (u) => {
+            if (hentiNadaAdmin) { try { hentiNadaAdmin(); } catch (e) {} hentiNadaAdmin = null; }
+            belumAdminLama = -1;
+            const google = u && (u.providerData || []).some((p) => p.providerId === 'google.com');
+            if (!google) return;
+            hentiNadaAdmin = onSnapshot(doc(db, 'chat_pelanggan', u.uid), (s) => {
+                const x = s.exists() ? s.data() : {};
+                const n = Number(x.belum_pelanggan) || 0;
+                if (belumAdminLama >= 0 && n > belumAdminLama && x.terakhir_dari === 'admin') nadaPesan();
+                belumAdminLama = n;
+            }, () => {});
+        });
+
+        // ---------- Kode pelanggan di Profil (9 Nov 2026) ----------
+        // Kode dibuat server (Cloud Function mintaKodePelanggan), tidak bisa diubah pelanggan.
+        const KODE_PG = /^PG[2-9A-HJ-NP-Z]{5}$/;
+        let mintaKode = null;
+        function tampilKodePg(k) {
+            const w = $('pkode'); if (!w) return;
+            if (!KODE_PG.test(k || '')) { w.hidden = true; return; }
+            $('pkode-isi').textContent = 'PG-' + k.slice(2);
+            w.hidden = false;
+        }
+        async function muatKodePelanggan() {
+            const u = auth.currentUser;
+            const google = u && (u.providerData || []).some((p) => p.providerId === 'google.com');
+            if (!google) { tampilKodePg(''); return; }
+            const kunci = 'pg_kode_' + u.uid;
+            let k = ''; try { k = localStorage.getItem(kunci) || ''; } catch (e) {}
+            if (KODE_PG.test(k)) { tampilKodePg(k); return; }
+            if (mintaKode) return;
+            $('pkode').hidden = false; $('pkode-isi').textContent = 'Memuat…';
+            mintaKode = (async () => {
+                try {
+                    const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js');
+                    const panggilFn = f.httpsCallable(f.getFunctions(app, 'asia-southeast2'), 'mintaKodePelanggan');
+                    const r = await panggilFn({});
+                    const kk = r && r.data && KODE_PG.test(String(r.data.kode || '')) ? r.data.kode : '';
+                    if (kk) { try { localStorage.setItem(kunci, kk); } catch (e) {} }
+                    tampilKodePg(kk);
+                } catch (e) { console.warn('Kode pelanggan belum bisa dimuat:', e && e.code); tampilKodePg(''); }
+                finally { mintaKode = null; }
+            })();
+        }
+        if ($('pkode-salin')) $('pkode-salin').onclick = () => {
+            const t = $('pkode-isi').textContent;
+            if (!/^PG-/.test(t)) return;
+            const ok = () => toast('Kode pelanggan disalin: ' + t);
+            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(ok, ok); else ok();
+        };
 
         // Dibuka dari notifikasi (aplikasi sudah terbuka)
         if (navigator.serviceWorker) navigator.serviceWorker.addEventListener('message', (e) => {
