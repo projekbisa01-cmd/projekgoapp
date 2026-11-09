@@ -1,5 +1,5 @@
 /*
- * ProjekGo – penerima notifikasi chat (admin & rider)  (7 Nov 2026, tahap 3)
+ * ProjekGo – penerima notifikasi chat (admin & rider)  (7 Nov 2026, tahap 3; 9 Nov: panggilan rider)
  * Service worker KHUSUS notifikasi, terpisah dari sw.js (tidak menyimpan cache, tidak
  * mengatur halaman). Didaftarkan dengan scope /notif-chat/ supaya tidak mengganggu sw.js.
  * Tautan yang dibuka saat notifikasi diketuk selalu alamat aplikasi sendiri:
@@ -18,6 +18,7 @@ self.addEventListener('push', (event) => {
   try { j = event.data ? event.data.json() : {}; } catch (e) { j = {}; }
   const d = (j && (j.data || j.notification)) || {};
   const k = KODE.test(String(d.k || '')) ? String(d.k) : '';
+  const panggil = !!k && String(d.panggil || '') === '1';
   const judul = String(d.judul || d.title || 'ProjekGo').slice(0, 80);
   const isi = String(d.isi || d.body || (k ? 'Ada pesan baru dari rider' : 'Ada pesan baru dari admin')).slice(0, 160);
   event.waitUntil((async () => {
@@ -28,9 +29,11 @@ self.addEventListener('push', (event) => {
       body: isi,
       icon: IKON,
       badge: IKON,
-      tag: k ? 'chat-rider' : 'chat-admin',
+      tag: panggil ? 'panggil-rider' : (k ? 'chat-rider' : 'chat-admin'),
       renotify: true,
-      vibrate: [120, 60, 120],
+      // Panggilan rider: getar panjang & tetap tampil sampai diketuk
+      vibrate: panggil ? [600, 250, 600, 250, 600, 250, 900] : [120, 60, 120],
+      requireInteraction: panggil,
       data: { tautan: k ? '/?buka=rider&k=' + k : '/?buka=chat', k }
     });
   })());

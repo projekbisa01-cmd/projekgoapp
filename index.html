@@ -2708,6 +2708,23 @@ body.gm-terkunci { overflow: hidden; }
         .prc-qris img { display: block; width: 100%; border-radius: 9px; }
         .prc-tutup { padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 0px)); background: #FFFFFF; text-align: center; font-size: 13.5px; font-weight: 700; color: #6B5D51; border-top: 1px solid #F0E4D6; flex: none; }
         .prc-tutup[hidden] { display: none; }
+        .prc-tutup .ktv-btn { width: 100%; margin-top: 10px; }
+        .prc-foto { display: block; padding: 0; border: 0; background: rgba(0,0,0,.05); border-radius: 9px; cursor: zoom-in; overflow: hidden; }
+        .prc-foto img { display: block; width: 220px; max-width: 100%; height: auto; border-radius: 9px; }
+        .prc-foto span { display: block; width: 220px; max-width: 100%; padding: 30px 10px; font-size: 12.5px; text-align: center; color: #6B5D51; }
+        .pc-bub.prc-pg { align-self: center; background: #FFF4D6; color: #6B4E12; font-weight: 700; font-size: 13px; text-align: center; }
+        .prc-panggil { position: fixed; inset: 0; z-index: 1400; background: rgba(20,12,6,.6); display: flex; align-items: center; justify-content: center; padding: 16px; }
+        .prc-panggil[hidden] { display: none; }
+        .prc-pg-isi { width: 100%; max-width: 340px; background: #FFFFFF; border-radius: 26px; padding: 26px 20px 18px; text-align: center; display: flex; flex-direction: column; gap: 8px; }
+        .prc-pg-ik { width: 76px; height: 76px; margin: 0 auto 6px; border-radius: 99px; background: #E85300; display: grid; place-items: center; font-size: 34px; animation: prc-dering 1.2s ease-out infinite; }
+        @keyframes prc-dering { 0% { box-shadow: 0 0 0 0 rgba(232,83,0,.55); } 100% { box-shadow: 0 0 0 22px rgba(232,83,0,0); } }
+        .prc-pg-isi b { font-size: 19px; font-weight: 800; color: #1F1611; }
+        .prc-pg-isi p { margin: 0 0 8px; font-size: 14px; font-weight: 600; color: #6B5D51; line-height: 1.5; }
+        .ktv-kendala { text-align: center; }
+        .ktv-kendala p { margin: 0 0 10px; font-size: 13px; font-weight: 600; color: #6B5D51; }
+        .ktv-kendala .ktv-btn { width: 100%; }
+        .ktv-diubah { font-size: 12px; font-weight: 700; color: #7A5A0A; background: #FFF4D6; border-radius: 10px; padding: 6px 10px; margin: 0 0 8px; }
+        @media (prefers-reduced-motion: reduce) { .prc-pg-ik { animation: none; } }
         .prc-lihat { position: fixed; inset: 0; z-index: 1300; background: rgba(15,10,6,.94); display: flex; align-items: center; justify-content: center; }
         .prc-lihat[hidden] { display: none; }
         .prc-lihat img { max-width: 100%; max-height: 100%; object-fit: contain; background: #FFFFFF; }
@@ -4536,7 +4553,7 @@ body.gm-terkunci { overflow: hidden; }
             </div>
             <button type="button" class="prc-status" id="prc-status"><i aria-hidden="true" id="prc-st-ik" style="font-style:normal;font-size:22px;">🛵</i><span style="min-width:0;"><b id="prc-st-j">Pesanan berjalan</b><span id="prc-st-s"></span></span><em>Lacak ›</em></button>
             <div class="pc-isi pc-motif" id="prc-isi" role="log" aria-live="polite" aria-label="Isi chat dengan rider">
-                <div class="pc-info">Rider tidak melihat nomor WA-mu. Chat ini otomatis ditutup 1 jam setelah pesanan selesai. Admin ProjekGo ikut memantau.</div>
+                <div class="pc-info">Rider tidak melihat nomor WA-mu. Chat ini ditutup begitu pesanan selesai; kendala setelahnya disampaikan ke admin. Admin ProjekGo ikut memantau.</div>
                 <div id="prc-daftar" style="margin-top:auto;display:flex;flex-direction:column;gap:6px;"></div>
             </div>
             <div class="pc-cepat" id="prc-cepat">
@@ -4550,15 +4567,27 @@ body.gm-terkunci { overflow: hidden; }
                     <label for="prc-input" style="position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);">Pesan untuk rider</label>
                     <textarea id="prc-input" rows="1" maxlength="1000" placeholder="Tulis pesan ke rider..." enterkeyhint="send"></textarea>
                     <button type="button" class="pc-ik" data-prc="lokasi" aria-label="Kirim lokasi saya"><i class="ph ph-map-pin" aria-hidden="true"></i></button>
+                    <button type="button" class="pc-ik" data-prc="foto" aria-label="Kirim foto"><i class="ph ph-camera" aria-hidden="true"></i></button>
                 </div>
                 <button type="submit" class="pc-kirim" id="prc-kirim" aria-label="Kirim pesan" disabled><i class="ph-fill ph-paper-plane-right" aria-hidden="true"></i></button>
             </form>
-            <div class="prc-tutup" id="prc-tutup" hidden>Chat dengan rider sudah ditutup. Ada kendala? Chat admin ProjekGo di menu Chat.</div>
+            <div class="prc-tutup" id="prc-tutup" hidden><span id="prc-tutup-t">Pesanan sudah selesai, chat dengan rider ditutup.</span><button type="button" class="ktv-btn garis" id="prc-kendala"><i class="ph-bold ph-warning-circle" aria-hidden="true"></i>Ada kendala pesanan</button></div>
         </section>
     </div>
-    <div id="prc-lihat" class="prc-lihat" hidden role="dialog" aria-modal="true" aria-label="QRIS">
-        <img id="prc-lihat-img" alt="QRIS pembayaran dari rider">
+    <div id="prc-lihat" class="prc-lihat" hidden role="dialog" aria-modal="true" aria-label="Foto">
+        <img id="prc-lihat-img" alt="Foto dari chat rider">
         <button type="button" id="prc-lihat-x" aria-label="Tutup"><i class="ph-bold ph-x" aria-hidden="true"></i></button>
+    </div>
+
+    <!-- RIDER MEMANGGIL (notifikasi khusus saat aplikasi terbuka) -->
+    <div id="prc-panggil" class="prc-panggil" hidden role="alertdialog" aria-modal="true" aria-labelledby="prc-pg-j" aria-describedby="prc-pg-s">
+        <div class="prc-pg-isi">
+            <div class="prc-pg-ik" aria-hidden="true">📞</div>
+            <b id="prc-pg-j">Rider memanggilmu</b>
+            <p id="prc-pg-s">Rider menunggu balasanmu. Buka chat sekarang ya.</p>
+            <button type="button" class="ktv-btn utama" id="prc-pg-buka"><i class="ph-fill ph-chat-circle-dots" aria-hidden="true"></i>Buka chat rider</button>
+            <button type="button" class="ktv-btn garis" id="prc-pg-nanti">Nanti</button>
+        </div>
     </div>
 
     <!-- NAVBAR BAWAH -->
@@ -16284,10 +16313,12 @@ body.gm-terkunci { overflow: hidden; }
         import { getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, doc, onSnapshot, query, orderBy, limit, writeBatch, serverTimestamp, increment, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
         const app = getApp();
         const db = getFirestore(app);
         const auth = getAuth(app);
+        const storage = getStorage(app);
         const P = 'onbid-2f87a';
         const D = (...s) => doc(db, 'artifacts', P, 'public', 'data', ...s);
         const $ = (id) => document.getElementById(id);
@@ -16342,9 +16373,8 @@ body.gm-terkunci { overflow: hidden; }
         function chatBuka(a) {
             if (!a.chat || !chat[a.kode]) return false;
             const t = tahapDari(a);
-            if (t === 'batal' || t === 'lama') return false;
-            if (t === 'selesai') { const s = selesaiMs(a); return !!s && Date.now() < s + JAM_MS; }
-            return true;
+            // (9 Nov 2026) chat rider tutup begitu pesanan selesai / batal; kendala -> chat admin
+            return !['selesai', 'batal', 'lama'].includes(t);
         }
         const belumChat = (a) => (a.chat && chat[a.kode]) ? Math.max(0, Number(chat[a.kode].belum_pelanggan) || 0) : 0;
 
@@ -16366,7 +16396,7 @@ body.gm-terkunci { overflow: hidden; }
                         kode: d.id, jenis: JENIS[x.jenis] ? x.jenis : 'lain', judul: String(x.judul || '').slice(0, 60), pesanan: String(x.pesanan || '').slice(0, 1500),
                         fee: Number(x.fee) || 0, tambahan: Number(x.tambahan) || 0, chat: x.chat === true, lewat: x.lewat === 'wa' ? 'wa' : 'chat',
                         riderNama: x.rider_nama ? String(x.rider_nama).slice(0, 60) : '', akhir: ['selesai', 'batal'].includes(x.akhir) ? x.akhir : '', akhir_at: x.akhir_at || null,
-                        t: ms(x.dibuat_at) || Date.now()
+                        diubah: ms(x.diubah_at) || 0, t: ms(x.dibuat_at) || Date.now()
                     };
                 }).filter((a) => KODE.test(a.kode));
                 sudahMuat = true;
@@ -16398,7 +16428,9 @@ body.gm-terkunci { overflow: hidden; }
                     const lama = chat[k];
                     chat[k] = s.exists() ? s.data({ serverTimestamps: 'estimate' }) : null;
                     const c = chat[k];
-                    if (!pertama && c && c.terakhir_dari === 'rider' && (Number(c.belum_pelanggan) || 0) > (Number(lama && lama.belum_pelanggan) || 0) && bukaChat !== k)
+                    const pgBaru = c ? ms(c.panggil_at) : 0, pgLama = lama ? ms(lama.panggil_at) : 0;
+                    if (!pertama && c && pgBaru > pgLama && Date.now() - pgBaru < 2 * 60 * 1000) tampilPanggil(k);
+                    else if (!pertama && c && c.terakhir_dari === 'rider' && (Number(c.belum_pelanggan) || 0) > (Number(lama && lama.belum_pelanggan) || 0) && bukaChat !== k)
                         toast('🛵 Rider: ' + String(c.terakhir || 'pesan baru').slice(0, 80));
                     pertama = false;
                     if (bukaChat === k) { gambarKepalaChat(); tandaiDibaca(); }
@@ -16586,6 +16618,7 @@ body.gm-terkunci { overflow: hidden; }
         }
         window.ktvTanganiKembali = () => {
             if ($('prc-lihat') && !$('prc-lihat').hidden) { $('prc-lihat').hidden = true; return true; }
+            if ($('prc-panggil') && !$('prc-panggil').hidden) { tutupPanggil(); return false; }
             if (bukaChat) { tutupRuangRider(); return true; }
             if (bukaDetail) { tutupDetailPesanan(); return true; }
             return false;
@@ -16705,9 +16738,20 @@ body.gm-terkunci { overflow: hidden; }
             if (t === 'selesai' && l && KODE_RIDER.test(String(l.k || '')) && sMs && Date.now() < sMs + HARI_MS && ulasanCache[a.kode] === 'belum' && !ulasanTerkirim(a.kode)) frag.appendChild(kotakUlasan(a, info));
             else if (t === 'selesai' && (ulasanCache[a.kode] === 'sudah' || ulasanTerkirim(a.kode))) { const u = el('section', 'ktv-kotak ktv-ulas'); u.append(el('b', '', 'Terima kasih atas ulasanmu 🙏'), el('p', '', 'Ulasanmu membantu rider ProjekGo jadi lebih baik.')); u.lastChild.style.margin = '4px 0 0'; frag.appendChild(u); }
 
+            // 4b. Kendala (pesanan tidak berjalan lagi): lanjut ke chat admin
+            if (!berjalan(a)) {
+                const kd = el('section', 'ktv-kotak ktv-kendala');
+                kd.appendChild(el('p', '', 'Ada masalah dengan pesanan ini? Sampaikan ke admin ProjekGo, rincian pesanan ikut terkirim.'));
+                const kb = el('button', 'ktv-btn garis'); kb.type = 'button';
+                kb.append(ikonPh('ph-bold ph-warning-circle'), document.createTextNode('Ada kendala pesanan'));
+                kb.onclick = () => bukaKendala(a.kode);
+                kd.appendChild(kb); frag.appendChild(kd);
+            }
+
             // 5. Rincian
             const rc = el('section', 'ktv-kotak');
             rc.appendChild(el('h3', 'ktv-h3', 'Rincian pesanan'));
+            if (a.diubah) rc.appendChild(el('p', 'ktv-diubah', 'Rincian diperbarui admin · ' + tglPendek(a.diubah)));
             if (a.pesanan) rc.appendChild(el('div', 'ktv-rinci', a.pesanan.replace(/[*_~`]/g, '')));
             const baris = (k, v, kelas) => { const r = el('div', 'ktv-rr' + (kelas ? ' ' + kelas : '')); r.append(el('span', '', k), el('b', '', v)); rc.appendChild(r); };
             if (a.fee) baris('Ongkir', rp(a.fee));
@@ -16796,7 +16840,7 @@ body.gm-terkunci { overflow: hidden; }
                 if (bukaChat !== kode) return;
                 pesanR = s.docs.map((d) => {
                     const x = d.data({ serverTimestamps: 'estimate' }) || {};
-                    return { id: d.id, dari: x.dari === 'rider' ? 'rider' : 'pelanggan', teks: String(x.teks || '').slice(0, 3000), jenis: String(x.jenis || 'teks'), lat: x.lat, lng: x.lng, qris: typeof x.qris === 'string' ? x.qris : '', t: ms(x.dibuat_at) || Date.now(), tunda: !!(d.metadata && d.metadata.hasPendingWrites) };
+                    return { id: d.id, dari: x.dari === 'rider' ? 'rider' : 'pelanggan', teks: String(x.teks || '').slice(0, 3000), jenis: String(x.jenis || 'teks'), lat: x.lat, lng: x.lng, qris: typeof x.qris === 'string' ? x.qris : '', foto: typeof x.foto === 'string' ? x.foto : '', w: Number(x.w) || 0, h: Number(x.h) || 0, t: ms(x.dibuat_at) || Date.now(), tunda: !!(d.metadata && d.metadata.hasPendingWrites) };
                 }).sort((p, q) => p.t - q.t);
                 gambarPesanR();
             }, (e) => { console.warn('Pesan rider belum terbaca:', e && e.code); });
@@ -16823,8 +16867,9 @@ body.gm-terkunci { overflow: hidden; }
             $('prc-sub').textContent = buka ? 'Rider ProjekGo · ' + (t === 'selesai' ? 'pesanan selesai' : 'mengantar pesanan ' + j.label + '-mu') : 'Chat sudah ditutup';
             $('prc-st-ik').textContent = t === 'selesai' ? '✅' : (t === 'batal' ? '✖️' : j.ik);
             $('prc-st-j').textContent = (t === 'batal' ? ['Pesanan dibatalkan'] : (j.judul[t] || j.judul.diteruskan))[0];
-            $('prc-st-s').textContent = t === 'selesai' ? 'Chat ditutup otomatis 1 jam setelah selesai' : (t === 'batal' ? '' : 'Tahap ' + Math.min(4, langkahKe(t) + 1) + ' dari 4');
+            $('prc-st-s').textContent = t === 'selesai' ? 'Ada kendala? Ketuk "Ada kendala pesanan"' : (t === 'batal' ? '' : 'Tahap ' + Math.min(4, langkahKe(t) + 1) + ' dari 4');
             $('prc-form').hidden = !buka; $('prc-cepat').hidden = !buka; $('prc-tutup').hidden = buka;
+            $('prc-tutup-t').textContent = t === 'batal' ? 'Pesanan dibatalkan, chat dengan rider ditutup.' : 'Pesanan sudah selesai, chat dengan rider ditutup.';
         }
         // Tebal *teks* dan miring _teks_ seperti WhatsApp, tautan https bisa diketuk. Tanpa HTML.
         function isiTeksR(w, teks) {
@@ -16859,6 +16904,11 @@ body.gm-terkunci { overflow: hidden; }
                     const pt = el('div', 'pc-lok-peta'); pt.appendChild(ikonPh('ph-fill ph-map-pin'));
                     const a2 = el('a', '', 'Buka di Google Maps'); a2.href = 'https://www.google.com/maps?q=' + lat.toFixed(6) + ',' + lng.toFixed(6); a2.target = '_blank'; a2.rel = 'noopener noreferrer';
                     b.append(pt, el('div', 'pc-lok-t', p.dari === 'pelanggan' ? 'Lokasi saya' : 'Lokasi dari rider'), a2);
+                } else if (p.jenis === 'panggil') {
+                    b.className = 'pc-bub prc-pg';
+                    b.appendChild(document.createTextNode('📞 Rider memanggilmu'));
+                } else if (p.jenis === 'foto') {
+                    b.appendChild(kotakFotoR(p));
                 } else if (p.jenis === 'qris') {
                     b.appendChild(el('b', '', 'QRIS pembayaran'));
                     if (QRIS_HOST.test(p.qris)) {
@@ -16887,16 +16937,17 @@ body.gm-terkunci { overflow: hidden; }
         function kirimR(isi) {
             const k = bukaChat, a = akt.find((x) => x.kode === k);
             if (!k || !a || !chatBuka(a) || !auth.currentUser) return Promise.resolve(false);
-            const sementara = { id: 't' + Date.now(), dari: 'pelanggan', teks: isi.teks, jenis: isi.jenis, lat: isi.lat, lng: isi.lng, t: Date.now(), tunda: true };
+            const sementara = { id: 't' + Date.now(), dari: 'pelanggan', teks: isi.teks, jenis: isi.jenis, lat: isi.lat, lng: isi.lng, lokal: isi.lokal || '', w: isi.w || 0, h: isi.h || 0, t: Date.now(), tunda: true };
             tundaR.push(sementara); gambarPesanR(true);
             const tugas = antreanR.then(async () => {
                 const tunggu = kirimTerakhirR + 1300 - Date.now();
                 if (tunggu > 0) await new Promise((r) => setTimeout(r, tunggu));
                 const data = { dari: 'pelanggan', teks: isi.teks, jenis: isi.jenis, dibuat_at: serverTimestamp() };
                 if (isi.jenis === 'lokasi') { data.lat = isi.lat; data.lng = isi.lng; }
+                if (isi.jenis === 'foto') { data.foto = isi.foto; data.w = isi.w; data.h = isi.h; }
                 const b = writeBatch(db);
-                b.set(doc(collection(db, 'chat_rider', k, 'pesan')), data);
-                b.update(doc(db, 'chat_rider', k), { terakhir: isi.jenis === 'lokasi' ? '📍 Lokasi' : isi.teks.replace(/\s+/g, ' ').slice(0, 200), terakhir_dari: 'pelanggan', terakhir_at: serverTimestamp(), at_pelanggan: serverTimestamp(), belum_rider: increment(1), belum_pelanggan: 0 });
+                b.set(isi.idPesan ? doc(db, 'chat_rider', k, 'pesan', isi.idPesan) : doc(collection(db, 'chat_rider', k, 'pesan')), data);
+                b.update(doc(db, 'chat_rider', k), { terakhir: isi.jenis === 'lokasi' ? '📍 Lokasi' : (isi.jenis === 'foto' ? '📷 Foto' : isi.teks.replace(/\s+/g, ' ').slice(0, 200)), terakhir_dari: 'pelanggan', terakhir_at: serverTimestamp(), at_pelanggan: serverTimestamp(), belum_rider: increment(1), belum_pelanggan: 0 });
                 kirimTerakhirR = Date.now();
                 await b.commit();
                 return true;
@@ -16930,10 +16981,123 @@ body.gm-terkunci { overflow: hidden; }
         }
         $('prc').addEventListener('click', (e) => {
             const b = e.target.closest('[data-prc="lokasi"]'); if (b) { kirimLokasiR(); return; }
+            if (e.target.closest('[data-prc="foto"]')) { pilihFotoR(); return; }
             const c = e.target.closest('#prc-cepat .pc-chip'); if (c) { const i = $('prc-input'); i.value = c.textContent.trim(); aturInputR(); i.focus(); }
         });
         $('prc-lihat-x').onclick = kembali;
         $('prc-lihat').addEventListener('click', (e) => { if (e.target.id === 'prc-lihat') kembali(); });
+        // ---------- Foto di chat rider ----------
+        const urlFotoR = {}, mintaFotoR = {};
+        const PATH_FOTO = /^chat_rider\/[A-Za-z0-9]{12,32}\/[A-Za-z0-9_-]{1,64}\/[A-Za-z0-9_-]{1,64}\.jpg$/;
+        function kotakFotoR(p) {
+            const tb = el('button', 'prc-foto'); tb.type = 'button'; tb.setAttribute('aria-label', 'Perbesar foto');
+            const src = p.lokal || urlFotoR[p.foto];
+            if (src && src !== 'gagal') {
+                const im = el('img'); im.alt = p.dari === 'rider' ? 'Foto dari rider' : 'Foto yang kamu kirim'; im.src = src;
+                if (p.w && p.h) { im.width = 220; im.height = Math.round(220 * p.h / p.w); }
+                tb.appendChild(im);
+                tb.onclick = () => { $('prc-lihat-img').src = src; $('prc-lihat').hidden = false; dorongRiwayat('lihat'); };
+            } else {
+                tb.appendChild(el('span', '', src === 'gagal' ? 'Foto tidak bisa dibuka' : (p.tunda ? 'Mengirim foto…' : 'Memuat foto…')));
+                if (!src && PATH_FOTO.test(p.foto || '') && !mintaFotoR[p.foto]) {
+                    mintaFotoR[p.foto] = getDownloadURL(sRef(storage, p.foto)).then((u) => { urlFotoR[p.foto] = u; gambarPesanR(); }, (e) => { console.warn('Foto rider:', e && e.code); urlFotoR[p.foto] = 'gagal'; gambarPesanR(); });
+                }
+            }
+            return tb;
+        }
+        function kecilkanR(file) {
+            return new Promise((ok, gagal) => {
+                const u = URL.createObjectURL(file), img = new Image();
+                img.onload = () => {
+                    URL.revokeObjectURL(u);
+                    const r = Math.min(1, 1280 / Math.max(img.naturalWidth, img.naturalHeight));
+                    const w = Math.max(1, Math.round(img.naturalWidth * r)), h = Math.max(1, Math.round(img.naturalHeight * r));
+                    const c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(img, 0, 0, w, h);
+                    let q = 0.72;
+                    const coba = () => c.toBlob((bl) => {
+                        if (!bl) { gagal(new Error('blob')); return; }
+                        if (bl.size > 450 * 1024 && q > 0.4) { q -= 0.12; coba(); return; }
+                        ok({ blob: bl, w, h, url: c.toDataURL('image/jpeg', 0.5) });
+                    }, 'image/jpeg', q);
+                    coba();
+                };
+                img.onerror = () => { URL.revokeObjectURL(u); gagal(new Error('gambar')); };
+                img.src = u;
+            });
+        }
+        function pilihFotoR() {
+            const k = bukaChat, c = k && chat[k];
+            if (!k || !c || !/^[A-Za-z0-9_-]{1,64}$/.test(String(c.order_id || ''))) return;
+            const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
+            inp.onchange = async () => {
+                const f = inp.files && inp.files[0]; if (!f) return;
+                if (!/^image\//.test(f.type)) { toast('Pilih file gambar'); return; }
+                try {
+                    const hasil = await kecilkanR(f);
+                    const idPesan = doc(collection(db, 'chat_rider', k, 'pesan')).id;
+                    const path = 'chat_rider/' + k + '/' + c.order_id + '/' + idPesan + '.jpg';
+                    toast('Mengirim foto...');
+                    await uploadBytes(sRef(storage, path), hasil.blob, { contentType: 'image/jpeg' });
+                    urlFotoR[path] = hasil.url;
+                    await kirimR({ jenis: 'foto', teks: 'Foto', foto: path, w: hasil.w, h: hasil.h, idPesan, lokal: hasil.url });
+                } catch (e) { console.warn('Foto ke rider gagal:', e && e.code, e); toast('Foto belum terkirim. Periksa internet lalu coba lagi.'); }
+            };
+            inp.click();
+        }
+
+        // ---------- Rider memanggil (aplikasi sedang terbuka) ----------
+        let panggilKode = null;
+        function tampilPanggil(k) {
+            const a = akt.find((x) => x.kode === k); if (!a || !chatBuka(a)) return;
+            try { if (navigator.vibrate) navigator.vibrate([500, 200, 500, 200, 700]); } catch (e) {}
+            try {
+                const C = window.AudioContext || window.webkitAudioContext, ac = new C(), t0 = ac.currentTime;
+                [0, 0.5, 1].forEach((d) => { const o = ac.createOscillator(), gn = ac.createGain(); o.frequency.value = 880; gn.gain.setValueAtTime(0.0001, t0 + d); gn.gain.exponentialRampToValueAtTime(0.3, t0 + d + 0.03); gn.gain.exponentialRampToValueAtTime(0.0001, t0 + d + 0.35); o.connect(gn); gn.connect(ac.destination); o.start(t0 + d); o.stop(t0 + d + 0.4); });
+            } catch (e) {}
+            if (bukaChat === k) { toast('📞 Rider memanggilmu'); return; }
+            panggilKode = k;
+            const info = infoRider(a);
+            $('prc-pg-j').textContent = (info.nama || 'Rider') + ' memanggilmu';
+            $('prc-pg-s').textContent = 'Rider yang mengantar pesanan ' + J(a.jenis).label + '-mu menunggu balasan. Buka chat sekarang ya.';
+            $('prc-panggil').hidden = false;
+            setTimeout(() => $('prc-pg-buka').focus(), 50);
+        }
+        const tutupPanggil = () => { $('prc-panggil').hidden = true; panggilKode = null; };
+        $('prc-pg-buka').onclick = () => { const k = panggilKode; tutupPanggil(); if (k) bukaRuangRider(k); };
+        $('prc-pg-nanti').onclick = tutupPanggil;
+
+        // ---------- Ada kendala pesanan -> chat admin dengan rincian pesanan ----------
+        function bukaKendala(kode) {
+            const a = akt.find((x) => x.kode === kode); if (!a) return;
+            const info = infoRider(a), s = selesaiMs(a), t = tahapDari(a);
+            const isi = a.pesanan.replace(/[*_~`]/g, '').split('\n').map((x) => x.replace(/^[\s\-•·]+/, '').trim()).filter(Boolean).slice(0, 3).join(', ').slice(0, 160);
+            const baris = [
+                '⚠ KENDALA PESANAN #' + a.kode.slice(-5).toUpperCase(),
+                J(a.jenis).label + (a.judul ? ' · ' + a.judul : ''),
+                (t === 'batal' ? 'Dibatalkan' : (s ? 'Selesai: ' + tglPendek(s) : 'Dipesan: ' + tglPendek(a.t))) + (a.fee ? ' · Ongkir ' + rp(a.fee + a.tambahan) : ''),
+                info.nama ? 'Rider: ' + info.nama : '',
+                isi ? 'Pesanan: ' + isi : '',
+                '',
+                'Kendala: '
+            ].filter((x, i, arr) => x !== '' || i === arr.length - 2);
+            const teks = baris.join('\n').slice(0, 1000);
+            // tutup layar detail / chat rider tanpa menumpuk riwayat, lalu buka chat admin
+            $('prc-lihat').hidden = true;
+            if (bukaChat) tutupRuangRider();
+            if (bukaDetail) tutupDetailPesanan();
+            window.openPage('chat');
+            setTimeout(() => {
+                const inp = document.getElementById('pc-input');
+                if (!inp) return;
+                inp.value = teks;
+                inp.dispatchEvent(new Event('input', { bubbles: true }));
+                inp.focus();
+                try { inp.setSelectionRange(teks.length, teks.length); inp.scrollTop = inp.scrollHeight; } catch (e) {}
+                toast('Tulis kendalamu setelah "Kendala:", lalu kirim');
+            }, 350);
+        }
+        $('prc-kendala').onclick = () => { if (bukaChat) bukaKendala(bukaChat); };
+
         // Keyboard HP: tinggi layar chat mengikuti layar yang terlihat
         function aturTinggiR() {
             const vv = window.visualViewport, k = $('prc');
