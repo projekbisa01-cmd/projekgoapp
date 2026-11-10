@@ -2747,6 +2747,136 @@ body.gm-terkunci { overflow: hidden; }
         .prc-ajak em { margin-left: auto; font-style: normal; flex: none; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 800; color: #C2410C; }
         @media (prefers-reduced-motion: reduce) { .ktv-titik, .ktv-adegan .m { animation: none; } }
     </style>
+
+<!-- ===== FORMAT TEKS CHAT seperti WhatsApp (10 Nov 2026) — sama di aplikasi pelanggan, rider, dan admin =====
+     *tebal* / **tebal**, _miring_ / __miring__, ~coret~ / ~~coret~~, ```kode```, baris "- " atau "* " jadi titik.
+     Hanya https:// yang dijadikan link. Semua dibangun sebagai elemen DOM + teks biasa (tidak pernah innerHTML),
+     jadi tanda format tidak bisa dipakai menyisipkan kode. -->
+<style>
+    .pg-kode { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .92em; background: rgba(0, 0, 0, .06); padding: 1px 5px; border-radius: 5px; white-space: pre-wrap; }
+</style>
+<script>
+(function () {
+    var SUMBER = "(https:\\/\\/[^\\s<>\"']+)|```([^`]{1,2000}?)```|(\\*\\*|__|~~|\\*|_|~)(\\S(?:[^\\n]{0,400}?\\S)?)\\3";
+    var HURUF = /[A-Za-z0-9À-ɏ]/;
+    function alamatAman(u) { try { var x = new URL(u); return x.protocol === 'https:' ? x.href : null; } catch (e) { return null; } }
+    function isi(w, teks, lv) {
+        var re = new RegExp(SUMBER, 'g'), i = 0, m;
+        while ((m = re.exec(teks))) {
+            var s = m.index;
+            if (m[3]) {
+                // Seperti WhatsApp: tanda harus di tepi kata (snake_case, 2*3*4 tidak berubah)
+                var pre = s > 0 ? teks.charAt(s - 1) : ' ', post = teks.charAt(re.lastIndex) || ' ';
+                if (HURUF.test(pre) || HURUF.test(post) || m[4].charAt(0) === m[3].charAt(0)) { re.lastIndex = s + 1; continue; }
+            }
+            if (m[1]) {
+                var url = m[1].replace(/[),.;!?]+$/, ''), h = alamatAman(url);
+                if (!h) { re.lastIndex = s + 1; continue; }
+                if (s > i) w.appendChild(document.createTextNode(teks.slice(i, s)));
+                var a = document.createElement('a');
+                a.href = h; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = url;
+                w.appendChild(a);
+                i = s + url.length; re.lastIndex = i;
+                continue;
+            }
+            if (s > i) w.appendChild(document.createTextNode(teks.slice(i, s)));
+            if (m[2] != null) {
+                var c = document.createElement('code'); c.className = 'pg-kode'; c.textContent = m[2]; w.appendChild(c);
+            } else {
+                var k = m[3].charAt(0), e = document.createElement(k === '*' ? 'b' : (k === '_' ? 'i' : 's'));
+                if (lv < 3) isi(e, m[4], lv + 1); else e.textContent = m[4];
+                w.appendChild(e);
+            }
+            i = re.lastIndex;
+        }
+        if (i < teks.length) w.appendChild(document.createTextNode(teks.slice(i)));
+    }
+    window.pgFormat = function (w, teks) {
+        teks = String(teks == null ? '' : teks).slice(0, 5000);
+        teks = teks.replace(/^([ \t]*)[-*][ \t]+(?=\S)/gm, '$1• ');
+        isi(w, teks, 0);
+    };
+    // Pratinjau 1 baris (daftar chat, notifikasi): tanda format dibuang
+    window.pgPolos = function (teks) {
+        return String(teks == null ? '' : teks).replace(/```([^`]*)```/g, '$1').replace(/(\*\*|__|~~|\*|_|~)(\S(?:[^\n]*?\S)?)\1/g, '$2');
+    };
+})();
+</script>
+
+<style id="gaya-chat-10nov">
+    /* ===== 10 Nov 2026: LATAR PUTIH ===== */
+    body, #page-home.bh, #page-aktivitas, .ktv-layar { background: #FFFFFF; }
+    #page-cart { background: #FFFFFF !important; }
+
+    /* Kotak "fitur chat" di Beranda: oranye penuh supaya tidak menyatu dengan ikon layanan */
+    .pc-etalase { background: #E8590C; border-color: #E8590C; }
+    .pc-etalase .pc-mulai { background: #FFFFFF; color: #B84300; }
+    .pc-etalase .pc-mulai em { color: #B84300; }
+
+    /* ===== RUANG CHAT (admin & rider): kepala putih, latar semi gelap, huruf besar, gelembung jelas ===== */
+    #page-chat, .pc-kotak, #prc { background: #E6DED3; }
+    .pc-motif { background-color: #E6DED3; }
+    .pc-kepala { background: #FFFFFF; color: #1C1C1E; border-bottom: 1px solid #E2D8CC; }
+    .pc-kepala .pc-ik { color: #1C1C1E; }
+    .pc-onl { border-color: #FFFFFF; }
+    .pc-id b { font-size: 17.5px; }
+    .pc-id small { color: #6B6258; font-size: 13px; }
+    .pc-wa { border: 1.5px solid #E2D8CC; }
+    .pc-bub { font-size: 16.5px; line-height: 1.42; padding: 8px 12px 6px; max-width: 84%; box-shadow: 0 1px 1.5px rgba(60, 40, 20, .22); }
+    .pc-bub.adm { background: #FFFFFF; }
+    .pc-bub.saya { background: #FFD9BD; }
+    .pc-waktu { font-size: 12px; color: #6B5D51; }
+    .pc-hari { font-size: 13px; padding: 4px 12px; box-shadow: 0 1px 1.5px rgba(60, 40, 20, .15); }
+    .pc-info { font-size: 13px; }
+    .pc-kolom textarea { font-size: 16.5px; }
+    .pc-psn-b { font-size: 15px; }
+    .pc-cepat, .pc-tulis { background: transparent; }
+
+    /* ===== BERANDA CHAT ===== */
+    #page-pesan { background: #FFFFFF; min-height: 100vh; padding: 0 0 calc(96px + env(safe-area-inset-bottom, 0px)) !important; }
+    .pcs-kepala { padding: calc(18px + env(safe-area-inset-top, 0px)) 16px 10px; }
+    .pcs-kepala h1 { margin: 0; font-size: 26px; font-weight: 800; color: #1C1C1E; }
+    .pcs-chip { display: flex; gap: 8px; padding: 4px 16px 8px; overflow-x: auto; scrollbar-width: none; }
+    .pcs-chip::-webkit-scrollbar { display: none; }
+    .pcs-chip button { flex: none; height: 38px; padding: 0 15px; border-radius: 99px; border: 1.5px solid #E2D8CC; background: #FFFFFF; color: #3B3330; font: inherit; font-size: 14.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+    .pcs-chip button[aria-pressed="true"] { background: #FFE7D3; border-color: #F2B98F; color: #8A3200; font-weight: 800; }
+    .pcs-chip em { font-style: normal; font-size: 13px; }
+    .pcs-baris { width: 100%; display: flex; gap: 14px; align-items: center; padding: 12px 16px; border: 0; background: transparent; text-align: left; font: inherit; color: #1C1C1E; cursor: pointer; }
+    .pcs-baris:active { background: #F7F3EE; }
+    .pcs-av { width: 56px; height: 56px; flex: none; border-radius: 99px; background: #FFD9BD; color: #8A3200; display: grid; place-items: center; font-size: 20px; font-weight: 800; position: relative; overflow: visible; }
+    .pcs-av img { width: 100%; height: 100%; border-radius: 99px; object-fit: cover; display: block; }
+    .pcs-av.adm { background: #E8590C; color: #FFFFFF; }
+    .pcs-av .on { position: absolute; right: 1px; bottom: 1px; width: 14px; height: 14px; border-radius: 99px; background: #1E7A34; border: 2.5px solid #FFFFFF; }
+    .pcs-isi { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+    .pcs-atas { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+    .pcs-nama { font-size: 17px; font-weight: 800; display: flex; align-items: center; gap: 5px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pcs-nama svg { width: 16px; height: 16px; flex: none; }
+    .pcs-jam { font-size: 13px; color: #6B6258; flex: none; }
+    .pcs-jam.baru { color: #1E7A34; font-weight: 700; }
+    .pcs-bawah { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .pcs-teks { font-size: 15px; color: #5E544C; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+    .pcs-n { min-width: 22px; height: 22px; padding: 0 6px; box-sizing: border-box; border-radius: 99px; background: #1E7A34; color: #FFFFFF; font-size: 12.5px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+    .pcs-pin { width: 16px; height: 16px; color: #7A6F64; flex: none; }
+    .pcs-lbl { align-self: flex-start; max-width: 100%; padding: 2px 9px; border-radius: 99px; font-size: 12.5px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pcs-lbl.jalan { background: #E6F4EA; color: #1E7A34; }
+    .pcs-lbl.buka { background: #FFF1E6; color: #B84300; }
+    .pcs-lbl.mati { background: #EFEBE6; color: #6B6258; font-weight: 700; }
+    .pcs-baris.mati .pcs-av { background: #ECE7E1; color: #8F857C; }
+    .pcs-baris.mati .pcs-av img { filter: grayscale(1); opacity: .6; }
+    .pcs-baris.mati .pcs-nama { color: #6B6258; font-weight: 700; }
+    .pcs-baris.mati .pcs-teks, .pcs-baris.mati .pcs-jam { color: #8F857C; }
+    .pcs-sub { padding: 14px 16px 4px; font-size: 13px; font-weight: 800; color: #7A6F64; letter-spacing: .04em; }
+    .pcs-kosong { padding: 6px 16px 0; font-size: 14px; line-height: 1.55; color: #6B6258; }
+    .pcs-catatan { margin: 14px 16px 0; padding: 12px 14px; border-radius: 14px; background: #F7F3EE; font-size: 13px; line-height: 1.5; color: #6B6258; }
+    .pcs-nav { position: fixed; left: 0; right: 0; bottom: 0; max-width: var(--max-width, 480px); margin: 0 auto; z-index: 900; height: calc(72px + env(safe-area-inset-bottom, 0px)); padding-bottom: env(safe-area-inset-bottom, 0px); box-sizing: border-box; background: #FFFFFF; border-top: 1.5px solid #E2D8CC; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .pcs-nav button { border: 0; background: transparent; font: inherit; font-size: 13px; font-weight: 700; color: #3B3330; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; }
+    .pcs-nav button i { font-size: 23px; }
+    .pcs-nav button[aria-current="page"] { color: #1C1C1E; font-weight: 800; }
+    .pcs-nav button[aria-current="page"] span.ik { background: #FFE7D3; color: #B84300; }
+    .pcs-nav span.ik { position: relative; height: 32px; padding: 0 16px; border-radius: 99px; display: grid; place-items: center; }
+    .pcs-nav span.ik em { position: absolute; top: -5px; right: 2px; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 99px; background: #1E7A34; color: #FFFFFF; font-style: normal; font-size: 11px; font-weight: 800; display: grid; place-items: center; }
+    .pcs-nav span.ik em[hidden] { display: none; }
+</style>
 </head>
 <body>
 
@@ -3892,6 +4022,24 @@ body.gm-terkunci { overflow: hidden; }
             </div>
         </div>
 
+        <!-- BERANDA CHAT (10 Nov 2026): admin ProjekGo + rider yang mengantar + chat lama -->
+        <div id="page-pesan" class="page">
+            <div class="pcs-kepala"><h1>Chat</h1></div>
+            <div class="pcs-chip" role="group" aria-label="Saring chat">
+                <button type="button" data-pcs="semua" aria-pressed="true">Semua</button>
+                <button type="button" data-pcs="belum" aria-pressed="false">Belum dibaca <em id="pcs-n-belum" hidden></em></button>
+                <button type="button" data-pcs="aktif" aria-pressed="false">Aktif</button>
+            </div>
+            <div id="pcs-daftar"></div>
+            <p class="pcs-catatan">Chat rider lama tetap bisa dibuka untuk dibaca. Ada kendala soal pesanan? Tekan <b>Kendala</b> di bawah, nanti langsung ke admin.</p>
+            <nav class="pcs-nav" aria-label="Menu chat">
+                <button type="button" aria-current="page" onclick="window.scrollTo(0,0)"><span class="ik"><i class="ph-fill ph-chat-circle-dots" aria-hidden="true"></i><em id="pcs-n-nav" hidden></em></span>Chat</button>
+                <button type="button" onclick="openPage('aktivitas')"><span class="ik"><i class="ph ph-package" aria-hidden="true"></i></span>Pesanan</button>
+                <button type="button" onclick="pcsKendala()"><span class="ik"><i class="ph ph-question" aria-hidden="true"></i></span>Kendala</button>
+                <button type="button" onclick="openPage('home')"><span class="ik"><i class="ph ph-storefront" aria-hidden="true"></i></span>Katalog</button>
+            </nav>
+        </div>
+
         <!-- HALAMAN AKTIVITAS (tahap 3, 7 Nov 2026): pesanan berjalan & riwayat -->
         <div id="page-aktivitas" class="page">
             <div class="ktv-kepala"><h1>Aktivitas</h1><p>Pantau pesananmu dan chat dengan rider di sini.</p></div>
@@ -4612,7 +4760,7 @@ body.gm-terkunci { overflow: hidden; }
             <span class="nav-blob" aria-hidden="true"></span>
             <div class="nav-item active" onclick="openPage('home')" id="nav-home"><i class="ph ph-house"></i><span>Beranda</span></div>
             <div class="nav-item" onclick="openPage('aktivitas')" id="nav-aktivitas"><i class="ph ph-receipt"></i><span>Aktivitas</span><div class="nav-badge" id="ktv-badge">0</div></div>
-            <div class="nav-item" onclick="openPage('chat')" id="nav-chat"><i class="ph ph-chat-circle-dots"></i><span>Chat</span><div class="nav-badge" id="pc-badge">0</div></div>
+            <div class="nav-item" onclick="openPage('pesan')" id="nav-chat"><i class="ph ph-chat-circle-dots"></i><span>Chat</span><div class="nav-badge" id="pc-badge">0</div></div>
             <div class="nav-item" onclick="toggleCartPopup()" id="nav-cart">
                 <i class="ph ph-shopping-cart"></i>
                 <span>Keranjang</span>
@@ -6432,7 +6580,8 @@ body.gm-terkunci { overflow: hidden; }
             if(name === 'favorites') renderFavoritesPage();
             
             // Sembunyikan navbar bawah khusus di halaman Konfirmasi Pesanan
-            document.body.classList.toggle('nav-sembunyi', name === 'cart' || name === 'service-form' || name === 'chat');
+            document.body.classList.toggle('nav-sembunyi', name === 'cart' || name === 'service-form' || name === 'chat' || name === 'pesan');
+            if (name === 'pesan') { document.getElementById('nav-chat')?.classList.add('active'); if (typeof window.pcsGambar === 'function') window.pcsGambar(); }
 
             if (typeof window.geserNavBlob === 'function') window.geserNavBlob();
             updateCartBadge(name);
@@ -15510,7 +15659,8 @@ body.gm-terkunci { overflow: hidden; }
         const nomorSah = (n) => /^\+?\d{6,16}$/.test(n);
 
         // Teks -> elemen aman: *tebal*, _miring_, dan tautan https saja
-        function isiTeks(wadah, teks) {
+        function isiTeks(wadah, teks) { return window.pgFormat(wadah, teks); }
+        function isiTeksLama(wadah, teks) {
             const re = /(https:\/\/[^\s<>"']+)|\*([^*\n]{1,300})\*|_([^_\n]{1,300})_/g;
             let i = 0, m;
             while ((m = re.exec(teks))) {
@@ -15668,7 +15818,13 @@ body.gm-terkunci { overflow: hidden; }
             if (o) o.classList.toggle('tutup', !buka);
         }
 
+        window.pcRingkas = () => {
+            const t = induk && induk.terakhir_at;
+            return { terakhir: String((induk && induk.terakhir) || ''), dari: String((induk && induk.terakhir_dari) || ''),
+                     at: (t && typeof t.toMillis === 'function') ? t.toMillis() : (typeof t === 'number' ? t : 0), belum: Math.max(0, Number(induk && induk.belum_pelanggan) || 0) };
+        };
         function perbaruiLencana() {
+            try { if (typeof window.pcsGambar === 'function') window.pcsGambar(); } catch (e) {}
             const n = Number(induk && induk.belum_pelanggan) || 0;
             const teks = n > 9 ? '9+' : String(n);
             const nav = $('pc-badge');
@@ -16356,7 +16512,7 @@ body.gm-terkunci { overflow: hidden; }
         // ---------- Kata-kata per jenis order (sama dengan halaman lacak rider.projekgo.id/u) ----------
         const JENIS = {
             food:  { label: 'Food', ik: '🍜', tujuan: '🏠', langkah: [['Pesanan diterima admin', 'Diteruskan ke rider'], ['Rider ke resto', 'Pesanan dipesankan & dibuat'], ['Diantar ke lokasimu', 'Rider menuju alamatmu'], ['Pesanan sampai', 'Selamat menikmati']],
-                     judul: { menunggu: ['Mencarikan rider', 'Pesananmu sedang dialihkan ke rider lain.'], diteruskan: ['Pesanan diteruskan ke rider', 'Menunggu rider menerima pesananmu.'], menuju: ['Rider menuju resto', 'Pesananmu akan segera dipesankan.'], lokasi: ['Pesanan sedang dibuat', 'Rider sudah di resto dan menunggu pesananmu.'], antar: ['Pesanan sedang diantar', 'Rider sedang menuju alamatmu.'], selesai: ['Pesanan sudah sampai 🎉', 'Selamat menikmati, kak. Terima kasih sudah memesan di ProjekGo.'] } },
+                     judul: { menunggu: ['Mencarikan rider', 'Pesananmu sedang dialihkan ke rider lain.'], diteruskan: ['Pesanan diteruskan ke rider', 'Menunggu rider menerima pesananmu.'], menuju: ['Rider menuju resto', 'Pesananmu akan segera dipesankan.'], lokasi: ['Menunggu dibuat penjual', 'Pesanan sudah dipesankan rider, sedang menunggu diproses penjual. Ditunggu ya kak, rider akan segera mengabari dan menotalkan jika pesanan sudah mau diantar.'], antar: ['Pesanan sedang diantar', 'Rider sedang menuju alamatmu.'], selesai: ['Pesanan sudah sampai 🎉', 'Selamat menikmati, kak. Terima kasih sudah memesan di ProjekGo.'] } },
             ojek:  { label: 'Ngojek', ik: '🛵', tujuan: '🏁', langkah: [['Order diterima admin', 'Diteruskan ke rider'], ['Rider menjemput', 'Menuju lokasi jemput'], ['Dalam perjalanan', 'Hati-hati di jalan ya'], ['Sampai tujuan', 'Terima kasih sudah naik ProjekGo']],
                      judul: { menunggu: ['Mencarikan rider', 'Ordermu sedang dialihkan ke rider lain.'], diteruskan: ['Order diteruskan ke rider', 'Menunggu rider menerima ordermu.'], menuju: ['Rider menuju lokasi jemput', 'Tunggu di tempat yang mudah dilihat ya.'], lokasi: ['Rider menuju lokasi jemput', 'Tunggu di tempat yang mudah dilihat ya.'], antar: ['Dalam perjalanan', 'Hati-hati di jalan ya, Kak.'], selesai: ['Sudah sampai tujuan 🎉', 'Terima kasih sudah naik ProjekGo, kak.'] } },
             kirim: { label: 'Kirim barang', ik: '📦', tujuan: '🏠', langkah: [['Order diterima admin', 'Diteruskan ke rider'], ['Rider mengambil barang', 'Menuju lokasi pengambilan'], ['Barang diantar', 'Menuju alamat penerima'], ['Barang sampai', 'Terima kasih sudah memakai ProjekGo']],
@@ -16613,7 +16769,15 @@ body.gm-terkunci { overflow: hidden; }
                 }
             }
         }
+        window.ktvChatRider = () => akt.filter((a) => a.chat).map((a) => {
+            const c = chat[a.kode] || {}, info = infoRider(a), t = tahapDari(a);
+            return { kode: a.kode, nama: info.nama || 'Rider', foto: info.foto || '', judul: String(a.judul || ''), jenis: J(a.jenis).label,
+                     tahap: PENDEK[t] || '', jalan: berjalan(a), buka: chatBuka(a), terakhir: String(c.terakhir || ''), dari: String(c.terakhir_dari || ''),
+                     at: ms(c.terakhir_at) || a.t || 0, belum: belumChat(a) };
+        });
+        window.ktvBukaChatRider = (kode) => bukaRuangRider(kode);
         function gambarSemua() {
+            try { if (typeof window.pcsGambar === 'function') window.pcsGambar(); } catch (e) {}
             gambarLencana(); gambarBeranda();
             const p = $('page-aktivitas'); if (p && p.style.display !== 'none') gambarDaftar();
             if (bukaDetail) gambarDetail();
@@ -16703,7 +16867,7 @@ body.gm-terkunci { overflow: hidden; }
                 hero.appendChild(ad);
                 const est = l && Number.isInteger(l.estimasi_menit) ? l.estimasi_menit : 0, estAt = l ? ms(l.estimasi_at) : 0;
                 const eta = el('div', 'ktv-eta');
-                if (t === 'lokasi' && est > 0 && estAt) { const siap = estAt + est * 60000; eta.textContent = Date.now() < siap ? 'Perkiraan siap sekitar pukul ' + jam(siap) + ' (±' + est + ' menit, diisi rider)' : 'Seharusnya sudah hampir siap'; }
+                if (t === 'lokasi' && j !== JENIS.food && est > 0 && estAt) { const siap = estAt + est * 60000; eta.textContent = Date.now() < siap ? 'Perkiraan siap sekitar pukul ' + jam(siap) + ' (±' + est + ' menit, diisi rider)' : 'Seharusnya sudah hampir siap'; }
                 else eta.hidden = true;
                 hero.appendChild(eta);
                 const pos = l && l.posisi && t === 'antar' ? l.posisi : null;
@@ -16893,7 +17057,8 @@ body.gm-terkunci { overflow: hidden; }
             $('prc-tutup-t').textContent = t === 'batal' ? 'Pesanan dibatalkan, chat dengan rider ditutup.' : 'Chat dengan rider sudah ditutup (1 jam setelah pesanan selesai).';
         }
         // Tebal *teks* dan miring _teks_ seperti WhatsApp, tautan https bisa diketuk. Tanpa HTML.
-        function isiTeksR(w, teks) {
+        function isiTeksR(w, teks) { return window.pgFormat(w, teks); }
+        function isiTeksRLama(w, teks) {
             const re = /(https:\/\/[^\s<>"']+)|\*([^*\n]{1,200})\*|_([^_\n]{1,200})_/g;
             let i = 0, m;
             while ((m = re.exec(teks))) {
@@ -17217,6 +17382,104 @@ body.gm-terkunci { overflow: hidden; }
         window.ktvBukaAktivitas = () => window.openPage('aktivitas');
         gambarSemua();
     </script>
+
+<script>
+/* ===== BERANDA CHAT (10 Nov 2026) =====
+   Isinya dari data yang sudah didengarkan aplikasi (chat admin + Aktivitas), tanpa read Firestore tambahan.
+   Semua teks ditulis sebagai teks biasa (textContent). */
+(function () {
+    var saring = 'semua';
+    var CENTANG = '<svg viewBox="0 0 24 24" aria-label="Akun resmi" role="img"><circle cx="12" cy="12" r="10" fill="#1F7AE0"></circle><path d="m7.5 12.5 3 3 6-6.5" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
+    var PIN = '<svg class="pcs-pin" viewBox="0 0 24 24" fill="currentColor" aria-label="Disematkan" role="img"><path d="M15 3l6 6-3 1-4 4 1 5-2 1-4-4-5 5-1-1 5-5-4-4 1-2 5 1 4-4z"></path></svg>';
+    function el(tag, kelas, teks) { var e = document.createElement(tag); if (kelas) e.className = kelas; if (teks != null) e.textContent = teks; return e; }
+    function jam(t) {
+        if (!t) return '';
+        var d = new Date(t), now = new Date(), a = new Date(now); a.setHours(0, 0, 0, 0);
+        var b = new Date(d); b.setHours(0, 0, 0, 0);
+        var s = Math.round((a - b) / 86400000);
+        if (s === 0) return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace(':', '.');
+        if (s === 1) return 'Kemarin';
+        if (s < 7) return d.toLocaleDateString('id-ID', { weekday: 'long' });
+        return d.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: '2-digit' });
+    }
+    function fotoAman(u) { try { var x = new URL(u); return x.protocol === 'https:' ? x.href : ''; } catch (e) { return ''; } }
+    function inisial(n) { var k = String(n || '?').trim().split(/\s+/); return ((k[0] || '?').charAt(0) + (k[1] ? k[1].charAt(0) : '')).toUpperCase(); }
+    function baris(o) {
+        var b = el('button', 'pcs-baris' + (o.mati ? ' mati' : '')); b.type = 'button';
+        var av = el('span', 'pcs-av' + (o.adm ? ' adm' : '')); av.setAttribute('aria-hidden', 'true');
+        var f = fotoAman(o.foto);
+        if (f) { var im = el('img'); im.src = f; im.alt = ''; im.loading = 'lazy'; av.appendChild(im); } else av.textContent = o.adm ? 'PG' : inisial(o.inisial || o.nama);
+        if (o.online) av.appendChild(el('i', 'on'));
+        var isi = el('span', 'pcs-isi');
+        var atas = el('span', 'pcs-atas');
+        var nm = el('span', 'pcs-nama', o.nama);
+        if (o.adm) nm.insertAdjacentHTML('beforeend', CENTANG);   // ikon tetap (bukan data)
+        atas.append(nm, el('span', 'pcs-jam' + (o.belum > 0 ? ' baru' : ''), jam(o.at)));
+        isi.appendChild(atas);
+        if (o.label) isi.appendChild(el('span', 'pcs-lbl ' + o.kelasLabel, o.label));
+        var bawah = el('span', 'pcs-bawah');
+        bawah.appendChild(el('span', 'pcs-teks', o.teks));
+        var kanan = el('span'); kanan.style.cssText = 'display:flex;align-items:center;gap:6px;flex:none;';
+        if (o.adm) kanan.insertAdjacentHTML('beforeend', PIN);
+        if (o.belum > 0) kanan.appendChild(el('span', 'pcs-n', o.belum > 99 ? '99+' : String(o.belum)));
+        bawah.appendChild(kanan);
+        isi.appendChild(bawah);
+        b.append(av, isi);
+        b.addEventListener('click', o.buka);
+        return b;
+    }
+    function pratinjau(teks, dari, kamu) {
+        var t = (typeof window.pgPolos === 'function' ? window.pgPolos(teks) : String(teks || '')).replace(/\s+/g, ' ').trim();
+        return t ? ((dari === kamu ? 'Kamu: ' : '') + t) : '';
+    }
+    window.pcsGambar = function () {
+        var w = document.getElementById('pcs-daftar'); if (!w) return;
+        var adm = typeof window.pcRingkas === 'function' ? window.pcRingkas() : { terakhir: '', at: 0, belum: 0, dari: '' };
+        var rid = typeof window.ktvChatRider === 'function' ? window.ktvChatRider() : [];
+        var aktif = rid.filter(function (r) { return r.buka; }).sort(function (a, b) { return (b.jalan - a.jalan) || (b.at - a.at); });
+        var lama = rid.filter(function (r) { return !r.buka; }).sort(function (a, b) { return b.at - a.at; }).slice(0, 20);
+        var nBelum = adm.belum + rid.reduce(function (a, r) { return a + (r.buka ? r.belum : 0); }, 0);
+        var eb = document.getElementById('pcs-n-belum'); if (eb) { eb.hidden = !nBelum; eb.textContent = String(nBelum); }
+        var en = document.getElementById('pcs-n-nav'); if (en) { en.hidden = !nBelum; en.textContent = nBelum > 9 ? '9+' : String(nBelum); }
+        w.textContent = '';
+        var tampil = function (o) { return saring === 'semua' || (saring === 'belum' && o.belum > 0) || (saring === 'aktif' && !o.mati); };
+        var oAdm = { adm: true, nama: 'Admin ProjekGo', at: adm.at, belum: adm.belum, online: true,
+                     teks: pratinjau(adm.terakhir, adm.dari, 'pelanggan') || 'Pesan apa saja lewat chat, nomormu tetap privat',
+                     buka: function () { window.openPage('chat'); } };
+        var img = document.querySelector('#pc-kotak .pc-av img'); if (img) oAdm.foto = img.getAttribute('src');
+        if (tampil(oAdm)) w.appendChild(baris(oAdm));
+        aktif.forEach(function (r) {
+            var o = { nama: r.nama + ' · Rider', inisial: r.nama, foto: r.foto, at: r.at, belum: r.belum, online: r.jalan,
+                      label: r.jalan ? ('Sedang mengantar' + (r.judul ? ' · ' + r.judul : '')) : 'Selesai · chat masih bisa dibalas', kelasLabel: r.jalan ? 'jalan' : 'buka',
+                      teks: pratinjau(r.terakhir, r.dari, 'pelanggan') || (r.jenis + (r.tahap ? ' · ' + r.tahap : '')),
+                      buka: function () { window.ktvBukaChatRider(r.kode); } };
+            if (tampil(o)) w.appendChild(baris(o));
+        });
+        var lamaTampil = lama.filter(function () { return saring === 'semua'; });
+        if (lamaTampil.length) {
+            w.appendChild(el('div', 'pcs-sub', 'CHAT RIDER SEBELUMNYA'));
+            lamaTampil.forEach(function (r) {
+                w.appendChild(baris({ mati: true, nama: r.nama + ' · Rider', inisial: r.nama, foto: r.foto, at: r.at, belum: 0, label: 'Chat sudah tidak aktif', kelasLabel: 'mati',
+                    teks: (r.judul || r.jenis) + ' · ' + (r.tahap === 'Dibatalkan' ? 'dibatalkan' : 'pesanan selesai'),
+                    buka: function () { window.ktvBukaChatRider(r.kode); } }));
+            });
+        }
+        if (!aktif.length && !lama.length && saring === 'semua') w.appendChild(el('p', 'pcs-kosong', 'Chat dengan rider muncul di sini saat pesananmu sedang diantar.'));
+        if (!w.children.length) w.appendChild(el('p', 'pcs-kosong', saring === 'belum' ? 'Tidak ada pesan yang belum dibaca.' : 'Tidak ada chat aktif.'));
+    };
+    window.pcsKendala = function () {
+        window.openPage('chat');
+        setTimeout(function () { if (typeof window.pcIsiCepat === 'function') window.pcIsiCepat('Min, ada kendala dengan pesanan saya: '); }, 250);
+    };
+    document.addEventListener('click', function (e) {
+        var b = e.target.closest && e.target.closest('[data-pcs]'); if (!b) return;
+        saring = b.getAttribute('data-pcs');
+        document.querySelectorAll('[data-pcs]').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+        window.pcsGambar();
+    });
+    setInterval(function () { var p = document.getElementById('page-pesan'); if (p && p.style.display === 'block') window.pcsGambar(); }, 60000);
+})();
+</script>
 </body>
 
 </html>
