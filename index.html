@@ -6894,6 +6894,9 @@ body.gm-terkunci { overflow: hidden; }
             // 1.4 (tahap 3) Layar detail pesanan / chat rider terbuka
             if (typeof window.ktvTanganiKembali === 'function' && window.ktvTanganiKembali()) return;
 
+            // 1.45 (14 Nov 2026) Layar Kirim Paket (pilihan / gabungan / kiriman saya) terbuka
+            if (typeof window.kpTanganiKembali === 'function' && window.kpTanganiKembali()) return;
+
             // 1.5 (7 Nov 2026) Lembar pilihan kirim pesanan (chat / WhatsApp) terbuka
             if (typeof window.pcTanganiKembali === 'function' && window.pcTanganiKembali()) return;
 
@@ -12173,6 +12176,12 @@ body.gm-terkunci { overflow: hidden; }
             openPage('coming-soon');
         };
 
+        // 14 Nov 2026: dipanggil lembar Kirim Paket saat "Antar instan" dipilih -> form Kirim Paket yang lama
+        window.__kpBukaInstan = () => {
+            window.__kpInstanDipilih = true;
+            try { window.openServiceForm('Kirim Paket'); } finally { window.__kpInstanDipilih = false; }
+        };
+
         window.openServiceForm = (svc, modeLokasi) => {
             // --- TAMBAHAN LOGIKA KHUSUS LAYANAN MOBIL ---
             if (svc === 'Mobil') {
@@ -12199,6 +12208,12 @@ body.gm-terkunci { overflow: hidden; }
                 return; // Hentikan eksekusi, form layanan mobil tidak akan dibuka
             }
             // ----------------------------------------------
+
+            // 14 Nov 2026: Kirim Paket -> pilih Antar instan / Antar gabungan dulu (lembar di modul Kirim Paket)
+            if (svc === 'Kirim Paket' && !modeLokasi && !window.__kpInstanDipilih && typeof window.kpBukaPilihan === 'function') {
+                window.kpBukaPilihan();
+                return;
+            }
 
             // Ngojek dan Kirim Paket: tanyakan dulu cara mengisi lokasi.
             // Setelah dipilih, fungsi ini dipanggil ulang dengan modenya.
@@ -12237,8 +12252,14 @@ body.gm-terkunci { overflow: hidden; }
                 if(svc === 'Kirim Paket') {
                     extraFields = `
                         <div style="margin-top:15px; display:flex; flex-direction:column; gap:12px; padding-top:15px; border-top:1px dashed #eee;">
-                            <input type="text" id="svc-paket" class="ride-input" placeholder="Detail Barang (Misal: Dokumen, Makanan...)">
-                            <input type="text" id="svc-penerima" class="ride-input" placeholder="Nama & No. WA Penerima">
+                            <input type="text" id="svc-paket" class="ride-input" maxlength="200" placeholder="Detail Barang (Misal: Dokumen, Makanan...)">
+                            <input type="text" id="svc-penerima" class="ride-input" maxlength="60" autocomplete="off" placeholder="Nama penerima">
+                            <input type="tel" id="svc-penerima-hp" class="ride-input" maxlength="20" inputmode="tel" autocomplete="off" placeholder="No. WA penerima (08xxxxxxxxxx)">
+                            <label for="svc-kp-bayar" style="font-size:12px; font-weight:700; color:#555; margin:2px 0 -6px;">Ongkir dibayar oleh</label>
+                            <select id="svc-kp-bayar" class="ride-input" style="min-height:46px;">
+                                <option value="pengirim">Saya (pengirim) · bayar saat paket dijemput</option>
+                                <option value="penerima">Penerima · bayar saat paket sampai</option>
+                            </select>
                         </div>
                     `;
                 }
@@ -12306,7 +12327,7 @@ body.gm-terkunci { overflow: hidden; }
                                 </div>
                                 <div id="summary-price" class="rr-kend-harga">Rp -</div>
                             </div>
-                            <div class="rr-catatan"><i class="ph-fill ph-info" aria-hidden="true"></i><span>Ongkos dihitung dari jarak rute. Pesanan dikonfirmasi admin lewat WhatsApp.</span></div>
+                            <div class="rr-catatan"><i class="ph-fill ph-info" aria-hidden="true"></i><span>${svc==='Kirim Paket'?'Ongkos dihitung dari jarak rute. Pesanan langsung masuk ke admin, kabarnya lewat chat aplikasi.':'Ongkos dihitung dari jarak rute. Pesanan dikonfirmasi admin lewat WhatsApp.'}</span></div>
                             <button type="button" class="pg-order-btn rr-pesan" onclick="submitServiceForm()">
                                 Pesan ${svc} <i class="ph-bold ph-arrow-right"></i>
                             </button><div class="pg-closed-badge">Mohon maaf, jam operasional kami sudah tutup. Kami tersedia <span class="pg-when"></span> dari pukul 06.30 - 21.00 WIB</div>
@@ -12320,7 +12341,7 @@ body.gm-terkunci { overflow: hidden; }
                         <!-- KONTENER MODE MANUAL (DIUBAH: Ditampilkan Default) -->
                         <div id="mode-manual-container" style="display:block; margin-top: 15px;">
                             <div style="background:#FFF3E0; border:1px dashed #FFB74D; color:#E65100; font-size:11px; padding:10px 12px; border-radius:12px; margin-bottom:15px; font-weight:600; line-height:1.4;">
-                                ℹ️ <b style="font-weight:800;">Solusi tanpa Maps:</b> Ketik alamat lengkap/patokan. Ongkos kirim akan dihitung dan diinfokan oleh Admin via WhatsApp.
+                                ℹ️ <b style="font-weight:800;">Solusi tanpa Maps:</b> Ketik alamat lengkap/patokan. Ongkos kirim akan dihitung dan diinfokan oleh Admin via ${svc==='Kirim Paket'?'chat aplikasi':'WhatsApp'}.
                             </div>
                             <div style="display:flex; flex-direction:column; gap:12px;">
                                 <textarea id="svc-jemput-manual" class="ride-input" rows="2" placeholder="Ketik lokasi jemput (Cth: Depan Indomaret Alun-alun, ds. Panjer)..."></textarea>
@@ -12332,7 +12353,7 @@ body.gm-terkunci { overflow: hidden; }
                         
                         <!-- TOMBOL SUBMIT KHUSUS MODE MANUAL (DIUBAH: Ditampilkan Default) -->
                         <button id="btn-submit-manual" class="pg-order-btn" onclick="submitServiceForm()" style="display:flex; width:100%; background:linear-gradient(45deg, var(--primary), #FF9900); color:white; padding:14px; border:none; border-radius:12px; margin-top:15px; font-weight:800; font-size:14px; box-shadow:0 4px 15px rgba(255,102,0,0.3); align-items:center; justify-content:center; gap:8px; cursor:pointer;">
-                            Pesan ${svc} via WA <i class="ph-bold ph-whatsapp-logo" style="font-size:18px;"></i>
+                            ${svc==='Kirim Paket'?'Pesan Kirim Paket <i class="ph-bold ph-package" style="font-size:18px;"></i>':'Pesan '+svc+' via WA <i class="ph-bold ph-whatsapp-logo" style="font-size:18px;"></i>'}
                         </button><div class="pg-closed-badge">Mohon maaf, jam operasional kami sudah tutup. Kami tersedia <span class="pg-when"></span> dari pukul 06.30 - 21.00 WIB</div>
                     </div>
 
@@ -13342,9 +13363,44 @@ body.gm-terkunci { overflow: hidden; }
                 if (currentServiceType === 'Kirim Paket') {
                     const paket = document.getElementById('svc-paket').value;
                     const penerima = document.getElementById('svc-penerima').value;
-                    if(!paket || !penerima) { showToast("Mohon lengkapi data paket & penerima."); return; }
+                    const hpEl = document.getElementById('svc-penerima-hp');
+                    const hpPenerima = hpEl ? hpEl.value.trim() : '';
+                    if(!paket || !penerima || (hpEl && !hpPenerima)) { showToast("Mohon lengkapi data paket, nama & nomor WA penerima."); return; }
                     message += `📦 *Detail Paket:* ${paket}%0A`;
-                    message += `👤 *Penerima:* ${penerima}%0A`;
+                    message += `👤 *Penerima:* ${penerima}${hpPenerima ? ' · ' + hpPenerima : ''}%0A`;
+
+                    // 14 Nov 2026: Antar instan langsung masuk Pending admin (antar_permintaan), lalu chat dibuka.
+                    // Tarif tetap yang lama (routePrice). Kalau modul belum termuat, jalan lama (chat / WA) dipakai.
+                    if (typeof window.kpKirimInstan === 'function') {
+                        const kpTitik = (pl) => {
+                            if (!pl || !pl.geometry || !pl.geometry.location) return null;
+                            const g = pl.geometry.location;
+                            const lat = Number(typeof g.lat === 'function' ? g.lat() : g.lat), lng = Number(typeof g.lng === 'function' ? g.lng() : g.lng);
+                            return (isFinite(lat) && isFinite(lng)) ? { lat: Number(lat.toFixed(6)), lng: Number(lng.toFixed(6)) } : null;
+                        };
+                        const pakaiMaps = locationInputMode === 'maps';
+                        const asalTeks = pakaiMaps ? (originPlace && originPlace.formatted_address ? originPlace.formatted_address : jemput) : jemput;
+                        const tujuanTeks = pakaiMaps ? (destPlace && destPlace.formatted_address ? destPlace.formatted_address : tujuan) : tujuan;
+                        const ongkirKp = pakaiMaps && routePrice > 0 ? routePrice : 0;
+                        const bayarEl = document.getElementById('svc-kp-bayar');
+                        window.kpKirimInstan({
+                            asal: pakaiMaps ? kpTitik(originPlace) : null, asalTeks: String(asalTeks || '').trim(),
+                            tujuan: pakaiMaps ? kpTitik(destPlace) : null, tujuanTeks: String(tujuanTeks || '').trim(),
+                            nama: penerima, hp: hpPenerima, paket: String(paket).trim(), bayar: bayarEl && bayarEl.value === 'penerima' ? 'penerima' : 'pengirim',
+                            ongkir: ongkirKp, jarakKm: ongkirKp ? routeDistance : 0
+                        }).then((idKirim) => {
+                            if (!idKirim) return;
+                            const kpAman = (t) => String(t || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+                            try {
+                                const h = JSON.parse(localStorage.getItem('order_history')) || [];
+                                h.push({ id: Date.now(), date: new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit'}),
+                                    vendor: 'Layanan Kirim Paket', items: `📍 ${kpAman(asalTeks)} ➔ 🚩 ${kpAman(tujuanTeks)}<br>📦 Paket: ${kpAman(paket)}`,
+                                    total: ongkirKp, status: 'MENUNGGU KONFIRMASI', isService: true, isReviewed: false });
+                                localStorage.setItem('order_history', JSON.stringify(h));
+                            } catch (e) {}
+                        });
+                        return;
+                    }
                 }
                 
                 // Tambahkan info tarif JIKA menggunakan Maps dan ongkir berhasil dihitung
@@ -18189,6 +18245,653 @@ body.gm-terkunci { overflow: hidden; }
     .pc-tulis .pga-mik { width: 46px; height: 46px; }
     .pc-tulis .pga-rekam { left: 8px; right: 62px; bottom: max(6px, env(safe-area-inset-bottom, 0px)); height: 46px; }
 </style>
+    <!-- ===================== KIRIM PAKET: INSTAN / GABUNGAN (14 Nov 2026) =====================
+         Ketuk "Kirim Paket" -> pilih:
+           - Antar instan   : form Kirim Paket yang lama (tarif lama), tapi pesanan LANGSUNG masuk Pending admin.
+           - Antar gabungan : 1 pengirim -> beberapa penerima dalam satu rute. Tarif sama dengan Antar Hemat warung:
+                              Rp2.700/km rute dibagi ke penerima (min. total Rp11.000), tiap bagian tidak lebih mahal
+                              dari ongkir instan penerima itu (Rp2.700/km, min. Rp8.000).
+         Pesanan ditulis ke antar_permintaan (mitraId "p_<uid>", sumber "pelanggan") -> admin: Pending > Khusus.
+         Nomor HP pengirim TIDAK ikut ke rider (admin menghubungkan lewat kode pelanggan, rider menghubungi lewat chat).
+         Semua isi ditampilkan dengan textContent / elemen DOM, tidak pernah sebagai HTML. -->
+    <style id="kp-css">
+        .kp-latar { position: fixed; inset: 0; z-index: 10040; background: rgba(28,22,16,.5); display: flex; align-items: flex-end; justify-content: center; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #1C1C1E; }
+        .kp-latar[hidden], .kp-layar[hidden], .kp-pin[hidden] { display: none !important; }
+        .kp-lembar { width: 100%; max-width: 480px; background: #fff; border-radius: 24px 24px 0 0; padding: 12px 18px calc(18px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 12px; max-height: 92vh; overflow-y: auto; }
+        .kp-pegang { width: 44px; height: 5px; border-radius: 9px; background: #DDD3C8; margin: 0 auto 4px; }
+        .kp-lembar h3 { margin: 0; font-size: 19px; font-weight: 800; }
+        .kp-lembar > p { margin: -6px 0 0; font-size: 14px; color: #6B6258; line-height: 1.5; }
+        .kp-op { display: flex; gap: 12px; align-items: flex-start; width: 100%; text-align: left; border: 1.5px solid #E2D8CC; border-radius: 18px; padding: 14px; background: #fff; color: #1C1C1E; cursor: pointer; font: inherit; }
+        .kp-op:active { background: #FFF8F2; }
+        .kp-op .kp-ik { width: 46px; height: 46px; flex: none; border-radius: 14px; display: grid; place-items: center; font-size: 24px; }
+        .kp-op b { display: block; font-size: 16px; font-weight: 800; }
+        .kp-op span.t { display: block; margin-top: 3px; font-size: 13.5px; line-height: 1.45; color: #6B6258; }
+        .kp-op em { display: inline-block; margin-top: 7px; padding: 4px 10px; border-radius: 99px; font-style: normal; font-size: 12.5px; font-weight: 800; }
+        .kp-instan .kp-ik, .kp-instan em { background: #FDECEA; color: #B42318; }
+        .kp-gabung .kp-ik, .kp-gabung em { background: #E6F4EA; color: #1E7A34; }
+        .kp-link { border: 0; background: none; color: #B84300; font: inherit; font-size: 14.5px; font-weight: 800; min-height: 44px; cursor: pointer; }
+        .kp-layar { position: fixed; inset: 0; z-index: 10030; background: #fff; display: flex; flex-direction: column; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #1C1C1E; }
+        .kp-kepala { flex: none; display: flex; align-items: center; gap: 12px; padding: calc(10px + env(safe-area-inset-top)) 16px 10px; border-bottom: 1.5px solid #EEE7DE; }
+        .kp-kembali { width: 44px; height: 44px; flex: none; border-radius: 12px; border: 1.5px solid #E2D8CC; background: #fff; display: grid; place-items: center; font-size: 22px; cursor: pointer; color: #1C1C1E; }
+        .kp-kepala small { display: block; font-size: 12.5px; font-weight: 700; color: #6B6258; }
+        .kp-kepala b { font-size: 18px; font-weight: 800; }
+        .kp-isi { flex: 1; overflow-y: auto; padding: 14px 16px 18px; display: flex; flex-direction: column; gap: 12px; }
+        .kp-kaki { flex: none; padding: 12px 16px calc(14px + env(safe-area-inset-bottom)); border-top: 1.5px solid #EEE7DE; background: #fff; }
+        .kp-blok { border: 1.5px solid #E2D8CC; border-radius: 16px; padding: 12px 14px; }
+        .kp-blok .t { font-size: 12.5px; font-weight: 700; color: #6B6258; }
+        .kp-blok .v { font-size: 14.5px; font-weight: 700; margin-top: 2px; line-height: 1.4; word-break: break-word; }
+        .kp-baris { display: flex; gap: 10px; align-items: flex-start; }
+        .kp-dot { width: 12px; height: 12px; border-radius: 50%; flex: none; margin-top: 5px; background: #1C1C1E; }
+        .kp-dua { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .kp-tbl { min-height: 44px; border-radius: 12px; border: 1.5px solid #E2D8CC; background: #fff; color: #1C1C1E; font: inherit; font-size: 13.5px; font-weight: 800; cursor: pointer; padding: 0 10px; }
+        .kp-tbl.on { border-color: #CC4A00; background: #FFF1E6; color: #B84300; }
+        .kp-utama { width: 100%; min-height: 52px; border-radius: 14px; border: 0; background: #CC4A00; color: #fff; font: inherit; font-size: 15.5px; font-weight: 800; cursor: pointer; }
+        .kp-utama:disabled { background: #D9CFC4; color: #fff; cursor: not-allowed; }
+        .kp-garis { width: 100%; min-height: 48px; border-radius: 14px; border: 1.5px dashed #CC4A00; background: #fff; color: #B84300; font: inherit; font-size: 15px; font-weight: 800; cursor: pointer; }
+        .kp-peta { height: 190px; border-radius: 16px; background: #F3EEE8; overflow: hidden; }
+        .kp-pk { display: flex; gap: 10px; align-items: center; border: 1.5px solid #E2D8CC; border-radius: 14px; padding: 11px 12px; }
+        .kp-no { width: 26px; height: 26px; border-radius: 8px; background: #CC4A00; color: #fff; flex: none; display: grid; place-items: center; font-size: 13px; font-weight: 800; }
+        .kp-pk .isi { flex: 1; min-width: 0; }
+        .kp-pk b { display: block; font-size: 14.5px; }
+        .kp-pk small { display: block; font-size: 12.5px; color: #6B6258; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .kp-pk .rp { font-size: 14px; font-weight: 800; text-align: right; }
+        .kp-pk .rp s { display: block; font-size: 11.5px; font-weight: 600; color: #9A9086; }
+        .kp-hapus { width: 40px; height: 40px; flex: none; border-radius: 10px; border: 1.5px solid #F2C9C4; background: #fff; color: #B42318; font-size: 18px; cursor: pointer; }
+        .kp-info { padding: 11px 13px; border-radius: 14px; background: #FFF1E6; border: 1.5px solid #F2CDB0; color: #7A3A12; font-size: 13.5px; line-height: 1.5; }
+        .kp-info.merah { background: #FEF2F2; border-color: #FECACA; color: #991B1B; }
+        .kp-ringkas { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 9px; font-size: 13.5px; font-weight: 700; color: #6B6258; }
+        .kp-ringkas b { font-size: 18px; color: #1C1C1E; }
+        .kp-lbl { display: block; font-size: 13px; font-weight: 700; color: #4A433C; margin: 4px 0 6px; }
+        .kp-inp { width: 100%; box-sizing: border-box; min-height: 48px; border-radius: 12px; border: 1.5px solid #E2D8CC; padding: 12px 14px; font: inherit; font-size: 15px; color: #1C1C1E; background: #fff; }
+        .kp-inp:focus { outline: 2px solid #FFB27A; border-color: #CC4A00; }
+        .kp-ket { font-size: 12.5px; color: #6B6258; margin-top: 4px; line-height: 1.45; }
+        .kp-ok { font-size: 13px; font-weight: 700; color: #1E7A34; margin-top: 6px; }
+        .kp-salah { font-size: 13px; font-weight: 700; color: #B42318; margin-top: 6px; }
+        .kp-pin { position: fixed; inset: 0; z-index: 10060; background: #fff; display: flex; flex-direction: column; }
+        .kp-pin .kp-peta-penuh { flex: 1; position: relative; }
+        .kp-pin .kp-jarum { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -100%); z-index: 3; pointer-events: none; font-size: 44px; line-height: 1; filter: drop-shadow(0 4px 4px rgba(0,0,0,.3)); }
+        .kp-st { display: flex; gap: 10px; align-items: flex-start; padding: 9px 0; border-top: 1px solid #EFE8DF; font-size: 13.5px; }
+        .kp-st:first-child { border-top: 0; }
+        .kp-st .n { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 800; color: #fff; flex: none; background: #A39A90; }
+        .kp-st .n.ok { background: #1E7A34; }
+        .kp-chip { display: inline-block; padding: 3px 9px; border-radius: 99px; font-size: 12px; font-weight: 800; background: #F1ECE6; color: #4A433C; }
+        .kp-chip.baru { background: #FFF1E6; color: #B84300; } .kp-chip.jalan { background: #E8F0FB; color: #1F5AA6; } .kp-chip.ok { background: #E6F4EA; color: #1E7A34; } .kp-chip.batal { background: #FEF2F2; color: #B42318; }
+        .kp-kecil-merah { min-height: 40px; border-radius: 10px; border: 1.5px solid #F2C9C4; background: #fff; color: #B42318; font: inherit; font-size: 13.5px; font-weight: 800; padding: 0 12px; cursor: pointer; }
+        .swal2-container.kp-swal { z-index: 10100 !important; }
+        .kp-kosong { text-align: center; color: #6B6258; font-size: 14px; padding: 24px 8px; }
+    </style>
+
+    <!-- Lembar pilihan -->
+    <div class="kp-latar" id="kp-pilih" hidden>
+        <div class="kp-lembar" role="dialog" aria-modal="true" aria-labelledby="kp-pilih-judul">
+            <div class="kp-pegang" aria-hidden="true"></div>
+            <h3 id="kp-pilih-judul">Mau dikirim bagaimana?</h3>
+            <p>Rider ProjekGo menjemput paket di tempatmu.</p>
+            <button type="button" class="kp-op kp-instan" id="kp-op-instan">
+                <span class="kp-ik"><i class="ph-fill ph-lightning" aria-hidden="true"></i></span>
+                <span><b>Antar instan</b><span class="t">1 penerima, rider langsung jalan. Paling cepat sampai.</span><em>Mulai Rp8.000</em></span>
+            </button>
+            <button type="button" class="kp-op kp-gabung" id="kp-op-gabung">
+                <span class="kp-ik"><i class="ph-bold ph-path" aria-hidden="true"></i></span>
+                <span><b>Antar gabungan</b><span class="t">Kirim ke beberapa penerima sekaligus dalam satu rute. Ongkir dibagi, lebih hemat.</span><em>Lebih hemat</em></span>
+            </button>
+            <button type="button" class="kp-link" id="kp-op-kiriman">Lihat kiriman saya ›</button>
+        </div>
+    </div>
+
+    <!-- Layar Antar gabungan -->
+    <div class="kp-layar" id="kp-gab" hidden role="dialog" aria-modal="true" aria-labelledby="kp-gab-judul">
+        <div class="kp-kepala"><button type="button" class="kp-kembali" data-kp-tutup="kp-gab" aria-label="Kembali">‹</button><div><small>Kirim Paket</small><b id="kp-gab-judul">Antar gabungan</b></div></div>
+        <div class="kp-isi">
+            <div class="kp-blok">
+                <div class="kp-baris"><span class="kp-dot" aria-hidden="true"></span><div style="flex:1;min-width:0;"><div class="t">Dijemput di</div><div class="v" id="kp-asal-teks">Belum diatur</div></div></div>
+                <div class="kp-dua" style="margin-top:10px;"><button type="button" class="kp-tbl" id="kp-asal-gps">📍 Lokasi saya</button><button type="button" class="kp-tbl" id="kp-asal-peta">🗺️ Pilih di peta</button></div>
+            </div>
+            <div class="kp-peta" id="kp-peta" role="img" aria-label="Peta rute: S titik jemput, angka urutan penerima"></div>
+            <div id="kp-daftar" style="display:flex;flex-direction:column;gap:8px;"></div>
+            <button type="button" class="kp-garis" id="kp-tambah">+ Tambah penerima</button>
+            <div>
+                <span class="kp-lbl">Ongkir dibayar oleh</span>
+                <div class="kp-dua"><button type="button" class="kp-tbl on" data-kp-bayar="pengirim">Saya (pengirim)</button><button type="button" class="kp-tbl" data-kp-bayar="penerima">Masing-masing penerima</button></div>
+                <div class="kp-ket" id="kp-bayar-ket">Ongkir dibayar ke rider saat paket dijemput.</div>
+            </div>
+            <div id="kp-pesan-info"></div>
+        </div>
+        <div class="kp-kaki">
+            <div class="kp-ringkas"><span id="kp-ringkas-kiri">Tambahkan minimal 2 penerima</span><b id="kp-ringkas-total">—</b></div>
+            <button type="button" class="kp-utama" id="kp-pesan" disabled>Pesan gabungan</button>
+        </div>
+    </div>
+
+    <!-- Layar tambah penerima -->
+    <div class="kp-layar" id="kp-form" hidden role="dialog" aria-modal="true" aria-labelledby="kp-form-judul">
+        <div class="kp-kepala"><button type="button" class="kp-kembali" data-kp-tutup="kp-form" aria-label="Kembali">‹</button><div><small>Antar gabungan</small><b id="kp-form-judul">Tambah penerima</b></div></div>
+        <div class="kp-isi">
+            <div><label class="kp-lbl" for="kp-f-nama">Nama penerima</label><input class="kp-inp" id="kp-f-nama" maxlength="60" autocomplete="off" placeholder="Contoh: Mbak Rina"></div>
+            <div><label class="kp-lbl" for="kp-f-hp">Nomor WA penerima</label><input class="kp-inp" id="kp-f-hp" inputmode="tel" maxlength="20" autocomplete="off" placeholder="08xxxxxxxxxx"></div>
+            <div>
+                <label class="kp-lbl" for="kp-f-cari">Alamat penerima</label>
+                <input class="kp-inp" id="kp-f-cari" autocomplete="off" placeholder="Ketik nama tempat / alamat lalu pilih">
+                <button type="button" class="kp-tbl" id="kp-f-peta" style="width:100%;margin-top:8px;">🗺️ Atau pilih titik di peta</button>
+                <div id="kp-f-lokasi" class="kp-ket">Lokasi belum dipilih.</div>
+            </div>
+            <div><label class="kp-lbl" for="kp-f-patokan">Patokan & isi paket</label><textarea class="kp-inp" id="kp-f-patokan" maxlength="300" rows="3" placeholder="Contoh: rumah pagar hijau depan masjid · isi: dokumen"></textarea></div>
+        </div>
+        <div class="kp-kaki"><button type="button" class="kp-utama" id="kp-f-simpan" disabled>Simpan penerima</button></div>
+    </div>
+
+    <!-- Pilih titik di peta -->
+    <div class="kp-pin" id="kp-pin" hidden role="dialog" aria-modal="true" aria-labelledby="kp-pin-judul">
+        <div class="kp-kepala"><button type="button" class="kp-kembali" id="kp-pin-tutup" aria-label="Kembali">‹</button><div><small>Geser peta</small><b id="kp-pin-judul">Pilih titik</b></div></div>
+        <div class="kp-peta-penuh"><div id="kp-pin-peta" style="position:absolute;inset:0;"></div><div class="kp-jarum" aria-hidden="true">📍</div></div>
+        <div class="kp-kaki"><button type="button" class="kp-utama" id="kp-pin-pakai">Pakai titik ini</button></div>
+    </div>
+
+    <!-- Kiriman saya -->
+    <div class="kp-layar" id="kp-kiriman" hidden role="dialog" aria-modal="true" aria-labelledby="kp-kiriman-judul">
+        <div class="kp-kepala"><button type="button" class="kp-kembali" data-kp-tutup="kp-kiriman" aria-label="Kembali">‹</button><div><small>Kirim Paket</small><b id="kp-kiriman-judul">Kiriman saya</b></div></div>
+        <div class="kp-isi" id="kp-kiriman-isi"><div class="kp-kosong">Memuat…</div></div>
+    </div>
+
+    <script type="module">
+        import { getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, doc, query, where, onSnapshot, writeBatch, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        (function kirimPaket() {
+            let app; try { app = getApp(); } catch (e) { console.warn('[Kirim Paket] Firebase belum siap'); return; }
+            const db = getFirestore(app), auth = getAuth(app);
+            const $ = (id) => document.getElementById(id);
+            const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
+            const toast = (t) => { if (typeof window.showToast === 'function') window.showToast(t); };
+            const rp = (n) => 'Rp' + Math.max(0, Math.round(Number(n) || 0)).toLocaleString('id-ID');
+            const km1 = (n) => (Math.round((Number(n) || 0) * 10) / 10).toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' km';
+            const dua = (n) => String(n).padStart(2, '0');
+            // Konfirmasi memakai SweetAlert aplikasi (confirm() bawaan sering tidak muncul di WebView)
+            const tanya = async (judul, teks, ya) => {
+                if (window.Swal && typeof window.Swal.fire === 'function') {
+                    const h = await window.Swal.fire({ title: judul, text: teks, icon: 'question', showCancelButton: true, reverseButtons: true,
+                        confirmButtonText: ya || 'Ya', cancelButtonText: 'Kembali', confirmButtonColor: '#CC4A00', customClass: { container: 'kp-swal', popup: 'swal-custom-popup', title: 'swal-custom-title' } });
+                    return !!(h && h.isConfirmed);
+                }
+                return window.confirm(judul + '\n' + teks);
+            };
+            const msDari = (v) => typeof v === 'number' ? v : (v && typeof v.toMillis === 'function') ? v.toMillis() : (v && typeof v.seconds === 'number' ? v.seconds * 1000 : 0);
+
+            // Tarif gabungan = sama dengan Antar Hemat warung
+            const T = { tarifKm: 2700, instanMin: 8000, gabunganMin: 11000, bulat: 500, maksPenerima: 10 };
+            const bulatAtas = (n) => Math.ceil(n / T.bulat) * T.bulat;
+            const instanRef = (jarak) => Math.max(T.instanMin, bulatAtas(jarak * T.tarifKm));
+            const dalamArea = (p) => p && isFinite(p.lat) && isFinite(p.lng) && p.lat > -8.3 && p.lat < -7.0 && p.lng > 109.0 && p.lng < 110.2;
+            const hpBersih = (v) => String(v || '').replace(/[^0-9+]/g, '').slice(0, 20);
+            const hpSah = (v) => /^(\+?62|0)8\d{7,12}$/.test(hpBersih(v));
+            const acak = () => { const a = new Uint32Array(3); crypto.getRandomValues(a); return Array.from(a, (n) => n.toString(36)).join('').slice(0, 16); };
+            const linkTitik = (p) => 'https://maps.google.com/?q=' + p.lat.toFixed(6) + ',' + p.lng.toFixed(6);
+            function ruteLink(a, urut) {
+                const u = new URL('https://www.google.com/maps/dir/');
+                u.searchParams.set('api', '1');
+                u.searchParams.set('origin', a.lat + ',' + a.lng);
+                const akhir = urut[urut.length - 1];
+                u.searchParams.set('destination', akhir.lat + ',' + akhir.lng);
+                if (urut.length > 1) u.searchParams.set('waypoints', urut.slice(0, -1).map((k) => k.lat + ',' + k.lng).join('|'));
+                u.searchParams.set('travelmode', 'driving');
+                return u.toString();
+            }
+            const hariIni = () => { const d = new Date(); return d.getFullYear() + '-' + dua(d.getMonth() + 1) + '-' + dua(d.getDate()); };
+            const jamKini = () => { const d = new Date(); return dua(d.getHours()) + '.' + dua(d.getMinutes()); };
+
+            // ---------- Google Maps (sudah dimuat aplikasi untuk Ngojek / Kirim Paket) ----------
+            function tungguMaps() {
+                return new Promise((ok, gagal) => {
+                    let n = 0;
+                    const cek = () => { if (window.google && window.google.maps && window.google.maps.DirectionsService) return ok(); if (++n > 100) return gagal(new Error('maps')); setTimeout(cek, 150); };
+                    cek();
+                });
+            }
+            let ds = null;
+            async function rute(a, b, wps, optim) {
+                await tungguMaps();
+                if (!ds) ds = new google.maps.DirectionsService();
+                return new Promise((ok, gagal) => ds.route({
+                    origin: a, destination: b, travelMode: google.maps.TravelMode.DRIVING,
+                    waypoints: (wps || []).map((w) => ({ location: w, stopover: true })), optimizeWaypoints: !!optim, region: 'id'
+                }, (r, s) => (s === 'OK' && r && r.routes && r.routes[0]) ? ok(r) : gagal(new Error(s || 'rute'))));
+            }
+            const haversine = (a, b) => { const R = 6371, r = Math.PI / 180, dl = (b.lat - a.lat) * r, dg = (b.lng - a.lng) * r; const x = Math.sin(dl / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dg / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(x)); };
+
+            // ---------- State ----------
+            const S = { asal: null, asalTeks: '', penerima: [], bayar: 'pengirim', rc: null, rcKunci: '', mengirim: false };
+
+            // ---------- Lapisan layar + tombol Back HP ----------
+            // Tiap lapisan yang dibuka menambah 1 langkah riwayat, supaya tombol Back HP menutup lapisan itu dulu.
+            const tumpuk = [];
+            function buka(id, ganti) {
+                const e = $(id); if (!e) return;
+                e.hidden = false;
+                if (ganti && tumpuk.length) { const lama = $(tumpuk[tumpuk.length - 1]); if (lama && lama !== e) lama.hidden = true; tumpuk[tumpuk.length - 1] = id; return; }
+                tumpuk.push(id);
+                try { window.history.pushState(Object.assign({}, window.history.state || {}, { kp: id }), '', ''); } catch (x) {}
+            }
+            // Menutup lapisan lewat tombol di layar: langkah riwayatnya ikut dibuang. Selesai saat riwayat sudah mundur.
+            function tutup(id) {
+                const e = $(id); if (!e || e.hidden) return Promise.resolve();
+                e.hidden = true;
+                if (id === 'kp-pin') pinLanjut = null;
+                const i = tumpuk.lastIndexOf(id);
+                if (i < 0) return Promise.resolve();
+                tumpuk.splice(i, 1);
+                return new Promise((ok) => {
+                    let beres = false;
+                    const selesai = () => { if (beres) return; beres = true; window.removeEventListener('popstate', selesai); ok(); };
+                    window.addEventListener('popstate', selesai);
+                    setTimeout(selesai, 400);
+                    window.isClosingPopup = true;
+                    try { window.history.back(); } catch (x) { window.isClosingPopup = false; selesai(); }
+                });
+            }
+            async function tutupSemua() {
+                const n = tumpuk.length;
+                ['kp-pin', 'kp-form', 'kp-kiriman', 'kp-gab', 'kp-pilih'].forEach((id) => { const x = $(id); if (x) x.hidden = true; });
+                pinLanjut = null; tumpuk.length = 0;
+                if (!n) return;
+                await new Promise((ok) => {
+                    let beres = false;
+                    const selesai = () => { if (beres) return; beres = true; window.removeEventListener('popstate', selesai); ok(); };
+                    window.addEventListener('popstate', selesai);
+                    setTimeout(selesai, 400);
+                    window.isClosingPopup = true;
+                    try { window.history.go(-n); } catch (x) { window.isClosingPopup = false; selesai(); }
+                });
+            }
+            // Dipanggil dari window.onpopstate aplikasi (riwayatnya sudah mundur 1 langkah)
+            window.kpTanganiKembali = () => {
+                while (tumpuk.length) {
+                    const id = tumpuk.pop(); const x = $(id);
+                    if (x && !x.hidden) { x.hidden = true; if (id === 'kp-pin') pinLanjut = null; return true; }
+                }
+                return false;
+            };
+
+            // ---------- Lembar pilihan ----------
+            window.kpBukaPilihan = () => { buka('kp-pilih'); setTimeout(() => $('kp-op-instan').focus(), 30); };
+            $('kp-pilih').addEventListener('click', (e) => { if (e.target.id === 'kp-pilih') tutup('kp-pilih'); });
+            $('kp-op-instan').onclick = async () => { await tutup('kp-pilih'); if (typeof window.__kpBukaInstan === 'function') window.__kpBukaInstan(); };
+            $('kp-op-gabung').onclick = () => bukaGabungan();
+            $('kp-op-kiriman').onclick = () => bukaKiriman();
+            document.querySelectorAll('[data-kp-tutup]').forEach((b) => b.addEventListener('click', () => tutup(b.dataset.kpTutup)));
+            document.addEventListener('keydown', (e) => {
+                if (e.key !== 'Escape') return;
+                for (const id of ['kp-pin', 'kp-form', 'kp-kiriman', 'kp-gab', 'kp-pilih']) { const x = $(id); if (x && !x.hidden) { tutup(id); return; } }
+            });
+
+            // ---------- Syarat: login + profil lengkap ----------
+            function bolehPesan() {
+                if (typeof window.checkOperationalStatus === 'function' && !window.checkOperationalStatus()) return false;
+                if (typeof window.gmCekBlokir === 'function' && !window.gmCekBlokir()) return false;
+                const u = auth.currentUser;
+                const google = u && (u.providerData || []).some((p) => p.providerId === 'google.com');
+                if (!google) { toast('Masuk dengan akun Google dulu ya.'); return false; }
+                return true;
+            }
+            // Kode pelanggan (dibuat server) dipastikan ada, supaya admin bisa menghubungkan pesanan ke chat
+            async function pastikanKode() {
+                try {
+                    const u = auth.currentUser; if (!u) return;
+                    const kunci = 'pg_kode_' + u.uid;
+                    let k = ''; try { k = localStorage.getItem(kunci) || ''; } catch (e) {}
+                    if (/^PG[2-9A-HJ-NP-Z]{5}$/.test(k)) return;
+                    const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js');
+                    const r = await f.httpsCallable(f.getFunctions(app, 'asia-southeast2'), 'mintaKodePelanggan')({});
+                    const kk = r && r.data && /^PG[2-9A-HJ-NP-Z]{5}$/.test(String(r.data.kode || '')) ? r.data.kode : '';
+                    if (kk) { try { localStorage.setItem(kunci, kk); } catch (e) {} }
+                } catch (e) { console.warn('[Kirim Paket] kode pelanggan', e && e.code); }
+            }
+            const profil = () => (typeof window.gmDataProfil === 'function' && window.gmDataProfil()) || {};
+
+            // ---------- Kirim permintaan ke admin + buka chat ----------
+            async function kirimPermintaan(d, ringkasChat) {
+                const u = auth.currentUser;
+                const pr = profil();
+                const ref = doc(collection(db, 'antar_permintaan'));
+                const data = {
+                    mitraId: 'p_' + u.uid, sumber: 'pelanggan', pelangganUid: u.uid,
+                    mitraNama: String(pr.name || u.displayName || 'Pelanggan').slice(0, 60), mitraHp: '',
+                    mitraAlamat: String(d.asalTeks || '').slice(0, 120),
+                    asalLat: d.asal ? d.asal.lat : null, asalLng: d.asal ? d.asal.lng : null,
+                    jenis: d.jenis, tanggal: hariIni(), jam: jamKini(), batchId: null, kirimIds: d.titik.map((t) => t.kirimId),
+                    titik: d.titik, jarakKm: Math.round((Number(d.jarakKm) || 0) * 100) / 100, totalOngkir: Math.round(Number(d.total) || 0),
+                    ruteLink: d.ruteLink || '', pembayar: d.pembayar,
+                    totalToko: d.pembayar === 'penerima' ? 0 : Math.round(Number(d.total) || 0),
+                    totalPenerima: d.pembayar === 'penerima' ? Math.round(Number(d.total) || 0) : 0,
+                    ongkirManual: d.ongkirManual === true,
+                    status: 'menunggu', dilihatAdmin: false, dibuatOleh: String(u.email || '').toLowerCase().slice(0, 120), dibuatAt: serverTimestamp()
+                };
+                const wb = writeBatch(db); wb.set(ref, data);
+                await wb.commit();
+                try { localStorage.setItem('kp_terakhir', ref.id); } catch (e) {}
+                // Ringkasan juga masuk chat admin, lalu chat dibuka
+                try {
+                    if (typeof window.pcKirimPesanan === 'function') {
+                        await window.pcKirimPesanan({ teks: ringkasChat + '\n\n⏳ Pesanan kamu sudah masuk ke admin dan sedang diproses ya.', layanan: 'Kirim Paket', ongkir: data.totalOngkir });
+                    }
+                } catch (e) { console.warn('[Kirim Paket] chat', e); }
+                if (typeof window.gmCatatPesanan === 'function') { try { window.gmCatatPesanan(); } catch (e) {} }
+                toast('Pesanan kamu sedang admin proses ya 🙏');
+                await tutupSemua();
+                if (typeof window.openPage === 'function') { window.openPage('home'); window.openPage('chat'); }
+                return ref.id;
+            }
+
+            // ---------- INSTAN (dipanggil dari form Kirim Paket yang lama) ----------
+            // d = { asal:{lat,lng}|null, asalTeks, tujuan:{lat,lng}|null, tujuanTeks, nama, hp, paket, bayar, ongkir, jarakKm, manual }
+            window.kpKirimInstan = async (d) => {
+                if (S.mengirim) return;
+                if (!bolehPesan()) return;
+                if (!d || !String(d.nama || '').trim()) { toast('Isi nama penerima.'); return; }
+                if (!hpSah(d.hp)) { toast('Nomor WA penerima belum benar. Contoh: 081234567890'); return; }
+                S.mengirim = true;
+                try {
+                    await pastikanKode();
+                    const t = d.tujuan && dalamArea(d.tujuan) ? d.tujuan : null;
+                    const patokan = [d.tujuanTeks ? 'Alamat: ' + d.tujuanTeks : '', d.paket ? 'Isi paket: ' + d.paket : ''].filter(Boolean).join(' · ').slice(0, 600);
+                    const titik = [{ kirimId: 'pk' + acak(), nama: String(d.nama).trim().slice(0, 60), hp: hpBersih(d.hp), patokan, lat: t ? t.lat : null, lng: t ? t.lng : null, ongkir: Math.round(Number(d.ongkir) || 0), bayar: d.bayar === 'penerima' ? 'penerima' : 'pengirim' }];
+                    const asal = d.asal && dalamArea(d.asal) ? d.asal : null;
+                    const ringkas = ['📦 KIRIM PAKET · INSTAN', 'Jemput: ' + (d.asalTeks || '-'), 'Antar ke: ' + (d.nama || '-') + ' · ' + (d.tujuanTeks || '-'),
+                        d.paket ? 'Isi paket: ' + d.paket : '', 'Ongkir: ' + (Number(d.ongkir) > 0 ? rp(d.ongkir) : 'dihitung admin') + ' · dibayar ' + (d.bayar === 'penerima' ? 'penerima' : 'pengirim')].filter(Boolean).join('\n');
+                    return await kirimPermintaan({
+                        jenis: 'instan', asal, asalTeks: d.asalTeks, titik, jarakKm: d.jarakKm || 0, total: Number(d.ongkir) || 0,
+                        ruteLink: asal && t ? ruteLink(asal, [t]) : '', pembayar: d.bayar === 'penerima' ? 'penerima' : 'pengirim', ongkirManual: !(Number(d.ongkir) > 0)
+                    }, ringkas);
+                } catch (e) {
+                    console.error('[Kirim Paket] instan', e);
+                    toast(e && e.code === 'permission-denied' ? 'Pesanan ditolak server. Coba lagi atau hubungi admin lewat WhatsApp.' : 'Pesanan belum terkirim. Periksa internet lalu coba lagi.');
+                } finally { S.mengirim = false; }
+                return null;
+            };
+
+            // ---------- GABUNGAN ----------
+            let peta = null, penanda = [];
+            function bukaGabungan() {
+                if (!bolehPesan()) { tutup('kp-pilih'); return; }
+                buka('kp-gab', true);
+                if (!S.asal) ambilLokasiSaya(true);
+                gambarGab();
+                tungguMaps().then(() => {
+                    if (!peta) peta = new google.maps.Map($('kp-peta'), { center: S.asal || { lat: -7.6077, lng: 109.5131 }, zoom: 13, disableDefaultUI: true, zoomControl: true, gestureHandling: 'cooperative', clickableIcons: false });
+                    gambarPeta();
+                }).catch(() => {});
+            }
+            function aturAsal(p, teks) {
+                if (!dalamArea(p)) { toast('Titik jemput di luar area layanan ProjekGo.'); return; }
+                S.asal = { lat: Number(p.lat.toFixed(6)), lng: Number(p.lng.toFixed(6)) };
+                S.asalTeks = String(teks || 'Titik di peta').slice(0, 120);
+                // jarak tiap penerima dihitung ulang dari titik jemput yang baru
+                S.penerima.forEach((k) => { k.jarakKm = null; k.instan = null; });
+                hitungSemua();
+            }
+            function ambilLokasiSaya(diam) {
+                if (!navigator.geolocation) { if (!diam) toast('HP ini tidak bisa membaca lokasi.'); return; }
+                $('kp-asal-teks').textContent = 'Mencari lokasimu…';
+                navigator.geolocation.getCurrentPosition((p) => {
+                    aturAsal({ lat: p.coords.latitude, lng: p.coords.longitude }, 'Lokasi saya (GPS)');
+                    const pr = profil(); if (pr.address) S.asalTeks = ('Lokasi saya · ' + pr.address).slice(0, 120);
+                    gambarGab();
+                }, (e) => {
+                    $('kp-asal-teks').textContent = S.asal ? S.asalTeks : 'Belum diatur';
+                    if (!diam) toast(e && e.code === 1 ? 'Izin lokasi ditolak. Pilih titik jemput di peta.' : 'Lokasi belum terbaca. Pilih titik di peta.');
+                }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 });
+            }
+            $('kp-asal-gps').onclick = () => ambilLokasiSaya(false);
+            $('kp-asal-peta').onclick = () => bukaPin('Titik jemput', S.asal, (p) => { aturAsal(p, 'Titik di peta'); gambarGab(); });
+            document.querySelectorAll('[data-kp-bayar]').forEach((b) => b.addEventListener('click', () => { S.bayar = b.dataset.kpBayar === 'penerima' ? 'penerima' : 'pengirim'; gambarGab(); }));
+
+            async function lengkapiInstan(k) {
+                if (k.instan != null || !S.asal) return;
+                try {
+                    const r = await rute(S.asal, { lat: k.lat, lng: k.lng });
+                    k.jarakKm = r.routes[0].legs.reduce((s, l) => s + l.distance.value, 0) / 1000;
+                } catch (e) { k.jarakKm = haversine(S.asal, k) * 1.3; }   // cadangan kalau rute gagal
+                k.instan = instanRef(k.jarakKm);
+            }
+            function bagiPas(total, anggota) {
+                const bobot = anggota.map((k) => Math.max(0.1, k.jarakKm || 0));
+                const jumlah = bobot.reduce((a, x) => a + x, 0);
+                const batas = anggota.map((k) => k.instan != null ? k.instan : Infinity);
+                const bagian = anggota.map((k, i) => Math.min(batas[i], Math.floor((total * bobot[i] / jumlah) / T.bulat) * T.bulat));
+                let sisa = total - bagian.reduce((a, x) => a + x, 0);
+                const urut = anggota.map((_, i) => i).sort((x, y) => bobot[y] - bobot[x]);
+                for (let p = 0; sisa >= T.bulat && p < 1000; p++) {
+                    let tambah = false;
+                    for (const i of urut) { if (sisa < T.bulat) break; if (bagian[i] + T.bulat <= batas[i]) { bagian[i] += T.bulat; sisa -= T.bulat; tambah = true; } }
+                    if (!tambah) break;
+                }
+                return bagian;
+            }
+            async function hitungRencana() {
+                const a = S.asal, anggota = S.penerima.slice();
+                for (const k of anggota) await lengkapiInstan(k);
+                const instanSum = anggota.reduce((x, k) => x + (k.instan || 0), 0);
+                const jauh = [...anggota].sort((x, y) => haversine(a, y) - haversine(a, x));
+                const akhir = jauh[0], tengah = jauh.slice(1);
+                const r = await rute(a, { lat: akhir.lat, lng: akhir.lng }, tengah.map((k) => ({ lat: k.lat, lng: k.lng })), true);
+                const urut = (r.routes[0].waypoint_order || []).map((i) => tengah[i]).concat([akhir]);
+                const jarakKm = r.routes[0].legs.reduce((x, l) => x + l.distance.value, 0) / 1000;
+                const totalRumus = Math.max(T.gabunganMin, bulatAtas(jarakKm * T.tarifKm));
+                const bagian = bagiPas(totalRumus, urut);
+                return { urut, bagian, total: bagian.reduce((x, y) => x + y, 0), totalRumus, instanSum, tidakSearah: totalRumus > instanSum, jarakKm, ruteLink: ruteLink(a, urut) };
+            }
+            let timerHitung = 0;
+            function hitungSemua() {
+                const kunci = (S.asal ? S.asal.lat + ',' + S.asal.lng : '-') + '|' + S.penerima.map((k) => k.id).join(',');
+                if (S.rcKunci === kunci && S.rc) { gambarGab(); return; }
+                S.rcKunci = kunci; S.rc = null;
+                clearTimeout(timerHitung);
+                gambarGab();
+                if (!S.asal || S.penerima.length < 2) {
+                    // 1 penerima: tetap hitung ongkir instannya supaya terlihat
+                    if (S.asal && S.penerima.length === 1) lengkapiInstan(S.penerima[0]).then(gambarGab);
+                    return;
+                }
+                timerHitung = setTimeout(async () => {
+                    try { const r = await hitungRencana(); if (S.rcKunci === kunci) S.rc = { ok: true, r }; }
+                    catch (e) { if (S.rcKunci === kunci) S.rc = { ok: false }; }
+                    gambarGab();
+                }, 600);
+            }
+            function gambarGab() {
+                $('kp-asal-teks').textContent = S.asal ? S.asalTeks : 'Belum diatur';
+                document.querySelectorAll('[data-kp-bayar]').forEach((b) => b.classList.toggle('on', b.dataset.kpBayar === S.bayar));
+                $('kp-bayar-ket').textContent = S.bayar === 'penerima' ? 'Rider menagih ongkir ke tiap penerima saat paket diantar.' : 'Ongkir dibayar ke rider saat paket dijemput.';
+                const w = $('kp-daftar'); w.textContent = '';
+                const r = S.rc && S.rc.ok ? S.rc.r : null;
+                const urutan = r ? r.urut.map((k) => k.id) : S.penerima.map((k) => k.id);
+                const list = r ? r.urut : S.penerima;
+                if (!list.length) w.appendChild(el('div', 'kp-info', 'Tambahkan penerima satu per satu. Rider menjemput semua paket di tempatmu, lalu mengantar berurutan dalam satu rute.'));
+                list.forEach((k, i) => {
+                    const c = el('div', 'kp-pk');
+                    c.appendChild(el('span', 'kp-no', String(i + 1)));
+                    const isi = el('div', 'isi'); isi.appendChild(el('b', '', k.nama));
+                    isi.appendChild(el('small', '', (k.alamat || 'Titik di peta') + (k.jarakKm != null ? ' · ' + km1(k.jarakKm) : '')));
+                    c.appendChild(isi);
+                    const h = el('div', 'rp');
+                    if (r) { h.appendChild(document.createTextNode(rp(r.bagian[i]))); if (k.instan > r.bagian[i]) h.appendChild(el('s', '', rp(k.instan))); }
+                    else if (k.instan != null) h.textContent = rp(k.instan);
+                    c.appendChild(h);
+                    const x = el('button', 'kp-hapus', '✕'); x.type = 'button'; x.setAttribute('aria-label', 'Hapus ' + k.nama);
+                    x.onclick = () => { S.penerima = S.penerima.filter((p) => p.id !== k.id); hitungSemua(); };
+                    c.appendChild(x);
+                    w.appendChild(c);
+                });
+                $('kp-tambah').hidden = S.penerima.length >= T.maksPenerima;
+                const info = $('kp-pesan-info'); info.textContent = ''; info.className = '';
+                const kiri = $('kp-ringkas-kiri'), kanan = $('kp-ringkas-total'), btn = $('kp-pesan');
+                btn.disabled = true; kanan.textContent = '—';
+                if (!S.asal) { kiri.textContent = 'Atur titik jemput dulu'; return; }
+                if (S.penerima.length < 2) { kiri.textContent = S.penerima.length ? 'Tambah 1 penerima lagi' : 'Tambahkan minimal 2 penerima'; if (S.penerima.length === 1) { info.className = 'kp-info'; info.textContent = 'Hanya 1 penerima? Pakai Antar instan supaya lebih cepat.'; } return; }
+                if (!S.rc) { kiri.textContent = 'Menghitung ongkir…'; return; }
+                if (!S.rc.ok) { kiri.textContent = 'Ongkir gagal dihitung'; info.className = 'kp-info merah'; info.textContent = 'Rute belum bisa dihitung. Periksa sinyal, lalu hapus dan tambah ulang salah satu penerima.'; return; }
+                const hemat = Math.max(0, r.instanSum - r.total);
+                kiri.textContent = r.urut.length + ' penerima · ' + km1(r.jarakKm) + (hemat ? ' · hemat ' + rp(hemat) : '');
+                kanan.textContent = rp(r.total);
+                if (r.tidakSearah) { info.className = 'kp-info merah'; info.textContent = 'Penerimanya tidak searah, jadi gabungan (' + rp(r.totalRumus) + ') lebih mahal dari instan masing-masing (' + rp(r.instanSum) + '). Sebaiknya kirim instan.'; return; }
+                btn.disabled = S.mengirim;
+                gambarPeta();
+            }
+            async function gambarPeta() {
+                if (!peta) return;
+                penanda.forEach((m) => m.setMap(null)); penanda = [];
+                const b = new google.maps.LatLngBounds();
+                const titik = (pos, teks, warna, judul) => {
+                    const m = new google.maps.Marker({ map: peta, position: pos, title: judul, label: { text: teks, color: '#fff', fontWeight: '800', fontSize: '12px' },
+                        icon: { path: google.maps.SymbolPath.CIRCLE, scale: 12, fillColor: warna, fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2 } });
+                    penanda.push(m); b.extend(pos);
+                };
+                if (S.asal) titik(S.asal, 'S', '#1C1C1E', 'Titik jemput');
+                const r = S.rc && S.rc.ok ? S.rc.r : null;
+                (r ? r.urut : S.penerima).forEach((k, i) => titik({ lat: k.lat, lng: k.lng }, String(i + 1), '#CC4A00', k.nama));
+                if (penanda.length > 1) peta.fitBounds(b, 40); else if (S.asal) { peta.setCenter(S.asal); peta.setZoom(14); }
+            }
+
+            // ---------- Form tambah penerima ----------
+            let fTitik = null, ac = null;
+            $('kp-tambah').onclick = () => {
+                if (!S.asal) { toast('Atur titik jemput dulu.'); return; }
+                fTitik = null;
+                ['kp-f-nama', 'kp-f-hp', 'kp-f-cari', 'kp-f-patokan'].forEach((id) => { $(id).value = ''; });
+                $('kp-f-lokasi').className = 'kp-ket'; $('kp-f-lokasi').textContent = 'Lokasi belum dipilih.';
+                buka('kp-form'); cekForm();
+                setTimeout(() => $('kp-f-nama').focus(), 50);
+                tungguMaps().then(() => {
+                    if (ac || !google.maps.places || !google.maps.places.Autocomplete) return;
+                    ac = new google.maps.places.Autocomplete($('kp-f-cari'), { componentRestrictions: { country: 'id' }, fields: ['geometry', 'name', 'formatted_address'] });
+                    ac.addListener('place_changed', () => {
+                        const p = ac.getPlace();
+                        if (!p || !p.geometry || !p.geometry.location) return;
+                        setTitikForm({ lat: p.geometry.location.lat(), lng: p.geometry.location.lng() }, [p.name, p.formatted_address].filter(Boolean).join(', '));
+                    });
+                }).catch(() => {});
+            };
+            function setTitikForm(p, alamat) {
+                const k = $('kp-f-lokasi');
+                if (!dalamArea(p)) { fTitik = null; k.className = 'kp-salah'; k.textContent = 'Titik di luar area layanan ProjekGo.'; cekForm(); return; }
+                fTitik = { lat: Number(p.lat.toFixed(6)), lng: Number(p.lng.toFixed(6)), alamat: String(alamat || 'Titik di peta').slice(0, 120) };
+                k.className = 'kp-ok'; k.textContent = '✓ Lokasi dipilih: ' + fTitik.alamat + (S.asal ? ' · ±' + km1(haversine(S.asal, fTitik) * 1.3) : '');
+                cekForm();
+            }
+            $('kp-f-peta').onclick = () => bukaPin('Titik penerima', fTitik || S.asal, (p) => setTitikForm(p, $('kp-f-cari').value.trim() || 'Titik di peta'));
+            function cekForm() { $('kp-f-simpan').disabled = !($('kp-f-nama').value.trim() && hpSah($('kp-f-hp').value) && fTitik); }
+            ['kp-f-nama', 'kp-f-hp'].forEach((id) => $(id).addEventListener('input', cekForm));
+            $('kp-f-simpan').onclick = () => {
+                if ($('kp-f-simpan').disabled) return;
+                if (S.penerima.length >= T.maksPenerima) { toast('Maksimal ' + T.maksPenerima + ' penerima sekali kirim.'); return; }
+                S.penerima.push({ id: 'pk' + acak(), nama: $('kp-f-nama').value.trim().slice(0, 60), hp: hpBersih($('kp-f-hp').value), alamat: fTitik.alamat,
+                    patokan: $('kp-f-patokan').value.trim().slice(0, 300), lat: fTitik.lat, lng: fTitik.lng, jarakKm: null, instan: null });
+                tutup('kp-form');
+                hitungSemua();
+            };
+
+            // ---------- Pilih titik di peta ----------
+            let petaPin = null, pinLanjut = null;
+            async function bukaPin(judul, awal, lanjut) {
+                pinLanjut = lanjut;
+                $('kp-pin-judul').textContent = judul;
+                buka('kp-pin');
+                try { await tungguMaps(); } catch (e) { toast('Peta belum bisa dimuat.'); tutupPin(); return; }
+                const c = awal && dalamArea(awal) ? awal : { lat: -7.6077, lng: 109.5131 };
+                if (!petaPin) petaPin = new google.maps.Map($('kp-pin-peta'), { center: c, zoom: 17, disableDefaultUI: true, zoomControl: true, gestureHandling: 'greedy', clickableIcons: false });
+                else { petaPin.setCenter(c); petaPin.setZoom(17); }
+            }
+            function tutupPin() { return tutup('kp-pin'); }
+            $('kp-pin-tutup').onclick = tutupPin;
+            $('kp-pin-pakai').onclick = () => {
+                if (!petaPin) return;
+                const c = petaPin.getCenter(); const f = pinLanjut; tutupPin();
+                if (f && c) f({ lat: c.lat(), lng: c.lng() });
+            };
+
+            // ---------- Pesan gabungan ----------
+            $('kp-pesan').onclick = async () => {
+                const r = S.rc && S.rc.ok ? S.rc.r : null;
+                if (!r || r.tidakSearah || S.mengirim || !bolehPesan()) return;
+                const bayarTeks = S.bayar === 'penerima' ? 'ditagih ke masing-masing penerima' : 'dibayar ke rider saat dijemput';
+                if (!(await tanya('Pesan antar gabungan?', r.urut.length + ' penerima · total ongkir ' + rp(r.total) + ' (' + bayarTeks + ').', 'Ya, pesan'))) return;
+                S.mengirim = true; const btn = $('kp-pesan'); btn.disabled = true; btn.textContent = 'Mengirim…';
+                try {
+                    await pastikanKode();
+                    const titik = r.urut.map((k, i) => ({ kirimId: k.id, nama: k.nama, hp: k.hp, patokan: [k.alamat === 'Titik di peta' ? '' : k.alamat, k.patokan].filter(Boolean).join(' · ').slice(0, 600), lat: k.lat, lng: k.lng, ongkir: r.bagian[i], bayar: S.bayar }));
+                    const ringkas = ['📦 KIRIM PAKET · GABUNGAN (' + r.urut.length + ' penerima)', 'Jemput: ' + S.asalTeks]
+                        .concat(r.urut.map((k, i) => (i + 1) + '. ' + k.nama + ' · ' + (k.alamat || '-') + ' · ' + rp(r.bagian[i])))
+                        .concat(['Total ongkir: ' + rp(r.total) + ' · ' + bayarTeks]).join('\n');
+                    await kirimPermintaan({ jenis: 'gabungan', asal: S.asal, asalTeks: S.asalTeks, titik, jarakKm: r.jarakKm, total: r.total, ruteLink: r.ruteLink, pembayar: S.bayar }, ringkas);
+                    S.penerima = []; S.rc = null; S.rcKunci = '';
+                } catch (e) {
+                    console.error('[Kirim Paket] gabungan', e);
+                    toast(e && e.code === 'permission-denied' ? 'Pesanan ditolak server. Coba lagi atau hubungi admin lewat WhatsApp.' : 'Pesanan belum terkirim. Periksa internet lalu coba lagi.');
+                } finally { S.mengirim = false; btn.textContent = 'Pesan gabungan'; gambarGab(); }
+            };
+
+            // ---------- Kiriman saya ----------
+            let hentiKiriman = null, hentiBukti = null, kiriman = [], bukti = {};
+            function bukaKiriman() {
+                const u = auth.currentUser;
+                const google = u && (u.providerData || []).some((p) => p.providerId === 'google.com');
+                if (!google) { toast('Masuk dengan akun Google dulu ya.'); tutup('kp-pilih'); return; }
+                buka('kp-kiriman', true);
+                const mid = 'p_' + u.uid;
+                // Hanya filter "sama dengan" (tanpa orderBy) supaya tidak perlu membuat indeks gabungan di Firestore
+                const hari = []; for (let i = 0; i < 14; i++) { const d = new Date(Date.now() - i * 86400000); hari.push(d.getFullYear() + '-' + dua(d.getMonth() + 1) + '-' + dua(d.getDate())); }
+                if (!hentiKiriman) hentiKiriman = onSnapshot(query(collection(db, 'antar_permintaan'), where('mitraId', '==', mid), where('tanggal', 'in', hari)), (s) => {
+                    kiriman = s.docs.map((d) => Object.assign({ id: d.id }, d.data())).sort((x, y) => msDari(y.dibuatAt) - msDari(x.dibuatAt)).slice(0, 30); gambarKiriman();
+                }, (e) => { console.warn('[Kirim Paket] kiriman', e && e.code); $('kp-kiriman-isi').textContent = ''; $('kp-kiriman-isi').appendChild(el('div', 'kp-kosong', e && e.code === 'failed-precondition' ? 'Daftar kiriman sedang disiapkan server. Coba lagi beberapa menit lagi.' : 'Kiriman belum bisa dimuat. Periksa internet lalu coba lagi.')); });
+                if (!hentiBukti) hentiBukti = onSnapshot(query(collection(db, 'antar_bukti'), where('mitraId', '==', mid), where('tanggal', 'in', hari)), (s) => {
+                    bukti = {}; s.docs.forEach((d) => { const x = d.data(); if (x && x.permintaanId) (bukti[x.permintaanId] = bukti[x.permintaanId] || {})[x.idx] = x; }); gambarKiriman();
+                }, () => {});
+            }
+            function gambarKiriman() {
+                const w = $('kp-kiriman-isi'); w.textContent = '';
+                if (!kiriman.length) { w.appendChild(el('div', 'kp-kosong', 'Belum ada kiriman dalam 14 hari terakhir.')); return; }
+                kiriman.forEach((p) => {
+                    const st = { menunggu: ['Menunggu admin', 'baru'], diproses: ['Dicarikan rider', 'baru'], dibawa: ['Dibawa ' + String(p.riderNama || 'rider'), 'jalan'], selesai: ['Selesai', 'ok'], batal: ['Dibatalkan', 'batal'] }[p.status] || [String(p.status || '-'), ''];
+                    const titik = Array.isArray(p.titik) ? p.titik : [];
+                    const bk = bukti[p.id] || {};
+                    const k = el('div', 'kp-blok');
+                    const atas = el('div', 'kp-baris'); atas.style.justifyContent = 'space-between';
+                    const kiri = el('div'); kiri.appendChild(el('div', 't', (p.jenis === 'gabungan' ? 'Gabungan' : 'Instan') + ' · ' + (p.tanggal || '') + ' ' + (p.jam || '')));
+                    kiri.appendChild(el('div', 'v', (p.totalOngkir > 0 ? rp(p.totalOngkir) : 'Ongkir dihitung admin') + ' · ' + titik.length + ' penerima'));
+                    atas.appendChild(kiri); atas.appendChild(el('span', 'kp-chip ' + st[1], st[0])); k.appendChild(atas);
+                    const daftar = el('div'); daftar.style.marginTop = '8px';
+                    titik.forEach((t, i) => {
+                        const b = bk[i];
+                        const baris = el('div', 'kp-st');
+                        baris.appendChild(el('span', 'n' + (b ? ' ok' : ''), b ? '✓' : String(i + 1)));
+                        const isi = el('div'); isi.appendChild(el('b', '', t.nama || '-'));
+                        const jamTerima = b && b.diterimaAt ? new Date(msDari(b.diterimaAt)) : null;
+                        isi.appendChild(el('div', 't', b ? 'Diterima' + (jamTerima ? ' ' + dua(jamTerima.getHours()) + '.' + dua(jamTerima.getMinutes()) : '') + (b.penerimaNama ? ' oleh ' + b.penerimaNama : '') : (p.status === 'dibawa' ? 'Dalam pengantaran' : (p.status === 'batal' ? '-' : 'Menunggu'))));
+                        baris.appendChild(isi); daftar.appendChild(baris);
+                    });
+                    k.appendChild(daftar);
+                    if (p.status === 'batal' && p.alasanTolak) k.appendChild(el('div', 'kp-ket', 'Alasan: ' + String(p.alasanTolak).slice(0, 200)));
+                    if (p.status === 'menunggu') {
+                        const bt = el('button', 'kp-kecil-merah', 'Batalkan'); bt.type = 'button'; bt.style.marginTop = '8px';
+                        bt.onclick = async () => {
+                            if (!(await tanya('Batalkan kiriman ini?', 'Rider belum dicarikan, jadi kiriman masih bisa dibatalkan.', 'Ya, batalkan'))) return;
+                            try { await updateDoc(doc(db, 'antar_permintaan', p.id), { status: 'batal', dibatalkanAt: serverTimestamp() }); toast('Kiriman dibatalkan'); }
+                            catch (e) { toast('Belum bisa dibatalkan. Mungkin admin sudah memprosesnya, hubungi admin lewat chat.'); }
+                        };
+                        k.appendChild(bt);
+                    }
+                    w.appendChild(k);
+                });
+            }
+            onAuthStateChanged(auth, (u) => {
+                if (hentiKiriman) { try { hentiKiriman(); } catch (e) {} hentiKiriman = null; }
+                if (hentiBukti) { try { hentiBukti(); } catch (e) {} hentiBukti = null; }
+                kiriman = []; bukti = {};
+                if (!u && tumpuk.length) tutupSemua();
+            });
+        })();
+    </script>
+    <!-- ===================== AKHIR KIRIM PAKET INSTAN / GABUNGAN ===================== -->
+
 </body>
 
 </html>
