@@ -3950,6 +3950,13 @@ body.gm-terkunci { overflow: hidden; }
                                 const lat = position.coords.latitude;
                                 const lng = position.coords.longitude;
                                 const mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
+                                // (16 Nov 2026) Masuk Food: kalau titik belum bergeser > 100 m, pakai alamat tersimpan (hemat Geocoder)
+                                const latLama = Number(localStorage.getItem('user_lat')), lngLama = Number(localStorage.getItem('user_lng')), alamatLama = localStorage.getItem('user_address');
+                                if (forceRefresh === 'masuk' && alamatLama && isFinite(latLama) && isFinite(lngLama) && Math.abs(latLama - lat) < 0.0009 && Math.abs(lngLama - lng) < 0.0009) {
+                                    if(foodLoc) foodLoc.innerText = alamatLama.length > 25 ? alamatLama.substring(0, 25) + "..." : alamatLama;
+                                    if (window.pgSetelahGpsFood) window.pgSetelahGpsFood(lat, lng, alamatLama);
+                                    return;
+                                }
                                 
                                 // EKSEKUSI LANGKAH 1: Amankan Data Koordinat Mutlak Langsung ke Memori
                                 localStorage.setItem('user_maps', mapsLink);
@@ -3972,19 +3979,22 @@ body.gm-terkunci { overflow: hidden; }
                                             }
                                             
                                             if(foodLoc) foodLoc.innerText = address.length > 25 ? address.substring(0, 25) + "..." : address;
+                                            if (window.pgSetelahGpsFood) window.pgSetelahGpsFood(lat, lng, address);
                                         } else {
                                             const fallback = `Lokasi GPS (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
                                             localStorage.setItem('user_address', fallback);
                                             if(foodLoc) foodLoc.innerText = "Titik GPS diamankan";
+                                            if (window.pgSetelahGpsFood) window.pgSetelahGpsFood(lat, lng, fallback);
                                         }
                                     });
                                 } else {
                                     const fallback = `Lokasi GPS (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
                                     localStorage.setItem('user_address', fallback);
                                     if(foodLoc) foodLoc.innerText = "Titik GPS diamankan";
+                                    if (window.pgSetelahGpsFood) window.pgSetelahGpsFood(lat, lng, fallback);
                                 }
                                 
-                                if(forceRefresh && window.showToast) window.showToast("Lokasi akurat berhasil diamankan! 📍");
+                                if(forceRefresh === true && window.showToast) window.showToast("Lokasi akurat berhasil diamankan! 📍");
                             },
                             (error) => {
                                 console.warn("GPS Error/Lemah:", error.message);
@@ -3992,10 +4002,10 @@ body.gm-terkunci { overflow: hidden; }
                                 const lastSaved = localStorage.getItem('user_address');
                                 if (lastSaved) {
                                     if(foodLoc) foodLoc.innerText = lastSaved.length > 25 ? lastSaved.substring(0, 25) + "..." : lastSaved;
-                                    if(forceRefresh && window.showToast) window.showToast("Menggunakan lokasi tersimpan terakhir.");
+                                    if(forceRefresh === true && window.showToast) window.showToast("Menggunakan lokasi tersimpan terakhir.");
                                 } else {
                                     if(foodLoc) foodLoc.innerText = "Gagal melacak, tap disini";
-                                    if(forceRefresh && window.showToast) window.showToast("Sinyal GPS lemah! Coba di area terbuka.");
+                                    if(forceRefresh === true && window.showToast) window.showToast("Sinyal GPS lemah! Coba di area terbuka.");
                                 }
                             },
                             // Penyesuaian konfigurasi agar lebih stabil (Timeout 15 detik, Cache 5 detik)
@@ -4011,7 +4021,7 @@ body.gm-terkunci { overflow: hidden; }
                     const pageFood = document.getElementById('page-food');
                     if (pageFood && pageFood.style.display === 'block') {
                         if (!window.hasAutoFetchedFood) {
-                            window.autoFetchFoodLocation();
+                            window.autoFetchFoodLocation('masuk'); // (16 Nov 2026) selalu baca GPS terbaru saat masuk Food
                             window.hasAutoFetchedFood = true; // Tandai sudah dipanggil
                         }
                     } else {
@@ -11817,6 +11827,13 @@ body.gm-terkunci { overflow: hidden; }
             // Pesan belum dikirim: tampilkan panduan dulu. Langkah 2-5 di bawah baru
             // dijalankan setelah pelanggan menekan "Lanjut Tahap Pesan ke Admin".
             const selesaikanPesanan = () => {
+            // (16 Nov 2026) ingat alamat antar terakhir (untuk gelembung "antar ke mana" di menu Food)
+            try {
+                if (orderMode !== 'dine_in' && window.pgSimpanAntarTerakhir) {
+                    const mm = String(mapsLink || '').match(/q=(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/);
+                    if (mm) window.pgSimpanAntarTerakhir(addr, mm[1], mm[2]);
+                }
+            } catch (e) {}
             // 2. Simpan ke Riwayat Pesanan
             const history = JSON.parse(localStorage.getItem('order_history')) || []; 
             const newOrder = {
@@ -18892,6 +18909,200 @@ body.gm-terkunci { overflow: hidden; }
     </script>
     <!-- ===================== AKHIR KIRIM PAKET INSTAN / GABUNGAN ===================== -->
 
+    <!-- ===================== LOKASI & AREA LAYANAN (16 Nov 2026) =====================
+         1) Beranda: gelembung "Pilih lokasi kamu dulu" menunjuk tombol lokasi kiri atas (sekali tiap aplikasi dibuka).
+         2) Menu Food: lokasi GPS selalu diperbarui saat masuk. Kalau bergeser > 300 m dari alamat pesanan terakhir,
+            muncul gelembung: antar ke lokasi sekarang atau ke alamat pesanan terakhir.
+         3) Lokasi > 20 km dari Gombong & Kebumen: pop up konfirmasi (tetap boleh pesan, pengantaran hanya di area kami).
+         4) Pesanan lewat chat ikut membawa titik lokasi pemesan (kalau belum ada link Maps), supaya admin bisa mengecek area.
+         Semua teks yang berasal dari alamat ditampilkan lewat textContent. -->
+    <style id="area-css">
+        .pg-gel { position: absolute; z-index: 30; background: #FFFFFF; color: #1C1C1E; border-radius: 16px; box-shadow: 0 10px 28px rgba(0,0,0,.18); font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+        .pg-gel::before { content: ''; position: absolute; top: -7px; width: 14px; height: 14px; background: #FFFFFF; transform: rotate(45deg); border-radius: 3px; }
+        .pg-gel-lok { top: calc(100% + 12px); left: 0; width: 230px; padding: 11px 34px 11px 13px; font-size: 13.5px; font-weight: 700; line-height: 1.4; cursor: pointer; animation: pgGelMasuk .35s ease-out; }
+        .pg-gel-lok::before { left: 22px; }
+        .pg-gel-lok small { display: block; font-size: 11.5px; font-weight: 600; color: #6B6258; margin-top: 2px; }
+        .pg-gel-x { position: absolute; top: 4px; right: 4px; width: 30px; height: 30px; border: 0; background: none; color: #8A8178; font-size: 18px; line-height: 1; cursor: pointer; border-radius: 50%; }
+        @keyframes pgGelMasuk { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+        @media (prefers-reduced-motion: reduce) { .pg-gel-lok { animation: none; } }
+        .pg-alamat { position: relative; margin: 12px 0 0; padding: 12px 12px 10px; animation: pgGelMasuk .35s ease-out; }
+        .pg-alamat::before { left: 30px; }
+        .pg-alamat > b { display: block; font-size: 13.5px; font-weight: 800; padding-right: 26px; }
+        .pg-alamat-op { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+        .pg-alamat-op button { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; width: 100%; text-align: left; border: 1.5px solid #EDE5DC; background: #FFFFFF; border-radius: 12px; padding: 9px 11px; font: inherit; cursor: pointer; color: #1C1C1E; }
+        .pg-alamat-op button.utama { border-color: #FF0000; background: #FFF4F4; }
+        .pg-alamat-op button span { font-size: 13px; font-weight: 800; }
+        .pg-alamat-op button small { font-size: 11.5px; color: #6B6258; font-weight: 600; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    </style>
+    <script>
+    (function areaLokasi() {
+        'use strict';
+        var PUSAT = [['Gombong', -7.6077, 109.5131], ['Kebumen', -7.6681, 109.6525]], BATAS_KM = 20, GESER_KM = 0.3;
+        function jarak(a1, o1, a2, o2) { var R = 6371, r = Math.PI / 180, dA = (a2 - a1) * r, dO = (o2 - o1) * r; var x = Math.sin(dA / 2) * Math.sin(dA / 2) + Math.cos(a1 * r) * Math.cos(a2 * r) * Math.sin(dO / 2) * Math.sin(dO / 2); return 2 * R * Math.asin(Math.sqrt(x)); }
+        function sah(lat, lng) { return isFinite(lat) && isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180 && !(lat === 0 && lng === 0); }
+        function bacaLs(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+        function tulisLs(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+        function sesi(k, v) { try { if (v === undefined) return sessionStorage.getItem(k); sessionStorage.setItem(k, v); } catch (e) { return null; } }
+        function tampil(id) { var e = document.getElementById(id); return !!e && getComputedStyle(e).display !== 'none' && !e.hidden; }
+
+        // ---------- cek area ----------
+        window.pgCekArea = function (lat, lng) {
+            lat = Number(lat); lng = Number(lng);
+            if (!sah(lat, lng)) return null;
+            var d = PUSAT.map(function (p) { return [p[0], jarak(lat, lng, p[1], p[2])]; }).sort(function (a, b) { return a[1] - b[1]; })[0];
+            return { luar: d[1] > BATAS_KM, km: d[1], dari: d[0] };
+        };
+        var sudahSetuju = {};   // titik (dibulatkan ±5 km) yang sudah dikonfirmasi di sesi ini
+        function kunciTitik(lat, lng) { return Math.round(lat * 20) + ':' + Math.round(lng * 20); }
+        // lanjut() dijalankan kalau lokasi di dalam area, atau pelanggan memilih tetap pesan
+        window.pgKonfirmasiArea = function (lat, lng, lanjut, opsi) {
+            opsi = opsi || {};
+            var c = window.pgCekArea(lat, lng);
+            if (!c || !c.luar || sudahSetuju[kunciTitik(Number(lat), Number(lng))]) { if (lanjut) lanjut(); return; }
+            var teks = 'Lokasimu sekitar ' + Math.round(c.km) + ' km dari ' + c.dari + '. Sementara ProjekGo melayani area Gombong, Kebumen, dan sekitarnya. Kamu tetap bisa pesan, tetapi pengantaran hanya di area kami.';
+            var setuju = function () { sudahSetuju[kunciTitik(Number(lat), Number(lng))] = 1; if (lanjut) lanjut(); };
+            if (window.Swal && typeof window.Swal.fire === 'function') {
+                window.Swal.fire({ title: 'Lokasi di luar area layanan', text: teks, icon: 'warning', showCancelButton: !!lanjut && !opsi.infoSaja, reverseButtons: true,
+                    confirmButtonText: opsi.infoSaja ? 'Mengerti' : 'Tetap pesan', cancelButtonText: 'Ganti lokasi', confirmButtonColor: '#FF6A00',
+                    customClass: { popup: 'swal-custom-popup', title: 'swal-custom-title' } }).then(function (h) { if (h && h.isConfirmed) setuju(); });
+            } else if (window.confirm('Lokasi di luar area layanan\n\n' + teks)) setuju();
+        };
+
+        // ---------- 1) gelembung lokasi di Beranda ----------
+        var MULAI = Date.now(), gelSelesai = false;
+        function gerbangAktif() { var g = document.getElementById('gm-gerbang'); return !!(g && g.classList.contains('aktif')); }
+        function gelembungBeranda() {
+            if (gelSelesai || sesi('pg_gel_lokasi')) return;
+            if (!tampil('page-home') || gerbangAktif() || document.querySelector('.swal2-container')) return;
+            var tombol = document.querySelector('#page-home .bh-lokasi'); if (!tombol) return;
+            var wadah = tombol.parentElement; if (!wadah || document.getElementById('pg-gel-lokasi')) return;
+            var g = document.createElement('div'); g.id = 'pg-gel-lokasi'; g.className = 'pg-gel pg-gel-lok'; g.setAttribute('role', 'status');
+            g.appendChild(document.createTextNode('📍 Pilih lokasi kamu dulu ya'));
+            var k = document.createElement('small'); k.textContent = 'Gombong atau Kebumen, supaya warung yang tampil sesuai.'; g.appendChild(k);
+            var x = document.createElement('button'); x.type = 'button'; x.className = 'pg-gel-x'; x.setAttribute('aria-label', 'Tutup'); x.textContent = '×'; g.appendChild(x);
+            var selesai = function () { gelSelesai = true; sesi('pg_gel_lokasi', '1'); if (g.parentNode) g.remove(); };
+            x.addEventListener('click', function (e) { e.stopPropagation(); selesai(); });
+            g.addEventListener('click', function () { selesai(); if (typeof window.openLocationModal === 'function') window.openLocationModal(); });
+            tombol.addEventListener('click', selesai, { once: true });
+            wadah.appendChild(g);
+            setTimeout(function () { if (g.parentNode) selesai(); }, 9000);
+        }
+        var tBeranda = setInterval(function () {
+            var g = document.getElementById('pg-gel-lokasi');
+            // layar masuk akun menutup beranda: sembunyikan dulu, tampilkan lagi setelah masuk
+            if (g && (gerbangAktif() || !tampil('page-home'))) g.remove();
+            if (Date.now() - MULAI > 2500) gelembungBeranda();
+            if (gelSelesai || sesi('pg_gel_lokasi') || Date.now() - MULAI > 600000) clearInterval(tBeranda);
+        }, 1000);
+
+        // ---------- 2) Food: lokasi sekarang vs alamat pesanan terakhir ----------
+        function antarTerakhir() { try { var x = JSON.parse(bacaLs('pg_antar_terakhir') || 'null'); return x && sah(Number(x.lat), Number(x.lng)) ? x : null; } catch (e) { return null; } }
+        window.pgSimpanAntarTerakhir = function (alamat, lat, lng) {
+            lat = Number(lat); lng = Number(lng);
+            if (!sah(lat, lng)) return;
+            tulisLs('pg_antar_terakhir', JSON.stringify({ alamat: String(alamat || '').slice(0, 200), lat: Number(lat.toFixed(6)), lng: Number(lng.toFixed(6)), at: Date.now() }));
+        };
+        function pendek(t, n) { t = String(t || ''); return t.length > n ? t.slice(0, n - 1) + '…' : t; }
+        function pasangAlamat(alamat, lat, lng) {
+            tulisLs('user_address', String(alamat || ''));
+            tulisLs('user_lat', String(lat)); tulisLs('user_lng', String(lng));
+            tulisLs('user_maps', 'https://www.google.com/maps?q=' + lat + ',' + lng);
+            var f = document.getElementById('loc-text-food'); if (f) f.textContent = pendek(alamat, 25);
+        }
+        function gelembungAlamat(kini, akhir) {
+            var lama = document.getElementById('pg-alamat'); if (lama) lama.remove();
+            var tuju = document.getElementById('loc-text-food'); if (!tuju) return;
+            var kepala = tuju.closest('div[style*="flex-direction: column"]'); var induk = kepala && kepala.parentElement && kepala.parentElement.parentElement;
+            if (!induk) return;
+            var g = document.createElement('div'); g.id = 'pg-alamat'; g.className = 'pg-gel pg-alamat'; g.setAttribute('role', 'dialog'); g.setAttribute('aria-label', 'Pilih alamat antar');
+            var j = document.createElement('b'); j.textContent = '📍 Lokasimu sekarang beda dari alamat pesanan terakhir. Mau diantar ke mana?'; g.appendChild(j);
+            var x = document.createElement('button'); x.type = 'button'; x.className = 'pg-gel-x'; x.setAttribute('aria-label', 'Tutup'); x.textContent = '×'; g.appendChild(x);
+            var op = document.createElement('div'); op.className = 'pg-alamat-op';
+            function tombol(kelas, judul, sub, fn) { var b = document.createElement('button'); b.type = 'button'; if (kelas) b.className = kelas; var s = document.createElement('span'); s.textContent = judul; var m = document.createElement('small'); m.textContent = sub; b.appendChild(s); b.appendChild(m); b.addEventListener('click', fn); return b; }
+            var tutup = function () { if (g.parentNode) g.remove(); };
+            op.appendChild(tombol('utama', 'Antar ke lokasi sekarang', kini.alamat || 'Titik GPS saat ini', function () { pasangAlamat(kini.alamat, kini.lat, kini.lng); tutup(); if (window.showToast) window.showToast('Diantar ke lokasi sekarang 📍'); }));
+            op.appendChild(tombol('', 'Antar ke alamat pesanan terakhir', '"' + pendek(akhir.alamat || 'Alamat terakhir', 90) + '"', function () { pasangAlamat(akhir.alamat, akhir.lat, akhir.lng); tutup(); if (window.showToast) window.showToast('Diantar ke alamat pesanan terakhir 🏠'); }));
+            g.appendChild(op);
+            x.addEventListener('click', tutup);
+            induk.insertBefore(g, kepala.parentElement.nextSibling);
+        }
+        // Dipanggil autoFetchFoodLocation setelah GPS terbaca
+        window.pgSetelahGpsFood = function (lat, lng, alamat) {
+            lat = Number(lat); lng = Number(lng);
+            if (!sah(lat, lng)) return;
+            var lanjutBanding = function () {
+                var akhir = antarTerakhir();
+                if (!akhir || !tampil('page-food')) return;
+                if (jarak(lat, lng, Number(akhir.lat), Number(akhir.lng)) <= GESER_KM) return;
+                gelembungAlamat({ alamat: alamat, lat: lat, lng: lng }, akhir);
+            };
+            var c = window.pgCekArea(lat, lng);
+            if (c && c.luar) window.pgKonfirmasiArea(lat, lng, lanjutBanding, { infoSaja: true });
+            else lanjutBanding();
+        };
+
+        // ---------- 3) Checkout Food: cek area sebelum pesanan dikirim ----------
+        function titikTempat(p) {
+            if (!p || !p.geometry || !p.geometry.location) return null;
+            var L = p.geometry.location;
+            return { lat: Number(typeof L.lat === 'function' ? L.lat() : L.lat), lng: Number(typeof L.lng === 'function' ? L.lng() : L.lng) };
+        }
+        function titikGps() { return { lat: Number(bacaLs('user_lat')), lng: Number(bacaLs('user_lng')) }; }
+        function titikLayanan() {
+            var t = null;
+            try { if (typeof originPlace !== 'undefined') t = titikTempat(originPlace); } catch (e) {}
+            return t || titikGps();
+        }
+        function titikCheckout() {
+            var mode = sesi('order_mode');
+            try { if (typeof orderMode !== 'undefined') mode = orderMode; } catch (e) {}
+            if (mode === 'dine_in') return null;   // makan di tempat: tidak perlu cek area antar
+            var p = window.checkoutDestPlace;
+            if (window.checkoutLocMode === 'maps' && p && p.geometry && p.geometry.location) {
+                var L = p.geometry.location;
+                return { lat: Number(typeof L.lat === 'function' ? L.lat() : L.lat), lng: Number(typeof L.lng === 'function' ? L.lng() : L.lng) };
+            }
+            return { lat: Number(bacaLs('user_lat')), lng: Number(bacaLs('user_lng')) };
+        }
+        function bungkus(nama, ambilTitik) {
+            var asli = window[nama];
+            if (typeof asli !== 'function' || asli.__pgArea) return;
+            var baru = function () {
+                var self = this, arg = arguments, t = ambilTitik();
+                if (t && sah(t.lat, t.lng)) window.pgKonfirmasiArea(t.lat, t.lng, function () { asli.apply(self, arg); });
+                else return asli.apply(self, arg);
+            };
+            baru.__pgArea = true;
+            window[nama] = baru;
+        }
+        // ---------- 4) Pesanan lewat chat: sertakan titik pemesan bila belum ada link Maps ----------
+        function bungkusChat() {
+            var asli = window.pcKirimPesanan;
+            if (typeof asli !== 'function' || asli.__pgArea) return;
+            var baru = function (o) {
+                try {
+                    var teks = String((o && o.teks) || '');
+                    var lat = Number(bacaLs('user_lat')), lng = Number(bacaLs('user_lng'));
+                    if (teks && !/maps\?q=|google\.com\/maps/i.test(teks) && sah(lat, lng)) {
+                        o = Object.assign({}, o, { teks: teks + '\n📍 Titik pemesan: https://www.google.com/maps?q=' + lat.toFixed(6) + ',' + lng.toFixed(6) });
+                    }
+                } catch (e) {}
+                return asli.call(this, o);
+            };
+            baru.__pgArea = true;
+            window.pcKirimPesanan = baru;
+        }
+        var cobaPasang = 0;
+        var tPasang = setInterval(function () {
+            cobaPasang++;
+            bungkus('processCheckout', titikCheckout);
+            bungkus('submitServiceForm', titikLayanan);
+            bungkusChat();
+            if ((window.processCheckout && window.processCheckout.__pgArea && window.pcKirimPesanan && window.pcKirimPesanan.__pgArea) || cobaPasang > 40) clearInterval(tPasang);
+        }, 500);
+    })();
+    </script>
+    <!-- ===================== AKHIR LOKASI & AREA LAYANAN ===================== -->
 </body>
 
 </html>
