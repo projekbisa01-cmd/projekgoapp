@@ -17123,6 +17123,7 @@ body.gm-terkunci { overflow: hidden; }
                     return {
                         kode: d.id, jenis: JENIS[x.jenis] ? x.jenis : 'lain', judul: String(x.judul || '').slice(0, 60), pesanan: String(x.pesanan || '').slice(0, 1500),
                         fee: Number(x.fee) || 0, tambahan: Number(x.tambahan) || 0, chat: x.chat === true, lewat: x.lewat === 'wa' ? 'wa' : 'chat',
+                        oto: x.lewat === 'otomatis', oid: String(x.order_id || ''),   // (18 Nov 2026) order otomatis -> tampilan lacak baru
                         riderNama: x.rider_nama ? String(x.rider_nama).slice(0, 60) : '', akhir: ['selesai', 'batal'].includes(x.akhir) ? x.akhir : '', akhir_at: x.akhir_at || null,
                         diubah: ms(x.diubah_at) || 0, t: ms(x.dibuat_at) || Date.now()
                     };
@@ -17330,6 +17331,7 @@ body.gm-terkunci { overflow: hidden; }
                      at: ms(c.terakhir_at) || a.t || 0, belum: belumChat(a), edit: c.edit_utk_pelanggan === true && chatBuka(a) };
         });
         window.ktvBukaChatRider = (kode) => bukaRuangRider(kode);
+        window.ktvBukaDetailAsli = (kode) => bukaDetailPesanan(kode, true);
         function gambarSemua() {
             try { if (typeof window.pcsGambar === 'function') window.pcsGambar(); } catch (e) {}
             gambarLencana(); gambarBeranda();
@@ -17365,8 +17367,10 @@ body.gm-terkunci { overflow: hidden; }
         const kembali = () => { try { window.history.back(); } catch (e) { window.ktvTanganiKembali(); } };
 
         // ---------- Detail pesanan ----------
-        function bukaDetailPesanan(kode) {
+        function bukaDetailPesanan(kode, asli) {
             if (!akt.some((a) => a.kode === kode)) return;
+            // (18 Nov 2026) Order otomatis: tampilan lacak baru (peta, rider, rincian biaya). "asli" = detail lama (form ulasan)
+            if (!asli) { const a0 = akt.find((x) => x.kode === kode); if (a0 && a0.oto && typeof window.otoBukaLacak === 'function' && window.otoBukaLacak(kode, a0.oid)) return; }
             bukaDetail = kode;
             $('ktv-detail').hidden = false;
             document.body.style.overflow = 'hidden';
@@ -19154,7 +19158,7 @@ body.gm-terkunci { overflow: hidden; }
     <div class="oto-lyr" id="oto-lyr" hidden role="dialog" aria-modal="true" aria-labelledby="oto-judul"><div class="oto-lbr" id="oto-lbr"></div></div>
     <script type="module">
         import { getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, onSnapshot, writeBatch, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, onSnapshot, writeBatch, updateDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         (function orderOtomatisPelanggan() {
             'use strict';
@@ -19422,15 +19426,14 @@ body.gm-terkunci { overflow: hidden; }
                 const b = writeBatch(db);
                 b.set(doc(db, 'otomatis_pelanggan', uid), { at: serverTimestamp(), id });
                 b.set(doc(db, 'otomatis_order', id), o);
-                b.set(doc(db, 'otomatis_order', id, 'kontak', 'data'), { wa: akun.wa, nama: String(akun.nama).slice(0, 60), penerima_nama: penNama, penerima_hp: penHp });
+                // (18 Nov 2026) nomor WA pelanggan di dokumen terpisah: rider TIDAK bisa membacanya (hanya admin & pelanggan)
+                b.set(doc(db, 'otomatis_order', id, 'kontak', 'data'), { nama: String(akun.nama).slice(0, 60), penerima_nama: penNama, penerima_hp: penHp });
+                b.set(doc(db, 'otomatis_order', id, 'kontak', 'wa'), { wa: akun.wa });
                 b.set(doc(db, 'chat_rider', kode), { pelanggan_uid: uid, pelanggan_nama: namaDepan, order_id: id, jenis, rider_uid: null, rider_nama: null,
                     terakhir: '', terakhir_dari: '', terakhir_at: serverTimestamp(), belum_rider: 0, belum_pelanggan: 0, dibuat_at: serverTimestamp() });
-                const judul = (k.layanan === 'ngojek' ? 'Ngojek' : 'Kirim paket') + ' otomatis';
-                b.set(doc(db, 'aktivitas_pelanggan', uid, 'order', kode), { kode, order_id: id, jenis, judul,
-                    pesanan: ('📍 ' + o.jemput.alamat + '\n🚩 ' + o.tujuan.alamat + (catatan ? '\n' + catatan : '')).slice(0, 1500),
-                    fee, tambahan: 0, lewat: 'otomatis', chat: true, rider_nama: null, dibuat_at: serverTimestamp() });
                 try { await b.commit(); }
                 catch (e) { console.warn('[Otomatis] belum bisa:', e && e.code); return false; }   // ditolak server -> jalan lama
+                try { sessionStorage.setItem('oto_terakhir', JSON.stringify({ id, kode })); } catch (e) {}
                 const cari = (Number(atur.cari_dtk) || 60) * 1000;
                 jalan = { id, kode, o: Object.assign({}, o), mulai: Date.now(), batas: Date.now() + cari, akhir: null, tahap: 'menuju' };
                 layarCari();
@@ -19441,19 +19444,46 @@ body.gm-terkunci { overflow: hidden; }
                     jalan.o = Object.assign(jalan.o, d);
                     if (d.status === 'diterima' && !jalan.dapat) {
                         jalan.dapat = true; jalan.akhir = 'dapat'; clearInterval(jalan.timer);
-                        try { updateDoc(doc(db, 'aktivitas_pelanggan', uid, 'order', kode), { rider_nama: String(d.rider_nama || '').slice(0, 60) }).catch(() => {}); } catch (e) {}
-                        layarDapat();
+                        const oSalin = Object.assign({}, jalan.o);
+                        bersihJalan(); tutup();
+                        pastikanAktivitas(kode, id, oSalin).then(() => {}).catch(() => {});
                         try { if (navigator.vibrate) navigator.vibrate([150, 80, 150]); } catch (e) {}
-                        jalan.hentiLacak = onSnapshot(doc(db, 'artifacts', 'onbid-2f87a', 'public', 'data', 'lacak', kode), (sl) => {
-                            if (!jalan) return;
-                            const l = sl.exists() ? sl.data() : null;
-                            if (l && ['menuju', 'antar', 'selesai'].includes(l.tahap)) { jalan.tahap = l.tahap; gambarTahap(); }
-                            if (l && l.tahap === 'selesai') { setTimeout(() => { bersihJalan(); }, 1500); }
-                        }, () => {});
+                        window.otoBukaLacak(kode, id);
                     }
                 }, () => {});
                 return true;
             }
+
+            // Aktivitas (menu Aktivitas + chat rider) dibuat saat rider sudah didapat
+            async function pastikanAktivitas(kode, id, o) {
+                if (!user) return;
+                const ref = doc(db, 'aktivitas_pelanggan', user.uid, 'order', kode);
+                let ada = false;
+                try { ada = (await getDoc(ref)).exists(); } catch (e) { ada = false; }
+                const catatan = String(o.catatan || '');
+                if (!ada) {
+                    await setDoc(ref, { kode, order_id: id, jenis: o.layanan === 'ngojek' ? 'ojek' : 'kirim',
+                        judul: (o.layanan === 'ngojek' ? 'Ngojek' : 'Kirim paket') + ' otomatis',
+                        pesanan: ('📍 ' + String((o.jemput && o.jemput.alamat) || '') + '\n🚩 ' + String((o.tujuan && o.tujuan.alamat) || '') + (catatan ? '\n' + catatan : '')).slice(0, 1500),
+                        fee: o.fee, tambahan: 0, lewat: 'otomatis', chat: true, rider_nama: null, dibuat_at: serverTimestamp() });
+                }
+                if (o.rider_nama) { try { await updateDoc(ref, { rider_nama: String(o.rider_nama).slice(0, 60) }); } catch (e) {} }
+            }
+            // Aplikasi ditutup saat mencari lalu dibuka lagi: pesanan yang sudah diterima rider tetap masuk Aktivitas
+            async function pulihkan() {
+                if (!user) return;
+                try {
+                    const sk = await getDoc(doc(db, 'otomatis_pelanggan', user.uid));
+                    const id = sk.exists() ? String(sk.data().id || '') : '';
+                    if (!/^[A-Za-z0-9]{20}$/.test(id)) return;
+                    const so = await getDoc(doc(db, 'otomatis_order', id));
+                    if (!so.exists()) return;
+                    const o = so.data();
+                    const umur = Date.now() - (o.dibuat_at && o.dibuat_at.toMillis ? o.dibuat_at.toMillis() : (o.dibuat_at && o.dibuat_at.seconds ? o.dibuat_at.seconds * 1000 : 0));
+                    if (o.status === 'diterima' && umur < 24 * 3600 * 1000 && /^[A-Za-z0-9]{16}$/.test(String(o.kode || ''))) await pastikanAktivitas(o.kode, id, o);
+                } catch (e) {}
+            }
+            onAuthStateChanged(auth, (u) => { if (u && !u.isAnonymous) setTimeout(pulihkan, 3000); });
 
             let aslinya = null;
             function pasang() {
@@ -19483,6 +19513,262 @@ body.gm-terkunci { overflow: hidden; }
         })();
     </script>
     <!-- ===================== AKHIR ORDER OTOMATIS (PELANGGAN) ===================== -->
+    <!-- ===================== LACAK ORDER OTOMATIS (18 Nov 2026) =====================
+         Satu tampilan lacak untuk order otomatis (Ngojek & Kirim paket): peta + rute, status, rider (foto, plat, motor),
+         Chat dengan rider (chat aplikasi), detail pesanan, rincian biaya, dan Beri ulasan setelah selesai.
+         Data: otomatis_order/{id} (milik pelanggan), lacak/{kode} (ditulis rider), ulasan_link/{k} (nama, foto, plat, motor).
+         Nomor HP rider TIDAK ditampilkan (hubungi lewat chat). Semua teks lewat textContent. -->
+    <style id="oto-lk-css">
+        .oto-lk { position: fixed; top: 0; bottom: 0; left: 0; right: 0; max-width: var(--max-width, 480px); margin: 0 auto; z-index: 1205; background: #E9E6DF; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #111827; overflow: hidden; }
+        .oto-lk[hidden] { display: none; }
+        .oto-lk-peta { position: absolute; inset: 0; }
+        .oto-lk-peta iframe { width: 100%; height: 100%; border: 0; }
+        .oto-lk-x { position: absolute; top: calc(env(safe-area-inset-top, 0px) + 12px); left: 12px; width: 44px; height: 44px; border-radius: 50%; border: 0; background: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.18); font-size: 22px; font-weight: 800; color: #111827; z-index: 2; }
+        .oto-lk-rute { position: absolute; top: calc(env(safe-area-inset-top, 0px) + 12px); left: 64px; right: 12px; background: #fff; border-radius: 14px; box-shadow: 0 4px 14px rgba(0,0,0,.14); padding: 6px 12px; z-index: 2; }
+        .oto-lk-rute div { display: flex; gap: 8px; align-items: center; padding: 5px 0; font-size: 13px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .oto-lk-rute div + div { border-top: 1px solid #F1F1F1; }
+        .oto-lk-rute i { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+        .oto-lk-bawah { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; display: flex; flex-direction: column; max-height: 74%; }
+        .oto-lk-bnr { background: #EA580C; color: #fff; border-radius: 18px 18px 0 0; padding: 12px 16px 24px; margin-bottom: -14px; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 800; }
+        .oto-lk-bnr.selesai { background: #16A34A; }
+        .oto-lk-bnr span { margin-left: auto; background: #fff; color: #C2410C; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 900; white-space: nowrap; }
+        .oto-lk-bnr span[hidden] { display: none; }
+        .oto-lk-kartu { background: #fff; border-radius: 18px 18px 0 0; padding: 10px 16px calc(env(safe-area-inset-bottom, 0px) + 16px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .oto-lk-grip { width: 40px; height: 4px; border-radius: 4px; background: #E5E7EB; margin: 0 auto 10px; }
+        .oto-lk-rd { display: flex; gap: 12px; align-items: flex-start; }
+        .oto-lk-plat { font-size: 20px; font-weight: 900; letter-spacing: .02em; }
+        .oto-lk-plat[hidden], .oto-lk-motor[hidden] { display: none; }
+        .oto-lk-motor { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 14.5px; font-weight: 800; margin-top: 2px; }
+        .oto-lk-motor small { font-size: 11.5px; background: #FFF1E6; color: #C2410C; border-radius: 6px; padding: 2px 7px; font-weight: 800; }
+        .oto-lk-foto { margin-left: auto; width: 60px; height: 60px; border-radius: 14px; background: linear-gradient(135deg, #FDBA74, #EA580C); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 900; font-size: 21px; flex: none; overflow: hidden; }
+        .oto-lk-foto img { width: 100%; height: 100%; object-fit: cover; }
+        .oto-lk-nm { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin: 10px 0; padding-top: 10px; border-top: 1px dashed #E5E7EB; font-size: 14px; font-weight: 700; color: #374151; }
+        .oto-lk-nm b { background: #DCFCE7; color: #166534; border-radius: 999px; padding: 2px 8px; font-size: 11.5px; }
+        .oto-lk-chat { width: 100%; height: 48px; border-radius: 999px; border: 0; background: #F3F4F6; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; font: inherit; font-size: 14px; font-weight: 800; color: #374151; }
+        .oto-lk-chat em { font-style: normal; background: #EA580C; color: #fff; border-radius: 999px; min-width: 22px; height: 22px; padding: 0 6px; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; }
+        .oto-lk-chat em[hidden] { display: none; }
+        .oto-lk-thp { display: flex; gap: 4px; margin: 12px 0 2px; }
+        .oto-lk-thp i { flex: 1; height: 5px; border-radius: 4px; background: #E5E7EB; }
+        .oto-lk-thp i.on { background: #EA580C; }
+        .oto-lk-thpt { display: flex; justify-content: space-between; font-size: 10.5px; font-weight: 700; color: #9CA3AF; }
+        .oto-lk-kotak { margin-top: 12px; background: #F9FAFB; border-radius: 14px; padding: 8px 12px; }
+        .oto-lk-kotak h6 { font-size: 11px; font-weight: 900; color: #6B7280; text-transform: uppercase; letter-spacing: .04em; margin: 2px 0 6px; }
+        .oto-lk-tt { display: flex; gap: 10px; position: relative; padding-bottom: 8px; }
+        .oto-lk-tt .d { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; flex: none; }
+        .oto-lk-tt.j .d { background: #2563EB; } .oto-lk-tt.t .d { background: #F97316; }
+        .oto-lk-tt.j::after { content: ''; position: absolute; left: 4.5px; top: 18px; bottom: 0; width: 1.5px; background: #E5E7EB; }
+        .oto-lk-tt b { display: block; font-size: 13.5px; font-weight: 800; overflow-wrap: anywhere; }
+        .oto-lk-tt span { display: block; font-size: 12px; color: #6B7280; font-weight: 500; margin-top: 2px; overflow-wrap: anywhere; }
+        .oto-lk-pill { display: inline-block !important; background: #F97316; color: #fff !important; border-radius: 999px; padding: 3px 10px; font-size: 11.5px !important; font-weight: 800 !important; margin: 4px 0 2px; }
+        .oto-lk-by { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: #4B5563; padding: 5px 0; }
+        .oto-lk-by b { color: #111827; }
+        .oto-lk-by.tot { border-top: 1px dashed #D1D5DB; margin-top: 3px; padding-top: 9px; font-size: 14px; font-weight: 900; color: #111827; }
+        .oto-lk-by.tot b { color: #C2410C; }
+        .oto-lk-kode { font-size: 11px; color: #9CA3AF; font-weight: 600; text-align: center; margin-top: 10px; }
+        .oto-lk-ulas { width: 100%; height: 50px; margin-top: 12px; border-radius: 14px; border: 0; background: #EA580C; color: #fff; font: inherit; font-size: 15px; font-weight: 900; }
+        .oto-lk-ulas[hidden] { display: none; }
+    </style>
+    <div class="oto-lk" id="oto-lk" hidden role="dialog" aria-modal="true" aria-labelledby="oto-lk-status">
+        <div class="oto-lk-peta" id="oto-lk-peta"></div>
+        <button type="button" class="oto-lk-x" id="oto-lk-x" aria-label="Tutup">‹</button>
+        <div class="oto-lk-rute"><div><i style="background:#2563EB"></i><span id="oto-lk-r1"></span></div><div><i style="background:#F97316"></i><span id="oto-lk-r2"></span></div></div>
+        <div class="oto-lk-bawah">
+            <div class="oto-lk-bnr" id="oto-lk-bnr"><span id="oto-lk-status" style="margin:0;background:none;color:#fff;padding:0;font-size:14px;white-space:normal">Rider menuju lokasi jemput</span><span id="oto-lk-eta" hidden></span></div>
+            <div class="oto-lk-kartu">
+                <div class="oto-lk-grip"></div>
+                <div class="oto-lk-rd">
+                    <div><div class="oto-lk-plat" id="oto-lk-plat" hidden></div><div class="oto-lk-motor" id="oto-lk-motor" hidden></div><div id="oto-lk-nama0" style="font-size:16px;font-weight:900"></div></div>
+                    <div class="oto-lk-foto" id="oto-lk-foto">R</div>
+                </div>
+                <div class="oto-lk-nm" id="oto-lk-nm"></div>
+                <button type="button" class="oto-lk-chat" id="oto-lk-chat"><span>💬 Chat dengan rider</span><em id="oto-lk-belum" hidden>0</em><span aria-hidden="true">›</span></button>
+                <div class="oto-lk-thp" id="oto-lk-thp"><i></i><i></i><i></i><i></i></div>
+                <div class="oto-lk-thpt"><span>Diterima</span><span id="oto-lk-t2">Menjemput</span><span id="oto-lk-t3">Diantar</span><span>Selesai</span></div>
+                <button type="button" class="oto-lk-ulas" id="oto-lk-ulas" hidden>⭐ Beri ulasan untuk rider</button>
+                <div class="oto-lk-kotak"><h6 id="oto-lk-dj">Detail pesanan</h6><div id="oto-lk-titik"></div></div>
+                <div class="oto-lk-kotak"><h6>Rincian biaya</h6>
+                    <div class="oto-lk-by"><span>Ongkir / biaya jasa</span><b id="oto-lk-fee">Rp0</b></div>
+                    <div class="oto-lk-by"><span>Biaya aplikasi</span><b>Rp0</b></div>
+                    <div class="oto-lk-by"><span>Biaya lain-lain</span><b>Rp0</b></div>
+                    <div class="oto-lk-by tot"><span>Total · bayar tunai ke rider</span><b id="oto-lk-tot">Rp0</b></div>
+                </div>
+                <div class="oto-lk-kode" id="oto-lk-kode"></div>
+            </div>
+        </div>
+    </div>
+    <script type="module">
+        import { getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        (function lacakOtomatis() {
+            'use strict';
+            let db; try { db = getFirestore(getApp()); } catch (e) { return; }
+            const $ = (id) => document.getElementById(id);
+            const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
+            const rp = (n) => 'Rp' + Math.round(Number(n) || 0).toLocaleString('id-ID');
+            const fmtKm = (d) => String(Math.round((Number(d) || 0) * 10) / 10).replace('.', ',') + ' km';
+            const ID_OK = /^[A-Za-z0-9]{20}$/, KODE_OK = /^[A-Za-z0-9]{16}$/, KODE_RIDER = /^[A-Za-z0-9]{10,32}$/;
+            const D = (...s) => doc(db, 'artifacts', 'onbid-2f87a', 'public', 'data', ...s);
+            const pisah = (t) => { const s = String((t && t.alamat) || '').trim(); const i = s.indexOf(','); return i > 0 ? [s.slice(0, i), s.slice(i + 1).trim()] : [s || 'Titik di peta', '']; };
+            let lk = null;   // { kode, id, o, l, r, henti: [] }
+            let peta = null, penanda = {}, rute = null, ruteId = '';
+
+            function tutup() {
+                if (lk) lk.henti.forEach((f) => { try { f(); } catch (e) {} });
+                lk = null; $('oto-lk').hidden = true;
+                document.body.style.overflow = '';
+            }
+            $('oto-lk-x').addEventListener('click', tutup);
+            $('oto-lk-chat').addEventListener('click', () => {
+                if (!lk) return;
+                if (typeof window.ktvBukaChatRider === 'function') { try { window.ktvBukaChatRider(lk.kode); return; } catch (e) {} }
+                if (typeof window.showToast === 'function') window.showToast('Chat sedang disiapkan, coba lagi sebentar');
+            });
+            $('oto-lk-ulas').addEventListener('click', () => {
+                if (!lk) return; const k = lk.kode; tutup();
+                if (typeof window.ktvBukaDetailAsli === 'function') window.ktvBukaDetailAsli(k);
+            });
+
+            // ---------- peta ----------
+            function titik(t) { return t && isFinite(Number(t.lat)) && isFinite(Number(t.lng)) ? { lat: Number(t.lat), lng: Number(t.lng) } : null; }
+            function gambarPeta() {
+                if (!lk || !lk.o) return;
+                const o = lk.o, jp = titik(o.jemput), tj = titik(o.tujuan);
+                const wadah = $('oto-lk-peta');
+                const g = window.google && window.google.maps;
+                if (!g) {   // cadangan tanpa Maps JavaScript
+                    if (!wadah.querySelector('iframe')) { const f = document.createElement('iframe'); f.title = 'Peta'; f.loading = 'lazy'; f.referrerPolicy = 'no-referrer'; wadah.appendChild(f); }
+                    const t = (lk.l && lk.l.tahap === 'antar') ? tj : jp;
+                    const src = 'https://maps.google.com/maps?q=' + t.lat + ',' + t.lng + '&z=15&output=embed';
+                    const f = wadah.querySelector('iframe'); if (f.getAttribute('src') !== src) f.setAttribute('src', src);
+                    return;
+                }
+                if (!peta || peta.getDiv() !== wadah) {
+                    while (wadah.firstChild) wadah.removeChild(wadah.firstChild);
+                    peta = new g.Map(wadah, { center: jp, zoom: 15, disableDefaultUI: true, gestureHandling: 'greedy', clickableIcons: false });
+                    penanda = {}; rute = null; ruteId = '';
+                }
+                const bulat = (warna) => ({ path: g.SymbolPath.CIRCLE, scale: 9, fillColor: warna, fillOpacity: 1, strokeColor: '#fff', strokeWeight: 3 });
+                if (!penanda.j) penanda.j = new g.Marker({ map: peta, position: jp, icon: bulat('#2563EB'), title: 'Jemput' }); else penanda.j.setPosition(jp);
+                if (!penanda.t) penanda.t = new g.Marker({ map: peta, position: tj, icon: bulat('#F97316'), title: 'Tujuan' }); else penanda.t.setPosition(tj);
+                const pos = lk.l && lk.l.posisi && titik(lk.l.posisi);
+                if (pos) {
+                    if (!penanda.r) penanda.r = new g.Marker({ map: peta, position: pos, label: { text: '🛵', fontSize: '22px' }, icon: { path: g.SymbolPath.CIRCLE, scale: 0 }, title: 'Rider' });
+                    else penanda.r.setPosition(pos);
+                } else if (penanda.r) { penanda.r.setMap(null); penanda.r = null; }
+                if (ruteId !== lk.id) {
+                    ruteId = lk.id;
+                    const b = new g.LatLngBounds(); b.extend(jp); b.extend(tj); if (pos) b.extend(pos);
+                    peta.fitBounds(b, { top: 110, bottom: Math.round(window.innerHeight * 0.55), left: 40, right: 40 });
+                    try {
+                        new g.DirectionsService().route({ origin: jp, destination: tj, travelMode: g.TravelMode.DRIVING }, (res, st) => {
+                            if (st !== 'OK' || !res || !lk || ruteId !== lk.id) return;
+                            if (rute) rute.setMap(null);
+                            rute = new g.Polyline({ map: peta, path: res.routes[0].overview_path, strokeColor: '#EA580C', strokeWeight: 5, strokeOpacity: .9 });
+                        });
+                    } catch (e) {}
+                }
+            }
+
+            // ---------- isi ----------
+            function gambar() {
+                if (!lk || !lk.o) return;
+                const o = lk.o, l = lk.l || {}, r = lk.r || {};
+                const ojek = o.layanan === 'ngojek';
+                const j = pisah(o.jemput), t = pisah(o.tujuan);
+                $('oto-lk-r1').textContent = j[0]; $('oto-lk-r2').textContent = t[0];
+                // status
+                let tahap = l.tahap || 'menuju';
+                if (o.status !== 'diterima') tahap = o.status === 'cari' ? 'cari' : 'batal';
+                const teks = { cari: 'Mencari rider terdekat…', menuju: ojek ? 'Rider menuju lokasi jemput' : 'Rider menuju lokasi pengambilan', lokasi: 'Rider sudah di lokasi',
+                    antar: ojek ? 'Dalam perjalanan ke tujuan' : 'Barang sedang diantar', selesai: ojek ? 'Sudah sampai tujuan 🎉' : 'Barang sudah sampai 🎉', batal: 'Pesanan tidak berjalan' }[tahap] || 'Rider menuju lokasi jemput';
+                $('oto-lk-status').textContent = '🛵 ' + teks;
+                $('oto-lk-bnr').classList.toggle('selesai', tahap === 'selesai');
+                const est = Number(l.estimasi_menit);
+                $('oto-lk-eta').hidden = !(est > 0 && tahap !== 'selesai');
+                $('oto-lk-eta').textContent = '± ' + est + ' mnt';
+                const urut = { cari: 0, menuju: 2, lokasi: 2, antar: 3, selesai: 4, batal: 0 }[tahap] || 1;
+                Array.prototype.forEach.call($('oto-lk-thp').children, (b, i) => b.classList.toggle('on', i < urut));
+                $('oto-lk-t2').textContent = ojek ? 'Menjemput' : 'Mengambil';
+                // rider
+                const nama = String(r.nama || o.rider_nama || 'Rider ProjekGo');
+                const plat = String(r.plat || '').trim(), motor = String(r.motor || '').trim(), warna = String(r.warna || '').trim();
+                $('oto-lk-plat').hidden = !plat; $('oto-lk-plat').textContent = plat;
+                const m = $('oto-lk-motor'); while (m.firstChild) m.removeChild(m.firstChild);
+                m.hidden = !motor; if (motor) { m.appendChild(document.createTextNode(motor)); if (warna) m.appendChild(el('small', '', warna)); }
+                $('oto-lk-nama0').textContent = (!plat && !motor) ? nama : '';
+                const f = $('oto-lk-foto'); while (f.firstChild) f.removeChild(f.firstChild);
+                if (r.foto) { const im = el('img'); im.alt = 'Foto ' + nama; im.src = r.foto; f.appendChild(im); }
+                else f.textContent = nama.split(/\s+/).map((x) => x[0] || '').join('').slice(0, 2).toUpperCase();
+                const nm = $('oto-lk-nm'); while (nm.firstChild) nm.removeChild(nm.firstChild);
+                nm.appendChild(document.createTextNode((plat || motor) ? nama : 'Rider ProjekGo'));
+                if (ojek) nm.appendChild(el('b', '', '🪖 helm untukmu'));
+                // chat: belum dibaca
+                const n = Number(lk.belum) || 0;
+                $('oto-lk-belum').hidden = n <= 0; $('oto-lk-belum').textContent = n > 9 ? '9+' : String(n);
+                $('oto-lk-chat').hidden = tahap === 'batal';
+                // detail
+                $('oto-lk-dj').textContent = 'Detail pesanan · ' + (ojek ? 'Ngojek' : 'Kirim paket');
+                const w = $('oto-lk-titik'); while (w.firstChild) w.removeChild(w.firstChild);
+                const a1 = el('div', 'oto-lk-tt j'); a1.appendChild(el('span', 'd')); const b1 = el('div'); b1.appendChild(el('b', '', j[0])); if (j[1]) b1.appendChild(el('span', '', j[1])); a1.appendChild(b1);
+                const a2 = el('div', 'oto-lk-tt t'); a2.appendChild(el('span', 'd')); const b2 = el('div'); b2.appendChild(el('b', '', t[0]));
+                b2.appendChild(el('span', 'oto-lk-pill', 'Jarak • ' + fmtKm(o.jarak_km))); if (t[1]) b2.appendChild(el('span', '', t[1])); a2.appendChild(b2);
+                w.appendChild(a1); w.appendChild(a2);
+                if (o.catatan) { const c = el('div', '', String(o.catatan)); c.style.cssText = 'font-size:12px;color:#6B7280;font-weight:600;padding:2px 0 6px'; w.appendChild(c); }
+                $('oto-lk-fee').textContent = rp(o.fee); $('oto-lk-tot').textContent = rp(o.fee);
+                $('oto-lk-kode').textContent = 'Kode pesanan PG-' + String(lk.kode).slice(0, 12).toUpperCase();
+                // ulasan setelah selesai (sekali, link sekali pakai seperti order dari admin)
+                const sudahUlas = (() => { try { return localStorage.getItem('ktv_ulas_' + lk.kode) === '1'; } catch (e) { return false; } })();
+                $('oto-lk-ulas').hidden = !(tahap === 'selesai' && lk.token === 'belum' && !sudahUlas);
+                gambarPeta();
+            }
+            function muatRider(k) {
+                if (!KODE_RIDER.test(String(k || '')) || (lk && lk.rk === k)) return;
+                lk.rk = k;
+                getDoc(D('ulasan_link', k)).then((s) => {
+                    if (!lk || lk.rk !== k) return;
+                    const x = s.exists() ? s.data() : {};
+                    const foto = typeof x.foto === 'string' && x.foto.length <= 20000 && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(x.foto) ? x.foto : '';
+                    lk.r = { nama: String(x.nama || '').slice(0, 60), foto, plat: String(x.plat || '').slice(0, 15), motor: String(x.motor || '').slice(0, 40), warna: String(x.warna || '').slice(0, 20) };
+                    gambar();
+                }).catch(() => {});
+            }
+            function cekToken() {
+                if (!lk || lk.token) return;
+                lk.token = 'cek';
+                getDoc(D('ulasan_token', lk.kode)).then((s) => { if (!lk) return; const x = s.exists() ? s.data() : null; lk.token = !x ? 'tidak' : (x.terpakai === true ? 'sudah' : 'belum'); gambar(); })
+                    .catch(() => { if (lk) lk.token = 'tidak'; });
+            }
+
+            // Buka lacak. Dipanggil saat rider ditemukan & dari menu Aktivitas (order otomatis).
+            window.otoBukaLacak = (kode, id) => {
+                if (!KODE_OK.test(String(kode || '')) || !ID_OK.test(String(id || ''))) return false;
+                if (lk && lk.kode === kode) { $('oto-lk').hidden = false; return true; }
+                tutup();
+                lk = { kode, id, o: null, l: null, r: null, henti: [], token: '' };
+                $('oto-lk').hidden = false;
+                document.body.style.overflow = 'hidden';
+                lk.henti.push(onSnapshot(doc(db, 'otomatis_order', id), (s) => {
+                    if (!lk || lk.id !== id) return;
+                    if (!s.exists()) { tutup(); return; }
+                    lk.o = s.data(); gambar();
+                }, () => {}));
+                lk.henti.push(onSnapshot(D('lacak', kode), (s) => {
+                    if (!lk || lk.kode !== kode) return;
+                    lk.l = s.exists() ? s.data() : null;
+                    if (lk.l && lk.l.k) muatRider(lk.l.k);
+                    if (lk.l && lk.l.tahap === 'selesai') cekToken();
+                    gambar();
+                }, () => {}));
+                lk.henti.push(onSnapshot(doc(db, 'chat_rider', kode), (s) => {
+                    if (!lk || lk.kode !== kode) return;
+                    lk.belum = s.exists() ? Math.max(0, Number(s.data().belum_pelanggan) || 0) : 0;
+                    gambar();
+                }, () => {}));
+                return true;
+            };
+        })();
+    </script>
+    <!-- ===================== AKHIR LACAK ORDER OTOMATIS ===================== -->
 </body>
 
 </html>
