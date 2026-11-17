@@ -2632,6 +2632,19 @@ body.gm-terkunci { overflow: hidden; }
         .ktv-lama { display: block; margin: 18px auto 0; border: 0; background: transparent; color: #C2410C; font: inherit; font-size: 13px; font-weight: 800; text-decoration: underline; cursor: pointer; min-height: 44px; }
 
         /* ---- Beranda: aktivitas terkini ---- */
+        .ktv-ulas-ajak { position: relative; z-index: 3; margin: -34px 16px 0; background: #FFFBEB; border: 1.5px solid #FCD34D; border-radius: 22px; padding: 12px 14px; box-shadow: 0 12px 28px rgba(232,83,0,.14); display: flex; gap: 12px; align-items: center; }
+        .ktv-ulas-ajak[hidden] { display: none; }
+        .ktv-ulas-ajak:not([hidden]) + .ktv-beranda[hidden] + .bn-wrap { margin-top: 0; padding-top: 16px !important; }
+        .ktv-ulas-ajak:not([hidden]) + .ktv-beranda { margin-top: 10px; }
+        .ktv-ulas-ajak .ua-foto { width: 46px; height: 46px; border-radius: 14px; background: linear-gradient(135deg, #FDBA74, #EA580C); color: #fff; font-weight: 900; font-size: 17px; display: flex; align-items: center; justify-content: center; flex: none; overflow: hidden; }
+        .ktv-ulas-ajak .ua-foto img { width: 100%; height: 100%; object-fit: cover; }
+        .ktv-ulas-ajak .ua-isi { flex: 1; min-width: 0; }
+        .ktv-ulas-ajak .ua-isi b { display: block; font-size: 14px; font-weight: 800; color: #1F1611; }
+        .ktv-ulas-ajak .ua-isi small { display: block; font-size: 11.5px; font-weight: 600; color: #6B5D51; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ktv-ulas-ajak .ua-bintang { display: flex; gap: 2px; margin-top: 4px; }
+        .ktv-ulas-ajak .ua-bintang button { border: 0; background: none; font-size: 24px; line-height: 1; padding: 2px; color: #E7D3B5; cursor: pointer; min-width: 32px; min-height: 32px; }
+        .ktv-ulas-ajak .ua-bintang button:hover, .ktv-ulas-ajak .ua-bintang button:focus-visible { color: #F59E0B; }
+        .ktv-ulas-ajak .ua-x { align-self: flex-start; border: 0; background: none; color: #A8998A; font-size: 20px; width: 32px; height: 32px; flex: none; }
         .ktv-beranda { position: relative; z-index: 3; margin: -34px 16px 0; background: #FFFFFF; border: 1.5px solid #FFC9A0; border-radius: 24px; padding: 12px 14px 14px; box-shadow: 0 12px 28px rgba(232,83,0,.14); }
         .ktv-beranda[hidden] { display: none; }
         .ktv-beranda:not([hidden]) + .bn-wrap { margin-top: 0; padding-top: 16px !important; }
@@ -3689,6 +3702,9 @@ body.gm-terkunci { overflow: hidden; }
                     </div>
                 </div>
             </div>
+
+            <!-- (18 Nov 2026) AJAKAN ULASAN: pesanan selesai < 24 jam yang belum diulas (order admin & order otomatis) -->
+            <div id="ktv-ulas-ajak" class="ktv-ulas-ajak" hidden aria-live="polite"></div>
 
             <!-- AKTIVITAS TERKINI (tahap 3): muncul kalau ada pesanan berjalan -->
             <div id="ktv-beranda" class="ktv-beranda" hidden aria-live="polite"></div>
@@ -17291,7 +17307,53 @@ body.gm-terkunci { overflow: hidden; }
             }
             w.replaceChildren(frag);
         }
+        // (18 Nov 2026) Ajakan ulasan di bawah header beranda: pesanan selesai < 24 jam, kode ulasan masih "belum".
+        // Ketuk bintang -> detail pesanan terbuka dengan bintang terpilih & form ulasan (aturan ulasan tetap sama).
+        const ajakTutup = (() => { try { return JSON.parse(sessionStorage.getItem('ktv_ajak_tutup') || '[]') || []; } catch (e) { return []; } })();
+        const lacakDiminta = {};
+        function calonUlasan() {
+            return akt.filter((a) => {
+                if (tahapDari(a) !== 'selesai' || ulasanTerkirim(a.kode) || ajakTutup.indexOf(a.kode) >= 0) return false;
+                const s = selesaiMs(a);
+                if (!s || Date.now() >= s + HARI_MS) return false;
+                const l = lacak[a.kode];
+                if (!l && !lacakDiminta[a.kode] && !hentiLacak[a.kode]) {   // selesai > 1 jam: data lacak dibaca sekali
+                    lacakDiminta[a.kode] = true;
+                    getDoc(D('lacak', a.kode)).then((sl) => { lacak[a.kode] = sl.exists() ? sl.data() : null; if (lacak[a.kode] && KODE_RIDER.test(String(lacak[a.kode].k || ''))) muatRider(lacak[a.kode].k); gambarSemua(); }).catch(() => {});
+                }
+                if (!l || !KODE_RIDER.test(String(l.k || ''))) return false;
+                cekUlasan(a.kode);
+                return ulasanCache[a.kode] === 'belum';
+            }).slice(0, 3);
+        }
+        function gambarAjakUlasan() {
+            const w = $('ktv-ulas-ajak'); if (!w) return;
+            const a = calonUlasan()[0];
+            w.hidden = !a;
+            if (!a) { w.replaceChildren(); return; }
+            const info = infoRider(a), j = J(a.jenis);
+            const ft = el('div', 'ua-foto');
+            if (info.foto) { const im = el('img'); im.alt = ''; im.src = info.foto; ft.appendChild(im); }
+            else ft.textContent = (info.nama || 'R').charAt(0).toUpperCase();
+            const isi = el('div', 'ua-isi');
+            isi.append(el('b', '', 'Beri ulasan untuk ' + (info.nama || 'rider') + ' ⭐'), el('small', '', j.label + (a.judul ? ' · ' + a.judul : '') + ' · selesai ' + jam(selesaiMs(a))));
+            const bt = el('div', 'ua-bintang'); bt.setAttribute('role', 'group'); bt.setAttribute('aria-label', 'Pilih bintang');
+            for (let i = 1; i <= 5; i++) {
+                const b = el('button', '', '★'); b.type = 'button'; b.setAttribute('aria-label', i + ' bintang');
+                b.onclick = () => {
+                    ulasState = { kode: a.kode, bintang: i, komentar: '', kirim: false, galat: '' };
+                    bukaDetailPesanan(a.kode, true);
+                    setTimeout(() => { const u = document.querySelector('#ktv-detail .ktv-ulas'); if (u) u.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 350);
+                };
+                bt.appendChild(b);
+            }
+            isi.appendChild(bt);
+            const x = el('button', 'ua-x', '×'); x.type = 'button'; x.setAttribute('aria-label', 'Tutup ajakan ulasan');
+            x.onclick = () => { ajakTutup.push(a.kode); try { sessionStorage.setItem('ktv_ajak_tutup', JSON.stringify(ajakTutup.slice(-20))); } catch (e) {} gambarAjakUlasan(); };
+            w.replaceChildren(ft, isi, x);
+        }
         function gambarBeranda() {
+            try { gambarAjakUlasan(); } catch (e) {}
             const w = $('ktv-beranda'); if (!w) return;
             const jalan = akt.filter(berjalan);
             w.hidden = !jalan.length;
@@ -17400,6 +17462,7 @@ body.gm-terkunci { overflow: hidden; }
                 ulasanCache[kode] = !x ? 'tidak' : (x.terpakai === true ? 'sudah' : 'belum');
                 if (x) ulasanCache[kode + '_oid'] = String(x.order_id || '');
                 if (bukaDetail === kode) gambarDetail();
+                try { gambarAjakUlasan(); } catch (e) {}
             }).catch(() => { ulasanCache[kode] = 'tidak'; });
         }
         let ulasState = null;   // { bintang, komentar, kirim, galat }
