@@ -1676,7 +1676,7 @@
         .reg-btn:active { transform: scale(0.96); }
 
         /* --- SPLASH SCREEN & ONBOARDING --- */
-        #splash-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: #ffffff; z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.6s ease-out, visibility 0.6s; overflow: hidden; }
+        #splash-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: #ffffff; z-index: 99999; display: none; /* (18 Nov 2026) slide perkenalan tidak dipakai lagi (pendaftaran lewat gerbang Google) */ flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.6s ease-out, visibility 0.6s; overflow: hidden; }
         #splash-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
         .splash-slide { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; opacity: 0; transition: opacity 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; transform: scale(0.9); }
         .splash-slide.active { opacity: 1; pointer-events: auto; transform: scale(1); }
@@ -1703,7 +1703,7 @@
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background-color: #ffffff;
             z-index: 99998; /* Berada tepat di bawah splash screen slide */
-            display: none;
+            display: flex; /* (18 Nov 2026) tampil sejak awal; disembunyikan skrip setelah data siap */
             flex-direction: column; align-items: center; justify-content: center;
             transition: opacity 0.5s ease-out;
         }
@@ -3590,6 +3590,11 @@ body.gm-terkunci { overflow: hidden; }
     </div>
 
     <!-- FINAL SPLASH SCREEN LOGO -->
+    <script>
+        // (18 Nov 2026) Pengaman: splash logo tampil sejak awal. Kalau skrip utama gagal termuat (sinyal sangat buruk),
+        // splash tetap ditutup setelah 15 detik supaya aplikasi tidak terkunci di layar logo.
+        setTimeout(function () { var f = document.getElementById('final-splash-screen'); if (f && f.style.display !== 'none') { f.style.opacity = '0'; setTimeout(function () { f.style.display = 'none'; }, 500); } }, 15000);
+    </script>
     <div id="final-splash-screen">
         <img src="https://i.ibb.co.com/84PCGFDm/Whats-App-Image-2026-01-29-at-10-12-08.jpg" alt="Logo Projekgo" class="fs-logo">
         <div class="fs-title">PROJEKGO</div>
@@ -19191,9 +19196,15 @@ body.gm-terkunci { overflow: hidden; }
         .oto-radar i { position: absolute; inset: 0; border-radius: 50%; border: 2px solid rgba(255,0,0,.35); animation: otoDenyut 2s ease-out infinite; }
         .oto-radar i:nth-child(2) { animation-delay: .7s; }
         .oto-radar i:nth-child(3) { animation-delay: 1.4s; }
-        .oto-radar b { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px; border-radius: 50%; background: #FF0000; border: 4px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,.3); }
+        .oto-radar b { position: absolute; left: 50%; top: 50%; width: 64px; height: 64px; margin: -32px; border-radius: 50%; background: #fff; border: 3px solid #FF0000; box-shadow: 0 4px 14px rgba(255,0,0,.25); display: flex; align-items: center; justify-content: center; font-size: 32px; line-height: 1; }
+        .oto-radar b span { display: block; animation: otoMotor 1s ease-in-out infinite; }
         @keyframes otoDenyut { from { transform: scale(.25); opacity: 1; } to { transform: scale(1); opacity: 0; } }
-        @media (prefers-reduced-motion: reduce) { .oto-radar i { animation: none; } .oto-radar i:nth-child(2) { inset: 25px; } .oto-radar i:nth-child(3) { inset: 50px; } }
+        @keyframes otoMotor { 0%, 100% { transform: translate(-2px, 0) rotate(-3deg); } 50% { transform: translate(2px, -3px) rotate(3deg); } }
+        @keyframes otoGeser { from { transform: translateX(-100%); } to { transform: translateX(340%); } }
+        .oto-prog.siap i { width: 30%; transition: none; animation: otoGeser 1.2s ease-in-out infinite; }
+        .oto-btn.teks { background: none; color: #7A7068; height: 40px; font-size: 14px; }
+        .oto-btn:disabled { opacity: .55; }
+        @media (prefers-reduced-motion: reduce) { .oto-radar i { animation: none; } .oto-radar i:nth-child(2) { inset: 25px; } .oto-radar i:nth-child(3) { inset: 50px; } .oto-radar b span, .oto-prog.siap i { animation: none; } }
         .oto-lbr h3 { font-size: 18px; font-weight: 900; margin: 0; }
         .oto-lbr p { font-size: 13px; color: #5E554C; font-weight: 600; margin: 4px 0 0; line-height: 1.45; }
         .oto-prog { height: 6px; border-radius: 4px; background: #F1ECE6; margin: 12px 0 4px; overflow: hidden; }
@@ -19354,7 +19365,7 @@ body.gm-terkunci { overflow: hidden; }
             function tombol(kelas, teks, fn) { const b = el('button', 'oto-btn ' + kelas, teks); b.type = 'button'; b.addEventListener('click', fn); return b; }
 
             let jalan = null;   // { id, kode, o, henti, hentiLacak, batas, timer, akhir }
-            function tutup() { lyr.hidden = true; kosong(); }
+            function tutup() { lyr.hidden = true; kosong(); try { clearInterval(tGagal); } catch (e) {} }
             function bersihJalan() {
                 if (!jalan) return;
                 try { jalan.henti && jalan.henti(); } catch (e) {}
@@ -19362,25 +19373,38 @@ body.gm-terkunci { overflow: hidden; }
                 clearInterval(jalan.timer);
                 jalan = null;
             }
-            function layarCari() {
+            // (18 Nov 2026) Lembar "Mencari rider" tampil SEKETIKA saat tombol Pesan ditekan (o = pratinjau),
+            // cek GPS & simpan pesanan berjalan di belakangnya. Ikon motor di tengah radar.
+            const teksRadius = (layanan) => 'Rider dalam radius ' + String((atur && atur.jarak_km) || 2).replace('.', ',') + ' km' + (layanan === 'ngojek' ? ' yang membawa helm untukmu.' : ' dari titik jemput.');
+            function layarCari(o) {
                 kosong();
-                const r = el('div', 'oto-radar'); r.appendChild(el('i')); r.appendChild(el('i')); r.appendChild(el('i')); r.appendChild(el('b'));
+                const r = el('div', 'oto-radar'); r.appendChild(el('i')); r.appendChild(el('i')); r.appendChild(el('i'));
+                const m = el('b'); m.appendChild(el('span', '', '🛵')); m.setAttribute('aria-hidden', 'true'); r.appendChild(m);
+                r.id = 'oto-radar-ada';
                 lbr.appendChild(r);
                 const h = el('h3', '', 'Mencari rider terdekat…'); h.id = 'oto-judul'; lbr.appendChild(h);
-                lbr.appendChild(el('p', '', jalan.o.layanan === 'ngojek' ? 'Rider dalam radius ' + String(atur.jarak_km || 2).replace('.', ',') + ' km yang membawa helm untukmu.' : 'Rider dalam radius ' + String(atur.jarak_km || 2).replace('.', ',') + ' km dari titik jemput.'));
-                const pr = el('div', 'oto-prog'); const bar = el('i'); bar.id = 'oto-bar'; pr.appendChild(bar); lbr.appendChild(pr);
-                const sisa = el('p', '', ''); sisa.id = 'oto-sisa'; sisa.style.fontSize = '11.5px'; lbr.appendChild(sisa);
-                lbr.appendChild(ringkasTitik(jalan.o));
+                const sub = el('p', '', teksRadius(o.layanan)); sub.id = 'oto-sub'; lbr.appendChild(sub);
+                const pr = el('div', 'oto-prog' + (jalan ? '' : ' siap')); pr.id = 'oto-prog'; const bar = el('i'); bar.id = 'oto-bar'; pr.appendChild(bar); lbr.appendChild(pr);
+                const sisa = el('p', '', jalan ? '' : 'Menyiapkan pesananmu…'); sisa.id = 'oto-sisa'; sisa.style.fontSize = '11.5px'; lbr.appendChild(sisa);
+                lbr.appendChild(ringkasTitik(o));
                 lbr.appendChild(tombol('putih', 'Batalkan', batalkan));
                 lyr.hidden = false;
-                detikCari();
+                if (jalan) detikCari();
             }
             function detikCari() {
                 if (!jalan || jalan.akhir) return;
                 const total = jalan.batas - jalan.mulai, lewat = Date.now() - jalan.mulai;
-                const b = $('oto-bar'), s = $('oto-sisa');
+                const b = $('oto-bar'), s = $('oto-sisa'), pr = $('oto-prog');
+                if (pr) pr.classList.remove('siap');
                 if (b) b.style.width = Math.min(100, Math.round(lewat / total * 100)) + '%';
                 if (s) s.textContent = 'Paling lama ±' + Math.max(0, Math.ceil((jalan.batas - Date.now()) / 1000)) + ' detik lagi';
+                // separuh waktu lewat & belum ada yang menerima: rider sekitar ditawari ulang (aplikasi rider), kabari pelanggan
+                if (!jalan.ulang && lewat >= total / 2 && total >= 40000) {
+                    jalan.ulang = true;
+                    const h = $('oto-judul'), sub = $('oto-sub');
+                    if (h) h.textContent = 'Belum ketemu, kami coba carikan lagi ya kak 🙏';
+                    if (sub) sub.textContent = 'Rider di sekitarmu sedang kami tawari ulang. Mohon tunggu sebentar.';
+                }
                 if (Date.now() >= jalan.batas) gagalCari();
             }
             async function akhiriTawaran(status) {
@@ -19391,6 +19415,7 @@ body.gm-terkunci { overflow: hidden; }
                 return true;
             }
             async function batalkan() {
+                if (!jalan && siap) { siap.batal = true; siap = null; tutup(); toast('Pesanan dibatalkan'); return; }   // masih menyiapkan: belum tersimpan
                 if (!jalan || jalan.akhir) { tutup(); return; }
                 jalan.akhir = 'batal';
                 const ok = await akhiriTawaran('batal');
@@ -19405,15 +19430,37 @@ body.gm-terkunci { overflow: hidden; }
                 bersihJalan();
                 layarGagal('Belum ada rider di dekatmu');
             }
-            function layarGagal(judul, tanpaTeks) {
-                kosong();
+            // (18 Nov 2026) Pilihan "Cari rider lagi" (pesanan baru, batas server 1x per menit) atau lanjut lewat admin
+            let tGagal = null;
+            function layarGagal(judul, tanpaCari) {
+                kosong(); clearInterval(tGagal);
                 lbr.appendChild(el('div', 'oto-ikon', '🙏'));
                 const h = el('h3', '', judul); h.id = 'oto-judul'; h.style.textAlign = 'center'; lbr.appendChild(h);
-                const p = el('p', '', 'Pesananmu kami teruskan ke admin ProjekGo supaya tetap dicarikan rider. Isi pesanan sudah terisi otomatis.'); p.style.textAlign = 'center'; p.style.marginBottom = '10px';
+                const p = el('p', '', tanpaCari ? 'Pesananmu kami teruskan ke admin ProjekGo supaya tetap dicarikan rider. Isi pesanan sudah terisi otomatis.'
+                    : 'Rider di sekitarmu mungkin sedang sibuk. Mau kami carikan lagi, kak? Atau teruskan ke admin ProjekGo, isi pesanan sudah terisi otomatis.');
+                p.style.textAlign = 'center'; p.style.marginBottom = '10px';
                 lbr.appendChild(p);
-                lbr.appendChild(tombol('merah', 'Lanjut pesan lewat admin', () => { tutup(); lewatAdmin(); }));
-                lbr.appendChild(tombol('putih', 'Batal', tutup));
+                if (!tanpaCari && kTerakhir) {
+                    const bc = tombol('merah', '🔄 Cari rider lagi', cariLagi);
+                    lbr.appendChild(bc);
+                    const jeda = () => {
+                        const s = Math.ceil((mulaiTerakhir + 62000 - Date.now()) / 1000);
+                        if (s > 0) { bc.disabled = true; bc.textContent = '🔄 Cari rider lagi (' + s + ')'; }
+                        else { bc.disabled = false; bc.textContent = '🔄 Cari rider lagi'; clearInterval(tGagal); }
+                    };
+                    jeda(); tGagal = setInterval(jeda, 1000);
+                    lbr.appendChild(tombol('putih', 'Lanjut pesan lewat admin', () => { tutup(); lewatAdmin(); }));
+                } else {
+                    lbr.appendChild(tombol('merah', 'Lanjut pesan lewat admin', () => { tutup(); lewatAdmin(); }));
+                }
+                lbr.appendChild(tombol('teks', 'Batal', tutup));
                 lyr.hidden = false;
+            }
+            function cariLagi() {
+                const k = kTerakhir;
+                if (!k || pesanSedang || jalan) return;
+                clearInterval(tGagal);
+                mulaiOtomatis(k, () => layarGagal('Belum bisa dicarikan otomatis', true));
             }
             function layarDapat() {
                 const o = jalan.o;
@@ -19451,26 +19498,49 @@ body.gm-terkunci { overflow: hidden; }
 
             // ---------- MEMESAN ----------
             let pesanSedang = false;
+            let siap = null;              // { batal } selama lembar "Mencari" tampil tapi pesanan belum tersimpan
+            let kTerakhir = null, mulaiTerakhir = 0;
+            // Tampilkan lembar mencari seketika, lalu cek & simpan. gagal() dipanggil kalau tidak bisa otomatis.
+            function mulaiOtomatis(k, gagal) {
+                const sp = { batal: false };
+                siap = sp; pesanSedang = true;
+                layarCari(pratinjau(k));
+                const akhir = (ok) => {
+                    pesanSedang = false; if (siap === sp) siap = null;
+                    if (ok === true || ok === 'batal' || sp.batal) return;
+                    tutup(); gagal();
+                };
+                cobaOtomatis(k, sp).then(akhir).catch(() => akhir(false));
+            }
             function lewatAdmin() {
                 window.__otoLewati = true;
                 try { if (typeof aslinya === 'function') aslinya(); } finally { window.__otoLewati = false; }
             }
-            async function cobaOtomatis(k) {
+            function isianAntarLengkap() {
+                const paket = ($('svc-paket') || {}).value || '', pen = ($('svc-penerima') || {}).value || '', hp = (($('svc-penerima-hp') || {}).value || '').trim();
+                return !!(paket.trim() && pen.trim() && (!$('svc-penerima-hp') || hp));
+            }
+            function pratinjau(k) {
+                const sk = kd();
+                const jarak = Math.max(0.1, Math.round(k.jarak * 100) / 100);
+                return { layanan: k.layanan, fee: tarif(k.layanan, jarak), jarak,
+                    jemput: { alamat: String((sk.origin && sk.origin.formatted_address) || ($('svc-jemput') || {}).value || 'Titik jemput').slice(0, 200) },
+                    tujuan: { alamat: String((sk.dest && sk.dest.formatted_address) || ($('svc-tujuan') || {}).value || 'Tujuan').slice(0, 200) } };
+            }
+            async function cobaOtomatis(k, sp) {
+                sp = sp || { batal: false };
                 await muat();
                 if (!layakAkun(k.layanan)) return false;
                 if (!dalamArea(atur, k.jemput)) return false;
-                if (k.layanan === 'antar') {
-                    const paket = ($('svc-paket') || {}).value || '', pen = ($('svc-penerima') || {}).value || '', hp = (($('svc-penerima-hp') || {}).value || '').trim();
-                    if (!paket.trim() || !pen.trim() || ($('svc-penerima-hp') && !hp)) return false;   // biar jalan lama yang menegur
-                }
-                toast('Memeriksa lokasimu…');
+                if (k.layanan === 'antar' && !isianAntarLengkap()) return false;   // biar jalan lama yang menegur
                 const gps = await gpsSegar();
+                if (sp.batal) return 'batal';
                 if (!gps || !dalamArea(atur, gps)) return false;
-                const jarak = Math.max(0.1, Math.round(k.jarak * 100) / 100);
-                const fee = tarif(k.layanan, jarak);
-                const sk = kd();
-                const nmJemput = (sk.origin && sk.origin.formatted_address) || ($('svc-jemput') || {}).value || 'Titik jemput';
-                const nmTujuan = (sk.dest && sk.dest.formatted_address) || ($('svc-tujuan') || {}).value || 'Tujuan';
+                const pv = pratinjau(k);
+                const jarak = pv.jarak;
+                const fee = pv.fee;
+                const nmJemput = pv.jemput.alamat;
+                const nmTujuan = pv.tujuan.alamat;
                 let catatan = '', penNama = '', penHp = '';
                 if (k.layanan === 'antar') {
                     penNama = String(($('svc-penerima') || {}).value || '').trim().slice(0, 60);
@@ -19494,12 +19564,15 @@ body.gm-terkunci { overflow: hidden; }
                 b.set(doc(db, 'otomatis_order', id, 'kontak', 'wa'), { wa: akun.wa });
                 b.set(doc(db, 'chat_rider', kode), { pelanggan_uid: uid, pelanggan_nama: namaDepan, order_id: id, jenis, rider_uid: null, rider_nama: null,
                     terakhir: '', terakhir_dari: '', terakhir_at: serverTimestamp(), belum_rider: 0, belum_pelanggan: 0, dibuat_at: serverTimestamp() });
+                if (sp.batal) return 'batal';
                 try { await b.commit(); }
                 catch (e) { console.warn('[Otomatis] belum bisa:', e && e.code); return false; }   // ditolak server -> jalan lama
                 try { sessionStorage.setItem('oto_terakhir', JSON.stringify({ id, kode })); } catch (e) {}
                 const cari = (Number(atur.cari_dtk) || 60) * 1000;
+                kTerakhir = k; mulaiTerakhir = Date.now();
                 jalan = { id, kode, o: Object.assign({}, o), mulai: Date.now(), batas: Date.now() + cari, akhir: null, tahap: 'menuju' };
-                layarCari();
+                if (sp.batal) { jalan.akhir = 'batal'; await akhiriTawaran('batal'); bersihJalan(); return 'batal'; }   // dibatalkan tepat saat menyimpan
+                if (lyr.hidden || !$('oto-radar-ada')) layarCari(o); else detikCari();
                 jalan.timer = setInterval(detikCari, 1000);
                 jalan.henti = onSnapshot(doc(db, 'otomatis_order', id), (s) => {
                     if (!jalan || jalan.id !== id || !s.exists()) return;
@@ -19554,16 +19627,19 @@ body.gm-terkunci { overflow: hidden; }
                 if (typeof asli !== 'function' || asli.__oto) return false;
                 aslinya = asli;
                 const baru = function () {
-                    if (window.__otoLewati || pesanSedang) return asli.apply(this, arguments);
+                    if (window.__otoLewati) return asli.apply(this, arguments);
+                    if (pesanSedang) return;   // (18 Nov 2026) tombol Pesan ditekan dua kali saat menyiapkan: abaikan
                     const k = konteks();
                     if (!k || !user) return asli.apply(this, arguments);
                     try { if (typeof checkOperationalStatus === 'function' && !checkOperationalStatus()) return; } catch (e) {}
                     if (window.gmCekBlokir && !window.gmCekBlokir()) return;
                     if (!akun || !layakAkun(k.layanan) || !dalamArea(atur, k.jemput)) return asli.apply(this, arguments);
+                    if (k.layanan === 'antar' && !isianAntarLengkap()) return asli.apply(this, arguments);   // jalan lama yang menegur isian kosong
+                    const gL = gpsTersimpan();
+                    if (gL && !dalamArea(atur, gL)) return asli.apply(this, arguments);                      // HP jelas di luar area: langsung jalan lama
+                    if (jalan) return;                                                                        // masih ada pencarian berjalan
                     const self = this, arg = arguments;
-                    pesanSedang = true;
-                    cobaOtomatis(k).then((ok) => { pesanSedang = false; if (!ok) { window.__otoLewati = true; try { asli.apply(self, arg); } finally { window.__otoLewati = false; } } })
-                        .catch(() => { pesanSedang = false; window.__otoLewati = true; try { asli.apply(self, arg); } finally { window.__otoLewati = false; } });
+                    mulaiOtomatis(k, () => { window.__otoLewati = true; try { asli.apply(self, arg); } finally { window.__otoLewati = false; } });
                 };
                 baru.__oto = true;
                 window.submitServiceForm = baru;
