@@ -20129,6 +20129,38 @@ body.gm-terkunci { overflow: hidden; }
         })();
     </script>
     <!-- ===================== AKHIR LACAK ORDER OTOMATIS ===================== -->
+<script>
+// (18 Nov 2026) PERBAIKAN CELAH antara kolom ketik & keyboard di layar chat (chat admin & chat rider).
+// Selama layar chat terbuka, HP Android diminta MENGECILKAN halaman saat keyboard muncul (interactive-widget=resizes-content),
+// jadi layar chat otomatis pas di atas keyboard tanpa hitungan. Saat chat ditutup, pengaturan kembali seperti semula
+// (halaman lain seperti pencarian lokasi tetap memakai cara lama). Cadangan: tinggi chat dihitung ulang beberapa kali
+// setelah keyboard muncul (untuk HP / browser yang belum mendukung pengaturan itu, mis. iPhone).
+(function () {
+    var meta = document.querySelector('meta[name="viewport"]');
+    if (!meta) return;
+    var dasar = String(meta.getAttribute('content') || '').replace(/,\s*interactive-widget=[^,]*/g, '');
+    var tadi = null;
+    function chatTerbuka() { var p = document.getElementById('prc'); return !!((p && !p.hidden) || document.body.classList.contains('pc-layar')); }
+    function samakan() {
+        var b = chatTerbuka();
+        if (b === tadi) return;
+        tadi = b;
+        meta.setAttribute('content', dasar + (b ? ', interactive-widget=resizes-content' : ''));
+    }
+    try {
+        var mo = new MutationObserver(samakan);
+        var p = document.getElementById('prc');
+        if (p) mo.observe(p, { attributes: true, attributeFilter: ['hidden'] });
+        mo.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    } catch (e) {}
+    samakan();
+    document.addEventListener('focusin', function (e) {
+        var t = e.target;
+        if (!t || !t.matches || !t.matches('#prc-input, #pc-input') || !window.visualViewport) return;
+        [150, 400, 800].forEach(function (ms) { setTimeout(function () { try { window.visualViewport.dispatchEvent(new Event('resize')); } catch (x) {} }, ms); });
+    });
+})();
+</script>
 </body>
 
 </html>
