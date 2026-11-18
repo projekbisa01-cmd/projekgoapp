@@ -2732,6 +2732,7 @@ body.gm-terkunci { overflow: hidden; }
 
         /* Ruang chat rider memakai tampilan chat admin (pc-*) */
         #prc .pc-kotak { position: absolute; inset: 0; max-width: none; z-index: auto; }
+        #prc-lampir { grid-template-columns: repeat(3, 1fr); }
         #prc { z-index: 1210; background: #F3EBDF; }
         .prc-status { display: flex; align-items: center; gap: 10px; padding: 9px 12px; background: #FFF3E8; border-bottom: 1px solid #FFD9BD; flex: none; border: 0; width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer; }
         .prc-status b { display: block; font-size: 13px; font-weight: 800; color: #1F1611; }
@@ -5207,6 +5208,12 @@ body.gm-terkunci { overflow: hidden; }
                 <div class="pc-info">Rider tidak melihat nomor WA-mu. Chat ini ditutup otomatis 1 jam setelah pesanan selesai; kendala setelahnya disampaikan ke admin. Admin ProjekGo ikut memantau.</div>
                 <div id="prc-daftar" style="margin-top:auto;display:flex;flex-direction:column;gap:6px;"></div>
             </div>
+            <!-- (18 Nov 2026) menu lampiran sama seperti chat admin: Kamera / Galeri / Lokasi (tanpa Kontak: nomor tidak dibagikan ke rider) -->
+            <div class="pc-lampir" id="prc-lampir" hidden role="menu" aria-label="Kirim lampiran ke rider">
+                <button type="button" role="menuitem" data-prc="kamera"><span style="background:#E85300;"><i class="ph-fill ph-camera" aria-hidden="true"></i></span>Kamera</button>
+                <button type="button" role="menuitem" data-prc="galeri"><span style="background:#7B3FA8;"><i class="ph-fill ph-image" aria-hidden="true"></i></span>Galeri</button>
+                <button type="button" role="menuitem" data-prc="lokasi"><span style="background:#1E8A4C;"><i class="ph-fill ph-map-pin" aria-hidden="true"></i></span>Lokasi</button>
+            </div>
             <div class="pc-cepat" id="prc-cepat">
                 <button type="button" class="pc-chip" data-prc="lokasi"><i class="ph-fill ph-map-pin" aria-hidden="true"></i>Kirim lokasi saya</button>
                 <button type="button" class="pc-chip">Saya tunggu di depan ya</button>
@@ -5217,8 +5224,8 @@ body.gm-terkunci { overflow: hidden; }
                 <div class="pc-kolom">
                     <label for="prc-input" style="position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);">Pesan untuk rider</label>
                     <textarea id="prc-input" rows="1" maxlength="1000" placeholder="Tulis pesan ke rider..." enterkeyhint="send"></textarea>
-                    <button type="button" class="pc-ik" data-prc="lokasi" aria-label="Kirim lokasi saya"><i class="ph ph-map-pin" aria-hidden="true"></i></button>
-                    <button type="button" class="pc-ik" data-prc="foto" aria-label="Kirim foto"><i class="ph ph-camera" aria-hidden="true"></i></button>
+                    <button type="button" class="pc-ik" id="prc-klip" data-prc="klip" aria-label="Kirim foto atau lokasi" aria-haspopup="true" aria-expanded="false"><i class="ph ph-paperclip" aria-hidden="true"></i></button>
+                    <button type="button" class="pc-ik" data-prc="kamera" aria-label="Ambil foto"><i class="ph ph-camera" aria-hidden="true"></i></button>
                 </div>
                 <button type="submit" class="pc-kirim" id="prc-kirim" aria-label="Kirim pesan" disabled><i class="ph-fill ph-paper-plane-right" aria-hidden="true"></i></button>
             </form>
@@ -17915,9 +17922,15 @@ body.gm-terkunci { overflow: hidden; }
                 kirimR({ jenis: 'lokasi', teks: 'Lokasi saya', lat: Math.round(p.coords.latitude * 1e6) / 1e6, lng: Math.round(p.coords.longitude * 1e6) / 1e6 });
             }, () => toast('Lokasi belum diizinkan. Nyalakan GPS lalu coba lagi.'), { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
         }
+        // (18 Nov 2026) klip = menu Kamera / Galeri / Lokasi (seperti chat admin); tombol kamera langsung membuka kamera
+        const tutupLampirR = () => { const m = $('prc-lampir'); if (m) m.hidden = true; const k = $('prc-klip'); if (k) k.setAttribute('aria-expanded', 'false'); };
         $('prc').addEventListener('click', (e) => {
-            const b = e.target.closest('[data-prc="lokasi"]'); if (b) { kirimLokasiR(); return; }
-            if (e.target.closest('[data-prc="foto"]')) { pilihFotoR(); return; }
+            const tb = e.target.closest('[data-prc]'), jenis = tb ? tb.getAttribute('data-prc') : '';
+            if (jenis === 'klip') { const m = $('prc-lampir'), buka = m.hidden; m.hidden = !buka; tb.setAttribute('aria-expanded', String(buka)); return; }
+            tutupLampirR();
+            if (jenis === 'lokasi') { kirimLokasiR(); return; }
+            if (jenis === 'kamera') { pilihFotoR(true); return; }
+            if (jenis === 'galeri' || jenis === 'foto') { pilihFotoR(false); return; }
             const c = e.target.closest('#prc-cepat .pc-chip'); if (c) { const i = $('prc-input'); i.value = c.textContent.trim(); aturInputR(); i.focus(); }
         });
         $('prc-lihat-x').onclick = kembali;
@@ -17962,10 +17975,11 @@ body.gm-terkunci { overflow: hidden; }
                 img.src = u;
             });
         }
-        function pilihFotoR() {
+        function pilihFotoR(kamera) {
             const k = bukaChat, c = k && chat[k];
             if (!k || !c || !/^[A-Za-z0-9_-]{1,64}$/.test(String(c.order_id || ''))) return;
             const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
+            if (kamera) inp.setAttribute('capture', 'environment');   // langsung kamera belakang (seperti chat admin)
             inp.onchange = async () => {
                 const f = inp.files && inp.files[0]; if (!f) return;
                 if (!/^image\//.test(f.type)) { toast('Pilih file gambar'); return; }
@@ -18368,6 +18382,10 @@ body.gm-terkunci { overflow: hidden; }
     .pg-cepat-lembar .pg-cepat-daftar > button:last-child { border-bottom: 0 !important; }
     .pg-cepat-lembar .pg-cepat-daftar > button i { width: 36px; height: 36px; flex: none; border-radius: 10px; background: #FFF1E6; color: #C2410C !important; display: grid; place-items: center; font-size: 16px; }
     .pg-cepat-lembar .pg-cepat-daftar > button:active { background: #F4F8F6 !important; }
+    /* (18 Nov 2026) pesan cepat = 1 baris geser di atas kolom ketik */
+    .pg-cepat-baris { flex-wrap: nowrap !important; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .pg-cepat-baris > button { flex: none; white-space: nowrap; }
+    .pg-cepat-baris.pg-cepat-sembunyi { display: none !important; }
 </style>
 <script>
 (function () {
@@ -18377,38 +18395,26 @@ body.gm-terkunci { overflow: hidden; }
         var p = document.createElementNS(SVG, 'path'); p.setAttribute('d', 'M13.5 2 4 13.6h6.6L9.5 22 20 9.9h-6.7z'); p.setAttribute('fill', 'currentColor');
         s.appendChild(p); return s;
     }
-    // o = { wadah: daftar tombol lama, kolom: tempat ikon (di awal), layar: induk lembar (position fixed/relative), sub: teks kecil }
+    // (18 Nov 2026) PESAN CEPAT TAMPIL SEBAGAI BARIS TEKS di atas kolom ketik (ikon petir & lembar dihapus).
+    // Wadah tombol lama TIDAK dipindah / dibuat ulang, jadi semua fungsi klik lama tetap jalan.
+    // Baris disembunyikan selama kolom ketik berisi tulisan, muncul lagi saat kolom kosong.
     window.pgPasangCepat = function (o) {
-        var c = o && o.wadah, k = o && o.kolom, L = o && o.layar;
-        if (!c || !k || !L || c.__pgCepat) return null;
+        var c = o && o.wadah, k = o && o.kolom;
+        if (!c || !k || c.__pgCepat) return null;
         c.__pgCepat = true;
-        var bt = document.createElement('button'); bt.type = 'button'; bt.className = 'pg-petir';
-        bt.setAttribute('aria-label', 'Pesan cepat'); bt.setAttribute('aria-haspopup', 'dialog'); bt.setAttribute('aria-expanded', 'false');
-        bt.appendChild(petir());
-        k.insertBefore(bt, k.firstChild); k.classList.add('ada-petir');
-        var lat = document.createElement('div'); lat.className = 'pg-cepat-latar'; lat.hidden = true;
-        var sh = document.createElement('div'); sh.className = 'pg-cepat-lembar';
-        sh.setAttribute('role', 'dialog'); sh.setAttribute('aria-modal', 'true'); sh.setAttribute('aria-label', 'Pesan cepat');
-        var g = document.createElement('span'); g.className = 'pg-cepat-gagang'; g.setAttribute('aria-hidden', 'true');
-        var kp = document.createElement('div'); kp.className = 'pg-cepat-kepala';
-        var h = document.createElement('h2'); h.textContent = 'Pesan cepat';
-        var sm = document.createElement('small'); sm.textContent = o.sub || 'Ketuk salah satu';
-        kp.appendChild(h); kp.appendChild(sm);
-        sh.appendChild(g); sh.appendChild(kp);
-        c.classList.add('pg-cepat-daftar');
-        sh.appendChild(c);               // dipindah utuh: pendengar klik lama tetap menempel
-        lat.appendChild(sh); L.appendChild(lat);
-        function buka() { if (c.hidden) return; lat.hidden = false; bt.setAttribute('aria-expanded', 'true'); var f = c.querySelector('button'); if (f) { try { f.focus({ preventScroll: true }); } catch (e) {} } }
-        function tutup() { if (lat.hidden) return; lat.hidden = true; bt.setAttribute('aria-expanded', 'false'); }
-        bt.addEventListener('click', buka);
-        lat.addEventListener('click', function (e) { if (e.target === lat) tutup(); });
-        // didaftarkan SETELAH pendengar lama -> aksi lama jalan dulu, baru lembar ditutup
-        c.addEventListener('click', function (e) { if (e.target && e.target.closest && e.target.closest('button')) setTimeout(tutup, 0); });
-        lat.addEventListener('keydown', function (e) { if (e.key === 'Escape') { tutup(); bt.focus(); } });
-        function samakan() { bt.hidden = !!c.hidden; if (c.hidden) tutup(); }
-        try { new MutationObserver(samakan).observe(c, { attributes: true, attributeFilter: ['hidden'] }); } catch (e) {}
+        c.classList.add('pg-cepat-baris');
+        var ta = k.querySelector('textarea');
+        function samakan() { var ada = !!(ta && String(ta.value || '').trim()); c.classList.toggle('pg-cepat-sembunyi', ada); }
+        function nanti() { setTimeout(samakan, 0); setTimeout(samakan, 400); }
+        if (ta) {
+            ['input', 'keyup', 'focus', 'blur', 'change'].forEach(function (ev) { ta.addEventListener(ev, samakan); });
+            var f = ta.form || k.closest('form');
+            if (f) f.addEventListener('submit', nanti);
+        }
+        c.addEventListener('click', nanti);          // tombol pesan cepat yang mengisi kolom ketik
+        k.addEventListener('click', nanti);
         samakan();
-        return { buka: buka, tutup: tutup };
+        return { buka: function () {}, tutup: function () {}, samakan: samakan };
     };
 })();
 </script>
