@@ -785,6 +785,8 @@
         .bottom-nav-container { padding: 0 12px calc(12px + env(safe-area-inset-bottom, 0px)); transition: transform 0.3s ease; }
         /* Navbar bawah disembunyikan penuh di halaman Konfirmasi Pesanan */
         body.nav-sembunyi .bottom-nav-container { display: none !important; }
+        /* (18 Nov 2026) navbar bawah TIDAK terlihat selama layar splash masih tampil (juga saat splash memudar) */
+        #final-splash-screen:not([style*="none"]) ~ .bottom-nav-container { visibility: hidden !important; }
         .bottom-nav { pointer-events: auto; position: relative; max-width: calc(var(--max-width) - 24px); margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); padding: 7px; background: #ffffff; border-radius: 26px; box-shadow: 0 14px 34px rgba(28,28,30,0.16), 0 2px 6px rgba(28,28,30,0.06), 0 0 0 1px rgba(28,28,30,0.05); overflow: visible; }
         .nav-blob { position: absolute; top: 7px; bottom: 7px; left: 7px; width: calc((100% - 14px) / 4); border-radius: 20px; background: linear-gradient(160deg, #FF7A1A, #E85300); box-shadow: 0 6px 14px rgba(232,83,0,0.38); transform: translateX(calc(100% * var(--i, 0))); transition: transform 0.45s cubic-bezier(.3,1.35,.45,1), opacity 0.25s; pointer-events: none; }
         .nav-item { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 0 7px; color: #56565B; cursor: pointer; font-size: 11px; font-weight: 700; -webkit-tap-highlight-color: transparent; transition: color 0.3s; }
@@ -2147,7 +2149,12 @@
         .bh-bulat-2 { left: -50px; bottom: -80px; width: 190px; height: 190px; background: radial-gradient(circle at 60% 40%, rgba(255,255,255,0.16), rgba(255,255,255,0.02)); }
         .bh-top { position: relative; z-index: 3; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
         .bh-lokasi { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.22); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); color: #fff; border: 1px solid rgba(255,255,255,0.35); padding: 8px 12px; border-radius: 99px; font-size: 13px; font-weight: 700; cursor: pointer; max-width: 60%; }
-        .bh-lokasi #loc-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .bh-lokasi #loc-text, .bh-lokasi #loc-text-food { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        /* (18 Nov 2026) pilihan daerah di Food + kolom cari di Beranda */
+        .fd-area { position: relative; display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.4); color: #fff; border-radius: 99px; padding: 7px 12px; font: inherit; font-size: 15px; font-weight: 800; cursor: pointer; }
+        .fd-area-wrap { position: relative; display: flex; flex-direction: column; }
+        .bh-cari { position: relative; z-index: 3; display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 12px; background: #fff; border: 0; border-radius: 18px; padding: 13px 16px; box-shadow: 0 8px 20px rgba(120,40,0,.18); font: inherit; font-size: 14px; font-weight: 600; color: #8A7F75; cursor: pointer; text-align: left; }
+        .bh-cari i { color: #FF6A00; font-size: 20px; }
         .bh-status { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.95); color: #1E6B24; font-size: 11.5px; font-weight: 700; padding: 5px 10px; border-radius: 99px; white-space: nowrap; box-shadow: 0 3px 8px rgba(120,40,0,0.15); }
         .bh-status.tutup { color: #8A2A12; }
         .bh-titik { width: 7px; height: 7px; border-radius: 50%; background: #2E9E44; box-shadow: 0 0 0 3px rgba(46,158,68,0.22); }
@@ -2604,6 +2611,12 @@ body.gm-terkunci { overflow: hidden; }
         .ktv-tengah span { display: block; font-size: 12.5px; font-weight: 600; color: #7A6E63; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .ktv-st { flex: none; font-size: 11px; font-weight: 800; padding: 4px 9px; border-radius: 99px; background: #FFF0E4; color: #C2410C; }
         .ktv-st.selesai { background: #E8F3E6; color: #2F6B3E; } .ktv-st.batal { background: #F3EFEC; color: #7A6E63; } .ktv-st.ulas { background: #FFF4D6; color: #7A5A0A; }
+        /* (18 Nov 2026) pesanan dibatalkan: kartu & halaman detail abu-abu */
+        .ktv-kartu.abu { filter: grayscale(1); opacity: .72; background: #F7F7F7; }
+        .ktv-kartu.abu .ktv-st.batal { background: #E5E7EB; color: #4B5563; }
+        #ktv-detail.ktv-abu #ktv-d-isi { filter: grayscale(1); }
+        #ktv-detail.ktv-abu #ktv-d-isi .ktv-hero { background: #F3F4F6; }
+        .ktv-rider-tutup { font-size: 12.5px; color: #8A7F75; font-weight: 600; margin: 0; }
         .ktv-jalan { margin-top: 12px; display: flex; align-items: center; gap: 10px; }
         .ktv-titik { width: 9px; height: 9px; border-radius: 99px; background: #E85300; flex: none; animation: ktv-denyut 1.6s ease-out infinite; }
         @keyframes ktv-denyut { 0% { box-shadow: 0 0 0 0 rgba(232,83,0,.5); } 100% { box-shadow: 0 0 0 9px rgba(232,83,0,0); } }
@@ -2645,6 +2658,13 @@ body.gm-terkunci { overflow: hidden; }
         .ktv-ulas-ajak .ua-bintang button { border: 0; background: none; font-size: 24px; line-height: 1; padding: 2px; color: #E7D3B5; cursor: pointer; min-width: 32px; min-height: 32px; }
         .ktv-ulas-ajak .ua-bintang button:hover, .ktv-ulas-ajak .ua-bintang button:focus-visible { color: #F59E0B; }
         .ktv-ulas-ajak .ua-x { align-self: flex-start; border: 0; background: none; color: #A8998A; font-size: 20px; width: 32px; height: 32px; flex: none; }
+        /* (18 Nov 2026) kartu ajakan ulasan berwarna hitam supaya beda dari kartu lain yang cerah */
+        .ktv-ulas-ajak { background: #17120F; border-color: #17120F; box-shadow: 0 12px 28px rgba(0,0,0,.28); }
+        .ktv-ulas-ajak .ua-isi b { color: #fff; }
+        .ktv-ulas-ajak .ua-isi small { color: #BDB3AA; }
+        .ktv-ulas-ajak .ua-bintang button { color: #4A403A; }
+        .ktv-ulas-ajak .ua-bintang button:hover, .ktv-ulas-ajak .ua-bintang button:focus-visible { color: #FBBF24; }
+        .ktv-ulas-ajak .ua-x { color: #8C817A; }
         .ktv-beranda { position: relative; z-index: 3; margin: -34px 16px 0; background: #FFFFFF; border: 1.5px solid #FFC9A0; border-radius: 24px; padding: 12px 14px 14px; box-shadow: 0 12px 28px rgba(232,83,0,.14); }
         .ktv-beranda[hidden] { display: none; }
         .ktv-beranda:not([hidden]) + .bn-wrap { margin-top: 0; padding-top: 16px !important; }
@@ -3688,10 +3708,11 @@ body.gm-terkunci { overflow: hidden; }
                 <span class="bh-bulat bh-bulat-4" aria-hidden="true"></span>
 
                 <div class="bh-top">
-                    <button type="button" class="bh-lokasi" onclick="openLocationModal()" aria-label="Ganti lokasi">
+                    <!-- (18 Nov 2026) Beranda: lokasi sekarang (GPS otomatis). Pilihan daerah pindah ke halaman Food. -->
+                    <button type="button" class="bh-lokasi" onclick="if(window.autoFetchFoodLocation) window.autoFetchFoodLocation(true)" aria-label="Perbarui lokasi sekarang">
                         <i class="ph-fill ph-map-pin"></i>
-                        <span id="loc-text">Gombong</span>
-                        <i class="ph-bold ph-caret-down" style="font-size: 12px;"></i>
+                        <span id="loc-text-food">Lokasi kamu</span>
+                        <i class="ph-bold ph-arrows-clockwise" style="font-size: 12px;" aria-hidden="true"></i>
                     </button>
                     <span id="home-status" class="bh-status"><span class="bh-titik"></span><span id="home-status-teks">Buka sampai 21.00</span></span>
                 </div>
@@ -3706,6 +3727,10 @@ body.gm-terkunci { overflow: hidden; }
                         <img src="https://i.ibb.co.com/SDtKrDdz/Desain-tanpa-judul-31.png" alt="" loading="eager">
                     </div>
                 </div>
+                <!-- (18 Nov 2026) PENCARIAN di Beranda: menu & warung Food -->
+                <button type="button" class="bh-cari" onclick="openSearchModal()" aria-label="Cari menu atau warung">
+                    <i class="ph-bold ph-magnifying-glass" aria-hidden="true"></i><span>Cari menu atau warung…</span>
+                </button>
             </div>
 
             <!-- (18 Nov 2026) AJAKAN ULASAN: pesanan selesai < 24 jam yang belum diulas (order admin & order otomatis) -->
@@ -3918,12 +3943,14 @@ body.gm-terkunci { overflow: hidden; }
                 
                 <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 10px;">
                     <div class="btn-back" onclick="openPage('home')" style="color: #ffffff; margin-top: 5px;"><i class="ph-bold ph-arrow-left" style="font-size: 22px;"></i></div>
-                    <div style="display: flex; flex-direction: column; cursor: pointer;" onclick="if(window.autoFetchFoodLocation) window.autoFetchFoodLocation(true)">
-                        <span style="font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.9); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Antar Sekarang</span>
-                        <div style="display: flex; align-items: center; gap: 4px;">
-                            <span id="loc-text-food" style="font-size: 16px; font-weight: 800; color: #ffffff;">Lokasi Kamu</span>
-                            <i class="ph-bold ph-caret-down" style="font-size: 14px; color: #ffffff;"></i>
-                        </div>
+                    <!-- (18 Nov 2026) Food: pilihan daerah warung (Gombong / Kebumen). Lokasi sekarang pindah ke Beranda. -->
+                    <div class="fd-area-wrap">
+                        <span style="font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.9); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Daerah warung</span>
+                        <button type="button" class="fd-area" onclick="openLocationModal()" aria-label="Ganti daerah warung">
+                            <i class="ph-fill ph-storefront" aria-hidden="true"></i>
+                            <span id="loc-text">Gombong</span>
+                            <i class="ph-bold ph-caret-down" style="font-size: 13px;" aria-hidden="true"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -4038,15 +4065,25 @@ body.gm-terkunci { overflow: hidden; }
                 };
 
                 // Pemicu Otomatis (Hanya mengeksekusi 1 kali tiap pengguna mengunjungi / membuka halaman Profood)
+                // (18 Nov 2026) Lokasi sekarang dibaca otomatis tiap Beranda dibuka (dulu: tiap Food dibuka).
+                // Tidak saat layar splash / masuk akun masih menutupi, dan paling sering 1x per 2 menit.
                 setInterval(() => {
-                    const pageFood = document.getElementById('page-food');
-                    if (pageFood && pageFood.style.display === 'block') {
-                        if (!window.hasAutoFetchedFood) {
-                            window.autoFetchFoodLocation('masuk'); // (16 Nov 2026) selalu baca GPS terbaru saat masuk Food
-                            window.hasAutoFetchedFood = true; // Tandai sudah dipanggil
+                    const ph = document.getElementById('page-home');
+                    const splash = document.getElementById('final-splash-screen');
+                    const gerbang = document.getElementById('gm-gerbang');
+                    const tertutup = (splash && splash.style.display !== 'none') || (gerbang && gerbang.classList.contains('aktif'));
+                    const tampilHome = ph && getComputedStyle(ph).display !== 'none' && !tertutup;
+                    if (tampilHome) {
+                        if (!window.hasAutoFetchedFood && Date.now() - (window.__pgGpsTerakhir || 0) > 120000) {
+                            window.__pgGpsTerakhir = Date.now();
+                            window.autoFetchFoodLocation('masuk');
+                            window.hasAutoFetchedFood = true;
+                        } else if (!window.hasAutoFetchedFood) {
+                            window.autoFetchFoodLocation(false);   // tampilkan alamat tersimpan saja
+                            window.hasAutoFetchedFood = true;
                         }
                     } else {
-                        window.hasAutoFetchedFood = false; // Reset jika pengguna keluar dari halaman Food
+                        window.hasAutoFetchedFood = false;
                     }
                 }, 1000);
             </script>
@@ -10667,9 +10704,18 @@ body.gm-terkunci { overflow: hidden; }
         };
 
         window.selectHistoryLocation = (name, address, lat, lng, target) => {
-            // Bypass API: Langsung rakit objek lokasi menggunakan koordinat tersimpan
+            // (18 Nov 2026) Titik tanpa koordinat (0 / kosong): cari lewat saran Google, jangan dihitung dari titik 0,0
+            const fLat = parseFloat(lat), fLng = parseFloat(lng);
+            if (!isFinite(fLat) || !isFinite(fLng) || (fLat === 0 && fLng === 0)) {
+                if (target === 'checkout') return window.setDummyLocationCheckout(address || name);
+                return window.setDummyLocation(address || name);
+            }
+            // Bypass API: Langsung rakit objek lokasi menggunakan koordinat tersimpan.
+            // (18 Nov 2026) Pakai google.maps.LatLng asli: objek buatan {lat(), lng()} ditolak DirectionsService
+            // sehingga hitung rute tidak pernah selesai ("loading lama" saat memilih alamat terakhir).
+            const ll = (window.google && google.maps && google.maps.LatLng) ? new google.maps.LatLng(fLat, fLng) : { lat: () => fLat, lng: () => fLng };
             const locObj = {
-                geometry: { location: { lat: () => parseFloat(lat), lng: () => parseFloat(lng) } },
+                geometry: { location: ll },
                 formatted_address: address,
                 name: name
             };
@@ -12055,9 +12101,30 @@ body.gm-terkunci { overflow: hidden; }
             if(destInput) {
                 destInput.value = val;
                 destInput.focus();
-                showToast("Pilih rute dari saran Google Maps agar jarak/ongkir terhitung.");
+                // (18 Nov 2026) langsung munculkan saran lokasi (dulu harus mengetik spasi dulu)
+                try { destInput.dispatchEvent(new Event('input', { bubbles: true })); } catch (e) {}
+                showToast("Pilih lokasi dari saran di bawah agar jarak/ongkir terhitung.");
             }
         }
+        // (18 Nov 2026) Lokasi "Disarankan": titik dicari di Google (akurat), cadangan pakai koordinat tersimpan
+        window.pgPilihSaran = (nama, alamat, lat, lng) => {
+            const svc = window.mapsPlacesService;
+            const cadangan = () => window.selectHistoryLocation(nama, alamat, lat, lng, null);
+            if (!svc || !window.google || !google.maps || !google.maps.places) return cadangan();
+            const lc = document.getElementById('ride-locations-list');
+            if (lc) lc.innerHTML = '<div style="padding: 20px; text-align:center; color:var(--primary); font-weight:bold;"><i class="ph-bold ph-spinner ph-spin"></i> Mengambil titik lokasi...</div>';
+            let selesai = false;
+            const t = setTimeout(() => { if (!selesai) { selesai = true; cadangan(); } }, 6000);
+            try {
+                svc.findPlaceFromQuery({ query: nama + ', ' + alamat, fields: ['name', 'geometry', 'formatted_address'],
+                    locationBias: { center: { lat: -7.62, lng: 109.55 }, radius: 30000 } }, (hasil, st) => {
+                    if (selesai) return; selesai = true; clearTimeout(t);
+                    const p = (st === google.maps.places.PlacesServiceStatus.OK && hasil && hasil[0] && hasil[0].geometry) ? hasil[0] : null;
+                    if (!p) return cadangan();
+                    window.selectHistoryLocation(nama, p.formatted_address || alamat, p.geometry.location.lat(), p.geometry.location.lng(), null);
+                });
+            } catch (e) { if (!selesai) { selesai = true; clearTimeout(t); cadangan(); } }
+        };
 
         // Fungsi kecil tambahan untuk Checkout (Jika alamat lama tidak punya koordinat GPS)
         window.setDummyLocationCheckout = (val) => {
@@ -12409,7 +12476,7 @@ body.gm-terkunci { overflow: hidden; }
                         <div id="ride-locations-list">
                             <div style="font-size:14px; font-weight:800; color:var(--dark); margin-top:15px; margin-bottom:10px;">Sering digunakan</div>
                             
-                            <div style="display:flex; align-items:flex-start; gap:15px; padding:12px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" onclick="setDummyLocation('Pasar Wonokriyo Gombong')">
+                            <div style="display:flex; align-items:flex-start; gap:15px; padding:12px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" onclick="pgPilihSaran('Pasar Wonokriyo Gombong', 'Jl. Yos Sudarso, Wonokriyo, Gombong', -7.607447, 109.447547)">
                                 <i class="ph-regular ph-clock-counter-clockwise" style="font-size:20px; color:#666; margin-top:2px;"></i>
                                 <div style="flex-grow:1;">
                                     <div style="font-size:14px; font-weight:700; color:#333; margin-bottom:4px;">Pasar Wonokriyo Gombong</div>
@@ -12417,7 +12484,7 @@ body.gm-terkunci { overflow: hidden; }
                                 </div>
                                 <i class="ph-bold ph-dots-three-vertical" style="color:#aaa;"></i>
                             </div>
-                            <div style="display:flex; align-items:flex-start; gap:15px; padding:12px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" onclick="setDummyLocation('Stasiun Kebumen')">
+                            <div style="display:flex; align-items:flex-start; gap:15px; padding:12px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" onclick="pgPilihSaran('Stasiun Kebumen', 'Jl. Stasiun, Panjer, Kebumen', -7.674900, 109.664400)">
                                 <i class="ph-fill ph-map-pin" style="font-size:20px; color:#666; margin-top:2px;"></i>
                                 <div style="flex-grow:1;">
                                     <div style="font-size:14px; font-weight:700; color:#333; margin-bottom:4px;">Stasiun Kebumen</div>
@@ -13046,7 +13113,7 @@ body.gm-terkunci { overflow: hidden; }
                 listContainer.innerHTML = `
                     <div style="font-size:14px; font-weight:800; color:var(--dark); margin-top:15px; margin-bottom:10px;">Sering digunakan</div>
                     <div style="display:flex; align-items:flex-start; gap:15px; padding:12px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" 
-                         onclick="selectHistoryLocation('Pasar Wonokriyo Gombong', 'Jl. Yos Sudarso, Wonokriyo, Gombong', -7.607447, 109.447547, null)">
+                         onclick="pgPilihSaran('Pasar Wonokriyo Gombong', 'Jl. Yos Sudarso, Wonokriyo, Gombong', -7.607447, 109.447547)">
                         <i class="ph-regular ph-clock-counter-clockwise" style="font-size:20px; color:#666; margin-top:2px;"></i>
                         <div style="flex-grow:1;">
                             <div style="font-size:14px; font-weight:700; color:#333; margin-bottom:4px;">Pasar Wonokriyo Gombong</div>
@@ -13055,7 +13122,7 @@ body.gm-terkunci { overflow: hidden; }
                         <i class="ph-bold ph-dots-three-vertical" style="color:#aaa;"></i>
                     </div>
                     <div style="display:flex; align-items:flex-start; gap:15px; padding:12px 0; border-bottom:1px solid #f0f0f0; cursor:pointer;" 
-                         onclick="selectHistoryLocation('Stasiun Kebumen', 'Jl. Stasiun, Panjer, Kebumen', -7.674900, 109.664400, null)">
+                         onclick="pgPilihSaran('Stasiun Kebumen', 'Jl. Stasiun, Panjer, Kebumen', -7.674900, 109.664400)">
                         <i class="ph-fill ph-map-pin" style="font-size:20px; color:#666; margin-top:2px;"></i>
                         <div style="flex-grow:1;">
                             <div style="font-size:14px; font-weight:700; color:#333; margin-bottom:4px;">Stasiun Kebumen</div>
@@ -13211,17 +13278,31 @@ body.gm-terkunci { overflow: hidden; }
             document.getElementById('suggested-locations').style.display = 'none';
             document.getElementById('loading-route').style.display = 'block';
             
-            const origin = originPlace.geometry.location;
-            const destination = destPlace.geometry.location;
+            // (18 Nov 2026) titik selalu jadi {lat, lng} angka, supaya DirectionsService tidak menolak
+            const keLL = (L) => { const a = Number(typeof L.lat === 'function' ? L.lat() : L.lat), b = Number(typeof L.lng === 'function' ? L.lng() : L.lng); return { lat: a, lng: b }; };
+            const origin = keLL(originPlace.geometry.location);
+            const destination = keLL(destPlace.geometry.location);
+            const nomorRute = (window.__pgNomorRute = (window.__pgNomorRute || 0) + 1);
+            const gagalRute = () => {
+                if (nomorRute !== window.__pgNomorRute) return;
+                window.__pgNomorRute++;
+                document.getElementById('loading-route').style.display = 'none';
+                window.rrTahap('cari');
+                showToast("Rute belum bisa dihitung. Periksa internet lalu pilih lokasinya lagi.");
+                document.getElementById('suggested-locations').style.display = 'block';
+            };
+            const tBatas = setTimeout(gagalRute, 15000);
 
             // Gunakan DirectionsService (bukan DistanceMatrixService) agar kita bisa menggambar garis rutenya di peta
             const directionsService = new google.maps.DirectionsService();
             
-            directionsService.route({
+            try { directionsService.route({
                 origin: origin,
                 destination: destination,
                 travelMode: google.maps.TravelMode.DRIVING
             }, (response, status) => {
+                clearTimeout(tBatas);
+                if (nomorRute !== window.__pgNomorRute) return;   // sudah ada hitungan rute yang lebih baru
                 document.getElementById('loading-route').style.display = 'none';
                 
                 if (status === google.maps.DirectionsStatus.OK) {
@@ -13262,7 +13343,7 @@ body.gm-terkunci { overflow: hidden; }
                         window.directionsRenderer.setDirections({routes: []});
                     }
                 }
-            });
+            }); } catch (e) { clearTimeout(tBatas); console.warn('Hitung rute gagal:', e && e.message); gagalRute(); }
         }
 
         window.calculatePrice = (distKm) => {
@@ -15970,6 +16051,7 @@ body.gm-terkunci { overflow: hidden; }
                 </div>
                 <div style="flex-grow:1;">
                     <div style="font-size:17px; font-weight:800; color:#1f2933; margin-bottom:5px;">Pilih Lewat Peta</div>
+                    <span style="display:inline-block; background:#DCFCE7; color:#166534; border-radius:999px; padding:3px 9px; font-size:11px; font-weight:800; margin-bottom:6px;">⚡ Ongkir otomatis via sistem</span>
                     <div style="font-size:13px; color:#8a94a0; line-height:1.5;">Cari otomatis menggunakan GPS untuk letak yang lebih akurat.</div>
                 </div>
                 <i class="ph-bold ph-caret-right" style="font-size:20px; color:#c5ccd6; flex-shrink:0;"></i>
@@ -15981,6 +16063,7 @@ body.gm-terkunci { overflow: hidden; }
                 </div>
                 <div style="flex-grow:1;">
                     <div style="font-size:17px; font-weight:800; color:#1f2933; margin-bottom:5px;">Ketik Alamat Manual</div>
+                    <span style="display:inline-block; background:#FFEDD5; color:#9A3412; border-radius:999px; padding:3px 9px; font-size:11px; font-weight:800; margin-bottom:6px;">✍️ Tulis manual, ongkir ditentukan admin</span>
                     <div style="font-size:13px; color:#8a94a0; line-height:1.5;">Jika Anda tidak terbiasa menggunakan Maps. Tulis secara manual, ongkir akan dikalkulasikan oleh admin.</div>
                 </div>
                 <i class="ph-bold ph-caret-right" style="font-size:20px; color:#c5ccd6; flex-shrink:0;"></i>
@@ -17101,6 +17184,7 @@ body.gm-terkunci { overflow: hidden; }
         // ---------- Status ----------
         let uid = null, hentiAkt = null, akt = [], sudahMuat = false;
         const lacak = {}, hentiLacak = {}, chat = {}, hentiChat = {}, rider = {}, mintaRider = {};
+        const hentiOto = {};   // (18 Nov 2026) kode -> pemantau otomatis_order (pembatalan setelah diterima)
         let tab = 'jalan', bukaDetail = null, bukaChat = null, mintaBukaChat = null;
         try { const q = new URLSearchParams(location.search); if (q.get('buka') === 'rider' && KODE.test(q.get('k') || '')) mintaBukaChat = q.get('k'); } catch (e) {}
         const riwayatTetap = (() => { try { return JSON.parse(localStorage.getItem('ktv_akhir') || '{}') || {}; } catch (e) { return {}; } })();   // kode -> tahap akhir (sudah pasti)
@@ -17133,6 +17217,7 @@ body.gm-terkunci { overflow: hidden; }
             hentiAkt = null; akt = []; sudahMuat = false;
             Object.keys(hentiLacak).forEach((k) => { try { hentiLacak[k](); } catch (e) {} delete hentiLacak[k]; delete lacak[k]; });
             Object.keys(hentiChat).forEach((k) => { try { hentiChat[k](); } catch (e) {} delete hentiChat[k]; delete chat[k]; });
+            Object.keys(hentiOto).forEach((k) => { try { hentiOto[k](); } catch (e) {} delete hentiOto[k]; });
             uid = null; tutupSemua(); gambarSemua();
         }
         function mulai(u) {
@@ -17200,6 +17285,18 @@ body.gm-terkunci { overflow: hidden; }
                     gambarSemua();
                 }).catch(() => {});
             });
+            // (18 Nov 2026) Order otomatis yang sedang berjalan: kalau dibatalkan (oleh rider / di HP lain), tandai di Aktivitas
+            const perluOto = new Set(akt.filter((a) => a.oto && /^[A-Za-z0-9]{20}$/.test(a.oid) && !a.akhir && perlu.has(a.kode)).map((a) => a.kode));
+            Object.keys(hentiOto).forEach((k) => { if (!perluOto.has(k)) { try { hentiOto[k](); } catch (e) {} delete hentiOto[k]; } });
+            perluOto.forEach((k) => {
+                if (hentiOto[k]) return;
+                const a = akt.find((x) => x.kode === k);
+                hentiOto[k] = onSnapshot(doc(db, 'otomatis_order', a.oid), (s) => {
+                    const o = s.exists() ? s.data() : null;
+                    if (!o || !['dibatalkan', 'batal', 'gagal'].includes(o.status) || !uid) return;
+                    updateDoc(doc(db, 'aktivitas_pelanggan', uid, 'order', k), { akhir: 'batal', akhir_at: serverTimestamp() }).catch(() => {});
+                }, () => {});
+            });
             if (mintaBukaChat && !akt.some((a) => a.kode === mintaBukaChat)) mintaBukaChat = null;
         }
         function simpanAkhir(k, t) {
@@ -17242,7 +17339,7 @@ body.gm-terkunci { overflow: hidden; }
         }
         function kartu(a, lengkap) {
             const j = J(a.jenis), t = tahapDari(a), jalan = berjalan(a);
-            const b = el('div', 'ktv-kartu'); b.setAttribute('role', 'button'); b.tabIndex = 0;
+            const b = el('div', 'ktv-kartu' + (t === 'batal' ? ' abu' : '')); b.setAttribute('role', 'button'); b.tabIndex = 0;
             b.setAttribute('aria-label', j.label + (a.judul ? ', ' + a.judul : '') + ', ' + (PENDEK[t] || 'Tercatat'));
             const atas = el('div', 'ktv-atas');
             const ik = el('span', 'ktv-ik ' + a.jenis, j.ik); ik.setAttribute('aria-hidden', 'true');
@@ -17251,7 +17348,7 @@ body.gm-terkunci { overflow: hidden; }
             atas.append(ik, tg);
             if (!jalan) {
                 const s = selesaiMs(a), bisaUlas = t === 'selesai' && s && Date.now() < s + HARI_MS && lacak[a.kode] && !ulasanTerkirim(a.kode);
-                atas.appendChild(el('span', 'ktv-st ' + (bisaUlas ? 'ulas' : (t === 'selesai' ? 'selesai' : 'batal')), bisaUlas ? 'Beri ulasan' : (t === 'batal' ? 'Batal' : (t === 'selesai' ? 'Selesai' : 'Tercatat'))));
+                atas.appendChild(el('span', 'ktv-st ' + (bisaUlas ? 'ulas' : (t === 'selesai' ? 'selesai' : 'batal')), bisaUlas ? 'Beri ulasan' : (t === 'batal' ? 'Dibatalkan' : (t === 'selesai' ? 'Selesai' : 'Tercatat'))));
             }
             b.appendChild(atas);
             if (jalan) {
@@ -17476,13 +17573,14 @@ body.gm-terkunci { overflow: hidden; }
             const a = akt.find((x) => x.kode === bukaDetail); if (!a) return;
             const w = $('ktv-d-isi'), gulir = w.scrollTop;
             const j = J(a.jenis), t = tahapDari(a), l = lacak[a.kode] || null, info = infoRider(a);
+            $('ktv-detail').classList.toggle('ktv-abu', t === 'batal');
             $('ktv-d-judul').textContent = j.label + (a.judul ? ' · ' + a.judul : '');
             $('ktv-d-sub').textContent = 'Pesanan #' + a.kode.slice(-5).toUpperCase() + ' · ' + tglPendek(a.t);
             const frag = document.createDocumentFragment();
 
             // 1. Status utama
             const hero = el('section', 'ktv-kotak ktv-hero');
-            const jd = t === 'batal' ? ['Pesanan dibatalkan', 'Pesanan ini dibatalkan admin. Ada pertanyaan? Chat admin ProjekGo di menu Chat.']
+            const jd = t === 'batal' ? ['Pesanan dibatalkan', a.oto ? 'Pesanan ini dibatalkan. Ada pertanyaan? Chat admin ProjekGo di menu Chat.' : 'Pesanan ini dibatalkan admin. Ada pertanyaan? Chat admin ProjekGo di menu Chat.']
                 : t === 'lama' ? ['Pesanan tercatat', 'Status akhir pesanan ini tidak tercatat. Ada kendala? Chat admin ProjekGo.']
                 : (j.judul[t] || j.judul.diteruskan);
             hero.append(el('h2', '', jd[0]), el('p', '', jd[1]));
@@ -17526,8 +17624,13 @@ body.gm-terkunci { overflow: hidden; }
                 frag.appendChild(tl);
             }
 
-            // 3. Rider
-            if (info.nama && t !== 'menunggu' && t !== 'diteruskan' && t !== 'batal') {
+            // 3. Rider. (18 Nov 2026) Disembunyikan bila batal, atau sudah lewat 24 jam setelah selesai / tanpa kabar.
+            const sRider = selesaiMs(a), riderLama = t === 'lama' || (t === 'selesai' && (sRider ? Date.now() > sRider + HARI_MS : Date.now() - a.t > HARI_MS));
+            if (info.nama && riderLama) {
+                const rk = el('section', 'ktv-kotak'); rk.appendChild(el('p', 'ktv-rider-tutup', 'Info rider disembunyikan otomatis setelah 24 jam untuk menjaga privasi.'));
+                frag.appendChild(rk);
+            }
+            if (info.nama && t !== 'menunggu' && t !== 'diteruskan' && t !== 'batal' && !riderLama) {
                 const rk = el('section', 'ktv-kotak');
                 const r = el('div', 'ktv-rider'); r.style.cssText = 'margin:0;padding:0;border:0;';
                 const rt = el('div', 'ktv-tengah'); rt.append(el('b', '', info.nama), el('span', '', 'Rider ProjekGo · nomormu tidak dibagikan'));
@@ -18996,6 +19099,7 @@ body.gm-terkunci { overflow: hidden; }
         .pg-gel::before { content: ''; position: absolute; top: -7px; width: 14px; height: 14px; background: #FFFFFF; transform: rotate(45deg); border-radius: 3px; }
         .pg-gel-lok { top: calc(100% + 12px); left: 0; width: 230px; padding: 11px 34px 11px 13px; font-size: 13.5px; font-weight: 700; line-height: 1.4; cursor: pointer; animation: pgGelMasuk .35s ease-out; }
         .pg-gel-lok::before { left: 22px; }
+        #page-food .pg-gel-lok { z-index: 205; }   /* (18 Nov 2026) di atas kolom cari Food yang menempel */
         .pg-gel-lok small { display: block; font-size: 11.5px; font-weight: 600; color: #6B6258; margin-top: 2px; }
         .pg-gel-x { position: absolute; top: 4px; right: 4px; width: 30px; height: 30px; border: 0; background: none; color: #8A8178; font-size: 18px; line-height: 1; cursor: pointer; border-radius: 50%; }
         @keyframes pgGelMasuk { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
@@ -19048,11 +19152,11 @@ body.gm-terkunci { overflow: hidden; }
         function gerbangAktif() { var g = document.getElementById('gm-gerbang'); return !!(g && g.classList.contains('aktif')); }
         function gelembungBeranda() {
             if (gelSelesai || sesi('pg_gel_lokasi')) return;
-            if (!tampil('page-home') || gerbangAktif() || document.querySelector('.swal2-container')) return;
-            var tombol = document.querySelector('#page-home .bh-lokasi'); if (!tombol) return;
+            if (!tampil('page-food') || gerbangAktif() || document.querySelector('.swal2-container')) return;
+            var tombol = document.querySelector('#page-food .fd-area'); if (!tombol) return;
             var wadah = tombol.parentElement; if (!wadah || document.getElementById('pg-gel-lokasi')) return;
             var g = document.createElement('div'); g.id = 'pg-gel-lokasi'; g.className = 'pg-gel pg-gel-lok'; g.setAttribute('role', 'status');
-            g.appendChild(document.createTextNode('📍 Pilih lokasi kamu dulu ya'));
+            g.appendChild(document.createTextNode('🏪 Pilih daerah warung dulu ya'));
             var k = document.createElement('small'); k.textContent = 'Gombong atau Kebumen, supaya warung yang tampil sesuai.'; g.appendChild(k);
             var x = document.createElement('button'); x.type = 'button'; x.className = 'pg-gel-x'; x.setAttribute('aria-label', 'Tutup'); x.textContent = '×'; g.appendChild(x);
             var selesai = function () { gelSelesai = true; sesi('pg_gel_lokasi', '1'); if (g.parentNode) g.remove(); };
@@ -19065,9 +19169,9 @@ body.gm-terkunci { overflow: hidden; }
         var tBeranda = setInterval(function () {
             var g = document.getElementById('pg-gel-lokasi');
             // layar masuk akun menutup beranda: sembunyikan dulu, tampilkan lagi setelah masuk
-            if (g && (gerbangAktif() || !tampil('page-home'))) g.remove();
+            if (g && (gerbangAktif() || !tampil('page-food'))) g.remove();
             if (Date.now() - MULAI > 2500) gelembungBeranda();
-            if (gelSelesai || sesi('pg_gel_lokasi') || Date.now() - MULAI > 600000) clearInterval(tBeranda);
+            if (gelSelesai || sesi('pg_gel_lokasi')) clearInterval(tBeranda);
         }, 1000);
 
         // ---------- 2) Food: lokasi sekarang vs alamat pesanan terakhir ----------
@@ -19086,9 +19190,8 @@ body.gm-terkunci { overflow: hidden; }
         }
         function gelembungAlamat(kini, akhir) {
             var lama = document.getElementById('pg-alamat'); if (lama) lama.remove();
-            var tuju = document.getElementById('loc-text-food'); if (!tuju) return;
-            var kepala = tuju.closest('div[style*="flex-direction: column"]'); var induk = kepala && kepala.parentElement && kepala.parentElement.parentElement;
-            if (!induk) return;
+            // (18 Nov 2026) lokasi sekarang ada di Beranda: gelembung muncul di bawah baris lokasi Beranda
+            var atas = document.querySelector('#page-home .bh-top'); if (!atas || !atas.parentElement) return;
             var g = document.createElement('div'); g.id = 'pg-alamat'; g.className = 'pg-gel pg-alamat'; g.setAttribute('role', 'dialog'); g.setAttribute('aria-label', 'Pilih alamat antar');
             var j = document.createElement('b'); j.textContent = '📍 Lokasimu sekarang beda dari alamat pesanan terakhir. Mau diantar ke mana?'; g.appendChild(j);
             var x = document.createElement('button'); x.type = 'button'; x.className = 'pg-gel-x'; x.setAttribute('aria-label', 'Tutup'); x.textContent = '×'; g.appendChild(x);
@@ -19099,7 +19202,8 @@ body.gm-terkunci { overflow: hidden; }
             op.appendChild(tombol('', 'Antar ke alamat pesanan terakhir', '"' + pendek(akhir.alamat || 'Alamat terakhir', 90) + '"', function () { pasangAlamat(akhir.alamat, akhir.lat, akhir.lng); tutup(); if (window.showToast) window.showToast('Diantar ke alamat pesanan terakhir 🏠'); }));
             g.appendChild(op);
             x.addEventListener('click', tutup);
-            induk.insertBefore(g, kepala.parentElement.nextSibling);
+            g.style.zIndex = '4';
+            atas.parentElement.insertBefore(g, atas.nextSibling);
         }
         // Dipanggil autoFetchFoodLocation setelah GPS terbaca
         window.pgSetelahGpsFood = function (lat, lng, alamat) {
@@ -19107,7 +19211,7 @@ body.gm-terkunci { overflow: hidden; }
             if (!sah(lat, lng)) return;
             var lanjutBanding = function () {
                 var akhir = antarTerakhir();
-                if (!akhir || !tampil('page-food')) return;
+                if (!akhir || !tampil('page-home')) return;
                 if (jarak(lat, lng, Number(akhir.lat), Number(akhir.lng)) <= GESER_KM) return;
                 gelembungAlamat({ alamat: alamat, lat: lat, lng: lng }, akhir);
             };
@@ -19340,6 +19444,9 @@ body.gm-terkunci { overflow: hidden; }
                 const g = gpsTersimpan();
                 const boleh = !!(k && layakAkun(k.layanan) && dalamArea(atur, g) && dalamArea(atur, k.jemput));
                 let p = kartu.querySelector('.oto-pita');
+                // (18 Nov 2026) order otomatis: kotak "Ongkos dihitung dari jarak rute..." tidak ditampilkan
+                const cat = kartu.querySelector('.rr-catatan');
+                if (cat) cat.style.display = boleh ? 'none' : '';
                 if (!boleh) { if (p) p.remove(); return; }
                 if (!p) {
                     p = el('div', 'oto-pita'); p.appendChild(el('b', '', '⚡'));
@@ -19681,10 +19788,14 @@ body.gm-terkunci { overflow: hidden; }
         .oto-lk-motor small { font-size: 11.5px; background: #FFF1E6; color: #C2410C; border-radius: 6px; padding: 2px 7px; font-weight: 800; }
         .oto-lk-foto { margin-left: auto; width: 60px; height: 60px; border-radius: 14px; background: linear-gradient(135deg, #FDBA74, #EA580C); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 900; font-size: 21px; flex: none; overflow: hidden; }
         .oto-lk-foto img { width: 100%; height: 100%; object-fit: cover; }
-        .oto-lk-nm { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin: 10px 0; padding-top: 10px; border-top: 1px dashed #E5E7EB; font-size: 14px; font-weight: 700; color: #374151; }
+        /* (18 Nov 2026) nama rider + ikon chat bulat minimalis dalam satu baris */
+        .oto-lk-baris { display: flex; align-items: center; gap: 10px; margin: 10px 0; padding-top: 10px; border-top: 1px dashed #E5E7EB; }
+        .oto-lk-nm { flex: 1; min-width: 0; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 14px; font-weight: 700; color: #374151; }
         .oto-lk-nm b { background: #DCFCE7; color: #166534; border-radius: 999px; padding: 2px 8px; font-size: 11.5px; }
-        .oto-lk-chat { width: 100%; height: 48px; border-radius: 999px; border: 0; background: #F3F4F6; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; font: inherit; font-size: 14px; font-weight: 800; color: #374151; }
-        .oto-lk-chat em { font-style: normal; background: #EA580C; color: #fff; border-radius: 999px; min-width: 22px; height: 22px; padding: 0 6px; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; }
+        .oto-lk-chat { position: relative; flex: none; width: 46px; height: 46px; border-radius: 50%; border: 1.5px solid #FED7AA; background: #FFF7ED; color: #EA580C; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+        .oto-lk-chat[hidden] { display: none; }
+        .oto-lk-chat svg { width: 22px; height: 22px; }
+        .oto-lk-chat em { position: absolute; top: -4px; right: -4px; font-style: normal; background: #DC2626; color: #fff; border: 2px solid #fff; border-radius: 999px; min-width: 20px; height: 20px; padding: 0 4px; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; }
         .oto-lk-chat em[hidden] { display: none; }
         .oto-lk-thp { display: flex; gap: 4px; margin: 12px 0 2px; }
         .oto-lk-thp i { flex: 1; height: 5px; border-radius: 4px; background: #E5E7EB; }
@@ -19706,6 +19817,28 @@ body.gm-terkunci { overflow: hidden; }
         .oto-lk-kode { font-size: 11px; color: #9CA3AF; font-weight: 600; text-align: center; margin-top: 10px; }
         .oto-lk-ulas { width: 100%; height: 50px; margin-top: 12px; border-radius: 14px; border: 0; background: #EA580C; color: #fff; font: inherit; font-size: 15px; font-weight: 900; }
         .oto-lk-ulas[hidden] { display: none; }
+        /* (18 Nov 2026) batal: abu-abu + info rider disembunyikan; > 24 jam setelah selesai: info rider disembunyikan */
+        .oto-lk.batal .oto-lk-peta, .oto-lk.batal .oto-lk-rute, .oto-lk.batal .oto-lk-kartu > :not(.oto-lk-alasan) { filter: grayscale(1); }
+        .oto-lk.batal .oto-lk-bnr { background: #6B7280 !important; }
+        .oto-lk.tanpa-rider .oto-lk-rd, .oto-lk.tanpa-rider .oto-lk-baris { display: none; }
+        .oto-lk-privasi { font-size: 12px; color: #6B7280; font-weight: 600; background: #F9FAFB; border-radius: 12px; padding: 10px 12px; margin: 4px 0 10px; }
+        .oto-lk-privasi[hidden], .oto-lk-alasan[hidden], .oto-lk-batal[hidden] { display: none; }
+        .oto-lk-alasan { background: #FEF2F2; border: 1px solid #FECACA; color: #7F1D1D; border-radius: 14px; padding: 10px 12px; font-size: 13px; font-weight: 700; margin: 4px 0 10px; overflow-wrap: anywhere; }
+        .oto-lk-alasan small { display: block; font-size: 11.5px; font-weight: 600; color: #991B1B; margin-top: 3px; }
+        .oto-lk-batal { display: block; width: 100%; margin: 10px 0 2px; height: 42px; border: 0; background: none; color: #B91C1C; font: inherit; font-size: 13.5px; font-weight: 800; }
+        .oto-bt { position: fixed; inset: 0; z-index: 100060; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+        .oto-bt[hidden] { display: none; }
+        .oto-bt-isi { background: #fff; width: 100%; max-width: 480px; border-radius: 22px 22px 0 0; padding: 18px 16px calc(env(safe-area-inset-bottom, 0px) + 16px); max-height: 90vh; overflow-y: auto; color: #1C1C1E; }
+        .oto-bt-isi h3 { font-size: 18px; font-weight: 900; margin: 0; }
+        .oto-bt-isi p { font-size: 12.5px; color: #6B7280; font-weight: 600; margin: 4px 0 10px; line-height: 1.45; }
+        .oto-bt-pil { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+        .oto-bt-pil button { border: 1.5px solid #E5E7EB; background: #fff; border-radius: 999px; padding: 8px 12px; font: inherit; font-size: 13px; font-weight: 700; color: #374151; }
+        .oto-bt-pil button[aria-pressed="true"] { border-color: #DC2626; background: #FEF2F2; color: #B91C1C; }
+        .oto-bt-isi textarea { width: 100%; box-sizing: border-box; border: 1.5px solid #E5E7EB; border-radius: 12px; padding: 10px 12px; font: inherit; font-size: 14px; min-height: 70px; resize: vertical; }
+        .oto-bt-isi .gal { color: #B91C1C; font-size: 12px; font-weight: 700; min-height: 16px; margin: 4px 0 0; }
+        .oto-bt-isi .oke { width: 100%; height: 48px; border: 0; border-radius: 14px; background: #DC2626; color: #fff; font: inherit; font-size: 15px; font-weight: 800; margin-top: 8px; }
+        .oto-bt-isi .oke:disabled { opacity: .55; }
+        .oto-bt-isi .kbl { width: 100%; height: 46px; border: 1.5px solid #E5E7EB; border-radius: 14px; background: #fff; color: #1C1C1E; font: inherit; font-size: 14.5px; font-weight: 800; margin-top: 8px; }
     </style>
     <div class="oto-lk" id="oto-lk" hidden role="dialog" aria-modal="true" aria-labelledby="oto-lk-status">
         <div class="oto-lk-peta" id="oto-lk-peta"></div>
@@ -19719,10 +19852,11 @@ body.gm-terkunci { overflow: hidden; }
                     <div><div class="oto-lk-plat" id="oto-lk-plat" hidden></div><div class="oto-lk-motor" id="oto-lk-motor" hidden></div><div id="oto-lk-nama0" style="font-size:16px;font-weight:900"></div></div>
                     <div class="oto-lk-foto" id="oto-lk-foto">R</div>
                 </div>
-                <div class="oto-lk-nm" id="oto-lk-nm"></div>
-                <button type="button" class="oto-lk-chat" id="oto-lk-chat"><span>💬 Chat dengan rider</span><em id="oto-lk-belum" hidden>0</em><span aria-hidden="true">›</span></button>
+                <div class="oto-lk-baris"><div class="oto-lk-nm" id="oto-lk-nm"></div><button type="button" class="oto-lk-chat" id="oto-lk-chat" aria-label="Chat dengan rider" title="Chat dengan rider"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1 1 21 12z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01" stroke-width="2.6"/></svg><em id="oto-lk-belum" hidden>0</em></button></div>
                 <div class="oto-lk-thp" id="oto-lk-thp"><i></i><i></i><i></i><i></i></div>
                 <div class="oto-lk-thpt"><span>Diterima</span><span id="oto-lk-t2">Menjemput</span><span id="oto-lk-t3">Diantar</span><span>Selesai</span></div>
+                <div class="oto-lk-alasan" id="oto-lk-alasan" hidden></div>
+                <div class="oto-lk-privasi" id="oto-lk-privasi" hidden>Info rider disembunyikan otomatis setelah 24 jam untuk menjaga privasi.</div>
                 <button type="button" class="oto-lk-ulas" id="oto-lk-ulas" hidden>⭐ Beri ulasan untuk rider</button>
                 <div class="oto-lk-kotak"><h6 id="oto-lk-dj">Detail pesanan</h6><div id="oto-lk-titik"></div></div>
                 <div class="oto-lk-kotak"><h6>Rincian biaya</h6>
@@ -19732,12 +19866,14 @@ body.gm-terkunci { overflow: hidden; }
                     <div class="oto-lk-by tot"><span>Total · bayar tunai ke rider</span><b id="oto-lk-tot">Rp0</b></div>
                 </div>
                 <div class="oto-lk-kode" id="oto-lk-kode"></div>
+                <button type="button" class="oto-lk-batal" id="oto-lk-batal" hidden>Batalkan pesanan</button>
             </div>
         </div>
     </div>
+    <div class="oto-bt" id="oto-bt" hidden role="dialog" aria-modal="true" aria-labelledby="oto-bt-j"><div class="oto-bt-isi" id="oto-bt-isi"></div></div>
     <script type="module">
         import { getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, onSnapshot, writeBatch, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         (function lacakOtomatis() {
             'use strict';
             let db; try { db = getFirestore(getApp()); } catch (e) { return; }
@@ -19753,7 +19889,7 @@ body.gm-terkunci { overflow: hidden; }
 
             function tutup() {
                 if (lk) lk.henti.forEach((f) => { try { f(); } catch (e) {} });
-                lk = null; $('oto-lk').hidden = true;
+                lk = null; $('oto-lk').hidden = true; $('oto-bt').hidden = true;
                 document.body.style.overflow = '';
             }
             $('oto-lk-x').addEventListener('click', tutup);
@@ -19762,6 +19898,54 @@ body.gm-terkunci { overflow: hidden; }
                 if (typeof window.ktvBukaChatRider === 'function') { try { window.ktvBukaChatRider(lk.kode); return; } catch (e) {} }
                 if (typeof window.showToast === 'function') window.showToast('Chat sedang disiapkan, coba lagi sebentar');
             });
+            // ---------- (18 Nov 2026) Batalkan pesanan (sebelum dijemput) + alasan ----------
+            const ALASAN = ['Rider terlalu lama', 'Salah titik jemput / tujuan', 'Berubah rencana', 'Pesan dobel', 'Lainnya'];
+            function lembarBatal() {
+                if (!lk || !lk.o) return;
+                const isi = $('oto-bt-isi'); while (isi.firstChild) isi.removeChild(isi.firstChild);
+                const h = el('h3', '', 'Batalkan pesanan?'); h.id = 'oto-bt-j'; isi.appendChild(h);
+                isi.appendChild(el('p', '', 'Hanya bisa sebelum kamu dijemput / barang diambil. Pilih alasannya supaya kami bisa memperbaiki layanan.'));
+                const pil = el('div', 'oto-bt-pil'); let dipilih = '';
+                const ta = el('textarea'); ta.maxLength = 150; ta.placeholder = 'Tulis alasan (wajib bila memilih "Lainnya")'; ta.setAttribute('aria-label', 'Alasan pembatalan');
+                const gal = el('div', 'gal', '');
+                const oke = el('button', 'oke', 'Ya, batalkan pesanan'); oke.type = 'button'; oke.disabled = true;
+                const cek = () => { const t = ta.value.trim(); oke.disabled = !dipilih || (dipilih === 'Lainnya' && t.length < 3); };
+                ALASAN.forEach((a) => {
+                    const b = el('button', '', a); b.type = 'button'; b.setAttribute('aria-pressed', 'false');
+                    b.addEventListener('click', () => { dipilih = a; pil.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); cek(); });
+                    pil.appendChild(b);
+                });
+                ta.addEventListener('input', cek);
+                isi.appendChild(pil); isi.appendChild(ta); isi.appendChild(gal);
+                oke.addEventListener('click', async () => {
+                    if (!lk || !lk.o || oke.disabled) return;
+                    const t = ta.value.trim().replace(/\s+/g, ' ');
+                    const alasan = (dipilih === 'Lainnya' ? t : (t ? dipilih + ' · ' + t : dipilih)).slice(0, 200);
+                    if (alasan.length < 3) { gal.textContent = 'Alasan terlalu pendek.'; return; }
+                    oke.disabled = true; oke.textContent = 'Membatalkan…'; gal.textContent = '';
+                    const id = lk.id, kode = lk.kode, puid = String(lk.o.pelanggan_uid || '');
+                    const isiBatal = { status: 'dibatalkan', batal_oleh: 'pelanggan', batal_alasan: alasan, batal_at: serverTimestamp() };
+                    try {
+                        const b = writeBatch(db);
+                        b.update(doc(db, 'otomatis_order', id), isiBatal);
+                        b.update(D('active_orders', id), isiBatal);
+                        await b.commit();
+                    } catch (e) {
+                        oke.disabled = false; oke.textContent = 'Ya, batalkan pesanan';
+                        gal.textContent = e && e.code === 'permission-denied' ? 'Tidak bisa dibatalkan: rider sudah menjemput / pesanan sudah berjalan. Hubungi rider lewat chat.' : 'Gagal membatalkan. Periksa internet lalu coba lagi.';
+                        return;
+                    }
+                    if (puid) updateDoc(doc(db, 'aktivitas_pelanggan', puid, 'order', kode), { akhir: 'batal', akhir_at: serverTimestamp() }).catch(() => {});
+                    $('oto-bt').hidden = true;
+                    if (typeof window.showToast === 'function') window.showToast('Pesanan dibatalkan');
+                });
+                isi.appendChild(oke);
+                const kb = el('button', 'kbl', 'Tidak jadi'); kb.type = 'button'; kb.addEventListener('click', () => { $('oto-bt').hidden = true; });
+                isi.appendChild(kb);
+                $('oto-bt').hidden = false;
+            }
+            $('oto-lk-batal').addEventListener('click', lembarBatal);
+            $('oto-bt').addEventListener('click', (e) => { if (e.target === $('oto-bt')) $('oto-bt').hidden = true; });
             $('oto-lk-ulas').addEventListener('click', () => {
                 if (!lk) return; const k = lk.kode; tutup();
                 if (typeof window.ktvBukaDetailAsli === 'function') window.ktvBukaDetailAsli(k);
@@ -19818,12 +20002,27 @@ body.gm-terkunci { overflow: hidden; }
                 // status
                 let tahap = l.tahap || 'menuju';
                 if (o.status !== 'diterima') tahap = o.status === 'cari' ? 'cari' : 'batal';
+                // (18 Nov 2026) abu-abu saat batal; info rider disembunyikan saat batal & > 24 jam setelah selesai
+                const msT = (x) => x && typeof x.toMillis === 'function' ? x.toMillis() : (x && typeof x.seconds === 'number' ? x.seconds * 1000 : 0);
+                const selesaiPada = tahap === 'selesai' ? (msT(l.selesai_at) || msT(l.tahap_at)) : 0;
+                const riderLama = tahap === 'selesai' && selesaiPada > 0 && Date.now() > selesaiPada + 24 * 3600 * 1000;
+                $('oto-lk').classList.toggle('batal', tahap === 'batal');
+                $('oto-lk').classList.toggle('tanpa-rider', tahap === 'batal' || riderLama);
+                $('oto-lk-privasi').hidden = !riderLama;
+                const al = $('oto-lk-alasan'); while (al.firstChild) al.removeChild(al.firstChild);
+                al.hidden = tahap !== 'batal';
+                if (tahap === 'batal') {
+                    al.appendChild(document.createTextNode(o.status === 'dibatalkan' ? (o.batal_oleh === 'rider' ? 'Pesanan dibatalkan rider' : 'Pesanan kamu batalkan') : 'Pesanan dibatalkan'));
+                    if (o.batal_alasan) al.appendChild(el('small', '', 'Alasan: ' + String(o.batal_alasan).slice(0, 200)));
+                    if (o.batal_oleh === 'rider') al.appendChild(el('small', '', 'Silakan pesan lagi, kami carikan rider lain.'));
+                }
+                $('oto-lk-batal').hidden = !(o.status === 'diterima' && (tahap === 'menuju' || tahap === 'lokasi'));
                 const teks = { cari: 'Mencari rider terdekat…', menuju: ojek ? 'Rider menuju lokasi jemput' : 'Rider menuju lokasi pengambilan', lokasi: 'Rider sudah di lokasi',
-                    antar: ojek ? 'Dalam perjalanan ke tujuan' : 'Barang sedang diantar', selesai: ojek ? 'Sudah sampai tujuan 🎉' : 'Barang sudah sampai 🎉', batal: 'Pesanan tidak berjalan' }[tahap] || 'Rider menuju lokasi jemput';
-                $('oto-lk-status').textContent = '🛵 ' + teks;
+                    antar: ojek ? 'Dalam perjalanan ke tujuan' : 'Barang sedang diantar', selesai: ojek ? 'Sudah sampai tujuan 🎉' : 'Barang sudah sampai 🎉', batal: 'Pesanan dibatalkan' }[tahap] || 'Rider menuju lokasi jemput';
+                $('oto-lk-status').textContent = (tahap === 'batal' ? '✖️ ' : '🛵 ') + teks;
                 $('oto-lk-bnr').classList.toggle('selesai', tahap === 'selesai');
                 const est = Number(l.estimasi_menit);
-                $('oto-lk-eta').hidden = !(est > 0 && tahap !== 'selesai');
+                $('oto-lk-eta').hidden = !(est > 0 && tahap !== 'selesai' && tahap !== 'batal');
                 $('oto-lk-eta').textContent = '± ' + est + ' mnt';
                 const urut = { cari: 0, menuju: 2, lokasi: 2, antar: 3, selesai: 4, batal: 0 }[tahap] || 1;
                 Array.prototype.forEach.call($('oto-lk-thp').children, (b, i) => b.classList.toggle('on', i < urut));
@@ -19890,6 +20089,10 @@ body.gm-terkunci { overflow: hidden; }
                     if (!lk || lk.id !== id) return;
                     if (!s.exists()) { tutup(); return; }
                     lk.o = s.data(); gambar();
+                    if (lk.o.status === 'dibatalkan' && lk.o.pelanggan_uid && !lk.akhirBatal) {
+                        lk.akhirBatal = true;
+                        updateDoc(doc(db, 'aktivitas_pelanggan', String(lk.o.pelanggan_uid), 'order', kode), { akhir: 'batal', akhir_at: serverTimestamp() }).catch(() => {});
+                    }
                 }, () => {}));
                 lk.henti.push(onSnapshot(D('lacak', kode), (s) => {
                     if (!lk || lk.kode !== kode) return;
