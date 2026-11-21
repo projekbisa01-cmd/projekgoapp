@@ -12480,6 +12480,7 @@ body.gm-terkunci { overflow: hidden; }
                     extraFields = `
                         <div style="margin-top:15px; display:flex; flex-direction:column; gap:12px; padding-top:15px; border-top:1px dashed #eee;">
                             <input type="text" id="svc-paket" class="ride-input" maxlength="200" placeholder="Detail Barang (Misal: Dokumen, Makanan...)">
+                            ${typeof window.fpHtml === 'function' ? window.fpHtml('instan') : ''}
                             <input type="text" id="svc-penerima" class="ride-input" maxlength="60" autocomplete="off" placeholder="Nama penerima">
                             <input type="tel" id="svc-penerima-hp" class="ride-input" maxlength="20" inputmode="tel" autocomplete="off" placeholder="No. WA penerima (08xxxxxxxxxx)">
                             <label for="svc-kp-bayar" style="font-size:12px; font-weight:700; color:#555; margin:2px 0 -6px;">Ongkir dibayar oleh</label>
@@ -13607,6 +13608,8 @@ body.gm-terkunci { overflow: hidden; }
                     const hpEl = document.getElementById('svc-penerima-hp');
                     const hpPenerima = hpEl ? hpEl.value.trim() : '';
                     if(!paket || !penerima || (hpEl && !hpPenerima)) { showToast("Mohon lengkapi data paket, nama & nomor WA penerima."); return; }
+                    // (20 Nov 2026) foto paket wajib
+                    if (typeof window.fpCek === 'function' && !window.fpCek('instan')) return;
                     message += `📦 *Detail Paket:* ${paket}%0A`;
                     message += `👤 *Penerima:* ${penerima}${hpPenerima ? ' · ' + hpPenerima : ''}%0A`;
 
@@ -13628,7 +13631,8 @@ body.gm-terkunci { overflow: hidden; }
                             asal: pakaiMaps ? kpTitik(originPlace) : null, asalTeks: String(asalTeks || '').trim(),
                             tujuan: pakaiMaps ? kpTitik(destPlace) : null, tujuanTeks: String(tujuanTeks || '').trim(),
                             nama: penerima, hp: hpPenerima, paket: String(paket).trim(), bayar: bayarEl && bayarEl.value === 'penerima' ? 'penerima' : 'pengirim',
-                            ongkir: ongkirKp, jarakKm: ongkirKp ? routeDistance : 0
+                            ongkir: ongkirKp, jarakKm: ongkirKp ? routeDistance : 0,
+                            fotoPaket: typeof window.fpPath === 'function' ? window.fpPath('instan') : ''
                         }).then((idKirim) => {
                             if (!idKirim) return;
                             const kpAman = (t) => String(t || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -18865,6 +18869,169 @@ body.gm-terkunci { overflow: hidden; }
     .pc-tulis .pga-mik { width: 46px; height: 46px; }
     .pc-tulis .pga-rekam { left: 8px; right: 62px; bottom: max(6px, env(safe-area-inset-bottom, 0px)); height: 46px; }
 </style>
+    <!-- ===================== FOTO PAKET (20 Nov 2026) =====================
+         Kirim Paket (instan & gabungan) WAJIB melampirkan foto paket. Foto dikecilkan di HP (JPEG < 2 MB),
+         diunggah ke Storage foto_paket/{uid}/{acak 20}.jpg saat dipilih, lalu path-nya ikut tersimpan di pesanan
+         (otomatis_order.foto_paket / antar_permintaan.fotoPaket). Yang bisa melihat: pelanggan itu, rider, admin.
+         Isi kotak tetap (tidak ada teks dari pengguna yang masuk sebagai HTML). -->
+    <style id="fp-css">
+        .fp-kotak { border: 1.5px dashed #F5B98A; background: #FFF8F1; border-radius: 14px; padding: 12px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; text-align: left; }
+        .fp-kotak.salah { border-color: #E53935; background: #FFF3F2; }
+        .fp-judul { display: flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 800; color: #1C1C1E; }
+        .fp-judul small { font-size: 10px; font-weight: 800; letter-spacing: .04em; color: #fff; background: #E85300; border-radius: 6px; padding: 2px 6px; }
+        .fp-ket { font-size: 12px; color: #6B6258; margin: 3px 0 10px; line-height: 1.4; }
+        .fp-dua { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .fp-dua[hidden], .fp-isi[hidden] { display: none; }
+        .fp-tbl { min-height: 44px; border-radius: 12px; border: 1.5px solid #E2D8CC; background: #fff; color: #1C1C1E; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; padding: 0 8px; }
+        .fp-tbl.utama { background: #FF6600; border-color: #FF6600; color: #fff; }
+        .fp-isi { display: flex; gap: 12px; align-items: center; }
+        .fp-isi img { width: 76px; height: 76px; object-fit: cover; border-radius: 12px; border: 1px solid #F0E2D4; background: #F3EDE6; flex: none; }
+        .fp-st { flex: 1; min-width: 0; }
+        .fp-st b { display: block; font-size: 13px; font-weight: 800; color: #4A433C; }
+        .fp-st b.ok { color: #1E7A34; } .fp-st b.salah { color: #C62828; }
+        .fp-st span { display: block; font-size: 11.5px; color: #8A8178; margin-top: 2px; line-height: 1.35; }
+        .fp-st button { margin-top: 8px; min-height: 36px; border-radius: 10px; border: 1.5px solid #E2D8CC; background: #fff; color: #E85300; font: inherit; font-size: 12.5px; font-weight: 800; padding: 0 12px; cursor: pointer; }
+        .fp-st button[hidden] { display: none; }
+        .fp-putar { display: inline-block; width: 12px; height: 12px; border: 2px solid #F5B98A; border-top-color: #E85300; border-radius: 50%; animation: fp-putar .8s linear infinite; vertical-align: -1px; margin-right: 6px; }
+        @keyframes fp-putar { to { transform: rotate(360deg); } }
+    </style>
+    <script type="module">
+        import { getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getStorage, ref as sRef, uploadBytes } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+        (function fotoPaketPelanggan() {
+            'use strict';
+            let app, auth, storage;
+            try { app = getApp(); auth = getAuth(app); storage = getStorage(app); } catch (e) { console.warn('[Foto paket] Firebase belum siap', e); return; }
+            const toast = (t) => { if (typeof window.showToast === 'function') window.showToast(t); };
+            const KUNCI = { instan: 1, gab: 1 };
+            const S = {};   // kunci -> { path, sibuk, ver, url }
+            const acak = (n) => {
+                const h = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789', a = new Uint32Array(n);
+                crypto.getRandomValues(a); let s = ''; for (let i = 0; i < n; i++) s += h[a[i] % h.length]; return s;
+            };
+            const kotakDari = (k) => document.querySelector('.fp-kotak[data-fp="' + k + '"]');
+
+            function reset(k) {
+                const s = S[k];
+                if (s && s.url) { try { URL.revokeObjectURL(s.url); } catch (e) {} }
+                S[k] = { path: '', sibuk: false, ver: (s ? s.ver : 0) + 1, url: '' };
+            }
+            // Markup tetap (tanpa data pengguna). Dipanggil setiap form dibuat -> foto lama dilupakan.
+            window.fpHtml = (k) => {
+                if (!KUNCI[k]) return '';
+                reset(k);
+                return '<div class="fp-kotak" data-fp="' + k + '">'
+                    + '<div class="fp-judul">📷 Foto paket <small>WAJIB</small></div>'
+                    + '<div class="fp-ket">Foto barang yang akan dikirim. Rider bisa melihat foto ini sebelum menerima order.</div>'
+                    + '<div class="fp-dua"><button type="button" class="fp-tbl utama" data-fp-ambil="kamera">📸 Kamera</button>'
+                    + '<button type="button" class="fp-tbl" data-fp-ambil="galeri">🖼️ Galeri</button></div>'
+                    + '<div class="fp-isi" hidden><img alt="Foto paket"><div class="fp-st"><b></b><span></span>'
+                    + '<button type="button" data-fp-ganti hidden>Ganti foto</button></div></div>'
+                    + '<input type="file" accept="image/*" capture="environment" data-fp-in="kamera" hidden>'
+                    + '<input type="file" accept="image/*" data-fp-in="galeri" hidden>'
+                    + '</div>';
+            };
+            window.fpReset = (k) => { if (KUNCI[k]) reset(k); };
+            // Path foto yang SUDAH selesai diunggah ('' kalau belum)
+            window.fpPath = (k) => { const s = S[k]; return s && !s.sibuk && s.path ? s.path : ''; };
+            // Dipakai tombol Pesan: false (+ teguran) kalau foto belum ada / masih diunggah
+            window.fpCek = (k) => {
+                const kotak = kotakDari(k);
+                if (!kotak) return true;   // kotak tidak tampil (modul lama) -> jangan menghalangi
+                const s = S[k];
+                if (s && s.path && !s.sibuk) return true;
+                kotak.classList.add('salah');
+                try { kotak.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {}
+                try { if (navigator.vibrate) navigator.vibrate(80); } catch (e) {}
+                toast(s && s.sibuk ? 'Foto paket masih diunggah, tunggu sebentar ya.' : 'Foto paket wajib diisi dulu ya 📷');
+                return false;
+            };
+
+            function tampil(k, mode, url, pesan) {
+                const kotak = kotakDari(k); if (!kotak) return;
+                const isi = kotak.querySelector('.fp-isi'), dua = kotak.querySelector('.fp-dua');
+                const b = isi.querySelector('b'), sp = isi.querySelector('span'), g = isi.querySelector('[data-fp-ganti]');
+                if (mode === 'kosong') { isi.hidden = true; dua.hidden = false; return; }
+                kotak.classList.remove('salah');
+                isi.hidden = false; dua.hidden = mode !== 'gagal';
+                const img = isi.querySelector('img'); if (url) img.src = url; else img.removeAttribute('src');
+                b.className = mode === 'ok' ? 'ok' : (mode === 'gagal' ? 'salah' : '');
+                if (mode === 'sibuk') { b.innerHTML = '<i class="fp-putar" aria-hidden="true"></i>Mengunggah foto…'; sp.textContent = 'Jangan tutup halaman ini.'; }
+                else if (mode === 'ok') { b.textContent = '✓ Foto paket tersimpan'; sp.textContent = 'Rider akan melihat foto ini.'; }
+                else { b.textContent = 'Foto belum terkirim'; sp.textContent = pesan || 'Coba lagi.'; }
+                g.hidden = mode !== 'ok';
+            }
+
+            // Kecilkan ke JPEG (sisi terpanjang <= 1280 px) supaya < 2 MB sesuai rules Storage
+            async function kecilkan(file) {
+                const src = URL.createObjectURL(file);
+                try {
+                    const img = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = src; });
+                    const w0 = img.naturalWidth || img.width, h0 = img.naturalHeight || img.height;
+                    if (!w0 || !h0) throw new Error('kosong');
+                    for (const [maks, q] of [[1280, 0.72], [1024, 0.6], [800, 0.5]]) {
+                        const r = Math.min(1, maks / Math.max(w0, h0));
+                        const c = document.createElement('canvas');
+                        c.width = Math.max(1, Math.round(w0 * r)); c.height = Math.max(1, Math.round(h0 * r));
+                        const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
+                        const b = await new Promise((ok) => c.toBlob(ok, 'image/jpeg', q));
+                        if (b && b.size > 0 && b.size < 1.8 * 1024 * 1024) return b;
+                    }
+                    throw new Error('terlalu besar');
+                } finally { try { URL.revokeObjectURL(src); } catch (e) {} }
+            }
+
+            async function proses(k, file) {
+                const u = auth.currentUser;
+                const google = u && (u.providerData || []).some((p) => p.providerId === 'google.com');
+                if (!google) { toast('Masuk dengan akun Google dulu ya.'); return; }
+                if (file.type && !/^image\//.test(file.type)) { toast('Pilih file foto ya.'); return; }
+                reset(k);
+                const s = S[k], ver = s.ver;
+                s.sibuk = true;
+                tampil(k, 'sibuk', '');
+                let blob;
+                try { blob = await kecilkan(file); }
+                catch (e) { if (S[k].ver !== ver) return; s.sibuk = false; tampil(k, 'gagal', '', 'Foto tidak bisa dibaca. Coba foto lain.'); return; }
+                if (S[k].ver !== ver) return;
+                s.url = URL.createObjectURL(blob);
+                tampil(k, 'sibuk', s.url);
+                const path = 'foto_paket/' + u.uid + '/' + acak(20) + '.jpg';
+                try {
+                    await Promise.race([
+                        uploadBytes(sRef(storage, path), blob, { contentType: 'image/jpeg' }),
+                        new Promise((_, no) => setTimeout(() => no({ code: 'waktu-habis' }), 60000))
+                    ]);
+                } catch (e) {
+                    if (S[k].ver !== ver) return;
+                    s.sibuk = false;
+                    console.warn('[Foto paket] unggah', e && e.code);
+                    tampil(k, 'gagal', s.url, e && e.code === 'storage/unauthorized' ? 'Foto ditolak server. Hubungi admin lewat chat.' : 'Gagal mengunggah. Periksa internet lalu pilih foto lagi.');
+                    return;
+                }
+                if (S[k].ver !== ver) return;   // sudah diganti foto lain / form dibuat ulang
+                s.path = path; s.sibuk = false;
+                tampil(k, 'ok', s.url);
+            }
+
+            document.addEventListener('click', (e) => {
+                const t = e.target && e.target.closest ? e.target : null; if (!t) return;
+                const b = t.closest('[data-fp-ambil], [data-fp-ganti]'); if (!b) return;
+                const kotak = b.closest('.fp-kotak'); if (!kotak || !KUNCI[kotak.dataset.fp]) return;
+                const cara = b.dataset.fpAmbil === 'galeri' ? 'galeri' : 'kamera';
+                if (b.hasAttribute('data-fp-ganti')) { kotak.querySelector('.fp-dua').hidden = false; b.hidden = true; return; }   // foto lama tetap dipakai sampai foto baru selesai
+                const inp = kotak.querySelector('[data-fp-in="' + cara + '"]'); if (!inp) return;
+                inp.value = ''; inp.click();
+            });
+            document.addEventListener('change', (e) => {
+                const inp = e.target && e.target.closest ? e.target.closest('[data-fp-in]') : null; if (!inp) return;
+                const kotak = inp.closest('.fp-kotak'); if (!kotak || !KUNCI[kotak.dataset.fp]) return;
+                const f = inp.files && inp.files[0]; if (f) proses(kotak.dataset.fp, f);
+            });
+        })();
+    </script>
+    <!-- ===================== AKHIR FOTO PAKET ===================== -->
     <!-- ===================== KIRIM PAKET: INSTAN / GABUNGAN (14 Nov 2026) =====================
          Ketuk "Kirim Paket" -> pilih:
            - Antar instan   : form Kirim Paket yang lama (tarif lama), tapi pesanan LANGSUNG masuk Pending admin.
@@ -18970,6 +19137,7 @@ body.gm-terkunci { overflow: hidden; }
             <div class="kp-peta" id="kp-peta" role="img" aria-label="Peta rute: S titik jemput, angka urutan penerima"></div>
             <div id="kp-daftar" style="display:flex;flex-direction:column;gap:8px;"></div>
             <button type="button" class="kp-garis" id="kp-tambah">+ Tambah penerima</button>
+            <div id="kp-gab-foto"></div>
             <div>
                 <span class="kp-lbl">Ongkir dibayar oleh</span>
                 <div class="kp-dua"><button type="button" class="kp-tbl on" data-kp-bayar="pengirim">Saya (pengirim)</button><button type="button" class="kp-tbl" data-kp-bayar="penerima">Masing-masing penerima</button></div>
@@ -19168,6 +19336,7 @@ body.gm-terkunci { overflow: hidden; }
             const profil = () => (typeof window.gmDataProfil === 'function' && window.gmDataProfil()) || {};
 
             // ---------- Kirim permintaan ke admin + buka chat ----------
+            const FOTO_OK = (p, uid) => typeof p === 'string' && p.indexOf('foto_paket/' + uid + '/') === 0 && /^foto_paket\/[A-Za-z0-9]{10,128}\/[A-Za-z0-9]{20}\.jpg$/.test(p);
             async function kirimPermintaan(d, ringkasChat) {
                 const u = auth.currentUser;
                 const pr = profil();
@@ -19185,6 +19354,8 @@ body.gm-terkunci { overflow: hidden; }
                     ongkirManual: d.ongkirManual === true,
                     status: 'menunggu', dilihatAdmin: false, dibuatOleh: String(u.email || '').toLowerCase().slice(0, 120), dibuatAt: serverTimestamp()
                 };
+                // (20 Nov 2026) foto paket (Storage foto_paket/{uid}/...) -> tampil di admin & rider
+                if (FOTO_OK(d.fotoPaket, u.uid)) data.fotoPaket = d.fotoPaket;
                 const wb = writeBatch(db); wb.set(ref, data);
                 await wb.commit();
                 try { localStorage.setItem('kp_terakhir', ref.id); } catch (e) {}
@@ -19216,10 +19387,11 @@ body.gm-terkunci { overflow: hidden; }
                     const titik = [{ kirimId: 'pk' + acak(), nama: String(d.nama).trim().slice(0, 60), hp: hpBersih(d.hp), patokan, lat: t ? t.lat : null, lng: t ? t.lng : null, ongkir: Math.round(Number(d.ongkir) || 0), bayar: d.bayar === 'penerima' ? 'penerima' : 'pengirim' }];
                     const asal = d.asal && dalamArea(d.asal) ? d.asal : null;
                     const ringkas = ['📦 KIRIM PAKET · INSTAN', 'Jemput: ' + (d.asalTeks || '-'), 'Antar ke: ' + (d.nama || '-') + ' · ' + (d.tujuanTeks || '-'),
-                        d.paket ? 'Isi paket: ' + d.paket : '', 'Ongkir: ' + (Number(d.ongkir) > 0 ? rp(d.ongkir) : 'dihitung admin') + ' · dibayar ' + (d.bayar === 'penerima' ? 'penerima' : 'pengirim')].filter(Boolean).join('\n');
+                        d.paket ? 'Isi paket: ' + d.paket : '', d.fotoPaket ? '📷 Foto paket terlampir' : '', 'Ongkir: ' + (Number(d.ongkir) > 0 ? rp(d.ongkir) : 'dihitung admin') + ' · dibayar ' + (d.bayar === 'penerima' ? 'penerima' : 'pengirim')].filter(Boolean).join('\n');
                     return await kirimPermintaan({
                         jenis: 'instan', asal, asalTeks: d.asalTeks, titik, jarakKm: d.jarakKm || 0, total: Number(d.ongkir) || 0,
-                        ruteLink: asal && t ? ruteLink(asal, [t]) : '', pembayar: d.bayar === 'penerima' ? 'penerima' : 'pengirim', ongkirManual: !(Number(d.ongkir) > 0)
+                        ruteLink: asal && t ? ruteLink(asal, [t]) : '', pembayar: d.bayar === 'penerima' ? 'penerima' : 'pengirim', ongkirManual: !(Number(d.ongkir) > 0),
+                        fotoPaket: d.fotoPaket || ''
                     }, ringkas);
                 } catch (e) {
                     console.error('[Kirim Paket] instan', e);
@@ -19233,6 +19405,9 @@ body.gm-terkunci { overflow: hidden; }
             function bukaGabungan() {
                 if (!bolehPesan()) { tutup('kp-pilih'); return; }
                 buka('kp-gab', true);
+                // (20 Nov 2026) kotak foto paket (wajib), dibuat sekali sampai pesanan terkirim
+                const wf = $('kp-gab-foto');
+                if (wf && wf.dataset.fp !== '1' && typeof window.fpHtml === 'function') { wf.innerHTML = window.fpHtml('gab'); wf.dataset.fp = '1'; }
                 if (!S.asal) ambilLokasiSaya(true);
                 gambarGab();
                 tungguMaps().then(() => {
@@ -19432,6 +19607,8 @@ body.gm-terkunci { overflow: hidden; }
             $('kp-pesan').onclick = async () => {
                 const r = S.rc && S.rc.ok ? S.rc.r : null;
                 if (!r || r.tidakSearah || S.mengirim || !bolehPesan()) return;
+                if (typeof window.fpCek === 'function' && !window.fpCek('gab')) return;   // (20 Nov 2026) foto paket wajib
+                const fotoGab = typeof window.fpPath === 'function' ? window.fpPath('gab') : '';
                 const bayarTeks = S.bayar === 'penerima' ? 'ditagih ke masing-masing penerima' : 'dibayar ke rider saat dijemput';
                 if (!(await tanya('Pesan antar gabungan?', r.urut.length + ' penerima · total ongkir ' + rp(r.total) + ' (' + bayarTeks + ').', 'Ya, pesan'))) return;
                 S.mengirim = true; const btn = $('kp-pesan'); btn.disabled = true; btn.textContent = 'Mengirim…';
@@ -19440,9 +19617,10 @@ body.gm-terkunci { overflow: hidden; }
                     const titik = r.urut.map((k, i) => ({ kirimId: k.id, nama: k.nama, hp: k.hp, patokan: [k.alamat === 'Titik di peta' ? '' : k.alamat, k.patokan].filter(Boolean).join(' · ').slice(0, 600), lat: k.lat, lng: k.lng, ongkir: r.bagian[i], bayar: S.bayar }));
                     const ringkas = ['📦 KIRIM PAKET · GABUNGAN (' + r.urut.length + ' penerima)', 'Jemput: ' + S.asalTeks]
                         .concat(r.urut.map((k, i) => (i + 1) + '. ' + k.nama + ' · ' + (k.alamat || '-') + ' · ' + rp(r.bagian[i])))
-                        .concat(['Total ongkir: ' + rp(r.total) + ' · ' + bayarTeks]).join('\n');
-                    await kirimPermintaan({ jenis: 'gabungan', asal: S.asal, asalTeks: S.asalTeks, titik, jarakKm: r.jarakKm, total: r.total, ruteLink: r.ruteLink, pembayar: S.bayar }, ringkas);
+                        .concat([fotoGab ? '📷 Foto paket terlampir' : '', 'Total ongkir: ' + rp(r.total) + ' · ' + bayarTeks]).filter(Boolean).join('\n');
+                    await kirimPermintaan({ jenis: 'gabungan', asal: S.asal, asalTeks: S.asalTeks, titik, jarakKm: r.jarakKm, total: r.total, ruteLink: r.ruteLink, pembayar: S.bayar, fotoPaket: fotoGab }, ringkas);
                     S.penerima = []; S.rc = null; S.rcKunci = '';
+                    { const wf = $('kp-gab-foto'); if (wf) { wf.dataset.fp = ''; wf.innerHTML = ''; } if (typeof window.fpReset === 'function') window.fpReset('gab'); }
                 } catch (e) {
                     console.error('[Kirim Paket] gabungan', e);
                     toast(e && e.code === 'permission-denied' ? 'Pesanan ditolak server. Coba lagi atau hubungi admin lewat WhatsApp.' : 'Pesanan belum terkirim. Periksa internet lalu coba lagi.');
@@ -20050,7 +20228,8 @@ body.gm-terkunci { overflow: hidden; }
             }
             function isianAntarLengkap() {
                 const paket = ($('svc-paket') || {}).value || '', pen = ($('svc-penerima') || {}).value || '', hp = (($('svc-penerima-hp') || {}).value || '').trim();
-                return !!(paket.trim() && pen.trim() && (!$('svc-penerima-hp') || hp));
+                const foto = typeof window.fpPath !== 'function' || !document.querySelector('.fp-kotak[data-fp="instan"]') || !!window.fpPath('instan');   // (20 Nov 2026) foto paket wajib
+                return !!(paket.trim() && pen.trim() && (!$('svc-penerima-hp') || hp) && foto);
             }
             function pratinjau(k) {
                 const sk = kd();
@@ -20087,6 +20266,11 @@ body.gm-terkunci { overflow: hidden; }
                     tujuan: { lat: k.tujuan.lat, lng: k.tujuan.lng, alamat: String(nmTujuan).slice(0, 200) },
                     jarak_km: jarak, fee, catatan, gps: { lat: gps.lat, lng: gps.lng }, kode, status: 'cari', dibuat_at: serverTimestamp()
                 };
+                // (20 Nov 2026) foto paket: rider bisa melihatnya di tawaran
+                if (k.layanan === 'antar') {
+                    const fp = typeof window.fpPath === 'function' ? window.fpPath('instan') : '';
+                    if (fp && fp.indexOf('foto_paket/' + uid + '/') === 0 && /^foto_paket\/[A-Za-z0-9]{10,128}\/[A-Za-z0-9]{20}\.jpg$/.test(fp)) o.foto_paket = fp;
+                }
                 const jenis = k.layanan === 'ngojek' ? 'ojek' : 'kirim';
                 const b = writeBatch(db);
                 b.set(doc(db, 'otomatis_pelanggan', uid), { at: serverTimestamp(), id });
