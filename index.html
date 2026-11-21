@@ -17766,6 +17766,7 @@ body.gm-terkunci { overflow: hidden; }
                     const l = lacak[k];
                     if (l && (l.tahap === 'selesai' || l.tahap === 'batal')) simpanAkhir(k, l.tahap);
                     if (l && KODE_RIDER.test(String(l.k || ''))) muatRider(l.k);
+                    cekPopRider(k, l);   // (21 Nov 2026) pesanan lewat admin: popup getar + profil rider saat rider menerima
                     gambarSemua();
                 }, (e) => console.warn('Lacak belum terbaca:', e && e.code));
             });
@@ -17811,6 +17812,32 @@ body.gm-terkunci { overflow: hidden; }
                 }, () => {});
             });
             if (mintaBukaChat && !akt.some((a) => a.kode === mintaBukaChat)) mintaBukaChat = null;
+        }
+        // (21 Nov 2026) Pesanan lewat chat/WA admin: begitu rider menerima (lacak tahap menuju/lokasi/antar),
+        // tampilkan popup getar yang sama dengan order otomatis (foto, nama, plat rider). Sekali per rider per pesanan,
+        // hanya kalau rider menerimanya belum lama (<= 15 menit), supaya membuka aplikasi besok tidak memunculkan popup lama.
+        const popTunggu = {};
+        function cekPopRider(k, l) {
+            const a = akt.find((x) => x.kode === k);
+            if (!a || a.oto || !l || a.akhir) return;                          // order otomatis punya popup sendiri
+            if (!['menuju', 'lokasi', 'antar'].includes(String(l.tahap || ''))) return;
+            const rk = String(l.k || ''); if (!KODE_RIDER.test(rk)) return;
+            const t = ms(l.tahap_at); if (!t || Date.now() - t > 15 * 60 * 1000 || Date.now() - a.t > 12 * JAM_MS) return;
+            const kunci = k + ':' + rk;
+            if (typeof window.otoPopRider !== 'function' || (window.otoPopSudah && window.otoPopSudah(kunci)) || popTunggu[kunci]) return;
+            popTunggu[kunci] = true;
+            muatRider(rk);
+            let n = 0;
+            const tampil = () => {
+                const r = rider[rk];
+                if (!r && n++ < 10) { setTimeout(tampil, 300); return; }   // tunggu foto & plat rider (maks ±3 detik)
+                const x = r || {};
+                const ok = window.otoPopRider({ kunci, kode: k, jenis: a.jenis, chat: a.chat === true, nama: x.nama || a.riderNama || '', foto: x.foto || '', plat: x.plat || '', motor: x.motor || '', warna: x.warna || '' });
+                // Popup lain sedang tampil: coba lagi sebentar lagi (maks ±1 menit)
+                if (!ok && !window.otoPopSudah(kunci) && n < 40) { n = Math.max(n, 10) + 3; setTimeout(tampil, 4000); return; }
+                delete popTunggu[kunci];
+            };
+            tampil();
         }
         function simpanAkhir(k, t) {
             // Hanya untuk pesanan yang sudah lewat 24 jam (status tidak berubah lagi)
@@ -20950,11 +20977,45 @@ body.gm-terkunci { overflow: hidden; }
                 const teksChip = (ojek ? '🪖 Bawa helm untukmu' : '') + (isFinite(km) && km > 0 ? (ojek ? ' · ' : '') + String(Math.round(km * 10) / 10).replace('.', ',') + ' km dari titik jemput' : '');
                 chip.hidden = !teksChip; chip.textContent = teksChip;
             }
+            // (21 Nov 2026) Popup yang sama untuk pesanan lewat admin (dipanggil modul Aktivitas). Semua isi lewat textContent.
+            let rpKode = '', rpMode = 'oto';
+            window.otoPopSudah = (kunci) => rpSudah.indexOf(String(kunci)) >= 0;
+            window.otoPopRider = (d) => {
+                if (!d || !d.kunci || rpSudah.indexOf(d.kunci) >= 0) return false;
+                if (!$('oto-rp').hidden || ($('oto-lyr') && !$('oto-lyr').hidden)) return false;   // popup lain sedang tampil
+                tandaiRp(d.kunci);
+                rpKode = String(d.kode || ''); rpMode = 'admin';
+                const nama = String(d.nama || 'Rider ProjekGo').slice(0, 60);
+                $('oto-rp-nama').textContent = nama;
+                const f = $('oto-rp-foto'); while (f.firstChild) f.removeChild(f.firstChild);
+                const foto = String(d.foto || '');
+                if (/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(foto) && foto.length <= 20000) { const im = el('img'); im.alt = 'Foto ' + nama; im.src = foto; f.appendChild(im); }
+                else f.appendChild(document.createTextNode(nama.split(/\s+/).map((x) => x[0] || '').join('').slice(0, 2).toUpperCase() || 'R'));
+                f.appendChild(el('i', '', '✓'));
+                const plat = String(d.plat || '').trim().slice(0, 15), motor = String(d.motor || '').trim().slice(0, 40), warna = String(d.warna || '').trim().slice(0, 20);
+                $('oto-rp-plat').hidden = !plat; $('oto-rp-plat').textContent = plat;
+                $('oto-rp-motor').hidden = !motor; $('oto-rp-motor').textContent = motor + (warna ? ' · ' + warna : '');
+                $('oto-rp-chip').hidden = true;
+                const S = { food: 'Pesananmu sudah diterima rider, rider sedang menuju resto', ojek: 'Ordermu sudah diterima rider, rider sedang menuju lokasi jemput',
+                            kirim: 'Ordermu sudah diterima rider, rider sedang menuju lokasi pengambilan' };
+                $('oto-rp-j').textContent = 'Rider ditemukan! 🎉';
+                $('oto-rp-s').textContent = S[d.jenis] || 'Pesananmu sudah diterima rider dan sedang ditangani';
+                $('oto-rp-chat').hidden = !d.chat;
+                $('oto-rp-lacak').textContent = 'Lihat pesanan';
+                $('oto-rp').hidden = false;
+                const k = $('oto-rp-k'); k.classList.add('goyang');
+                setTimeout(() => k.classList.remove('goyang'), 3500);
+                if (typeof window.otoGetarPanjang === 'function') window.otoGetarPanjang();
+                try { (d.chat ? $('oto-rp-chat') : $('oto-rp-lacak')).focus({ preventScroll: true }); } catch (e) {}
+                return true;
+            };
             function cobaTampilRp(paksa) {
                 if (!lk || !lk.popRider || !lk.o || lk.o.status !== 'diterima') return;
                 if (rpSudah.indexOf(lk.kode) >= 0) { lk.popRider = false; return; }
                 if (!lk.r && !paksa) return;   // tunggu data rider (foto, plat) sebentar
                 lk.popRider = false; tandaiRp(lk.kode);
+                rpKode = lk.kode; rpMode = 'oto';
+                $('oto-rp-chat').hidden = false; $('oto-rp-lacak').textContent = 'Lacak pesanan';
                 isiRp();
                 $('oto-rp').hidden = false;
                 const k = $('oto-rp-k'); k.classList.add('goyang');
@@ -20962,11 +21023,14 @@ body.gm-terkunci { overflow: hidden; }
                 try { $('oto-rp-chat').focus({ preventScroll: true }); } catch (e) {}
             }
             $('oto-rp-chat').addEventListener('click', () => {
-                const k = lk && lk.kode; tutupRp();
+                const k = rpKode || (lk && lk.kode); tutupRp();
                 if (k && typeof window.ktvBukaChatRider === 'function') { try { window.ktvBukaChatRider(k); return; } catch (e) {} }
                 if (typeof window.showToast === 'function') window.showToast('Chat sedang disiapkan, coba lagi sebentar');
             });
-            $('oto-rp-lacak').addEventListener('click', tutupRp);
+            $('oto-rp-lacak').addEventListener('click', () => {
+                const mode = rpMode; tutupRp();
+                if (mode === 'admin' && typeof window.ktvBukaAktivitas === 'function') { try { window.ktvBukaAktivitas(); } catch (e) {} }   // pesanan lewat admin: buka Aktivitas
+            });
             $('oto-rp').addEventListener('click', (e) => { if (e.target === $('oto-rp')) tutupRp(); });
             window.addEventListener('popstate', tutupRp);
 
