@@ -20267,6 +20267,13 @@ body.gm-terkunci { overflow: hidden; }
         .oto-thp div i { display: block; width: 20px; height: 20px; border-radius: 50%; background: #F1ECE6; margin: 0 auto 4px; border: 3px solid #fff; }
         .oto-thp div.on { color: #16A34A; } .oto-thp div.on i { background: #16A34A; }
         .oto-ikon { font-size: 34px; text-align: center; }
+        /* (21 Nov 2026) info jarak maksimal + chat admin saat mencari rider */
+        .oto-info-kuat { display: flex; gap: 10px; align-items: flex-start; margin: 12px 0 8px; padding: 12px; border-radius: 14px; background: #FFF1E0; border: 2px solid #FF8A00; color: #6B2E00; font-size: 13.5px; font-weight: 700; line-height: 1.5; text-align: left; }
+        .oto-info-ik { font-size: 20px; line-height: 1.2; flex: none; }
+        .oto-info-kuat b { color: #C2410C; font-weight: 900; }
+        .oto-info-kuat b.oto-pasti { color: #15803D; }
+        .oto-btn.hijau { background: #16A34A; color: #fff; }
+        .oto-btn.hijau:disabled { background: #E7F3EA; color: #5B7F66; border: 1.5px dashed #9BCBA8; cursor: not-allowed; }
     </style>
     <div class="oto-lyr" id="oto-lyr" hidden role="dialog" aria-modal="true" aria-labelledby="oto-judul"><div class="oto-lbr" id="oto-lbr"></div></div>
     <script type="module">
@@ -20428,7 +20435,24 @@ body.gm-terkunci { overflow: hidden; }
                 const sub = el('p', '', teksRadius(o.layanan)); sub.id = 'oto-sub'; lbr.appendChild(sub);
                 const pr = el('div', 'oto-prog' + (jalan ? '' : ' siap')); pr.id = 'oto-prog'; const bar = el('i'); bar.id = 'oto-bar'; pr.appendChild(bar); lbr.appendChild(pr);
                 const sisa = el('p', '', jalan ? '' : 'Menyiapkan pesananmu…'); sisa.id = 'oto-sisa'; sisa.style.fontSize = '11.5px'; lbr.appendChild(sisa);
+                // (21 Nov 2026) penjelasan jarak + pilihan chat admin (penekanan tinggi)
+                const km = String((atur && atur.jarak_km) || 2).replace('.', ',');
+                const info = el('div', 'oto-info-kuat'); info.setAttribute('role', 'note');
+                info.appendChild(el('span', 'oto-info-ik', '📍'));
+                const it = el('div');
+                it.appendChild(document.createTextNode('Sistem kami mencarikan rider yang paling dekat dengan kamu, dengan jarak '));
+                it.appendChild(el('b', '', 'maksimal ' + km + ' km'));
+                it.appendChild(document.createTextNode('. Jika lokasimu terlalu jauh dari rider terdekat, setelah pencarian selesai kamu bisa pilih '));
+                it.appendChild(el('b', '', 'Chat admin'));
+                it.appendChild(document.createTextNode(': admin akan carikan rider untuk ' + (o.layanan === 'ngojek' ? 'menjemput kamu' : 'mengambil paketmu') + ' '));
+                it.appendChild(el('b', 'oto-pasti', '(pasti dapat)'));
+                it.appendChild(document.createTextNode('.'));
+                info.appendChild(it);
+                lbr.appendChild(info);
                 lbr.appendChild(ringkasTitik(o));
+                // Tombol chat admin baru bisa diketuk setelah waktu mencari habis (sistem fokus mencari rider dulu)
+                const ba = tombol('hijau', '💬 Chat admin (tunggu pencarian selesai)', keAdminSaja); ba.id = 'oto-admin-btn'; ba.disabled = true;
+                lbr.appendChild(ba);
                 lbr.appendChild(tombol('putih', 'Batalkan', batalkan));
                 lyr.hidden = false;
                 if (jalan) detikCari();
@@ -20440,6 +20464,8 @@ body.gm-terkunci { overflow: hidden; }
                 if (pr) pr.classList.remove('siap');
                 if (b) b.style.width = Math.min(100, Math.round(lewat / total * 100)) + '%';
                 if (s) s.textContent = 'Paling lama ±' + Math.max(0, Math.ceil((jalan.batas - Date.now()) / 1000)) + ' detik lagi';
+                const ba = $('oto-admin-btn');   // (21 Nov 2026) hitung mundur di tombol chat admin
+                if (ba) { const dt = Math.max(0, Math.ceil((jalan.batas - Date.now()) / 1000)); ba.disabled = dt > 0; ba.textContent = dt > 0 ? '💬 Chat admin bisa dalam ' + dt + ' detik' : '💬 Chat admin (pasti dapat)'; }
                 // separuh waktu lewat & belum ada yang menerima: rider sekitar ditawari ulang (aplikasi rider), kabari pelanggan
                 if (!jalan.ulang && lewat >= total / 2 && total >= 40000) {
                     jalan.ulang = true;
@@ -20463,6 +20489,15 @@ body.gm-terkunci { overflow: hidden; }
                 const ok = await akhiriTawaran('batal');
                 if (!ok && jalan && jalan.o.status === 'diterima') { jalan.akhir = null; return; }   // sudah diterima: biarkan layar rider ditemukan
                 bersihJalan(); tutup(); toast('Pesanan dibatalkan');
+            }
+            // (21 Nov 2026) Pelanggan memilih lewat admin saat masih mencari: tawaran otomatis dihentikan dulu
+            async function keAdminSaja() {
+                if (!jalan && siap) { siap.batal = true; siap = null; tutup(); lewatAdmin(); return; }   // masih menyiapkan: belum tersimpan
+                if (!jalan || jalan.akhir) { tutup(); lewatAdmin(); return; }
+                jalan.akhir = 'batal';
+                const ok = await akhiriTawaran('batal');
+                if (!ok && jalan && jalan.o.status === 'diterima') { jalan.akhir = null; return; }   // sudah diterima rider: layar rider ditemukan muncul
+                bersihJalan(); tutup(); lewatAdmin();
             }
             async function gagalCari() {
                 if (!jalan || jalan.akhir) return;
@@ -20491,9 +20526,9 @@ body.gm-terkunci { overflow: hidden; }
                         else { bc.disabled = false; bc.textContent = '🔄 Cari rider lagi'; clearInterval(tGagal); }
                     };
                     jeda(); tGagal = setInterval(jeda, 1000);
-                    lbr.appendChild(tombol('putih', 'Lanjut pesan lewat admin', () => { tutup(); lewatAdmin(); }));
+                    lbr.appendChild(tombol('hijau', '💬 Chat admin (pasti dapat)', () => { tutup(); lewatAdmin(); }));
                 } else {
-                    lbr.appendChild(tombol('merah', 'Lanjut pesan lewat admin', () => { tutup(); lewatAdmin(); }));
+                    lbr.appendChild(tombol('hijau', '💬 Chat admin (pasti dapat)', () => { tutup(); lewatAdmin(); }));
                 }
                 lbr.appendChild(tombol('teks', 'Batal', tutup));
                 lyr.hidden = false;
