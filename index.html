@@ -11436,6 +11436,7 @@ body.gm-terkunci { overflow: hidden; }
                LANGKAH 6: UI Update & Fallback Helper
                ========================================== */
             const calculatePriceAndRender = (jarakTotalKm, isFallback = false) => {
+                window.__pfkJarak = (jarakTotalKm > 0 && !isNaN(jarakTotalKm)) ? jarakTotalKm : 0;   // (25 Nov 2026) pesan langsung ke warung
                 // FALLBACK UTAMA: Jika jarak 0, NaN, atau API gagal mencari jalan
                 if (!jarakTotalKm || jarakTotalKm <= 0 || isNaN(jarakTotalKm)) {
                     window.checkoutOngkir = 0;
@@ -11961,6 +11962,34 @@ body.gm-terkunci { overflow: hidden; }
             }
         };
         // ---------------------------------------------------------
+
+        // (25 Nov 2026) PESAN LANGSUNG KE WARUNG: data keranjang untuk modul "pesanFoodLangsung" (di bawah),
+        // titik antar terakhir yang dihitung ongkirnya, dan merapikan keranjang setelah pesanan terkirim.
+        window.pfkKeranjang = () => ({ cart: cart.slice(), rawProducts, allVendors, orderMode, uid: currentUserUid, google: isGoogleLoggedIn });
+        (function () {
+            const asli = window.calculateCheckoutOngkir;
+            if (typeof asli !== 'function') return;
+            window.calculateCheckoutOngkir = (tujuan) => {
+                window.__pfkJarak = 0; window.__pfkTujuan = null;
+                try {
+                    const la = tujuan && (typeof tujuan.lat === 'function' ? tujuan.lat() : tujuan.lat), ln = tujuan && (typeof tujuan.lng === 'function' ? tujuan.lng() : tujuan.lng);
+                    if (typeof la === 'number' && typeof ln === 'number' && isFinite(la) && isFinite(ln)) window.__pfkTujuan = { lat: la, lng: ln };
+                } catch (e) {}
+                return asli(tujuan);
+            };
+        })();
+        window.pfkSelesaiCheckout = () => {
+            if (window.fullBackupCart) {
+                cart = window.fullBackupCart.filter(backupItem => {
+                    const key = backupItem.id + '|' + backupItem.variant + '|' + (backupItem.note || '').trim().toLowerCase();
+                    return !selectedCartKeys.includes(key);
+                });
+                window.fullBackupCart = null; selectedCartKeys = [];
+                localStorage.setItem('projekgo_cart', JSON.stringify(cart));
+            } else { cart = []; localStorage.removeItem('projekgo_cart'); }
+            updateCartBadge();
+            if (window.gmCatatPesanan) { try { window.gmCatatPesanan(); } catch (e) {} }
+        };
 
         window.processCheckout = () => {
             if(!checkOperationalStatus()) return; 
@@ -21500,6 +21529,320 @@ body.gm-terkunci { overflow: hidden; }
     })();
     </script>
     <!-- ===================== AKHIR HALAMAN FOOD BARU ===================== -->
+    <!-- ===================== PESAN FOOD LANGSUNG KE WARUNG (25 Nov 2026, tahap 1) =====================
+         Di halaman checkout: kalau warungnya ikut (pesanan_food_atur), keranjang dari 1 warung, titik antar
+         dipilih di peta, dan ongkir sudah terhitung -> tombol "Pesan langsung ke warung". Pesanan dibuat SERVER
+         (buatPesananFood: harga, ongkir, kode PF dihitung ulang di server), lalu pelanggan memantau prosesnya
+         dari warung di layar status (kode besar, alur, QRIS untuk pelanggan baru, ditolak / batal).
+         Pesan lewat WhatsApp / chat admin tetap ada seperti biasa. Semua isi dari database lewat textContent. -->
+    <style id="pfk-css">
+        .pfk-blok { background: #FFF4EA; border: 1.5px solid #FFC999; border-radius: 14px; padding: 10px 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .pfk-blok[hidden] { display: none; }
+        .pfk-blok p { margin: 0; font-size: 12px; font-weight: 600; color: #6B4A2E; line-height: 1.45; }
+        .pfk-blok p b { color: #B84300; }
+        .pfk-tbl { width: 100%; min-height: 52px; border: 0; border-radius: 14px; background: #E8590C; color: #fff; font: 800 16px 'Plus Jakarta Sans', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; box-shadow: 0 4px 15px rgba(232, 89, 12, .35); }
+        .pfk-tbl:disabled { opacity: .6; cursor: wait; }
+        .pfk-tbl:focus-visible, .pfk-btn:focus-visible { outline: 3px solid #1D4ED8; outline-offset: 2px; }
+        .pfk-bar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(78px + env(safe-area-inset-bottom, 0px)); z-index: 2500; width: calc(100% - 24px); max-width: 456px;
+            display: flex; align-items: center; gap: 10px; background: #1C1C1E; color: #fff; border: 0; border-radius: 16px; padding: 10px 12px; font: 700 13px 'Plus Jakarta Sans', sans-serif; text-align: left; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+        .pfk-bar[hidden] { display: none; }
+        .pfk-bar b { color: #FDBA74; font-size: 15px; letter-spacing: .03em; }
+        .pfk-bar span { flex: 1; min-width: 0; }
+        .pfk-bar em { font-style: normal; background: #E8590C; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 800; flex: none; }
+        .pfk-lyr { position: fixed; inset: 0; z-index: 99000; background: #FFFFFF; display: flex; flex-direction: column; font-family: 'Plus Jakarta Sans', sans-serif; color: #1C1C1E; }
+        .pfk-lyr[hidden] { display: none; }
+        .pfk-hd { background: #E8590C; color: #fff; padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 26px; display: flex; gap: 10px; align-items: flex-start; }
+        .pfk-hd button { width: 38px; height: 38px; flex: none; border-radius: 12px; border: 0; background: rgba(255,255,255,.2); color: #fff; font-size: 18px; cursor: pointer; }
+        .pfk-hd small { display: block; font-size: 12.5px; opacity: .92; }
+        .pfk-hd b { display: block; font-size: 18px; font-weight: 800; }
+        .pfk-ramai { display: inline-block; margin-top: 6px; background: #fff; color: #B42318; border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 800; }
+        .pfk-ramai[hidden] { display: none; }
+        .pfk-isi { flex: 1; overflow-y: auto; padding: 0 16px calc(24px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 12px; }
+        .pfk-kode { background: #fff; border-radius: 16px; margin-top: -14px; padding: 12px; text-align: center; box-shadow: 0 6px 18px rgba(0,0,0,.08); }
+        .pfk-kode small { display: block; font-size: 12px; color: #6F655E; }
+        .pfk-kode strong { display: block; font-size: 36px; font-weight: 800; letter-spacing: 3px; color: #C2410C; line-height: 1.15; }
+        .pfk-tl { display: flex; flex-direction: column; }
+        .pfk-st { display: flex; gap: 12px; position: relative; padding-bottom: 14px; }
+        .pfk-st::before { content: ""; position: absolute; left: 10px; top: 22px; bottom: 0; width: 2px; background: #E9E2DA; }
+        .pfk-st:last-child::before { display: none; }
+        .pfk-st i { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #D6CEC5; background: #fff; flex: none; z-index: 1; box-sizing: border-box; }
+        .pfk-st.ok i { background: #15803D; border-color: #15803D; }
+        .pfk-st.now i { background: #E8590C; border-color: #E8590C; box-shadow: 0 0 0 5px #FFE2CF; }
+        .pfk-st b { display: block; font-size: 14px; }
+        .pfk-st small { display: block; font-size: 12px; color: #6F655E; }
+        .pfk-st.nanti b { color: #A8A29E; }
+        .pfk-k { border: 1.5px solid #E9E2DA; border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+        .pfk-k.merah { border-color: #F3C7C2; background: #FFF7F6; }
+        .pfk-k.abu { border-color: #D6D3D1; background: #F5F5F4; }
+        .pfk-k.biru { border-color: #BFD3F5; background: #F3F7FE; }
+        .pfk-it { display: flex; gap: 8px; font-size: 13.5px; padding: 5px 0; border-top: 1px dashed #E9E2DA; }
+        .pfk-it b { min-width: 24px; } .pfk-it span:nth-child(2) { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+        .pfk-it em { display: block; font-style: normal; font-size: 12px; color: #B45309; font-weight: 700; }
+        .pfk-uang { display: flex; justify-content: space-between; font-size: 13.5px; }
+        .pfk-uang.total { font-weight: 800; font-size: 15px; border-top: 1px solid #E9E2DA; padding-top: 6px; }
+        .pfk-btn { min-height: 48px; border-radius: 14px; border: 1.5px solid #E2D8CC; background: #fff; color: #1C1C1E; font: 800 14.5px 'Plus Jakarta Sans', sans-serif; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 0 12px; width: 100%; }
+        .pfk-btn.or { background: #E8590C; border-color: #E8590C; color: #fff; }
+        .pfk-btn.mr { color: #B42318; border-color: #F3C7C2; }
+        .pfk-btn.hj { background: #15803D; border-color: #15803D; color: #fff; }
+        .pfk-btn:disabled { opacity: .55; cursor: wait; }
+        .pfk-kecil { font-size: 12.5px; color: #6F655E; line-height: 1.5; }
+        .pfk-qris img { display: block; width: 100%; max-width: 220px; margin: 4px auto; border-radius: 12px; }
+    </style>
+    <button type="button" class="pfk-bar" id="pfk-bar" hidden aria-label="Lihat pesanan berjalan"></button>
+    <section class="pfk-lyr" id="pfk-lyr" hidden role="dialog" aria-modal="true" aria-labelledby="pfk-judul">
+        <div class="pfk-hd">
+            <button type="button" id="pfk-tutup" aria-label="Kembali"><i class="ph-bold ph-arrow-left" aria-hidden="true"></i></button>
+            <div style="min-width:0"><small>Pesanan food · langsung ke warung</small><b id="pfk-judul">Warung</b><span class="pfk-ramai" id="pfk-ramai" hidden>🔥 Sedang ramai · +10 mnt</span></div>
+        </div>
+        <div class="pfk-isi" id="pfk-isi"></div>
+    </section>
+    <script type="module">
+        import { getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, doc, getDoc, onSnapshot, query, where, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        (function pesanFoodLangsung() {
+            let app; try { app = getApp(); } catch (e) { return; }
+            const auth = getAuth(app), db = getFirestore(app);
+            const $ = (id) => document.getElementById(id);
+            const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
+            const rp = (n) => 'Rp ' + (Number(n) || 0).toLocaleString('id-ID');
+            const ms = (t) => typeof t === 'number' ? t : (t && typeof t.toMillis === 'function') ? t.toMillis() : 0;
+            const jam = (t) => { const m = typeof t === 'number' ? t : ms(t); if (!m) return ''; const d = new Date(m); return String(d.getHours()).padStart(2, '0') + '.' + String(d.getMinutes()).padStart(2, '0'); };
+            const tost = (t) => { try { if (typeof window.showToast === 'function') window.showToast(t); } catch (e) {} };
+            const ID_OK = /^[A-Za-z0-9]{20}$/;
+            const QRIS = 'https://i.ibb.co.com/Q38N4DB5/QRIS-5.jpg';
+            const AKTIF = ['cek', 'ke_warung', 'dibuat', 'siap', 'diantar', 'ditolak'];
+            const ALASAN = { habis: 'ada menu yang habis', tutup: 'warung mau tutup / sudah tutup', ramai: 'warung sedang terlalu ramai', lain: 'alasan lain' };
+            let atur = null, uid = '', aktif = {}, henti = null, hentiSatu = null, dibuka = '', satu = null, statusLama = {};
+
+            /* ---------- pengaturan (warung mana yang ikut) ---------- */
+            async function muatAtur() {
+                try { const s = await getDoc(doc(db, 'pesanan_food_atur', 'umum')); atur = s.exists() ? s.data() : { aktif: false }; }
+                catch (e) { atur = { aktif: false }; }
+            }
+            muatAtur(); setInterval(muatAtur, 5 * 60 * 1000);
+
+            /* ---------- syarat pesan langsung ---------- */
+            function cekSyarat() {
+                const k = typeof window.pfkKeranjang === 'function' ? window.pfkKeranjang() : null;
+                if (!k || !atur || atur.aktif !== true || !Array.isArray(atur.warung)) return { ok: false };
+                if (!k.cart.length || k.orderMode === 'dine_in') return { ok: false };
+                const vids = new Set();
+                for (const it of k.cart) { const p = k.rawProducts.find((x) => x.id === it.id); if (!p || !p.vendor_id) return { ok: false }; vids.add(p.vendor_id); }
+                if (vids.size !== 1) return { ok: false };
+                const vid = [...vids][0];
+                if (!atur.warung.includes(vid)) return { ok: false };
+                const v = k.allVendors.find((x) => x.id === vid);
+                const dest = window.__pfkTujuan, jarak = Number(window.__pfkJarak) || 0;
+                const titikOk = window.checkoutLocMode === 'maps' && dest && typeof dest.lat === 'number' && jarak > 0 && (Number(window.checkoutOngkir) || 0) > 0;
+                return { ok: titikOk && k.google && !!k.uid, ikut: true, titikOk, login: k.google && !!k.uid, vid, vnama: v ? v.nama_warung : '', k, dest, jarak };
+            }
+
+            /* ---------- tombol di checkout ---------- */
+            function pasangTombol() {
+                const btnWa = document.querySelector('.pg-order-btn[onclick^="processCheckout"]');
+                if (!btnWa) return;
+                let blok = $('pfk-blok');
+                if (!blok || !document.contains(blok)) {
+                    blok = el('div', 'pfk-blok'); blok.id = 'pfk-blok'; blok.hidden = true;
+                    const p = el('p'); p.id = 'pfk-blok-p';
+                    const b = el('button', 'pfk-tbl'); b.type = 'button'; b.id = 'pfk-blok-b';
+                    b.addEventListener('click', pesan);
+                    blok.append(p, b);
+                    const info = btnWa.previousElementSibling && btnWa.previousElementSibling.tagName === 'DIV' ? btnWa.previousElementSibling : btnWa;
+                    info.parentNode.insertBefore(blok, info);
+                }
+                const s = cekSyarat();
+                if (!s.ikut) { blok.hidden = true; return; }
+                blok.hidden = false;
+                const p = $('pfk-blok-p'), b = $('pfk-blok-b');
+                p.textContent = '';
+                if (!s.login) { p.append('⚡ Warung ini bisa dipesan ', el('b', '', 'langsung lewat aplikasi'), '. Masuk dengan Google dulu ya.'); b.hidden = true; return; }
+                if (!s.titikOk) { p.append('⚡ Warung ini bisa dipesan ', el('b', '', 'langsung lewat aplikasi'), '. Pilih titik antar di peta dulu supaya ongkir terhitung.'); b.hidden = true; return; }
+                b.hidden = false;
+                p.append('⚡ ', el('b', '', 'Langsung diterima warung'), ' lewat aplikasi. Kamu bisa pantau prosesnya, rider datang saat makanan siap.');
+                const tot = s.k.cart.reduce((a, it) => a + (Number(it.harga) || 0), 0) + (Number(window.checkoutOngkir) || 0);
+                if (!b.disabled) b.textContent = 'Pesan langsung ke warung · ' + rp(tot);
+            }
+            setInterval(() => { if (document.querySelector('.pg-order-btn[onclick^="processCheckout"]')) pasangTombol(); if (typeof gambarBar === 'function') gambarBar(); }, 800);
+
+            async function pesan() {
+                const s = cekSyarat(), b = $('pfk-blok-b');
+                if (!s.ok) { pasangTombol(); return; }
+                if (typeof window.checkOperationalStatus === 'function' && !window.checkOperationalStatus()) return;
+                if (window.getClosedCartKeys && window.getClosedCartKeys().size > 0) return tost('Warung baru saja tutup. Cek lagi keranjangmu ya.');
+                // gabungkan baris keranjang yang sama (1 baris keranjang = 1 porsi)
+                const gabung = {};
+                s.k.cart.forEach((it) => {
+                    const kunci = it.id + '|' + (it.variant || '-') + '|' + String(it.note || '').trim().toLowerCase();
+                    if (!gabung[kunci]) gabung[kunci] = { pid: it.id, varian: it.variant || '-', catatan: String(it.note || '').trim().slice(0, 120), qty: 0, harga: Number(it.harga) || 0 };
+                    gabung[kunci].qty++;
+                });
+                const items = Object.values(gabung);
+                const subtotal = items.reduce((a, x) => a + x.harga * x.qty, 0), ongkir = Number(window.checkoutOngkir) || 0;
+                const noteEl = document.getElementById('checkout-note');
+                const alamat = (document.getElementById('checkout-maps-search') && document.getElementById('checkout-maps-search').value) || (window.checkoutDestPlace && (window.checkoutDestPlace.formatted_address || window.checkoutDestPlace.name)) || '';
+                if (!window.confirm('Pesan langsung ke ' + (s.vnama || 'warung') + '?\n\nMakanan ' + rp(subtotal) + ' + ongkir ' + rp(ongkir) + ' = ' + rp(subtotal + ongkir) + '\nBayar tunai ke rider (pelanggan baru dengan belanja besar: QRIS dulu).')) return;
+                b.disabled = true; b.textContent = 'Mengirim pesanan...';
+                try {
+                    const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js');
+                    const r = await f.httpsCallable(f.getFunctions(app, 'asia-southeast2'), 'buatPesananFood')({
+                        vendor_id: s.vid, items, antar: { lat: s.dest.lat, lng: s.dest.lng, alamat: String(alamat).slice(0, 200) },
+                        jarak_km: Math.round(s.jarak * 1000) / 1000, catatan: noteEl ? noteEl.value.trim().slice(0, 300) : '', total: subtotal + ongkir,
+                    });
+                    const h = r && r.data;
+                    if (!h || !ID_OK.test(String(h.id || ''))) throw new Error('jawaban');
+                    if (typeof window.pfkSelesaiCheckout === 'function') window.pfkSelesaiCheckout();
+                    try { if (navigator.vibrate) navigator.vibrate(80); } catch (e) {}
+                    if (typeof window.openPage === 'function') window.openPage('home');
+                    bukaStatus(h.id);
+                } catch (e) {
+                    console.warn('[Pesan langsung]', e && (e.code || e.message));
+                    const pesanGalat = e && e.message && e.code && String(e.code).indexOf('functions/') === 0 && e.code !== 'functions/internal' ? e.message : 'Pesanan belum terkirim. Periksa internet lalu coba lagi.';
+                    tost(pesanGalat);
+                    const kode = e && e.details && e.details.kode;
+                    if (kode === 'profil' && typeof window.openPage === 'function') setTimeout(() => window.openPage('profile'), 800);
+                } finally { b.disabled = false; pasangTombol(); }
+            }
+
+            /* ---------- layar status ---------- */
+            function tahap(o) {
+                const s = o.status, urut = ['cek', 'ke_warung', 'dibuat', 'siap', 'diantar', 'selesai'], i = urut.indexOf(s);
+                const st = (n) => i > n ? 'ok' : i === n ? 'now' : 'nanti';
+                const target = ms(o.diterima_at) + (Number(o.estimasi_mnt) || 0) * 60000, sisa = Math.round((target - Date.now()) / 60000);
+                return [
+                    { t: s === 'cek' ? (o.wajib_qris && o.qris_status !== 'lunas' ? 'Menunggu pembayaran QRIS' : 'Admin sedang mengecek pesananmu') : 'Pesanan dicek admin', w: s === 'cek' ? 'Biasanya kurang dari 2 menit' : (o.pelanggan_lama ? 'Pelanggan setia, langsung diteruskan ✓' : jam(o.diteruskan_at)), c: st(0) },
+                    { t: s === 'ke_warung' ? 'Menunggu warung menerima pesanan' : 'Warung menerima pesanan', w: s === 'ke_warung' ? 'Pesanan sudah sampai di HP warung' : jam(o.diterima_at), c: st(1) },
+                    { t: 'Warung sedang membuat pesananmu', w: s === 'dibuat' ? ('Siap sekitar ' + jam(target) + (sisa > 0 ? ' (±' + sisa + ' menit lagi)' : '')) : (i > 2 ? 'Estimasi ' + (o.estimasi_mnt || '-') + ' menit' : ''), c: st(2) },
+                    { t: 'Pesanan siap, rider menuju warung', w: s === 'siap' ? 'Rider akan menyebutkan kode ' + o.kode + ' ke warung' : jam(o.siap_at), c: st(3) },
+                    { t: 'Pesanan diantar', w: s === 'diantar' ? 'Dibawa ' + (o.rider_nama || 'rider') + ' · bayar ' + (o.qris_status === 'lunas' ? 'sudah lunas (QRIS)' : 'tunai ke rider') : jam(o.diantar_at), c: st(4) },
+                    { t: 'Selesai', w: jam(o.selesai_at), c: s === 'selesai' ? 'ok' : 'nanti' },
+                ];
+            }
+            async function ubah(isi, pesanOk) {
+                if (!satu) return;
+                try { await updateDoc(doc(db, 'pesanan_food', satu.id), isi); if (pesanOk) tost(pesanOk); }
+                catch (e) { console.warn('[Pesanan food]', e && e.code); tost('Belum bisa: status pesanan sudah berubah. Coba lagi.'); }
+            }
+            function batal(alasanBawaan) {
+                if (!window.confirm('Batalkan pesanan ' + satu.kode + '? Belum ada biaya karena warung belum mulai membuat.')) return false;
+                ubah({ status: 'batal', batal: { oleh: 'pelanggan', alasan: alasanBawaan || 'Dibatalkan pelanggan' }, batal_at: serverTimestamp() }, 'Pesanan dibatalkan');
+                return true;
+            }
+            function gambarStatus() {
+                const o = satu, w = $('pfk-isi'); if (!o) return;
+                const atasLama = w.scrollTop; w.textContent = '';
+                $('pfk-judul').textContent = o.vendor_nama || 'Warung';
+                let ramai = false; try { const k = window.pfkKeranjang && window.pfkKeranjang(); const v = k && k.allVendors.find((x) => x.id === o.vendor_id); ramai = !!(v && v.ramai === true); } catch (e) {}
+                $('pfk-ramai').hidden = !(ramai || o.ramai) || ['selesai', 'batal', 'diantar'].includes(o.status);
+                const kd = el('div', 'pfk-kode'); kd.append(el('small', '', 'Kode pesananmu'), el('strong', '', o.kode), el('small', '', 'Rider akan menyebutkan kode ini')); w.appendChild(kd);
+
+                if (o.status === 'ditolak') {
+                    const t = o.tolak || {}, k = el('div', 'pfk-k merah');
+                    k.appendChild(el('div', '', '😔')); k.firstChild.style.cssText = 'font-size:30px;text-align:center';
+                    const j = el('b', '', 'Warung belum bisa memproses pesananmu'); j.style.cssText = 'font-size:17px;text-align:center'; k.appendChild(j);
+                    const habis = (Array.isArray(t.habis) ? t.habis : []).map((pid) => { const it = (o.items || []).find((x) => x.pid === pid); return it ? it.nama : ''; }).filter(Boolean);
+                    const al = el('div', '', 'Alasan: ' + (habis.length ? habis.join(', ') + ' habis' : (ALASAN[t.jenis] || 'alasan lain')) + (t.teks ? ' · "' + t.teks + '"' : '')); al.style.cssText = 'text-align:center;font-size:14px;font-weight:700'; k.appendChild(al);
+                    k.appendChild(el('div', 'pfk-kecil', '🧑‍💼 Admin sedang mencarikan solusi (ganti menu atau warung lain) dan akan menghubungimu lewat chat.'));
+                    w.appendChild(k);
+                    const c = el('button', 'pfk-btn or', '💬 Chat admin'); c.type = 'button'; c.addEventListener('click', () => { tutup(); if (window.openPage) window.openPage('chat'); });
+                    const g = el('button', 'pfk-btn', 'Ganti menu sendiri'); g.type = 'button'; g.addEventListener('click', () => { const vid = o.vendor_id; if (batal('Ganti menu sendiri')) { tutup(); if (window.openVendorPage) setTimeout(() => window.openVendorPage(vid), 300); } });
+                    const b = el('button', 'pfk-btn mr', 'Batalkan pesanan (gratis)'); b.type = 'button'; b.addEventListener('click', () => batal('Warung tidak bisa memproses'));
+                    w.append(c, g, b);
+                } else if (o.status === 'batal') {
+                    const k = el('div', 'pfk-k abu'); const bt = o.batal || {};
+                    k.appendChild(el('b', '', 'Pesanan dibatalkan' + (bt.oleh === 'admin' ? ' oleh admin' : '')));
+                    if (bt.alasan) k.appendChild(el('div', 'pfk-kecil', 'Alasan: ' + bt.alasan));
+                    k.appendChild(el('div', 'pfk-kecil', 'Ada pertanyaan? Chat admin ya.'));
+                    w.appendChild(k);
+                } else {
+                    if (o.status === 'cek' && o.wajib_qris && o.qris_status !== 'lunas') {
+                        const k = el('div', 'pfk-k biru pfk-qris');
+                        k.appendChild(el('b', '', 'Bayar dulu lewat QRIS: ' + rp(o.total)));
+                        k.appendChild(el('div', 'pfk-kecil', 'Karena ini pesanan pertamamu dengan belanja cukup besar, pembayaran QRIS dulu supaya warung bisa langsung memasak. Setelah admin memastikan uangnya masuk, pesanan diteruskan ke warung.'));
+                        const img = el('img'); img.src = QRIS; img.alt = 'QRIS ProjekGo'; img.loading = 'lazy'; k.appendChild(img);
+                        if (o.qris_status === 'menunggu') {
+                            const b = el('button', 'pfk-btn hj', 'Saya sudah bayar'); b.type = 'button';
+                            b.addEventListener('click', () => { if (window.confirm('Sudah membayar ' + rp(o.total) + ' lewat QRIS?')) ubah({ qris_status: 'dikirim', qris_klaim_at: serverTimestamp() }, 'Terima kasih! Admin segera mengecek.'); });
+                            k.appendChild(b);
+                        } else k.appendChild(el('div', 'pfk-kecil', '✓ Kamu sudah menandai bayar. Admin sedang mengecek pembayaranmu.'));
+                        w.appendChild(k);
+                    }
+                    const tl = el('div', 'pfk-tl');
+                    tahap(o).forEach((x) => { const r = el('div', 'pfk-st ' + x.c); r.appendChild(el('i')); const d = el('div'); d.appendChild(el('b', '', x.t)); if (x.w) d.appendChild(el('small', '', x.w)); r.appendChild(d); tl.appendChild(r); });
+                    w.appendChild(tl);
+                    if (['cek', 'ke_warung'].includes(o.status)) {
+                        const b = el('button', 'pfk-btn mr', 'Batalkan pesanan'); b.type = 'button'; b.addEventListener('click', () => batal()); w.appendChild(b);
+                    } else if (['dibuat', 'siap', 'diantar'].includes(o.status)) {
+                        const k = el('div', 'pfk-k pfk-kecil'); k.appendChild(document.createTextNode('Batal hanya bisa lewat admin karena makanan sudah mulai dibuat. '));
+                        const a = el('button', '', 'Chat admin'); a.type = 'button'; a.style.cssText = 'border:0;background:none;color:#E8590C;font-weight:800;font-family:inherit;padding:0;cursor:pointer';
+                        a.addEventListener('click', () => { tutup(); if (window.openPage) window.openPage('chat'); }); k.appendChild(a); w.appendChild(k);
+                    }
+                }
+                const r = el('div', 'pfk-k');
+                r.appendChild(el('b', '', 'Rincian pesanan'));
+                (o.items || []).forEach((it) => {
+                    const b = el('div', 'pfk-it'); const n = el('span', '', it.nama + (it.varian && it.varian !== '-' ? ' (' + it.varian + ')' : ''));
+                    if (it.catatan) n.appendChild(el('em', '', 'Catatan: ' + it.catatan));
+                    b.append(el('b', '', it.qty + '×'), n, el('span', '', rp(it.total))); r.appendChild(b);
+                });
+                [['Makanan (harga asli warung)', o.subtotal], ['Ongkir', o.ongkir]].forEach(([a, b]) => { const x = el('div', 'pfk-uang'); x.append(el('span', '', a), el('span', '', rp(b))); r.appendChild(x); });
+                const t = el('div', 'pfk-uang total'); t.append(el('span', '', 'Total bayar'), el('span', '', rp(o.total))); r.appendChild(t);
+                if (alamatPf[o.id]) r.appendChild(el('div', 'pfk-kecil', 'Antar ke: ' + alamatPf[o.id]));
+                w.appendChild(r);
+                w.scrollTop = atasLama;
+            }
+            const alamatPf = {};
+            function bukaStatus(id) {
+                if (!ID_OK.test(String(id || ''))) return;
+                if (!alamatPf[id]) getDoc(doc(db, 'pesanan_food', id, 'kontak', 'antar')).then((s) => { if (s.exists()) { alamatPf[id] = String(s.data().alamat || '').slice(0, 200); if (dibuka === id) gambarStatus(); } }).catch(() => {});
+                dibuka = id; $('pfk-lyr').hidden = false;
+                if (hentiSatu) { try { hentiSatu(); } catch (e) {} }
+                satu = aktif[id] || null; if (satu) gambarStatus(); else $('pfk-isi').textContent = 'Memuat...';
+                hentiSatu = onSnapshot(doc(db, 'pesanan_food', id), (s) => { if (dibuka !== id || !s.exists()) return; satu = Object.assign({ id }, s.data()); gambarStatus(); }, () => {});
+            }
+            function tutup() { $('pfk-lyr').hidden = true; dibuka = ''; if (hentiSatu) { try { hentiSatu(); } catch (e) {} hentiSatu = null; } gambarBar(); }
+            window.pfkBukaStatus = bukaStatus;
+            $('pfk-tutup').addEventListener('click', tutup);
+            setInterval(() => { if (satu && !$('pfk-lyr').hidden && satu.status === 'dibuat') gambarStatus(); }, 30000);
+
+            /* ---------- bar "pesanan berjalan" + kabar perubahan status ---------- */
+            const KABAR = { ke_warung: 'Pesananmu sudah diteruskan ke warung', dibuat: 'Warung menerima pesananmu dan mulai membuat 👨‍🍳', siap: 'Pesananmu sudah jadi! Rider menuju warung', diantar: 'Pesananmu sedang diantar 🛵', ditolak: 'Warung belum bisa memproses pesananmu', selesai: 'Pesanan selesai. Selamat menikmati!' };
+            function gambarBar() {
+                const bar = $('pfk-bar'), d = Object.values(aktif).filter((o) => AKTIF.includes(o.status)).sort((a, b) => ms(b.dibuat_at) - ms(a.dibuat_at));
+                // tidak menutupi tombol pesan di halaman checkout
+                const btnCk = document.querySelector('.pg-order-btn[onclick^="processCheckout"]');
+                bar.hidden = !d.length || !$('pfk-lyr').hidden || !!(btnCk && btnCk.offsetParent);
+                if (!d.length) return;
+                const o = d[0]; bar.textContent = '';
+                const label = { cek: 'dicek admin', ke_warung: 'menunggu warung', dibuat: 'warung sedang membuat', siap: 'siap, rider menuju warung', diantar: 'sedang diantar', ditolak: 'ditolak warung, ketuk' }[o.status] || '';
+                bar.append(el('span', '', '🍲 '), el('b', '', o.kode)); bar.lastChild.after(document.createTextNode(' ')); const s = el('span', '', (o.vendor_nama || '') + ' · ' + label); bar.appendChild(s); bar.appendChild(el('em', '', 'Lihat'));
+                bar.onclick = () => bukaStatus(o.id);
+            }
+            function mulai() {
+                berhenti();
+                henti = onSnapshot(query(collection(db, 'pesanan_food'), where('pelanggan_uid', '==', uid), where('status', 'in', AKTIF)), (s) => {
+                    const baru = {};
+                    s.forEach((d) => { if (ID_OK.test(d.id)) baru[d.id] = Object.assign({ id: d.id }, d.data()); });
+                    Object.values(baru).forEach((o) => {
+                        const lama = statusLama[o.id];
+                        if (lama && lama !== o.status && KABAR[o.status]) { tost(KABAR[o.status] + ' (' + o.kode + ')'); try { if (navigator.vibrate) navigator.vibrate(o.status === 'ditolak' ? [300, 120, 300] : 200); } catch (e) {} }
+                        statusLama[o.id] = o.status;
+                    });
+                    aktif = baru; gambarBar();
+                }, (e) => console.warn('[Pesanan food] baca', e && e.code));
+            }
+            function berhenti() { if (henti) { try { henti(); } catch (e) {} henti = null; } aktif = {}; gambarBar(); }
+            onAuthStateChanged(auth, (u) => {
+                const ok = u && !u.isAnonymous && u.providerData.some((p) => p.providerId === 'google.com');
+                const baru = ok ? u.uid : '';
+                if (baru === uid) return;
+                uid = baru; statusLama = {};
+                if (uid) mulai(); else berhenti();
+            });
+        })();
+    </script>
+    <!-- ===================== AKHIR PESAN FOOD LANGSUNG ===================== -->
 </body>
 
 </html>
