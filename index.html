@@ -8373,6 +8373,7 @@ body.gm-terkunci { overflow: hidden; }
                         </div>
                         
                         <div class="vh-name">${esc(vendor.nama_warung)}</div>
+                        <span class="pfk-ramai-b" data-pfk-ramai="${esc(vendor.id)}" ${vendor.ramai === true && isOpen ? '' : 'hidden'}>🔥 Sedang ramai · pesanan ±10 menit lebih lama</span>
                         <div class="vh-address">${fullAddress}</div>
                         
                         ${catatanTokoHtml}
@@ -15634,6 +15635,8 @@ body.gm-terkunci { overflow: hidden; }
         logo.onerror = function () { this.onerror = null; this.src = FALLBACK_VENDOR_IMG; };
         kepala.appendChild(logo);
         kepala.appendChild(el('div', 'flex:1; min-width:0; font-size:18px; font-weight:800; color:#111; letter-spacing:-0.3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;', v.nama_warung || 'Warung Projekgo'));
+        // (25 Nov 2026) badge "Sedang ramai" dari mode ramai di aplikasi seller (diperbarui otomatis)
+        { const rm = document.createElement('span'); rm.className = 'pfk-ramai-b'; rm.style.margin = '0'; rm.style.flexShrink = '0'; rm.dataset.pfkRamai = String(v.id); rm.textContent = '🔥 Ramai'; rm.hidden = v.ramai !== true; kepala.appendChild(rm); }
         if (v.has_sertifikat_halal || v.is_halal) {
             const halal = el('span', 'display:inline-flex; align-items:center; gap:4px; flex-shrink:0; background:#F3E5F5; color:#8E24AA; font-size:11px; font-weight:800; padding:5px 9px; border-radius:99px; border:1px solid #E1BEE7;');
             const ic = document.createElement('i');
@@ -16295,6 +16298,7 @@ body.gm-terkunci { overflow: hidden; }
                         <div style="font-size: 15px; font-weight: 600; color: #111; line-height: 1.2; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                             ${esc(v.nama_warung || 'Warung Projekgo')}
                         </div>
+                        <span class="pfk-ramai-b" data-pfk-ramai="${esc(v.id)}" ${v.ramai === true && s ? '' : 'hidden'}>🔥 Sedang ramai</span>
 
                         ${umkm ? `<div style="font-size: 11px; font-weight: 700; color: #C44700; display: flex; align-items: center; gap: 4px; margin-bottom: 4px; line-height: 1.3;"><i class="ph-fill ph-book-open-text" style="font-size: 13px; flex-shrink: 0;"></i><span>Tampilan warung menggunakan Buku menu</span></div>` : ''}
 
@@ -21536,6 +21540,9 @@ body.gm-terkunci { overflow: hidden; }
          dari warung di layar status (kode besar, alur, QRIS untuk pelanggan baru, ditolak / batal).
          Pesan lewat WhatsApp / chat admin tetap ada seperti biasa. Semua isi dari database lewat textContent. -->
     <style id="pfk-css">
+        .pfk-ramai-b { display: inline-flex; align-items: center; gap: 4px; width: fit-content; max-width: 100%; background: #FDECEA; color: #B42318; border: 1px solid #F6C9C4; font-size: 10.5px; font-weight: 800; padding: 3px 9px; border-radius: 999px; margin: 1px 0 5px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pfk-ramai-b[hidden] { display: none !important; }
+        .vh-card .pfk-ramai-b { background: #FFFFFF; font-size: 11.5px; margin: 0 0 8px; white-space: normal; text-align: center; }
         .pfk-blok { background: #FFF4EA; border: 1.5px solid #FFC999; border-radius: 14px; padding: 10px 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
         .pfk-blok[hidden] { display: none; }
         .pfk-blok p { margin: 0; font-size: 12px; font-weight: 600; color: #6B4A2E; line-height: 1.45; }
@@ -21665,6 +21672,20 @@ body.gm-terkunci { overflow: hidden; }
                 if (!b.disabled) b.textContent = 'Pesan langsung ke warung · ' + rp(tot);
             }
             setInterval(() => { if (document.querySelector('.pg-order-btn[onclick^="processCheckout"]')) pasangTombol(); if (typeof gambarBar === 'function') gambarBar(); }, 800);
+            // badge "Sedang ramai" di daftar & halaman warung ikut berubah begitu seller menyalakan / mematikan mode ramai
+            setInterval(() => {
+                const els = document.querySelectorAll('[data-pfk-ramai]');
+                if (!els.length || typeof window.pfkKeranjang !== 'function') return;
+                const vs = window.pfkKeranjang().allVendors || [];
+                els.forEach((e) => {
+                    const v = vs.find((x) => x.id === e.dataset.pfkRamai);
+                    let buka = true;
+                    try { if (v && typeof window.isVendorOpenNow === 'function' && window.isVendorOpenNow(v) === false) buka = false; } catch (er) {}
+                    if (v && String(v.status_asli || v.status || 'BUKA').toUpperCase() === 'TUTUP') buka = false;
+                    const tampil = !!(v && v.ramai === true && buka);
+                    if (e.hidden === tampil) e.hidden = !tampil;
+                });
+            }, 2000);
 
             async function pesan() {
                 const s = cekSyarat(), b = $('pfk-blok-b');
