@@ -2167,6 +2167,11 @@
         .ck-ramai[hidden] { display: none !important; }
         .ck-ramai .ik { font-size: 22px; line-height: 1; flex-shrink: 0; }
         .ck-ramai b { display: block; font-size: 13.5px; color: #C2410C; margin-bottom: 1px; }
+        .ck-tam-info { display: flex; gap: 10px; background: #EFF6FF; border: 1.5px solid #93C5FD; color: #1E3A8A; border-radius: 14px; padding: 10px 12px; margin: 0 12px 12px; font-size: 12.5px; line-height: 1.45; }
+        .ck-tam-info[hidden], #ck-tam-row[hidden] { display: none !important; }
+        .ck-tam-info .ik { font-size: 22px; line-height: 1; flex-shrink: 0; }
+        .ck-tam-info b { display: block; font-size: 13.5px; }
+        .tam-svc-note { margin-top: 6px; background: #EFF6FF; border: 1px solid #BFDBFE; color: #1E3A8A; border-radius: 10px; padding: 6px 9px; font-size: 12px; font-weight: 700; line-height: 1.4; }
         .ck-catat-admin { margin: 8px 0 0; font-size: 11.5px; color: #6B7280; text-align: center; line-height: 1.4; }
         .ck-catat-admin[hidden] { display: none; }
         /* (26 Nov 2026) Pembayaran: angka rata kiri dalam satu kolom */
@@ -10791,6 +10796,10 @@ body.gm-terkunci { overflow: hidden; }
                 ? `<div class="cost-row"><span id="checkout-ongkir-label">Ongkir Express</span><span id="checkout-ongkir-text">Menghitung...</span></div>` : '';
             const extraVendorRow = (orderMode !== 'dine_in' && extraRestoFee > 0)
                 ? `<div class="cost-row"><span>Tambahan ${numVendors} warung berbeda</span><span>${rp(extraRestoFee)}</span></div>` : '';
+            // (26 Nov 2026) TAMBAHAN ONGKIR dari admin (mis. kondisi hujan): baris & kotak info diisi/disembunyikan oleh tamGambarCheckout()
+            const tamRow = orderMode !== 'dine_in'
+                ? `<div class="cost-row" id="ck-tam-row" hidden><span id="ck-tam-label">Biaya tambahan</span><span id="ck-tam-nilai"></span></div>` : '';
+            const tamInfo = orderMode !== 'dine_in' ? `<div class="ck-tam-info" id="ck-tam-info" hidden role="status"></div>` : '';
 
             // (26 Nov 2026) badge "warung sedang ramai" di checkout (tampil / hilang otomatis lewat [data-pfk-ramai])
             const ramaiHtml = orderMode === 'dine_in' ? '' : daftarWarung.map(([vendor, items]) => {
@@ -10803,6 +10812,7 @@ body.gm-terkunci { overflow: hidden; }
             window.checkoutLayanan = 'express';
 
             const html = `
+            ${tamInfo}
             ${ramaiHtml}
             ${addressSectionHtml}
             ${deliveryOptionsHtml}
@@ -10816,6 +10826,7 @@ body.gm-terkunci { overflow: hidden; }
                 ${serviceFeeRow}
                 ${ongkirRow}
                 ${extraVendorRow}
+                ${tamRow}
                 <div class="cost-row total"><span>Total bayar</span><span id="checkout-final-total">${rp(finalTotal)}</span></div>
 
                 <div class="ck-bayar">
@@ -11666,6 +11677,8 @@ body.gm-terkunci { overflow: hidden; }
             
             let ongkirSavings = 0;
             
+            if (orderMode !== 'dine_in') finalTotal += (typeof window.tamOngkir === 'function' ? window.tamOngkir() : 0);   // (26 Nov 2026) tambahan ongkir
+            try { if (typeof window.tamGambarCheckout === 'function') window.tamGambarCheckout(); } catch (e) {}
             if(window.checkoutLocMode === 'maps') {
                 finalTotal += window.checkoutOngkir;
                 // Berdasarkan perhitungan Express (Ongkir Normal = Total Ongkir + 9000 harga coret)
@@ -12179,18 +12192,21 @@ body.gm-terkunci { overflow: hidden; }
                 finalTotal += extraRestoFee;
             }
 
+            const tamN = orderMode !== 'dine_in' && typeof window.tamOngkir === 'function' ? window.tamOngkir() : 0;   // (26 Nov 2026)
             if (orderMode !== 'dine_in' && window.checkoutLocMode === 'maps') {
-                finalTotal += window.checkoutOngkir;
+                finalTotal += window.checkoutOngkir + tamN;
                 message += `Subtotal Makanan: Rp ${total.toLocaleString()}\n`;
                 if(serviceFee > 0) message += `Biaya Layanan: Rp ${serviceFee.toLocaleString()}\n`;
                 
                 if (window.checkoutOngkir > 0) {
                     message += `Ongkos Kirim: Rp ${window.checkoutOngkir.toLocaleString()}\n`;
                     if (extraRestoFee > 0) message += `Tambahan Ongkir (${numVendors} warung): Rp ${extraRestoFee.toLocaleString()}\n`;
+                    if (tamN > 0) message += `Biaya Tambahan (${window.tamOngkirAlasan()}): Rp ${tamN.toLocaleString()}\n`;
                     message += `*Total Bayar: Rp ${finalTotal.toLocaleString()}*\n\n`;
                 } else {
                     message += `*Ongkos Kirim: (Dihitung manual oleh admin)*\n`;
                     if (extraRestoFee > 0) message += `Tambahan Ongkir (${numVendors} warung): Rp ${extraRestoFee.toLocaleString()}\n`;
+                    if (tamN > 0) message += `Biaya Tambahan (${window.tamOngkirAlasan()}): Rp ${tamN.toLocaleString()}\n`;
                     message += `*Total Harga Sementara: Rp ${finalTotal.toLocaleString()}*\n\n`;
                 }
             } else {
@@ -14111,6 +14127,7 @@ body.gm-terkunci { overflow: hidden; }
                     message += `Jarak: ${document.getElementById('summary-dist').innerText}%0A`;
                     message += `Waktu: ${document.getElementById('summary-time').innerText}%0A`;
                     message += `💰 *Estimasi Ongkir: Rp ${routePrice.toLocaleString('id-ID')}*%0A`;
+                    if (typeof window.tamOngkir === 'function' && window.tamOngkir() > 0) message += `_(termasuk biaya tambahan ${window.tamOngkirAlasan()} Rp ${window.tamOngkir().toLocaleString('id-ID')})_%0A`;
                     message += `_(Note: Harga dihitung otomatis via sistem)_%0A`;
                 }
             } else {
@@ -20852,7 +20869,8 @@ body.gm-terkunci { overflow: hidden; }
             function pratinjau(k) {
                 const sk = kd();
                 const jarak = Math.max(0.1, Math.round(k.jarak * 100) / 100);
-                return { layanan: k.layanan, fee: tarif(k.layanan, jarak), jarak,
+                const tamN = typeof window.tamOngkir === 'function' ? window.tamOngkir() : 0;   // (26 Nov 2026) tambahan ongkir (diperiksa rules)
+                return { layanan: k.layanan, fee: tarif(k.layanan, jarak) + tamN, tambahan: tamN, jarak,
                     jemput: { alamat: String((sk.origin && sk.origin.formatted_address) || ($('svc-jemput') || {}).value || 'Titik jemput').slice(0, 200) },
                     tujuan: { alamat: String((sk.dest && sk.dest.formatted_address) || ($('svc-tujuan') || {}).value || 'Tujuan').slice(0, 200) } };
             }
@@ -20886,6 +20904,7 @@ body.gm-terkunci { overflow: hidden; }
                     tujuan: { lat: k.tujuan.lat, lng: k.tujuan.lng, alamat: String(nmTujuan).slice(0, 200) },
                     jarak_km: jarak, fee, catatan, gps: { lat: gps.lat, lng: gps.lng }, kode, status: 'cari', dibuat_at: serverTimestamp()
                 };
+                if (pv.tambahan > 0) o.tambahan = pv.tambahan;   // (26 Nov 2026) rincian tambahan ongkir (sudah termasuk di fee)
                 // (20 Nov 2026) foto paket: rider bisa melihatnya di tawaran
                 if (k.layanan === 'antar') {
                     const fp = typeof window.fpPath === 'function' ? window.fpPath('instan') : '';
@@ -21875,7 +21894,7 @@ body.gm-terkunci { overflow: hidden; }
                     return;
                 }
                 b.hidden = false;
-                const tot = s.k.cart.reduce((a, it) => a + (Number(it.harga) || 0), 0) + (Number(window.checkoutOngkir) || 0);
+                const tot = s.k.cart.reduce((a, it) => a + (Number(it.harga) || 0), 0) + (Number(window.checkoutOngkir) || 0) + (typeof window.tamOngkir === 'function' ? window.tamOngkir() : 0);
                 if (!b.disabled) b.textContent = 'Pesan · ' + rp(tot);
             }
             window.pfkSegarkanTombol = pasangTombol;   // (26 Nov 2026) dipanggil saat pilihan pengantaran berubah
@@ -21909,6 +21928,7 @@ body.gm-terkunci { overflow: hidden; }
                 });
                 const items = Object.values(gabung);
                 const subtotal = items.reduce((a, x) => a + x.harga * x.qty, 0), ongkir = Number(window.checkoutOngkir) || 0;
+                const tamOngkirN = typeof window.tamOngkir === 'function' ? window.tamOngkir() : 0;   // (26 Nov 2026) dicek ulang di server
                 const noteEl = document.getElementById('checkout-note');
                 const alamat = (document.getElementById('checkout-maps-search') && document.getElementById('checkout-maps-search').value) || (window.checkoutDestPlace && (window.checkoutDestPlace.formatted_address || window.checkoutDestPlace.name)) || '';
                 // (26 Nov 2026) tanpa dialog konfirmasi: langsung kirim
@@ -21917,7 +21937,7 @@ body.gm-terkunci { overflow: hidden; }
                     const f = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js');
                     const r = await f.httpsCallable(f.getFunctions(app, 'asia-southeast2'), 'buatPesananFood')({
                         vendor_id: s.vid, items, antar: { lat: s.dest.lat, lng: s.dest.lng, alamat: String(alamat).slice(0, 200) },
-                        jarak_km: Math.round(s.jarak * 1000) / 1000, catatan: noteEl ? noteEl.value.trim().slice(0, 300) : '', total: subtotal + ongkir,
+                        jarak_km: Math.round(s.jarak * 1000) / 1000, catatan: noteEl ? noteEl.value.trim().slice(0, 300) : '', total: subtotal + ongkir + tamOngkirN, tambahan_ongkir: tamOngkirN,
                         layanan: 'express',
                     });
                     const h = r && r.data;
@@ -22026,7 +22046,7 @@ body.gm-terkunci { overflow: hidden; }
                 }
                 const lay = { express: 'Express', reguler: 'Reguler', hemat: 'Hemat' }[o.layanan] || 'Express';
                 r.appendChild(el('div', 'pfk-lbl', 'Pembayaran · ' + (o.qris_status === 'lunas' ? 'sudah lunas (QRIS)' : 'tunai ke rider')));
-                [['Makanan (harga asli warung)', o.subtotal], ['Ongkir ' + lay, o.ongkir]].forEach(([a, b]) => { const x = el('div', 'pfk-uang'); x.append(el('span', '', a), el('span', '', rp(b))); r.appendChild(x); });
+                [['Makanan (harga asli warung)', o.subtotal], ['Ongkir ' + lay, o.ongkir]].concat(Number(o.tambahan_ongkir) > 0 ? [['Biaya tambahan' + (o.tambahan_alasan ? ' (' + o.tambahan_alasan + ')' : ''), o.tambahan_ongkir]] : []).forEach(([a, b]) => { const x = el('div', 'pfk-uang'); x.append(el('span', '', a), el('span', '', rp(b))); r.appendChild(x); });
                 const t = el('div', 'pfk-uang total'); t.append(el('span', '', 'Total bayar'), el('span', '', rp(o.total))); r.appendChild(t);
                 w.appendChild(r);
                 w.scrollTop = atasLama;
@@ -22092,6 +22112,85 @@ body.gm-terkunci { overflow: hidden; }
         })();
     </script>
     <!-- ===================== AKHIR PESAN FOOD LANGSUNG ===================== -->
+
+    <!-- (26 Nov 2026) TAMBAHAN ONGKIR dari admin (mis. kondisi hujan).
+         Dokumen atur_publik/tambahan_ongkir {aktif, nominal, alasan}: dibaca semua, ditulis admin saja.
+         Dipakai: checkout Food (baris biaya + kotak info + pesan ke admin), Pesan langsung ke warung (dicek ulang server),
+         Ngojek / Antar barang / Mobil (harga rute + keterangan), order otomatis Ngojek/Antar (fee + tambahan, dicek rules). -->
+    <script type="module">
+        import { getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        (function tambahanOngkir() {
+            let app; try { app = getApp(); } catch (e) { return; }
+            const db = getFirestore(app);
+            let t = { aktif: false, nominal: 0, alasan: '' };
+            const bersih = (x) => String(x == null ? '' : x).replace(/[\u0000-\u001f\u007f<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 40);
+            window.tamOngkir = () => (t.aktif === true && Number.isInteger(t.nominal) && t.nominal > 0 && t.nominal <= 50000) ? t.nominal : 0;
+            window.tamOngkirAlasan = () => bersih(t.alasan) || 'kondisi tertentu';
+            const rp = (n) => 'Rp ' + (Number(n) || 0).toLocaleString('id-ID');
+            // checkout Food
+            window.tamGambarCheckout = () => {
+                const n = window.tamOngkir(), row = document.getElementById('ck-tam-row'), info = document.getElementById('ck-tam-info');
+                if (row) { row.hidden = !n; if (n) { document.getElementById('ck-tam-label').textContent = 'Biaya tambahan (' + window.tamOngkirAlasan() + ')'; document.getElementById('ck-tam-nilai').textContent = rp(n); } }
+                if (info) {
+                    info.hidden = !n; info.textContent = '';
+                    if (n) {
+                        const ik = document.createElement('span'); ik.className = 'ik'; ik.setAttribute('aria-hidden', 'true'); ik.textContent = /hujan/i.test(t.alasan) ? '🌧' : 'ℹ️';
+                        const d = document.createElement('div'); const b = document.createElement('b'); b.textContent = 'Ada tambahan ongkir ' + rp(n);
+                        d.append(b, document.createTextNode('Karena ' + window.tamOngkirAlasan() + '. Terima kasih sudah memaklumi ya kak 🙏'));
+                        info.append(ik, d);
+                    }
+                }
+            };
+            // Ngojek / Antar barang / Mobil: harga rute ditambah (pembungkus paling luar calculatePrice)
+            function pasangHarga() {
+                const asli = window.calculatePrice;
+                if (typeof asli !== 'function' || asli.__tam) return;
+                const baru = function () {
+                    const r = asli.apply(this, arguments);
+                    try {
+                        const k = typeof window.__svcKeadaan === 'function' ? window.__svcKeadaan() : null, n = window.tamOngkir();
+                        if (k && Number(k.harga) > 0 && n > 0 && typeof window.__svcAturHarga === 'function') window.__svcAturHarga(Number(k.harga) + n);
+                    } catch (e) {}
+                    return r;
+                };
+                baru.__tam = true; baru.__oto = !!asli.__oto;
+                window.calculatePrice = baru;
+            }
+            function catatanRute() {
+                const harga = document.getElementById('summary-price'); if (!harga) return;
+                let c = document.getElementById('tam-svc-note');
+                const n = window.tamOngkir();
+                if (!n) { if (c) c.remove(); return; }
+                if (!c) { c = document.createElement('div'); c.id = 'tam-svc-note'; c.className = 'tam-svc-note'; c.setAttribute('role', 'status'); harga.insertAdjacentElement('afterend', c); }
+                const tx = (/hujan/i.test(t.alasan) ? '🌧 ' : '') + 'Termasuk tambahan ' + rp(n) + ' (' + window.tamOngkirAlasan() + ')';
+                if (c.textContent !== tx) c.textContent = tx;
+            }
+            // harga rute yang sudah tampil dihitung ulang kalau pengaturan berubah
+            let tamLama = -1;
+            function segarkan() {
+                const n = window.tamOngkir();
+                try { window.tamGambarCheckout(); } catch (e) {}
+                try { if (typeof window.updateCheckoutTotal === 'function' && document.getElementById('checkout-final-total')) window.updateCheckoutTotal(); } catch (e) {}
+                if (tamLama !== -1 && n !== tamLama) {
+                    try {
+                        const k = typeof window.__svcKeadaan === 'function' ? window.__svcKeadaan() : null;
+                        if (k && Number(k.jarak) > 0 && Number(k.harga) > 0) { window.calculatePrice(Number(k.jarak)); const el = document.getElementById('summary-price'); if (el) el.innerText = 'Rp ' + Number(window.__svcKeadaan().harga).toLocaleString('id-ID'); }
+                    } catch (e) {}
+                }
+                tamLama = n;
+                catatanRute();
+            }
+            onSnapshot(doc(db, 'atur_publik', 'tambahan_ongkir'), (s) => {
+                const d = s.exists() ? s.data() : {};
+                t = { aktif: d.aktif === true, nominal: Number.isInteger(d.nominal) ? d.nominal : 0, alasan: bersih(d.alasan) };
+                segarkan();
+            }, () => {});
+            pasangHarga();
+            setTimeout(pasangHarga, 1500); setTimeout(pasangHarga, 5000);
+            setInterval(catatanRute, 1200);
+        })();
+    </script>
 </body>
 
 </html>
