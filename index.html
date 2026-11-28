@@ -10761,6 +10761,7 @@ body.gm-terkunci { overflow: hidden; }
                             <div id="ui-ongkir-real-express" style="font-size:15px; font-weight:800; color:var(--dark);">…</div>
                         </div>
                     </div>
+                    <div class="ck-express-info"><i class="ph-fill ph-lightning" aria-hidden="true"></i><div><b>Semua pengantaran ProjekGo pasti Express</b>Langsung diantar, 1 rider untuk 1 pelanggan, jadi lebih cepat. Ongkirnya juga lebih murah ± Rp5.000 dibanding ongkir express aplikasi pesan antar lain (harga yang dicoret).</div></div>
                     <div class="ck-op mati">
                         <i class="ph-bold ph-truck" style="font-size:22px; color:#888; flex-shrink:0;"></i>
                         <div style="flex:1; min-width:0;">
@@ -11547,8 +11548,9 @@ body.gm-terkunci { overflow: hidden; }
                 const uiCoretReguler = document.getElementById('ui-ongkir-coret-reguler');
                 const uiCoretHemat = document.getElementById('ui-ongkir-coret-hemat');
 
-                const fakeReguler = totalOngkir + 5000; // Harga Reguler normal
-                const fakeExpress = fakeReguler + 4000; // Harga Coret Express dibuat lebih besar dari Reguler
+                const fakeReguler = totalOngkir + 5000; // Harga Reguler normal (opsi Reguler disembunyikan 28 Nov 2026)
+                // (28 Nov 2026) harga coret = ongkir express aplikasi pesan antar lain (menurut ProjekGo selisihnya ± Rp5.000 per pesanan)
+                const fakeExpress = totalOngkir + window.CK_SELISIH_APP_LAIN;
                 const fakeHemat = totalOngkir + 1000;   // Harga Hemat
 
                 if (uiRealExpress) {
@@ -11656,7 +11658,7 @@ body.gm-terkunci { overflow: hidden; }
                 const t = document.getElementById('checkout-ongkir-text');
                 if (t) {
                     t.textContent = 'Rp ' + window.checkoutOngkir.toLocaleString('id-ID');
-                    if (k === 'express') { const c = document.createElement('span'); c.style.cssText = 'font-size:12px; color:#aaa; text-decoration:line-through; margin-left:6px;'; c.textContent = 'Rp ' + (dasar + 9000).toLocaleString('id-ID'); t.append(' ', c); }
+                    if (k === 'express') { const c = document.createElement('span'); c.style.cssText = 'font-size:12px; color:#aaa; text-decoration:line-through; margin-left:6px;'; c.textContent = 'Rp ' + (dasar + window.CK_SELISIH_APP_LAIN).toLocaleString('id-ID'); t.append(' ', c); }
                 }
             }
             window.ckGambarLayanan();
@@ -11685,9 +11687,9 @@ body.gm-terkunci { overflow: hidden; }
             try { if (typeof window.tamGambarCheckout === 'function') window.tamGambarCheckout(); } catch (e) {}
             if(window.checkoutLocMode === 'maps') {
                 finalTotal += window.checkoutOngkir;
-                // Berdasarkan perhitungan Express (Ongkir Normal = Total Ongkir + 9000 harga coret)
+                // (28 Nov 2026) hemat ongkir = selisih dengan ongkir express aplikasi pesan antar lain
                 if (window.checkoutOngkir > 0 && (window.checkoutLayanan || 'express') === 'express') {
-                    ongkirSavings = 9000;
+                    ongkirSavings = window.CK_SELISIH_APP_LAIN;
                 }
             }
             
@@ -12244,7 +12246,7 @@ body.gm-terkunci { overflow: hidden; }
             let foodSavings = window.hitungHematPromo(cart).total;
             let ongkirSavings = 0;
             if (orderMode !== 'dine_in' && window.checkoutLocMode === 'maps' && window.checkoutOngkir > 0) {
-                ongkirSavings = 9000;
+                ongkirSavings = window.CK_SELISIH_APP_LAIN;   // (28 Nov 2026)
             }
             let totalSavings = foodSavings + ongkirSavings;
 
@@ -22232,6 +22234,17 @@ body.gm-terkunci { overflow: hidden; }
     .pc-kontak-a { display: flex; align-items: center; justify-content: center; min-height: 38px; border-radius: 10px; border: 1.5px solid #E6D9CB; background: #FFFFFF; color: #1C1C1E !important; font-size: 13px; font-weight: 800; text-decoration: none !important; white-space: nowrap; }
     .pc-kontak-a.wa { background: #12895E; border-color: #12895E; color: #FFFFFF !important; }
 </style>
+<style id="gaya-express-28nov">
+    /* (28 Nov 2026) pengantaran ProjekGo selalu Express: opsi Reguler & Hemat (belum tersedia) disembunyikan */
+    .ck-sec .ck-op.mati { display: none !important; }
+    .ck-express-info { display: flex; gap: 10px; align-items: flex-start; margin-top: 2px; background: #FFF7ED; border: 1px solid #FED7AA; border-radius: 12px; padding: 10px 12px; font-size: 12px; line-height: 1.45; color: #7C2D12; }
+    .ck-express-info i { font-size: 18px; color: #FF8F00; flex: none; margin-top: 1px; }
+    .ck-express-info b { display: block; font-size: 13px; color: #9A3412; margin-bottom: 2px; }
+</style>
+<script>
+    // (28 Nov 2026) selisih ongkir express ProjekGo vs aplikasi pesan antar lain (dipakai untuk harga coret & angka hemat)
+    window.CK_SELISIH_APP_LAIN = 5000;
+</script>
 </body>
 
 </html>
