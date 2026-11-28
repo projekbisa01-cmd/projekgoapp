@@ -6154,6 +6154,7 @@ body.gm-terkunci { overflow: hidden; }
         // Memakai jadwal yang sama dengan isVendorOpenNow. Hasil: { menit, jam } atau null.
         window.menitSampaiTutup = (vendor) => {
             if (!vendor || window.isVendorOpenNow(vendor) !== true) return null;
+            if (vendor.is_admin_managed !== true) return null;   // (28 Nov 2026) warung mitra tidak pakai jam tutup
             const now = new Date();
             const wib = new Date(now.getTime() + now.getTimezoneOffset() * 60000 + 7 * 3600000);
             const kini = wib.getHours() * 60 + wib.getMinutes();
@@ -6226,6 +6227,9 @@ body.gm-terkunci { overflow: hidden; }
                 const manual = vendor.status_asli !== undefined ? vendor.status_asli : vendor.status;
                 if (String(manual || 'BUKA').toUpperCase() === 'TUTUP') return false;
             }
+            // (28 Nov 2026) Warung mitra (pakai aplikasi seller): buka/tutup HANYA dari tombol BUKA/TUTUP di aplikasi seller.
+            // Jam & hari buka tidak dipakai lagi. Jadwal tetap berlaku untuk warung Buku Menu (dikelola admin).
+            if (vendor.is_admin_managed !== true) return true;
             
             // Dapatkan jam pengguna saat ini dan sesuaikan ke WIB (UTC+7)
             const now = new Date();
@@ -14756,6 +14760,10 @@ body.gm-terkunci { overflow: hidden; }
                 }
             });
 
+            // (28 Nov 2026) warung mitra yang TUTUP (tombol di aplikasi seller) tidak ditampilkan sama sekali.
+            // Warung Buku Menu (dikelola admin) tetap tampil seperti biasa (abu-abu kalau di luar jam buka).
+            currentDisplayVendors = currentDisplayVendors.filter(v => v.is_admin_managed === true || warungSedangBuka(v));
+
             /* --- MODIFIKASI: HANYA AMBIL ID WARUNG YANG BUKA UNTUK BERANDA --- */
             // Warung dianggap buka hanya kalau tombolnya BUKA DAN sedang dalam jam operasionalnya,
             // jadi menu dari warung yang tutup tidak muncul di kontainer kartu menu mana pun.
@@ -16946,6 +16954,15 @@ body.gm-terkunci { overflow: hidden; }
                 const t = el('div'); t.append(el('b', '', p.kontak_nama || 'Kontak'), el('span', '', p.kontak_nomor));
                 k.append(el('span', 'pc-kontak-av', inisial(p.kontak_nama)), t);
                 b.append(k, el('span', 'pc-kontak-c', saya ? 'Kontak dikirim ke admin' : 'Kontak dari admin'));
+                // (28 Nov 2026) kontak dari admin: bisa langsung chat WhatsApp / telepon
+                const angka = String(p.kontak_nomor).replace(/[^0-9]/g, '');
+                if (!saya && /^[0-9]{6,16}$/.test(angka)) {
+                    const wa = angka.startsWith('0') ? '62' + angka.slice(1) : angka;
+                    const tb = el('div', 'pc-kontak-tb');
+                    const a1 = el('a', 'pc-kontak-a wa', 'Chat WhatsApp'); a1.href = 'https://wa.me/' + wa; a1.target = '_blank'; a1.rel = 'noopener noreferrer';
+                    const a2 = el('a', 'pc-kontak-a', 'Telepon'); a2.href = 'tel:+' + wa;
+                    tb.append(a1, a2); b.appendChild(tb);
+                }
             } else if (p.jenis === 'pesanan') {
                 b.classList.add('pc-psn');
                 const k = el('div', 'pc-psn-k');
@@ -21846,16 +21863,33 @@ body.gm-terkunci { overflow: hidden; }
             }
             muatAtur(); setInterval(muatAtur, 5 * 60 * 1000);
 
+            /* ---------- (28 Nov 2026) warung ikut = dinyalakan sendiri di aplikasi seller + aplikasinya terbuka ---------- */
+            // pesanan_food_warung/{vid}: { ikut, email, online_at }. Dicek ulang di server; di sini hanya untuk tombol.
+            const ONLINE_MS = 15 * 60 * 1000;
+            let wVid = '', wData = null, wHenti = null;
+            const wMati = {};   // vid -> waktu server menolak karena aplikasi warung tidak aktif (jalan admin 5 menit)
+            function warungSiap(vid) {
+                if (vid !== wVid) {
+                    if (wHenti) { try { wHenti(); } catch (e) {} wHenti = null; }
+                    wVid = vid; wData = null;
+                    try { wHenti = onSnapshot(doc(db, 'pesanan_food_warung', vid), (s) => { wData = s.exists() ? s.data() : {}; }, () => { wData = {}; }); } catch (e) { wData = {}; }
+                }
+                if (!wData || wData.ikut !== true) return false;
+                if (wMati[vid] && Date.now() - wMati[vid] < 5 * 60 * 1000) return false;
+                return Date.now() - ms(wData.online_at) < ONLINE_MS;
+            }
+
             /* ---------- syarat pesan langsung ---------- */
             function cekSyarat() {
                 const k = typeof window.pfkKeranjang === 'function' ? window.pfkKeranjang() : null;
-                if (!k || !atur || atur.aktif !== true || !Array.isArray(atur.warung)) return { ok: false };
+                if (!k || !atur || atur.aktif !== true) return { ok: false };
                 if (!k.cart.length || k.orderMode === 'dine_in') return { ok: false };
                 const vids = new Set();
                 for (const it of k.cart) { const p = k.rawProducts.find((x) => x.id === it.id); if (!p || !p.vendor_id) return { ok: false }; vids.add(p.vendor_id); }
                 if (vids.size !== 1) return { ok: false };
                 const vid = [...vids][0];
-                if (!atur.warung.includes(vid)) return { ok: false };
+                if (Array.isArray(atur.warung_blokir) && atur.warung_blokir.includes(vid)) return { ok: false };
+                if (!warungSiap(vid)) return { ok: false };
                 const v = k.allVendors.find((x) => x.id === vid);
                 const dest = window.__pfkTujuan, jarak = Number(window.__pfkJarak) || 0;
                 const titikOk = window.checkoutLocMode === 'maps' && dest && typeof dest.lat === 'number' && jarak > 0 && (Number(window.checkoutOngkir) || 0) > 0;
@@ -21951,6 +21985,7 @@ body.gm-terkunci { overflow: hidden; }
                     const pesanGalat = e && e.message && e.code && String(e.code).indexOf('functions/') === 0 && e.code !== 'functions/internal' ? e.message : 'Pesanan belum terkirim. Periksa internet lalu coba lagi.';
                     tost(pesanGalat);
                     const kode = e && e.details && e.details.kode;
+                    if (kode === 'offline' || kode === 'warung') wMati[s.vid] = Date.now();   // (28 Nov 2026) tombol kembali ke jalur admin
                     if (kode === 'profil' && typeof window.openPage === 'function') setTimeout(() => window.openPage('profile'), 800);
                 } finally { b.disabled = false; pasangTombol(); }
             }
@@ -22191,6 +22226,12 @@ body.gm-terkunci { overflow: hidden; }
             setInterval(catatanRute, 1200);
         })();
     </script>
+<style id="gaya-kontak-admin-28nov">
+    /* (28 Nov 2026) tombol di kartu kontak yang dikirim admin */
+    .pc-kontak-tb { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+    .pc-kontak-a { display: flex; align-items: center; justify-content: center; min-height: 38px; border-radius: 10px; border: 1.5px solid #E6D9CB; background: #FFFFFF; color: #1C1C1E !important; font-size: 13px; font-weight: 800; text-decoration: none !important; white-space: nowrap; }
+    .pc-kontak-a.wa { background: #12895E; border-color: #12895E; color: #FFFFFF !important; }
+</style>
 </body>
 
 </html>
