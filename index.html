@@ -18173,6 +18173,31 @@ body.gm-terkunci { overflow: hidden; }
         }
         // (26 Nov 2026) pesanan food langsung ke warung (PFxxx) ikut tampil di "Berjalan"; diketuk = layar lacak PF
         const PF_LABEL = { cek: 'Pesanan sedang dicek admin', ke_warung: 'Menunggu warung menerima pesanan', dibuat: 'Warung sedang membuat pesananmu 👨‍🍳', siap: 'Pesanan siap, sebentar lagi diambil rider', diantar: 'Pesanan sedang diantar 🛵', ditolak: 'Warung belum bisa memproses · ketuk untuk solusi' };
+        // (28 Nov 2026) kartu RIWAYAT pesanan food (selesai / dibatalkan) — diketuk = layar lacak PF
+        function kartuPfRiwayat(o) {
+            const batal = o.status === 'batal';
+            const b = el('div', 'ktv-kartu' + (batal ? ' abu' : '')); b.setAttribute('role', 'button'); b.tabIndex = 0;
+            b.setAttribute('aria-label', 'Food ' + (o.kode || '') + ', ' + (o.vendor_nama || '') + ', ' + (batal ? 'Dibatalkan' : 'Selesai'));
+            const atas = el('div', 'ktv-atas');
+            const ik = el('span', 'ktv-ik food', '🍲'); ik.setAttribute('aria-hidden', 'true');
+            const tg = el('div', 'ktv-tengah');
+            const jd = el('b'); jd.append(el('span', 'pfk-kode-k', o.kode || 'PF'), document.createTextNode(' · ' + (o.vendor_nama || 'Warung')));
+            const t = ms(o.dibuat_at);
+            tg.append(jd, el('span', '', t ? tglPendek(t) : 'Food langsung ke warung'));
+            const kn = el('div', 'ktv-rw-kanan');
+            if (o.total) kn.appendChild(el('b', '', rp(o.total)));
+            kn.appendChild(el('span', 'ktv-st ' + (batal ? 'batal' : 'selesai'), batal ? 'Dibatalkan' : 'Selesai'));
+            atas.append(ik, tg, kn); b.appendChild(atas);
+            const bw = el('div', 'ktv-rw-b'), bt = o.batal || {};
+            const ket = batal ? ((bt.alasan ? 'Alasan: ' + bt.alasan : (bt.oleh === 'pelanggan' ? 'Kamu membatalkan pesanan ini' : 'Pesanan dibatalkan admin')))
+                : (o.rider_nama ? '👤 ' + o.rider_nama : 'Pesanan sudah sampai');
+            bw.append(el('small', '', String(ket).slice(0, 200)), el('span', 'ktv-rw-mini', 'Lihat ›'));
+            b.appendChild(bw);
+            const buka = () => { if (typeof window.pfkBukaStatus === 'function') window.pfkBukaStatus(o.id); };
+            b.onclick = buka;
+            b.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); buka(); } };
+            return b;
+        }
         function kartuPf(o) {
             const buka = () => { if (typeof window.pfkBukaStatus === 'function') window.pfkBukaStatus(o.id); };
             const b = el('div', 'ktv-kartu'); b.setAttribute('role', 'button'); b.tabIndex = 0;
@@ -18212,8 +18237,14 @@ body.gm-terkunci { overflow: hidden; }
                 frag.appendChild(el('div', 'ktv-kosong', 'Memuat pesanan...'));
             } else {
                 const isi = tab === 'jalan' ? jalan : riwayat;
+                const pfR = tab === 'riwayat' && typeof window.pfkDaftarRiwayat === 'function' ? window.pfkDaftarRiwayat() : [];
                 if (tab === 'jalan') pf.forEach((o) => frag.appendChild(kartuPf(o)));
-                if (!isi.length && tab === 'jalan' && pf.length) { /* hanya pesanan food PF */ }
+                if (pfR.length) {
+                    // (28 Nov 2026) riwayat food digabung dengan riwayat lain, urut dari yang terbaru
+                    const gabung = isi.map((a) => ({ t: a.t || 0, k: () => kartu(a, false) })).concat(pfR.map((o) => ({ t: ms(o.dibuat_at), k: () => kartuPfRiwayat(o) })));
+                    gabung.sort((x, y) => y.t - x.t).forEach((x) => frag.appendChild(x.k()));
+                }
+                else if (!isi.length && tab === 'jalan' && pf.length) { /* hanya pesanan food PF */ }
                 else if (!isi.length) {
                     const k = el('div', 'ktv-kosong');
                     k.append(el('div', 'ktv-ik', tab === 'jalan' ? '🛵' : '🧾'), el('b', '', tab === 'jalan' ? 'Belum ada pesanan berjalan' : 'Belum ada riwayat'),
@@ -18320,7 +18351,7 @@ body.gm-terkunci { overflow: hidden; }
         }
         if ($('ktv-tab-jalan')) {
             $('ktv-tab-jalan').onclick = () => { tab = 'jalan'; gambarDaftar(); };
-            $('ktv-tab-riwayat').onclick = () => { tab = 'riwayat'; gambarDaftar(); };
+            $('ktv-tab-riwayat').onclick = () => { tab = 'riwayat'; gambarDaftar(); try { if (typeof window.pfkMuatRiwayat === 'function') window.pfkMuatRiwayat(false); } catch (e) {} };
         }
         window.ktvSaatHalaman = (name) => {
             if (name === 'aktivitas') { const n = $('nav-aktivitas'); if (n) n.classList.add('active'); gambarDaftar(); }
@@ -21844,7 +21875,7 @@ body.gm-terkunci { overflow: hidden; }
     <script type="module">
         import { getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, doc, getDoc, onSnapshot, query, where, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, getDoc, getDocs, onSnapshot, query, where, limit, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         (function pesanFoodLangsung() {
             let app; try { app = getApp(); } catch (e) { return; }
             const auth = getAuth(app), db = getFirestore(app);
@@ -22137,11 +22168,39 @@ body.gm-terkunci { overflow: hidden; }
                 bar.append(el('span', '', '🍲 '), el('b', '', o.kode)); bar.lastChild.after(document.createTextNode(' ')); const s = el('span', '', (o.vendor_nama || '') + ' · ' + label); bar.appendChild(s); bar.appendChild(el('em', '', 'Lihat'));
                 bar.onclick = () => bukaStatus(o.id);
             }
+            /* ---------- (28 Nov 2026) RIWAYAT pesanan food: selesai & dibatalkan, 30 hari terakhir ----------
+               Dibaca sekali (bukan dipantau terus) saat masuk, saat tab Riwayat dibuka (maks 1x per menit),
+               dan saat ada pesanan berjalan yang berakhir. Hanya pesanan milik akun ini (dicek juga oleh rules). */
+            const AKHIR = ['selesai', 'batal'];
+            let riwayatPf = {}, riwayatAt = 0, riwayatJalan = false;
+            const tglWibPf = (m) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date(m));
+            async function muatRiwayat(paksa) {
+                if (!uid || riwayatJalan) return;
+                if (!paksa && Date.now() - riwayatAt < 60000) return;
+                riwayatJalan = true; const u = uid;
+                try {
+                    const hari = []; for (let i = 0; i < 30; i++) hari.push(tglWibPf(Date.now() - i * 864e5));
+                    let s;
+                    try { s = await getDocs(query(collection(db, 'pesanan_food'), where('pelanggan_uid', '==', u), where('tgl', 'in', hari))); }
+                    catch (e1) { s = await getDocs(query(collection(db, 'pesanan_food'), where('pelanggan_uid', '==', u), where('status', 'in', AKHIR), limit(40))); }   // cadangan
+                    if (u !== uid) return;
+                    const baru = {};
+                    s.forEach((d) => { if (!ID_OK.test(d.id)) return; const x = d.data() || {}; if (AKHIR.includes(x.status)) baru[d.id] = Object.assign({ id: d.id }, x); });
+                    riwayatPf = baru; riwayatAt = Date.now();
+                    try { if (typeof window.ktvGambarUlang === 'function') window.ktvGambarUlang(); } catch (e) {}
+                } catch (e) { console.warn('[Pesanan food] riwayat', e && e.code); }
+                finally { riwayatJalan = false; }
+            }
+            window.pfkDaftarRiwayat = () => Object.values(riwayatPf).sort((a, b) => ms(b.dibuat_at) - ms(a.dibuat_at));
+            window.pfkMuatRiwayat = muatRiwayat;
             function mulai() {
                 berhenti();
+                muatRiwayat(true);
                 henti = onSnapshot(query(collection(db, 'pesanan_food'), where('pelanggan_uid', '==', uid), where('status', 'in', AKTIF)), (s) => {
                     const baru = {};
                     s.forEach((d) => { if (ID_OK.test(d.id)) baru[d.id] = Object.assign({ id: d.id }, d.data()); });
+                    // pesanan berjalan yang hilang dari daftar = sudah selesai / dibatalkan -> riwayat dibaca ulang
+                    if (Object.keys(aktif).some((id) => !baru[id])) setTimeout(() => muatRiwayat(true), 1500);
                     Object.values(baru).forEach((o) => {
                         const lama = statusLama[o.id];
                         if (lama && lama !== o.status && KABAR[o.status]) { tost(KABAR[o.status] + ' (' + o.kode + ')'); try { if (navigator.vibrate) navigator.vibrate(o.status === 'ditolak' ? [300, 120, 300] : 200); } catch (e) {} }
@@ -22150,7 +22209,7 @@ body.gm-terkunci { overflow: hidden; }
                     aktif = baru; gambarBar();
                 }, (e) => console.warn('[Pesanan food] baca', e && e.code));
             }
-            function berhenti() { if (henti) { try { henti(); } catch (e) {} henti = null; } aktif = {}; gambarBar(); }
+            function berhenti() { if (henti) { try { henti(); } catch (e) {} henti = null; } aktif = {}; riwayatPf = {}; riwayatAt = 0; gambarBar(); }
             onAuthStateChanged(auth, (u) => {
                 const ok = u && !u.isAnonymous && u.providerData.some((p) => p.providerId === 'google.com');
                 const baru = ok ? u.uid : '';
