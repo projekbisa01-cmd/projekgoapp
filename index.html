@@ -17905,6 +17905,7 @@ body.gm-terkunci { overflow: hidden; }
                     return {
                         kode: d.id, jenis: JENIS[x.jenis] ? x.jenis : 'lain', judul: String(x.judul || '').slice(0, 60), pesanan: String(x.pesanan || '').slice(0, 1500),
                         fee: Number(x.fee) || 0, tambahan: Number(x.tambahan) || 0, chat: x.chat === true, lewat: x.lewat === 'wa' ? 'wa' : 'chat',
+                        pf: x.lewat === 'pf',   // (28 Nov 2026) pesanan food PF: hanya untuk chat rider (kartunya sudah tampil sebagai kartu PF)
                         oto: x.lewat === 'otomatis', oid: String(x.order_id || ''),   // (18 Nov 2026) order otomatis -> tampilan lacak baru
                         riderNama: x.rider_nama ? String(x.rider_nama).slice(0, 60) : '', akhir: ['selesai', 'batal'].includes(x.akhir) ? x.akhir : '', akhir_at: x.akhir_at || null,
                         alasan: typeof (x.batal_alasan || x.alasan_batal) === 'string' ? String(x.batal_alasan || x.alasan_batal).slice(0, 200) : '',   // (19 Nov 2026) opsional
@@ -18195,7 +18196,7 @@ body.gm-terkunci { overflow: hidden; }
         window.ktvGambarUlang = () => { try { gambarLencana(); gambarBeranda(); const p = $('page-aktivitas'); if (p && p.style.display !== 'none') gambarDaftar(); } catch (e) {} };
         function gambarDaftar() {
             const w = $('ktv-daftar'); if (!w) return;
-            const jalan = akt.filter(berjalan), riwayat = akt.filter((a) => !berjalan(a));
+            const jalan = akt.filter((a) => !a.pf && berjalan(a)), riwayat = akt.filter((a) => !a.pf && !berjalan(a));
             const pf = typeof window.pfkDaftarAktif === 'function' ? window.pfkDaftarAktif() : [];
             const n = $('ktv-n-jalan'); if (n) { const nn = jalan.length + pf.length; n.textContent = String(nn); n.hidden = nn === 0; }
             $('ktv-tab-jalan').setAttribute('aria-selected', String(tab === 'jalan'));
@@ -18269,7 +18270,7 @@ body.gm-terkunci { overflow: hidden; }
         function gambarBeranda() {
             try { gambarAjakUlasan(); } catch (e) {}
             const w = $('ktv-beranda'); if (!w) return;
-            const jalan = akt.filter(berjalan);
+            const jalan = akt.filter((a) => !a.pf && berjalan(a));
             const pf = typeof window.pfkDaftarAktif === 'function' ? window.pfkDaftarAktif() : [];   // (26 Nov 2026) PF ikut
             const nAll = jalan.length + pf.length;
             w.hidden = !nAll;
@@ -18282,7 +18283,7 @@ body.gm-terkunci { overflow: hidden; }
             w.replaceChildren(jdl, pf.length ? kartuPf(pf[0]) : kartu(jalan[0], true));
         }
         function gambarLencana() {
-            const nJalan = akt.filter(berjalan).length + (typeof window.pfkDaftarAktif === 'function' ? window.pfkDaftarAktif().length : 0);
+            const nJalan = akt.filter((a) => !a.pf && berjalan(a)).length + (typeof window.pfkDaftarAktif === 'function' ? window.pfkDaftarAktif().length : 0);
             const nav = $('ktv-badge');
             if (nav) { nav.textContent = nJalan > 9 ? '9+' : String(nJalan); nav.style.display = nJalan > 0 ? 'flex' : 'none'; }
             // Ajakan di layar chat admin: ada chat rider yang aktif
@@ -21421,9 +21422,10 @@ body.gm-terkunci { overflow: hidden; }
                 const al = $('oto-lk-alasan'); while (al.firstChild) al.removeChild(al.firstChild);
                 al.hidden = tahap !== 'batal';
                 if (tahap === 'batal') {
-                    al.appendChild(document.createTextNode(o.status === 'dibatalkan' ? (o.batal_oleh === 'rider' ? 'Pesanan dibatalkan rider' : 'Pesanan kamu batalkan') : 'Pesanan dibatalkan'));
+                    al.appendChild(document.createTextNode(o.status === 'dibatalkan' ? (o.batal_oleh === 'rider' ? 'Pesanan dibatalkan rider' : o.batal_oleh === 'admin' ? 'Pesanan dibatalkan admin' : 'Pesanan kamu batalkan') : 'Pesanan dibatalkan'));
                     if (o.batal_alasan) al.appendChild(el('small', '', 'Alasan: ' + String(o.batal_alasan).slice(0, 200)));
                     if (o.batal_oleh === 'rider') al.appendChild(el('small', '', 'Silakan pesan lagi, kami carikan rider lain.'));
+                    else if (o.batal_oleh === 'admin') al.appendChild(el('small', '', 'Ada pertanyaan? Chat admin ProjekGo di menu Chat.'));
                 }
                 $('oto-lk-batalw').hidden = !(o.status === 'diterima' && (tahap === 'menuju' || tahap === 'lokasi'));
                 const teks = { cari: 'Mencari rider terdekat…', menuju: ojek ? 'Rider menuju lokasi jemput' : 'Rider menuju lokasi pengambilan', lokasi: 'Rider sudah di lokasi',
@@ -22063,9 +22065,19 @@ body.gm-terkunci { overflow: hidden; }
                     if (['cek', 'ke_warung'].includes(o.status)) {
                         const b = el('button', 'pfk-btn mr', 'Batalkan pesanan'); b.type = 'button'; b.addEventListener('click', () => batal()); w.appendChild(b);
                     } else if (['dibuat', 'siap', 'diantar'].includes(o.status)) {
-                        const k = el('div', 'pfk-k pfk-kecil'); k.appendChild(document.createTextNode('Batal hanya bisa lewat admin karena makanan sudah mulai dibuat. '));
-                        const a = el('button', '', 'Chat admin'); a.type = 'button'; a.style.cssText = 'border:0;background:none;color:#E8590C;font-weight:800;font-family:inherit;padding:0;cursor:pointer';
-                        a.addEventListener('click', () => { tutup(); if (window.openPage) window.openPage('chat'); }); k.appendChild(a); w.appendChild(k);
+                        // (28 Nov 2026) setelah warung mulai membuat: tidak ada tombol batal, yang ada chat dengan rider
+                        const kc = String(o.chat_kode || '');
+                        if (o.rider_nama && /^[A-Za-z0-9]{16}$/.test(kc) && typeof window.ktvBukaChatRider === 'function') {
+                            const c = el('button', 'pfk-btn or', '💬 Chat rider · ' + String(o.rider_nama).slice(0, 20)); c.type = 'button';
+                            c.addEventListener('click', () => { tutup(); window.ktvBukaChatRider(kc); });
+                            w.appendChild(c);
+                        } else if (o.rider_nama) {
+                            // pesanan lama (dibuat sebelum chat rider aktif): belum punya ruang chat rider
+                            const k = el('div', 'pfk-info', '🛵 Pesananmu dibawa ' + o.rider_nama + '. Ada kendala? Chat admin di menu Chat, nanti admin sampaikan ke rider.');
+                            w.appendChild(k);
+                        } else {
+                            w.appendChild(el('div', 'pfk-info', '💬 Tombol chat rider muncul di sini setelah rider ditemukan.'));
+                        }
                     }
                 }
                 // (26 Nov 2026) rincian dipisah per bagian: Pesanan · Diantar ke · Pembayaran
